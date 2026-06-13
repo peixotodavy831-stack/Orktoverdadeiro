@@ -1,0 +1,8 @@
+{
+  "name": "Orkto 1.0",
+  "description": "ORKTO é uma plataforma SaaS desenvolvida para transformar a forma como empresas criam, gerenciam e enviam orçamentos.\n\nSeu principal objetivo é reduzir o tempo entre o primeiro contato com o cliente e o envio da proposta comercial, permitindo que empresas respondam mais rápido, transmitam mais profissionalismo e aumentem suas taxas de conversão.\n\nCom uma interface moderna, minimalista e focada em produtividade, a ORKTO centraliza clientes, orçamentos e propostas em um único ambiente. Os usuários podem criar orçamentos em poucos minutos, gerar PDFs profissionais automaticamente e compartilhar propostas diretamente pelo WhatsApp com apenas alguns cliques.\n\nA plataforma foi projetada para atender pequenas e médias empresas, equipes comerciais, prestadores de serviço, construtoras, empresas de energia solar, marcenarias, vidraçarias e qualquer negócio que dependa de propostas comerciais para fechar vendas.\n\nA identidade da ORKTO é baseada em três pilares:\n\n• Velocidade\n• Profissionalismo\n• Conversão\n\nMais do que um gerador de orçamentos, a ORKTO funciona como uma ferramenta estratégica de vendas, ajudando empresas a responder primeiro, gerar confiança e conquistar mais clientes.\n\nSlogan:\n\n\"O orçamento antes da concorrência.\"\n\nVisão:\n\nTornar-se a principal plataforma de orçamentos e propostas comerciais da América Latina.\n\nMissão:\n\nCapacitar empresas a fechar mais negócios através de processos comerciais mais rápidos, profissionais e inteligentes.\n\nPromessa da marca:\n\n\"Enquanto a concorrência ainda está montando o orçamento, você já está fechando o negócio.\"",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
