@@ -553,7 +553,7 @@ export default function CreateQuote({
                         value={clientVehicleOrService}
                         onChange={(e) => setClientVehicleOrService(e.target.value)}
                         placeholder="Ex: Desenvolvimento Landing Page Premium & Branding"
-                        className="w-full pl-12 pr-4 py-3 bg-zinc-50 dark:bg-zinc-955 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:outline-none"
+                        className="w-full pl-12 pr-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500"
                       />
                     </div>
                   </div>

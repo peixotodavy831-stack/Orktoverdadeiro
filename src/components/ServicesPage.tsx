@@ -296,7 +296,7 @@ export default function ServicesPage({
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Ex: Consultoria Estratégica de Marca ou Desenvolvimento Web"
-                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-805 rounded-2xl text-sm focus:outline-none"
+                    className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500"
                     required
                   />
                 </div>

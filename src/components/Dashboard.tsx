@@ -24,6 +24,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Quote, SavedClient, UserProfile } from '../types';
 import { formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
 import OrktoLogo from './OrktoLogo';
+import { getAccessToken, googleSignIn } from '../lib/firebaseAuth';
+import { exportQuotesToSheets } from '../lib/workspaceApi';
 
 interface DashboardProps {
   userProfile: UserProfile | null;
@@ -34,6 +36,8 @@ interface DashboardProps {
   onLoadMocksClick?: () => void;
   onNavigateToTab?: (tab: 'landing' | 'auth' | 'dashboard' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics') => void;
 }
+
+import { MagnetizeButton } from './ui/magnetize-button';
 
 export default function Dashboard({ 
   userProfile, 
@@ -63,14 +67,24 @@ export default function Dashboard({
     try {
       setIsExporting(true);
       setSheetUrl(null);
-      // Simulate real interaction wait time
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // Generate a mock Google Sheets view URL
-      const mockSpreadsheetId = '1rkTO' + Math.random().toString(36).substring(2, 15).toUpperCase();
-      const url = `https://docs.google.com/spreadsheets/d/${mockSpreadsheetId}/edit`;
+      
+      let token = await getAccessToken();
+      if (!token) {
+        // Authenticate with Google on-demand if no cached token exists
+        const loginRes = await googleSignIn();
+        if (loginRes?.accessToken) {
+          token = loginRes.accessToken;
+        } else {
+          throw new Error('Conta Google não está conectada. Por favor, conecte-a para prosseguir.');
+        }
+      }
+
+      const url = await exportQuotesToSheets(token, quotes);
       setSheetUrl(url);
+      alert('Seus orçamentos foram sincronizados e exportados com sucesso para o Google Sheets!');
     } catch (err: any) {
       console.error(err);
+      alert('Falha na sincronização com o Google Sheets: ' + (err.message || err));
     } finally {
       setIsExporting(false);
     }
@@ -284,13 +298,15 @@ export default function Dashboard({
             />
           </div>
 
-          <button 
+          <MagnetizeButton 
             onClick={onCreateQuoteClick}
-            className="flex items-center justify-center gap-2 px-5 py-3 bg-[#FF9F1C] text-black font-extrabold rounded-xl text-xs hover:opacity-90 transition-all shadow-lg active:scale-95 cursor-pointer"
+            particleCount={10}
+            attractRadius={30}
+            className="flex items-center justify-center gap-2 px-5 py-3 min-w-0 h-auto bg-[#FF9F1C] border-none text-black font-extrabold rounded-xl text-xs hover:bg-[#FF9F1C] hover:opacity-90 dark:bg-[#FF9F1C] dark:hover:bg-[#FF9F1C] dark:text-black transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Nova proposta
-          </button>
+          </MagnetizeButton>
         </div>
       </header>
 
@@ -311,13 +327,14 @@ export default function Dashboard({
           </p>
         </div>
 
-        <button
+        <MagnetizeButton
           onClick={onCreateQuoteClick}
-          className="px-5 py-3 bg-[#FF9F1C]/10 hover:bg-[#FF9F1C]/25 border border-[#FF9F1C]/30 text-[#FF9F1C] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 self-start sm:self-auto shrink-0 cursor-pointer"
+          particleCount={8}
+          className="px-5 py-3 min-w-0 h-auto bg-[#FF9F1C]/10 hover:bg-[#FF9F1C]/25 border border-[#FF9F1C]/30 text-[#FF9F1C] dark:bg-[#FF9F1C]/10 dark:hover:bg-[#FF9F1C]/25 dark:text-[#FF9F1C] rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 active:scale-95 self-start sm:self-auto shrink-0 cursor-pointer"
         >
           Criar em 60 segundos
           <ArrowRight className="w-4 h-4" />
-        </button>
+        </MagnetizeButton>
       </div>
 
       {/* Onboarding Checklist & Usage Quotas (Goal Gradient Effect / Loss Aversion / Endowment Effect) */}
@@ -630,7 +647,7 @@ export default function Dashboard({
         </div>
 
         {/* Taxa de Conversão */}
-        <div className="bg-white/60 dark:bg-zinc-900/40 p-5 rounded-2xl border border-zinc-190 dark:border-zinc-805/60 shadow-sm relative overflow-hidden flex flex-col justify-between transition-all duration-300">
+        <div className="bg-white/60 dark:bg-zinc-900/40 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800/60 shadow-sm relative overflow-hidden flex flex-col justify-between transition-all duration-300">
           <div>
             <p className="text-[9px] font-bold text-zinc-550 dark:text-zinc-400 uppercase tracking-widest mb-1">Conversão</p>
             <p className="text-2xl font-black mt-1 text-zinc-900 dark:text-white">{stats.conversionRate}%</p>
@@ -641,7 +658,7 @@ export default function Dashboard({
       </div>
 
       {/* Seção Fechamento Rápido */}
-      <div className="mb-10 p-6 bg-zinc-100/50 dark:bg-zinc-900/30 border border-zinc-250 dark:border-zinc-850 rounded-3xl transition-colors">
+      <div className="mb-10 p-6 bg-zinc-100/50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-3xl transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-xs font-bold text-zinc-550 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 leading-none">
@@ -773,7 +790,7 @@ export default function Dashboard({
             </div>
 
             <div className="h-60 w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -843,7 +860,7 @@ export default function Dashboard({
                 {filteredQuotes.map(quote => (
                   <div key={quote.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#2B2B2B]/60 transition-all group">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#111111] rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-805 shrink-0">
+                      <div className="w-10 h-10 bg-[#111111] rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-800 shrink-0">
                         <Receipt className="w-4.5 h-4.5 text-[#FF9F1C]" />
                       </div>
                       <div className="min-w-0 space-y-1">

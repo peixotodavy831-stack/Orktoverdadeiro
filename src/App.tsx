@@ -24,7 +24,9 @@ import {
   FileText,
   BarChart3,
   HeartHandshake,
-  Plus
+  Plus,
+  CreditCard,
+  Coins
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, SavedClient, SavedService, UserProfile } from './types';
@@ -40,6 +42,7 @@ import ClientsPage from './components/ClientsPage';
 import OrktoLogo from './components/OrktoLogo';
 import ServicesPage from './components/ServicesPage';
 import SettingsPage from './components/SettingsPage';
+import BillingPage from './components/BillingPage';
 import AnalyticsPage from './components/AnalyticsPage';
 import QuotesPage from './components/QuotesPage';
 import TubelightNavbar from './components/ui/tubelight-navbar';
@@ -117,7 +120,7 @@ export default function App() {
   };
 
   // Navigation & Viewing states
-  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics'>('dashboard');
+  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing'>('dashboard');
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [duplicateQuoteSource, setDuplicateQuoteSource] = useState<Quote | null>(null);
   const [editQuoteSource, setEditQuoteSource] = useState<Quote | null>(null);
@@ -402,6 +405,49 @@ export default function App() {
     setCurrentView('dashboard');
   };
 
+  // Actual signed-in success handler
+  const handleSignInSuccess = async (emailVal?: string) => {
+    const userEmail = emailVal || 'contato@orkto.co';
+    const userName = userEmail.split('@')[0];
+    const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
+
+    setUser({
+      uid: 'mocked_orkto_user',
+      displayName: capitalizedName || 'Dono do Negócio',
+      email: userEmail
+    });
+
+    if (!userProfile) {
+      setUserProfile({
+        uid: 'mocked_orkto_user',
+        displayName: capitalizedName || 'Dono do Negócio',
+        email: userEmail,
+        photoURL: null,
+        createdAt: Timestamp.now(),
+        onboardingCompleted: true,
+        companyName: 'Orkto Premium Design Studio',
+        taxID: '14.502.836/0001-90',
+        whatsappNumber: '11999999999',
+        whatsappTemplate: 'Olá *[CLIENT_NAME]*, aqui está a proposta de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar os detalhes e aprovar:\n\n*[LINK]*',
+        paymentInfo: 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: ORKTO PRO SOLUTIONS LTDA',
+        quoteColor: '#ff9f1c',
+        address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
+        brandName: 'Orkto design',
+        brandTone: 'comercial',
+        profession: 'Design & Tecnologia',
+        activePlan: 'starter',
+        planPeriod: 'monthly'
+      });
+    } else {
+      setUserProfile({
+        ...userProfile,
+        uid: 'mocked_orkto_user',
+        email: userEmail
+      });
+    }
+    setCurrentView('dashboard');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white font-sans">
@@ -458,10 +504,17 @@ export default function App() {
         <div className="max-w-2xl w-full mx-auto bg-white text-zinc-950 border border-zinc-200/80 rounded-[32px] p-6 sm:p-8 shadow-2xl relative border-t-8" style={{ borderColor: publicQuoteUser?.quoteColor || '#FF9F1C' }}>
           
           <header className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8 pb-3 border-b border-zinc-100">
-            <div>
-              <h1 className="text-2xl font-display font-extrabold tracking-tight uppercase text-zinc-900">{publicQuoteUser?.companyName || 'Estabelecimento Autorizado'}</h1>
-              <p className="text-xs text-zinc-500 mt-1">{publicQuoteUser?.address}</p>
-              <p className="text-xs text-zinc-500 font-mono font-bold mt-1">Nº da Proposta: #{publicQuote.quoteNumber}</p>
+            <div className="space-y-3">
+              {publicQuoteUser?.companyLogo && (
+                <div className="h-10 max-w-[180px] flex items-center justify-start overflow-hidden">
+                  <img src={publicQuoteUser.companyLogo} alt={publicQuoteUser.companyName} className="max-h-full object-contain animate-fadeIn" referrerPolicy="no-referrer" />
+                </div>
+              )}
+              <div>
+                <h1 className="text-2xl font-display font-extrabold tracking-tight uppercase text-zinc-900">{publicQuoteUser?.companyName || 'Estabelecimento Autorizado'}</h1>
+                <p className="text-xs text-zinc-500 mt-1">{publicQuoteUser?.address}</p>
+                <p className="text-xs text-zinc-500 font-mono font-bold mt-1">Nº da Proposta: #{publicQuote.quoteNumber}</p>
+              </div>
             </div>
             
             <div className="text-left sm:text-right">
@@ -501,7 +554,7 @@ export default function App() {
               </div>
               <div className="flex items-center gap-2.5 text-xs">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                <span className="text-zinc-805 font-medium">Leitura e avaliação ativa do escopo técnico</span>
+                <span className="text-zinc-500 font-medium">Leitura e avaliação ativa do escopo técnico</span>
               </div>
               {publicQuote.status === 'approved' && (
                 <div className="flex items-center gap-2.5 text-xs">
@@ -779,7 +832,7 @@ export default function App() {
   if (currentView === 'auth' && !user) {
     return (
       <Auth 
-        onSignInSuccess={() => {}} 
+        onSignInSuccess={handleSignInSuccess} 
         isLoading={false} 
       />
     );
@@ -1096,6 +1149,14 @@ export default function App() {
               <SettingsIcon className="w-5 h-5" />
               <span>Config. da Empresa</span>
             </button>
+
+            <button 
+              onClick={() => { setCurrentView('billing'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'billing' ? 'bg-[#FF9F1C] text-black shadow-xl font-extrabold' : 'text-zinc-400 hover:bg-zinc-900/40 hover:text-white'}`}
+            >
+              <CreditCard className="w-5 h-5 shrink-0" />
+              <span>Pagar Orkto (Planos)</span>
+            </button>
           </nav>
         </div>
 
@@ -1124,7 +1185,7 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-3 bg-zinc-900/50 rounded-2xl flex items-center gap-2.5 mb-4">
+          <div className="p-3 bg-zinc-900/50 rounded-2xl flex items-center gap-2.5 mb-4 border border-zinc-900/50 hover:border-zinc-800 transition-all duration-300">
             <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-xs font-bold text-orange-400 font-mono">OK</div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-white truncate">{userProfile?.companyName || 'Dono do Negócio'}</p>
@@ -1134,10 +1195,10 @@ export default function App() {
           
           <button 
             onClick={() => { setUser(null); setUserProfile(null); setCurrentView('landing'); }}
-            className="w-full py-2.5 hover:bg-red-500/15 text-zinc-400 hover:text-red-400 rounded-xl transition-all font-bold text-xs flex items-center justify-center gap-2"
+            className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/40 text-red-400 hover:text-red-300 rounded-xl transition-all font-black text-xs flex items-center justify-center gap-2 shadow-sm shadow-red-950/20 active:scale-95 cursor-pointer"
           >
-            <LogOutIcon className="w-4 h-4 pr-0.5" />
-            Sair do App
+            <LogOutIcon className="w-4 h-4" />
+            Sair da Conta (Logout)
           </button>
         </div>
       </aside>
@@ -1150,7 +1211,7 @@ export default function App() {
             <OrktoLogo size="sm" showSlogan={false} onlyO={true} />
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setDarkMode(!darkMode)}
               className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-xl transition-all cursor-pointer"
@@ -1158,6 +1219,17 @@ export default function App() {
             >
               {darkMode ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
             </button>
+            
+            {/* Highly visible Logout Button directly on mobile header */}
+            <button 
+              onClick={() => { setUser(null); setUserProfile(null); setCurrentView('landing'); }}
+              className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 rounded-lg transition-all font-extrabold text-[10px] flex items-center gap-1.5 cursor-pointer active:scale-95"
+              title="Sair da Conta"
+            >
+              <LogOutIcon className="w-3.5 h-3.5 shrink-0" />
+              Sair
+            </button>
+
             <button 
               onClick={() => setIsSidebarOpen(true)}
               className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg"
@@ -1357,6 +1429,19 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <SettingsPage 
+                  userProfile={userProfile} 
+                  onProfileUpdated={(updatedProfile) => setUserProfile(updatedProfile)}
+                />
+              </motion.div>
+            )}
+
+            {currentView === 'billing' && (
+              <motion.div
+                key="billPage"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <BillingPage 
                   userProfile={userProfile} 
                   onProfileUpdated={(updatedProfile) => setUserProfile(updatedProfile)}
                 />

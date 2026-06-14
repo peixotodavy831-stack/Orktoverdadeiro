@@ -126,7 +126,7 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         
         {/* Potencial Acumulado */}
-        <div className="bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-805 flex flex-col justify-between h-36 relative overflow-hidden group">
+        <div className="bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between h-36 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <DollarSign className="w-16 h-16 text-white" />
           </div>
@@ -197,8 +197,8 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
               Faturamento Distribuído por Verticais (R$)
             </h3>
             
-            <div className="h-64 w-full mt-4">
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 300 }} className="mt-4">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={servicesData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#222" />
                   <XAxis dataKey="name" stroke="#666" fontSize={9} axisLine={false} tickLine={false} />
@@ -243,8 +243,8 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
               Funil de Propostas & Status
             </h3>
 
-            <div className="h-44 flex items-center justify-center relative">
-              <ResponsiveContainer width="100%" height="100%">
+            <div style={{ width: '100%', height: 300 }} className="flex items-center justify-center relative">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
                   <Pie
                     data={statusData}

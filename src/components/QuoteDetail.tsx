@@ -196,12 +196,19 @@ export default function QuoteDetail({
             
             {/* Header branding */}
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
-              <div>
-                <h2 className="text-xl font-display font-extrabold uppercase tracking-tight text-zinc-900 dark:text-white">
-                  {userProfile?.companyName || 'Sua Empresa'}
-                </h2>
-                <p className="text-xs text-zinc-400 mt-1">{userProfile?.address || 'Seu endereço comercial'}</p>
-                <p className="text-xs text-zinc-400">WhatsApp: {formatPhone(userProfile?.whatsappNumber || '11999999999')}</p>
+              <div className="space-y-3">
+                {userProfile?.companyLogo && (
+                  <div className="h-10 max-w-[180px] flex items-center justify-start overflow-hidden">
+                    <img src={userProfile.companyLogo} alt={userProfile.companyName} className="max-h-full object-contain" referrerPolicy="no-referrer" />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-display font-extrabold uppercase tracking-tight text-zinc-900 dark:text-white">
+                    {userProfile?.companyName || 'Sua Empresa'}
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-1">{userProfile?.address || 'Seu endereço comercial'}</p>
+                  <p className="text-xs text-zinc-400">WhatsApp: {formatPhone(userProfile?.whatsappNumber || '11999999999')}</p>
+                </div>
               </div>
               <div className="text-left sm:text-right">
                 <div className="flex sm:justify-end items-center gap-2 mb-2">

@@ -28,7 +28,7 @@ interface ShaderProps {
 
 interface SignInPageProps {
   className?: string;
-  onSignInSuccess: () => void;
+  onSignInSuccess: (email?: string) => void;
 }
       
 export const CanvasRevealEffect = ({
@@ -49,7 +49,7 @@ export const CanvasRevealEffect = ({
   reverse?: boolean;
 }) => {
   return (
-    <div className={cn("h-full relative w-full", containerClassName)}>
+    <div className={cn("h-full relative w-full pointer-events-none", containerClassName)} style={{ pointerEvents: 'none' }}>
       <div className="h-full w-full">
         <DotMatrix
           colors={colors ?? [[255, 159, 28]]}
@@ -248,18 +248,20 @@ const ShaderMaterial = ({
 
 const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => {
   return (
-    <Canvas className="absolute inset-0 h-full w-full">
-      <ShaderMaterial source={source} uniforms={uniforms} maxFps={maxFps} />
-    </Canvas>
+    <div className="absolute inset-0 h-full w-full pointer-events-none">
+      <Canvas className="absolute inset-0 h-full w-full pointer-events-none" style={{ pointerEvents: "none" }}>
+        <ShaderMaterial source={source} uniforms={uniforms} maxFps={maxFps} />
+      </Canvas>
+    </div>
   );
 };
 
 const AnimatedNavLink = ({ href, children }: { href: string; children: React.ReactNode }) => {
   return (
-    <a href={href} className="group relative inline-block overflow-hidden h-5 flex items-center text-sm">
-      <div className="flex flex-col transition-transform duration-400 ease-out transform group-hover:-translate-y-1/2">
-        <span className="text-zinc-500">{children}</span>
-        <span className="text-[#FF9F1C]">{children}</span>
+    <a href={href} className="group relative inline-block overflow-hidden h-5 flex items-center text-sm whitespace-nowrap shrink-0">
+      <div className="flex flex-col transition-transform duration-400 ease-out transform group-hover:-translate-y-1/2 whitespace-nowrap">
+        <span className="text-zinc-500 whitespace-nowrap leading-none">{children}</span>
+        <span className="text-[#FF9F1C] whitespace-nowrap leading-none">{children}</span>
       </div>
     </a>
   );
@@ -286,50 +288,18 @@ function MiniNavbar() {
     };
   }, [isOpen]);
 
-  const navLinksData = [
-    { label: 'Visão Geral', href: '#' },
-    { label: 'Serviços', href: '#' },
-    { label: 'Suporte', href: '#' },
-  ];
-
   return (
-    <header className={`fixed top-6 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center pl-6 pr-6 py-3 backdrop-blur-md ${headerShapeClass} border border-zinc-800 bg-[#111111]/70 w-[calc(100%-2rem)] sm:w-auto transition-[border-radius] duration-0 ease-in-out`}>
-      <div className="flex items-center justify-between w-full gap-x-6 sm:gap-x-8">
-        <div className="flex items-center">
+    <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-20 flex items-center px-6 py-3 backdrop-blur-md rounded-full border border-zinc-800 bg-[#111111]/70 w-[calc(100%-2rem)] sm:w-auto transition-all">
+      <div className="flex items-center justify-between w-full gap-x-6">
+        <div className="flex items-center shrink-0">
            <OrktoLogo size="sm" showSlogan={false} />
         </div>
 
-        <nav className="hidden sm:flex items-center space-x-4 sm:space-x-6 text-sm">
-          {navLinksData.map((link) => (
-            <AnimatedNavLink key={link.label} href={link.href}>
-              {link.label}
-            </AnimatedNavLink>
-          ))}
-        </nav>
-
-        <div className="hidden sm:flex items-center gap-2 sm:gap-3">
-          <button className="px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-zinc-950 bg-gradient-to-br from-[#FF9F1C] to-[#e88d0e] rounded-full hover:from-[#FF9F1C] hover:to-[#ffa933] transition-all duration-200">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <button className="px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-zinc-950 bg-gradient-to-br from-[#FF9F1C] to-[#e88d0e] rounded-full hover:from-[#FF9F1C] hover:to-[#ffa933] transition-all duration-200 whitespace-nowrap">
             Adquirir Cota
           </button>
         </div>
-
-        <button className="sm:hidden flex items-center justify-center w-8 h-8 text-zinc-300 focus:outline-none" onClick={toggleMenu}>
-          {isOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-          )}
-        </button>
-      </div>
-
-      <div className={`sm:hidden flex flex-col items-center w-full transition-all ease-in-out duration-300 overflow-hidden ${isOpen ? 'max-h-[1000px] opacity-100 pt-4' : 'max-h-0 opacity-0 pt-0 pointer-events-none'}`}>
-        <nav className="flex flex-col items-center space-y-4 text-base w-full">
-          {navLinksData.map((link) => (
-            <a key={link.label} href={link.href} className="text-zinc-500 hover:text-[#FF9F1C] transition-colors w-full text-center">
-              {link.label}
-            </a>
-          ))}
-        </nav>
       </div>
     </header>
   );
@@ -337,8 +307,10 @@ function MiniNavbar() {
 
 export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
   const [email, setEmail] = useState("");
-  const [step, setStep] = useState<"email" | "code" | "success">("email");
+  const [step, setStep] = useState<"email" | "code" | "forgot" | "success">("email");
   const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
   const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
@@ -346,6 +318,17 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email) setStep("code");
+  };
+
+  const handleResetSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (resetEmail) {
+      setResetSent(true);
+      setTimeout(() => {
+        setResetSent(false);
+        setStep("email");
+      }, 3000);
+    }
   };
 
   useEffect(() => {
@@ -398,9 +381,9 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
 
   return (
     <div className={cn("flex w-[100%] flex-col min-h-screen bg-[#111111] relative text-white", className)}>
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ pointerEvents: 'none' }}>
         {initialCanvasVisible && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 pointer-events-none" style={{ pointerEvents: 'none' }}>
             <CanvasRevealEffect
               animationSpeed={3}
               containerClassName="bg-[#111111]"
@@ -412,7 +395,7 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
         )}
         
         {reverseCanvasVisible && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 pointer-events-none" style={{ pointerEvents: 'none' }}>
             <CanvasRevealEffect
               animationSpeed={4}
               containerClassName="bg-[#111111]"
@@ -423,8 +406,8 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
           </div>
         )}
         
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#111111_0%,_transparent_100%)] opacity-80" />
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-[#111111] to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#111111_0%,_transparent_100%)] opacity-80 pointer-events-none" style={{ pointerEvents: "none" }} />
+        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-[#111111] to-transparent pointer-events-none" style={{ pointerEvents: "none" }} />
       </div>
       
       <div className="relative z-10 flex flex-col flex-1">
@@ -441,7 +424,7 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -100 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="space-y-6 text-center"
+                    className="space-y-6 text-center relative z-20 pointer-events-auto"
                   >
                     <div className="space-y-1 mb-8">
                       <h1 className="text-[2.2rem] font-bold leading-[1.1] tracking-tight">Identifique-se</h1>
@@ -450,19 +433,19 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                     
                     <div className="space-y-4">
                       
-                      <form onSubmit={(e) => { e.preventDefault(); handleBypassOrkto(); }}>
+                      <form onSubmit={handleEmailSubmit}>
                         <div className="relative">
                           <input 
                             type="email" 
                             placeholder="seu@email.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border-1 border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                            className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
                             required
                           />
                           <button 
                             type="submit"
-                            className="absolute right-2 top-2 text-white w-10 h-10 flex items-center justify-center rounded-full bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 transition-colors group overflow-hidden shadow-lg shadow-[#FF9F1C]/20"
+                            className="absolute right-2 top-2 text-white w-10 h-10 flex items-center justify-center rounded-full bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 transition-colors group overflow-hidden shadow-lg shadow-[#FF9F1C]/20 cursor-pointer"
                           >
                             <span className="relative w-full h-full block overflow-hidden">
                               <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
@@ -475,11 +458,11 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                           </button>
                         </div>
                       </form>
-
+ 
                       <button 
                          onClick={handleBypassOrkto}
                          type="button" 
-                         className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-zinc-900/50 hover:bg-zinc-800 text-white border border-zinc-800 rounded-full py-3.5 px-4 transition-colors font-medium text-sm mt-4">
+                         className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-zinc-900/50 hover:bg-zinc-800 text-white border border-zinc-800 rounded-full py-3.5 px-4 transition-colors font-medium text-sm mt-4 cursor-pointer">
                         <svg className="w-5 h-5 text-[#FF9F1C]" viewBox="0 0 24 24">
                           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"/>
                           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"/>
@@ -488,11 +471,68 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                         </svg>
                         <span>Entrar com Login Demo</span>
                       </button>
+ 
+                      <button
+                        onClick={() => { setStep("forgot"); setResetEmail(email || ""); }}
+                        type="button"
+                        className="text-xs font-semibold text-zinc-500 hover:text-[#FF9F1C] transition-all cursor-pointer block mx-auto pt-2 hover:underline relative z-30"
+                      >
+                        Esqueci minha senha / código de acesso
+                      </button>
                     </div>
                     
                     <p className="text-[10px] text-zinc-500 pt-10">
                       Ao acessar, você concorda com nossos <a href="#" className="underline text-zinc-400 hover:text-white transition-colors">Termos</a> e <a href="#" className="underline text-zinc-400 hover:text-white transition-colors">Privacidade</a>.
                     </p>
+                  </motion.div>
+                ) : step === "forgot" ? (
+                  <motion.div 
+                    key="forgot-step"
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 100 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="space-y-6 text-center relative z-20 pointer-events-auto"
+                  >
+                    <div className="space-y-1 mb-8">
+                      <h1 className="text-[2rem] font-bold leading-[1.1] tracking-tight">Recuperar Acesso</h1>
+                      <p className="text-[1rem] text-zinc-400 font-light mt-1">Digite seu e-mail para receber um link de redefinição seguro</p>
+                    </div>
+
+                    {resetSent ? (
+                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-3xl text-sm font-semibold leading-normal animate-pulse">
+                        Link enviado! Verifique sua caixa de entrada nos próximos instantes. Redirecionando...
+                      </div>
+                    ) : (
+                      <form onSubmit={handleResetSubmit} className="space-y-4">
+                        <div className="relative">
+                          <input 
+                            type="email" 
+                            placeholder="seu@email.com"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                            required
+                          />
+                        </div>
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setStep("email")}
+                            className="w-[30%] py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full font-bold text-xs transition-colors"
+                          >
+                            Voltar
+                          </button>
+                          <button
+                            type="submit"
+                            className="flex-1 py-3 bg-[#FF9F1C] text-black hover:opacity-90 rounded-full font-bold text-xs transition-all shadow-lg active:scale-95"
+                          >
+                            Enviar Link de Acesso
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </motion.div>
                 ) : step === "code" ? (
                   <motion.div 
@@ -501,7 +541,7 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 100 }}
                     transition={{ duration: 0.4, ease: "easeOut" }}
-                    className="space-y-6 text-center"
+                    className="space-y-6 text-center relative z-20 pointer-events-auto"
                   >
                     <div className="space-y-1 mb-8">
                       <h1 className="text-[2.2rem] font-bold leading-[1.1] tracking-tight">Verificação</h1>
@@ -567,7 +607,7 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: "easeOut", delay: 0.3 }}
-                    className="space-y-6 text-center"
+                    className="space-y-6 text-center relative z-20 pointer-events-auto"
                   >
                     <div className="space-y-1">
                       <h1 className="text-[2.5rem] font-bold leading-[1.1] tracking-tight">Oeste de Prontidão!</h1>
@@ -591,7 +631,7 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
-                      onClick={onSignInSuccess}
+                      onClick={() => onSignInSuccess(email)}
                       className="w-full relative z-50 pointer-events-auto rounded-full bg-[#FF9F1C] text-black font-bold py-4 hover:bg-[#e88d0e] transition-colors uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(255,159,28,0.2)]"
                     >
                       Prosseguir ao Painel
