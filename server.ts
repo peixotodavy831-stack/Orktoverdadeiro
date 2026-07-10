@@ -462,6 +462,12 @@ app.post("/api/asaas/checkout", async (req, res) => {
 
       if (existingCustomer) {
         await supabase!.from('profiles').update({ asaas_customer_id: customerId }).eq('id', userId);
+      } else {
+        await supabase!.from('profiles').upsert({
+          id: userId,
+          asaas_customer_id: customerId,
+          email: email || '',
+        }, { onConflict: 'id' });
       }
     }
 
@@ -497,14 +503,18 @@ app.post("/api/asaas/checkout", async (req, res) => {
     const pixKey = null;
 
     if (!isFounder) {
-      const updateResult = await supabase!.from('profiles').update({
+      const upsertResult = await supabase!.from('profiles').upsert({
+        id: userId,
         is_founder: true,
         founder_price: planPrice,
         active_plan: plan,
-      }).eq('id', userId);
+        email: email || '',
+      }, { onConflict: 'id' });
 
-      if (updateResult.error) {
-        console.log("Founder update skipped (user may not exist in profiles):", updateResult.error.message);
+      if (upsertResult.error) {
+        console.log("Founder upsert error:", upsertResult.error.message);
+      } else {
+        console.log("Founder status saved: userId=", userId, "price=", planPrice);
       }
     }
 
