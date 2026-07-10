@@ -592,7 +592,27 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
           </div>
         </div>
 
-        {/* Row 4: Simulated App Notifications options */}
+        {/* Row 4: Asaas Integration */}
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-4">
+          <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-orange-500" />
+            Integração Asaas (Pagamentos)
+          </h3>
+          <p className="text-xs text-zinc-500">Insira sua API Key do Asaas para habilitar assinaturas recorrentes nos planos Pro e Business.</p>
+          <div>
+            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">API Key Asaas</label>
+            <input
+              type="password"
+              value={userProfile?.asaasApiKey || ''}
+              onChange={(e) => onProfileUpdated({ ...userProfile!, asaasApiKey: e.target.value } as UserProfile)}
+              placeholder="$aas_sk_sua_chave_aqui"
+              className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-orange-500 font-mono"
+            />
+          </div>
+          <p className="text-[10px] text-zinc-400">Obtenha sua chave em <code className="text-orange-500 text-[9px]">asaas.com/configuracoes/api</code></p>
+        </div>
+
+        {/* Row 5: Simulated App Notifications options */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-4">
           <h3 className="text-sm font-bold uppercase text-zinc-400 tracking-wider mb-2">Avisos e Lembretes (Simulado)</h3>
           <div className="flex items-center justify-between py-1">

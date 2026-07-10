@@ -171,8 +171,7 @@ export default function App() {
       brandName: 'Orkto design',
       brandTone: 'comercial',
       profession: 'Design & Tecnologia',
-      activePlan: 'starter',
-      planPeriod: 'monthly'
+      activePlan: 'free'
     };
   });
   
@@ -435,8 +434,7 @@ export default function App() {
         brandName: 'Orkto design',
         brandTone: 'comercial',
         profession: 'Design & Tecnologia',
-        activePlan: 'starter',
-        planPeriod: 'monthly'
+        activePlan: 'free'
       });
     } else {
       setUserProfile({
@@ -844,7 +842,7 @@ export default function App() {
       
       {/* Onboarding Assistant Overlay modal */}
       <AnimatePresence>
-        {false && (
+        {user && userProfile && !userProfile.onboardingCompleted && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
             <div className="absolute inset-0 bg-zinc-950/90 backdrop-blur-md" />
             <motion.div

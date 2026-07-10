@@ -270,7 +270,7 @@ export default function Dashboard({
                   Business Corp
                 </span>
               )}
-              {(!userProfile?.activePlan || userProfile?.activePlan === 'starter') && (
+              {(!userProfile?.activePlan || userProfile?.activePlan === 'free') && (
                 <button
                   onClick={() => onNavigateToTab?.('settings')}
                   className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#FF9F1C]/10 border border-[#FF9F1C]/30 text-[#FF9F1C] hover:bg-[#FF9F1C]/25 text-[9px] font-extrabold uppercase rounded-full tracking-wide transition-all select-none hover:scale-105 active:scale-95 cursor-pointer"
@@ -377,7 +377,7 @@ export default function Dashboard({
         const checklistComplete = completedCount === checklistSteps.length;
 
         // Check Starter Quota warning (Loss Aversion trigger)
-        const isStarter = !userProfile?.activePlan || userProfile?.activePlan === 'starter';
+        const isStarter = !userProfile?.activePlan || userProfile?.activePlan === 'free';
         const usedQuotes = quotes.length;
         const maxStarterQuotes = 5;
         const isQuotaWarning = isStarter && usedQuotes >= 3;

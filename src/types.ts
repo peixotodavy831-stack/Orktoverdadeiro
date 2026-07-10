@@ -30,7 +30,9 @@ export class Timestamp {
   }
 }
 
-export type QuoteStatus = 'pending' | 'approved' | 'rejected' | 'expired';
+export type PlanType = 'free' | 'pro' | 'business';
+
+export type QuoteStatus = 'draft' | 'sent' | 'viewed' | 'pending' | 'approved' | 'rejected' | 'expired';
 
 export interface UserProfile {
   uid: string;
@@ -55,11 +57,14 @@ export interface UserProfile {
   brandName?: string;
   brandTone?: 'formal' | 'técnico' | 'comercial' | 'criativo';
 
-  // SaaS Subscription & Monetization states
-  activePlan?: 'starter' | 'pro' | 'business';
+  activePlan?: PlanType;
   planPeriod?: 'monthly' | 'annual';
   trialExpirationDate?: string;
   checklistDismissed?: boolean;
+  asaasApiKey?: string;
+  asaasCustomerId?: string;
+  isFounder?: boolean;
+  founderPrice?: number;
 }
 
 export interface QuoteItem {
@@ -131,6 +136,12 @@ export interface SavedService {
   updatedAt: Timestamp;
 }
 
+export const PLAN_LIMITS: Record<PlanType, { ai_refinements: number; pdf_premium: boolean; watermark: boolean; history_days: number; share_links: boolean; online_approval: boolean; analytics: 'basic' | 'advanced' | 'none' }> = {
+  free: { ai_refinements: 3, pdf_premium: false, watermark: true, history_days: 7, share_links: false, online_approval: true, analytics: 'basic' },
+  pro: { ai_refinements: 30, pdf_premium: true, watermark: false, history_days: 9999, share_links: true, online_approval: true, analytics: 'basic' },
+  business: { ai_refinements: 999999, pdf_premium: true, watermark: false, history_days: 9999, share_links: true, online_approval: true, analytics: 'advanced' },
+};
+
 export const AUTO_SERVICE_CATEGORIES = [
   'Desenvolvimento & Software',
   'Design & Branding',
@@ -142,3 +153,9 @@ export const AUTO_SERVICE_CATEGORIES = [
   'Integrações & APIs',
   'Outros Serviços'
 ];
+
+export const ASAAS_PLAN_IDS: Record<PlanType, string> = {
+  free: '',
+  pro: 'pro_monthly',
+  business: 'business_monthly',
+};

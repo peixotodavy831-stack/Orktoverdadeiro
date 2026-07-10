@@ -80,7 +80,7 @@ export default function QuotesPage({
   const conversionRate = totalCount > 0 ? Math.round((approvedCount / totalCount) * 100) : 0;
   const ticketMedio = approvedCount > 0 ? approvedValue / approvedCount : (totalCount > 0 ? totalValue / totalCount : 0);
 
-  const getStatusBadge = (status: 'pending' | 'approved' | 'rejected' | 'expired') => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'approved':
         return (
