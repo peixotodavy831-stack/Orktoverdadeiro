@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { GoogleGenAI, Type } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import { z } from "zod";
@@ -13,178 +12,12 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-function createRateLimiter(windowMs: number, max: number) {
-  const hits = new Map<string, { count: number; resetAt: number }>();
-  return (key: string): boolean => {
-    const now = Date.now();
-    const entry = hits.get(key);
-    if (!entry || now > entry.resetAt) {
-      hits.set(key, { count: 1, resetAt: now + windowMs });
-      return true;
-    }
-    if (entry.count >= max) return false;
-    entry.count++;
-    return true;
-  };
-}
-const aiRateLimiter = createRateLimiter(60_000, 10);
-
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 const supabase = supabaseUrl && supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey)
   : null;
-
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  httpOptions: {
-    headers: {
-      'User-Agent': "aistudio-build",
-    }
-  }
-});
-
-const PLAN_LIMITS: Record<string, number> = { starter: 3, free: 3, pro: 30, business: 999999 };
-
-async function checkAiUsageLimit(userId: string): Promise<{ allowed: boolean; used: number; limit: number; plan: string }> {
-  if (!supabase) return { allowed: true, used: 0, limit: 999999, plan: 'free' };
-  const month = new Date().toISOString().slice(0, 7);
-  const { data: profile } = await supabase.from('profiles').select('active_plan').eq('id', userId).single();
-  const plan = profile?.active_plan || 'free';
-  const limit = PLAN_LIMITS[plan] || 3;
-  const { data: usage } = await supabase
-    .from('usage_limits')
-    .select('ai_usage')
-    .eq('user_id', userId)
-    .eq('month', month)
-    .single();
-  const used = usage?.ai_usage || 0;
-  return { allowed: used < limit, used, limit, plan };
-}
-
-const adaptQuoteSchema = z.object({
-  profession: z.string().min(1, "Profissão é obrigatória"),
-  tone: z.string().optional(),
-  clientName: z.string().optional(),
-  clientVehicleOrService: z.string().optional(),
-  notes: z.string().optional(),
-  items: z.array(z.any()).optional(),
-  paymentInstructions: z.string().optional(),
-  userId: z.string().optional(),
-});
-
-app.post("/api/gemini/adapt-quote", async (req, res) => {
-  try {
-    const ip = req.ip || req.socket.remoteAddress || 'unknown';
-    if (!aiRateLimiter(ip)) {
-      return res.status(429).json({ error: "Muitas requisições. Aguarde alguns segundos." });
-    }
-
-    const parsed = adaptQuoteSchema.safeParse(req.body);
-    if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.issues.map(e => e.message).join(', ') });
-    }
-    const { profession, tone, clientName, clientVehicleOrService, notes, items, paymentInstructions, userId } = parsed.data;
-
-    if (userId && supabase) {
-      const check = await checkAiUsageLimit(userId);
-      if (!check.allowed) {
-        return res.status(403).json({
-          error: `Você usou todos os ${check.limit} refinamentos de IA do seu plano este mês. Faça upgrade para continuar.`,
-          used: check.used,
-          limit: check.limit,
-          plan: check.plan,
-        });
-      }
-    }
-
-    const systemInstruction = `Você é um assessor de redação comercial e design de propostas de vendas para a plataforma ORKTO. 
-Seu trabalho é pegar um rascunho de orçamento técnico e melhorá-lo para que pareça altamente profissional, convincente e adaptado especificamente com estilo visual e textual para a profissão[...]
-
-Diretrizes obrigatórias:
-1. NUNCA mude valores numéricos (quantidade, preço unitário, desconto) inseridos pelo usuário. Apenas melhore as palavras, títulos de serviço e descrições.
-2. Adapte a linguagem de acordo com a profissão:
-- Advogado: linguajar formal, sóbrio, polido e confiável.
-- Eletricista: termos diretos, com ênfase em segurança, normas técnicas e clareza objetiva.
-- Designer: linguajar limpo, focado em conceito, criatividade e entrega estética.
-- Oficina: objetivo, prático, destacando garantia e detalhes operacionais.
-- Construção/Marcenaria: termos robustos, confiando em materialidade, estabilidade e durabilidade.
-3. Adapte as frases de acordo com o tom desejado (formal, técnico, comercial ou criativo).
-4. No campo "items", ajuste os nomes e descrições dos itens de forma que fiquem refinados, profissionais e claros para o cliente final. O campo "id" deve permanecer o mesmo de cada item fornecid[...]`;
-
-    const promptText = `Por favor, reescreva e personalize este orçamento para as seguintes especificações:
-- Profissão do Prestador: ${profession}
-- Tom de Linguagem: ${tone || 'comercial'}
-- Cliente: ${clientName || 'Cliente'}
-- Contexto / Serviço Central: ${clientVehicleOrService || 'Prestação de Serviço'}
-- Observações Originais: ${notes || ''}
-- Instruções de Pagamento Originais: ${paymentInstructions || ''}
-
-Lista de Itens Fornecidos para Revisar:
-${JSON.stringify(items || [], null, 2)}
-
-Por favor, retorne a resposta no formato estruturado especificado.`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: promptText,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            notes: { 
-              type: Type.STRING, 
-              description: "Observações técnicas e comerciais polidas. Inclua detalhes sobre prazos, termos e garantias de forma envolvente e adequada à profissão." 
-            },
-            paymentInstructions: { 
-              type: Type.STRING, 
-              description: "Informações de pagamento adaptadas para ficar refinado de acordo com o tom selecionado." 
-            },
-            items: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: { type: Type.STRING },
-                  name: { type: Type.STRING, description: "Título revisado e sofisticado do item (ex: de 'olhar cano' para 'Identificação de Patologias e Desobstrução Hidráulica' conforme a [...]" },
-                  description: { type: Type.STRING, description: "Descrição que agrega valor e explica o que está incluso de maneira persuasiva." },
-                  quantity: { type: Type.NUMBER },
-                  unitPrice: { type: Type.NUMBER },
-                  discount: { type: Type.NUMBER }
-                },
-                required: ["id", "name", "description", "quantity", "unitPrice", "discount"]
-              }
-            },
-            aestheticAdvice: { 
-              type: Type.STRING, 
-              description: "Dica inteligente em 1 ou 2 parágrafos curtos explicando o porquê destas mudanças visuais/textuais melhorarem a taxa de conversão nesse nicho específico." 
-            }
-          },
-          required: ["notes", "paymentInstructions", "items", "aestheticAdvice"]
-        }
-      }
-    });
-
-    const resultText = response.text.trim();
-    const adaptedData = JSON.parse(resultText);
-
-    if (supabase && userId) {
-      try {
-        await supabase.rpc('increment_ai_usage', { p_user_id: userId, p_month: new Date().toISOString().slice(0, 7) });
-        adaptedData.usageLimit = await checkAiUsageLimit(userId);
-      } catch (e) { console.error("Usage increment error:", e); }
-    }
-
-    res.json(adaptedData);
-
-  } catch (error: any) {
-    console.error("Gemini adaptation error:", error);
-    res.status(500).json({ error: "Falha na comunicação com o assistente inteligente ORKTO: " + error.message });
-  }
-});
 
 // Supabase API endpoints for quote management
 if (supabase) {

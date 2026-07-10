@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Quote, QuoteItem, SavedClient, SavedService, UserProfile, Timestamp } from '../types';
 import { formatCurrency, formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
+import { enhanceWithLocalAI } from '../lib/localCopywriter';
 
 interface CreateQuoteProps {
   userProfile: UserProfile | null;
@@ -106,29 +107,19 @@ export default function CreateQuote({
     setIsEnhancingIndex(index);
     try {
       const item = items[index];
-      const response = await fetch('/api/gemini/adapt-quote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          profession: userProfile?.profession || 'Design & Tecnologia',
-          tone: userProfile?.brandTone || 'comercial',
-          clientName: clientName || 'Cliente',
-          clientVehicleOrService: clientVehicleOrService || 'Prestação de Serviço',
-          notes: notes,
-          items: [item],
-          paymentInstructions: paymentInstructions
-        })
+      
+      const result = enhanceWithLocalAI({
+        profession: userProfile?.profession || 'Design & Tecnologia',
+        tone: (userProfile?.brandTone as any) || 'comercial',
+        items: [item],
+        clientName: clientName || 'Cliente',
+        clientVehicleOrService: clientVehicleOrService || 'Prestação de Serviço',
+        notes: notes,
+        paymentInstructions: paymentInstructions,
       });
 
-      if (!response.ok) {
-        throw new Error('Fallback to local enhancement');
-      }
-
-      const data = await response.json();
-      if (data && data.items && data.items.length > 0) {
-        const enhancedItem = data.items[0];
+      if (result && result.items && result.items.length > 0) {
+        const enhancedItem = result.items[0];
         const updated = [...items];
         updated[index] = {
           ...updated[index],
@@ -137,53 +128,17 @@ export default function CreateQuote({
         };
         setItems(updated);
         
-        // Smoothly refine total notes/payment instructions if they are empty
-        if (data.notes && !notes) {
-          setNotes(data.notes);
+        if (result.notes && !notes) {
+          setNotes(result.notes);
         }
-        if (data.paymentInstructions && !paymentInstructions) {
-          setPaymentInstructions(data.paymentInstructions);
+        if (result.paymentInstructions && !paymentInstructions) {
+          setPaymentInstructions(result.paymentInstructions);
         }
-      } else {
-        throw new Error('Invalid format from AI adaptation endpoint');
       }
     } catch (err) {
-      console.warn('Using local fallback copywriter for item enrichment:', err);
-      const item = items[index];
-      const itemNameLower = (item.name || '').toLowerCase();
-      const itemDescLower = (item.description || '').toLowerCase();
-      
-      let enhancedName = item.name;
-      let enhancedDesc = item.description;
-
-      if (itemNameLower.includes('landing') || itemDescLower.includes('landing') || itemNameLower.includes('site') || itemDescLower.includes('site')) {
-        enhancedName = 'Desenvolvimento de Landing Page de Alta Conversão';
-        enhancedDesc = 'Design responsivo premium focado em captação de leads. Inclui copywriting tático, SEO técnico refinado, integração HubSpot e otimização total de velocidade.';
-      } else if (itemNameLower.includes('logo') || itemDescLower.includes('logo') || itemNameLower.includes('brand') || itemDescLower.includes('brand') || itemNameLower.includes('design') || itemDescLower.includes('design')) {
-        enhancedName = 'Branding & Identidade Visual Corporativa';
-        enhancedDesc = 'Logotipo autoral exclusivo, paleta de cores estratégica e tipografia corporativa. Entrega do manual completo de marca e arquivos finais vetorizados.';
-      } else if (itemNameLower.includes('consultoria') || itemDescLower.includes('consultoria') || itemNameLower.includes('seo') || itemDescLower.includes('seo')) {
-        enhancedName = 'Consultoria Estratégica de Posicionamento';
-        enhancedDesc = 'Auditoria profunda da presença digital ativa, diagnóstico de conversão UX/UI do funil de vendas e cronograma detalhado de ações táticas prioritárias.';
-      } else if (itemNameLower.includes('tráfego') || itemDescLower.includes('tráfego') || itemNameLower.includes('ads') || itemDescLower.includes('ads')) {
-        enhancedName = 'Gestão de Tráfego Pago & Audiência Select';
-        enhancedDesc = 'Gerenciamento avançado de mídia paga (Facebook Ads e Google Ads). Implementação técnica de rastreamento, testes contínuos de criativos e otimização semanal.';
-      } else {
-        enhancedName = item.name ? `${item.name} Premium` : 'Serviço de Tecnologia & Inovação';
-        enhancedDesc = item.description 
-          ? `Entrega consultiva Premium de ${item.description}. Alta performance, suporte dedicado e garantia absoluta de conformidade técnica corporativa.`
-          : 'Solução corporativa customizada com metodologia ágil aplicada, visando excelência operacional e aceleração de novos negócios digitais.';
-      }
-
-      const updated = [...items];
-      updated[index] = {
-        ...updated[index],
-        name: enhancedName,
-        description: enhancedDesc
-      };
-      setItems(updated);
+      console.warn('Error enhancing item:', err);
     } finally {
-      setIsEnhancingIndex(null);
+      setTimeout(() => setIsEnhancingIndex(null), 300);
     }
   };
 
