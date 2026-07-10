@@ -469,7 +469,7 @@ app.post("/api/asaas/checkout", async (req, res) => {
       }
     }
 
-    const prices: Record<string, number> = { free: 49, pro: 79, business: 299 };
+    const prices: Record<string, number> = { free: 4900, pro: 7900, business: 29900 };
     const planPrice = prices[plan] || 49;
 
     const subscription = await requestAsaas('POST', '/subscriptions', {

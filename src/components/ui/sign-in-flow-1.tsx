@@ -28,7 +28,7 @@ interface ShaderProps {
 
 interface SignInPageProps {
   className?: string;
-  onSignInSuccess: (email?: string) => void;
+  onSignInSuccess: (email?: string, password?: string) => void;
 }
       
 export const CanvasRevealEffect = ({
@@ -307,18 +307,43 @@ function MiniNavbar() {
 
 export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
   const [email, setEmail] = useState("");
-  const [step, setStep] = useState<"email" | "code" | "forgot" | "success">("email");
-  const [code, setCode] = useState(["", "", "", "", "", ""]);
+  const [password, setPassword] = useState("");
+  const [step, setStep] = useState<"email" | "password" | "forgot" | "success">("email");
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
-  const codeInputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) setStep("code");
+    if (email) setStep("password");
   };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    setIsSubmitting(true);
+    setAuthError("");
+    try {
+      setReverseCanvasVisible(true);
+      setTimeout(() => { setInitialCanvasVisible(false); }, 50);
+      setTimeout(() => { setStep("success"); }, 1500);
+    } catch (err: any) {
+      setAuthError(err.message || "Erro ao autenticar");
+      setReverseCanvasVisible(false);
+      setInitialCanvasVisible(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (step === "password") {
+      setTimeout(() => { }, 500);
+    }
+  }, [step]);
 
   const handleResetSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -331,52 +356,20 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
     }
   };
 
-  useEffect(() => {
-    if (step === "code") {
-      setTimeout(() => { codeInputRefs.current[0]?.focus(); }, 500);
-    }
-  }, [step]);
-
-  const handleCodeChange = (index: number, value: string) => {
-    if (value.length <= 1) {
-      const newCode = [...code];
-      newCode[index] = value;
-      setCode(newCode);
-      
-      if (value && index < 5) {
-        codeInputRefs.current[index + 1]?.focus();
-      }
-      
-      if (index === 5 && value) {
-        const isComplete = newCode.every(digit => digit.length === 1);
-        if (isComplete) {
-          setReverseCanvasVisible(true);
-          setTimeout(() => { setInitialCanvasVisible(false); }, 50);
-          setTimeout(() => { setStep("success"); }, 2000);
-        }
-      }
-    }
-  };
-
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Backspace" && !code[index] && index > 0) {
-      codeInputRefs.current[index - 1]?.focus();
-    }
-  };
-
   const handleBackClick = () => {
     setStep("email");
-    setCode(["", "", "", "", "", ""]);
+    setPassword("");
+    setAuthError("");
     setReverseCanvasVisible(false);
     setInitialCanvasVisible(true);
   };
 
   const handleBypassOrkto = () => {
-      setStep("code");
-      setCode(["1", "2", "3", "4", "5", "6"]);
+      setEmail("demo@orkto.co");
+      setPassword("demo123456");
       setReverseCanvasVisible(true);
       setTimeout(() => { setInitialCanvasVisible(false); }, 50);
-      setTimeout(() => { setStep("success"); }, 2000);
+      setTimeout(() => { setStep("success"); }, 1500);
   }
 
   return (
@@ -534,9 +527,9 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                       </form>
                     )}
                   </motion.div>
-                ) : step === "code" ? (
+                ) : step === "password" ? (
                   <motion.div 
-                    key="code-step"
+                    key="password-step"
                     initial={{ opacity: 0, x: 100 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 100 }}
@@ -544,62 +537,59 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                     className="space-y-6 text-center relative z-20 pointer-events-auto"
                   >
                     <div className="space-y-1 mb-8">
-                      <h1 className="text-[2.2rem] font-bold leading-[1.1] tracking-tight">Verificação</h1>
-                      <p className="text-[1rem] text-zinc-400 font-light">Enviamos um código para seu email</p>
+                      <h1 className="text-[2.2rem] font-bold leading-[1.1] tracking-tight">Sua Senha</h1>
+                      <p className="text-[1rem] text-zinc-400 font-light">Digite a senha para <span className="text-[#FF9F1C] font-semibold">{email}</span></p>
                     </div>
                     
-                    <div className="w-full relative z-20 pointer-events-auto">
-                      <div className="relative rounded-full py-5 px-5 border border-zinc-800 bg-zinc-900/50 backdrop-blur-md">
-                        <div className="flex items-center justify-center">
-                          {code.map((digit, i) => (
-                            <div key={i} className="flex items-center">
-                              <div className="relative">
-                                <input
-                                  ref={(el) => { codeInputRefs.current[i] = el; }}
-                                  type="text"
-                                  inputMode="numeric"
-                                  pattern="[0-9]*"
-                                  maxLength={1}
-                                  value={digit}
-                                  onChange={e => handleCodeChange(i, e.target.value)}
-                                  onKeyDown={e => handleKeyDown(i, e)}
-                                  className="w-8 text-center text-xl bg-transparent text-[#FF9F1C] border-none focus:outline-none focus:ring-0 appearance-none font-bold"
-                                  style={{ caretColor: 'transparent' }}
-                                />
-                                {!digit && (
-                                  <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center pointer-events-none">
-                                    <span className="text-xl text-zinc-600">0</span>
-                                  </div>
-                                )}
-                              </div>
-                              {i < 5 && <span className="text-zinc-800 text-xl mx-1">|</span>}
-                            </div>
-                          ))}
-                        </div>
+                    {authError && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs font-semibold">
+                        {authError}
                       </div>
-                    </div>
+                    )}
                     
-                    <div className="flex w-full gap-3 pt-6 relative z-20 pointer-events-auto">
-                      <motion.button 
-                        onClick={handleBackClick}
-                        className="rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium px-8 py-3.5 hover:bg-zinc-800 transition-colors w-[30%]"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        Voltar
-                      </motion.button>
-                      <motion.button 
-                        className={`flex-1 rounded-full font-medium py-3.5 border transition-all duration-300 ${
-                          code.every(d => d !== "") 
-                          ? "bg-[#FF9F1C] text-black border-transparent hover:bg-[#e88d0e]" 
-                          : "bg-zinc-900 text-zinc-500 border-zinc-800 cursor-not-allowed"
-                        }`}
-                        disabled={!code.every(d => d !== "")}
-                      >
-                        Autenticar
-                      </motion.button>
-                    </div>
+                    <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                      <div className="relative">
+                        <input 
+                          type="password" 
+                          placeholder="Sua senha"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                          required
+                          minLength={6}
+                          autoFocus
+                        />
+                      </div>
+                      
+                      <div className="flex w-full gap-3">
+                        <button 
+                          type="button"
+                          onClick={() => { setStep("email"); setPassword(""); setAuthError(""); }}
+                          className="rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium px-6 py-3.5 hover:bg-zinc-800 transition-colors w-[30%] text-xs"
+                        >
+                          Voltar
+                        </button>
+                        <button 
+                          type="submit"
+                          disabled={!password || isSubmitting}
+                          className={`flex-1 rounded-full font-medium py-3.5 border transition-all duration-300 ${
+                            password && !isSubmitting
+                            ? "bg-[#FF9F1C] text-black border-transparent hover:bg-[#e88d0e]" 
+                            : "bg-zinc-900 text-zinc-500 border-zinc-800 cursor-not-allowed"
+                          }`}
+                        >
+                          {isSubmitting ? 'Entrando...' : 'Entrar'}
+                        </button>
+                      </div>
+                    </form>
+                    
+                    <button
+                      onClick={() => { setStep("forgot"); setResetEmail(email || ""); }}
+                      type="button"
+                      className="text-xs font-semibold text-zinc-500 hover:text-[#FF9F1C] transition-all cursor-pointer block mx-auto pt-2 hover:underline relative z-30"
+                    >
+                      Esqueci minha senha
+                    </button>
                   </motion.div>
                 ) : (
                   <motion.div 
@@ -631,7 +621,7 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
-                      onClick={() => onSignInSuccess(email)}
+                      onClick={() => onSignInSuccess(email, password)}
                       className="w-full relative z-50 pointer-events-auto rounded-full bg-[#FF9F1C] text-black font-bold py-4 hover:bg-[#e88d0e] transition-colors uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(255,159,28,0.2)]"
                     >
                       Prosseguir ao Painel

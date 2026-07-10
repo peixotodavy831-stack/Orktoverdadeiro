@@ -31,6 +31,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, SavedClient, SavedService, UserProfile } from './types';
 import { formatBRL, formatPhone } from './utils/format';
+import { supabase } from './lib/supabase';
 
 // Core UI Modules
 import LandingPage from './components/LandingPage';
@@ -47,68 +48,6 @@ import AnalyticsPage from './components/AnalyticsPage';
 import QuotesPage from './components/QuotesPage';
 import TubelightNavbar from './components/ui/tubelight-navbar';
 
-const initialMockClients: SavedClient[] = [
-  { id: 'mc_1', userId: 'mocked_orkto_user', name: 'Juliana Albuquerque', phone: '11987541243', company: 'Marinho Negócios Digitais', vehicleOrService: 'Landing Page Premium & Branding', notes: 'Foco em design conversivo e sofisticação visual', createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-  { id: 'mc_2', userId: 'mocked_orkto_user', name: 'Henrique Silveira', phone: '21976512390', company: 'Vortex Tech SaaS', vehicleOrService: 'Desenvolvimento de App Mobile', notes: 'Necessita de integração com Stripe e notificações Push', createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-  { id: 'mc_3', userId: 'mocked_orkto_user', name: 'Gabriela Mello', phone: '31965412351', company: 'Mello Advocacia Especializada', vehicleOrService: 'Consultoria Estratégica Mensal', notes: 'Contrato fixo recorrência trimestral de posicionamento seo', createdAt: Timestamp.now(), updatedAt: Timestamp.now() }
-];
-
-const initialMockServices: SavedService[] = [
-  { id: 'ms_1', userId: 'mocked_orkto_user', name: 'Branding & Identidade Visual', description: 'Criação de logo premium, paleta de cores, tipografia corporativa e manual de marca completo', unitPrice: 2400, category: 'Design & Branding', createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-  { id: 'ms_2', userId: 'mocked_orkto_user', name: 'Desenvolvimento Frontend Responsivo', description: 'Desenvolvimento web em React + Tailwind CSS de alto nível focado em conversão e SEO', unitPrice: 5500, category: 'Desenvolvimento & Software', createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-  { id: 'ms_3', userId: 'mocked_orkto_user', name: 'Consultoria Estratégica de UX/UI', description: 'Auditoria de ponta a ponta na usabilidade e visual do produto digital com relatório detalhado de melhorias', unitPrice: 1800, category: 'Consultoria & Mentoria', createdAt: Timestamp.now(), updatedAt: Timestamp.now() },
-  { id: 'ms_4', userId: 'mocked_orkto_user', name: 'Gestão de Tráfego Pago & Audiência', description: 'Planejamento, setup de campanhas e otimização semanal de anúncios no Meta Ads e Google Ads', unitPrice: 1500, category: 'Marketing & Tráfego Pago', createdAt: Timestamp.now(), updatedAt: Timestamp.now() }
-];
-
-const initialMockQuotes: Quote[] = [
-  {
-    id: 'mq_1',
-    userId: 'mocked_orkto_user',
-    quoteNumber: '1001',
-    clientName: 'Juliana Albuquerque',
-    clientPhone: '11987541243',
-    clientCompany: 'Marinho Negócios Digitais',
-    clientVehicleOrService: 'Landing Page Premium & Branding',
-    notes: 'Incluso suporte técnico pós-entrega por 90 dias úteis.',
-    subtotal: 7900,
-    discountTotal: 400,
-    taxes: 0,
-    total: 7500,
-    validValueDays: 10,
-    paymentInstructions: 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: ORKTO PRO SOLUTIONS LTDA',
-    status: 'approved',
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-    items: [
-      { id: 'qi_1', name: 'Branding & Identidade Visual', description: 'Logo e manual de marca premium', quantity: 1, unitPrice: 2400, discount: 0 },
-      { id: 'qi_2', name: 'Desenvolvimento Frontend Responsivo', description: 'Landing Page institucional', quantity: 1, unitPrice: 5500, discount: 400 }
-    ]
-  },
-  {
-    id: 'mq_2',
-    userId: 'mocked_orkto_user',
-    quoteNumber: '1002',
-    clientName: 'Henrique Silveira',
-    clientPhone: '21976512390',
-    clientCompany: 'Vortex Tech SaaS',
-    clientVehicleOrService: 'UX Audit & Web App Design',
-    notes: 'Prazo estimado de homologação das telas: 20 dias úteis.',
-    subtotal: 7300,
-    discountTotal: 0,
-    taxes: 0,
-    total: 7300,
-    validValueDays: 5,
-    paymentInstructions: 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: ORKTO PRO SOLUTIONS LTDA',
-    status: 'pending',
-    createdAt: Timestamp.now(),
-    updatedAt: Timestamp.now(),
-    items: [
-      { id: 'qi_3', name: 'Consultoria Estratégica de UX/UI', description: 'Auditoria e redesign das telas críticas do checkout', quantity: 1, unitPrice: 1800, discount: 0 },
-      { id: 'qi_4', name: 'Desenvolvimento Frontend Responsivo', description: 'Arquitetura de rotas e componentes reusáveis', quantity: 1, unitPrice: 5500, discount: 0 }
-    ]
-  }
-];
-
 export default function App() {
   const getMillis = (dateObj: any): number => {
     if (!dateObj) return 0;
@@ -120,7 +59,7 @@ export default function App() {
   };
 
   // Navigation & Viewing states
-  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing'>('dashboard');
+  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing'>('landing');
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [duplicateQuoteSource, setDuplicateQuoteSource] = useState<Quote | null>(null);
   const [editQuoteSource, setEditQuoteSource] = useState<Quote | null>(null);
@@ -140,86 +79,156 @@ export default function App() {
     localStorage.setItem('orkto_dark_mode', String(darkMode));
   }, [darkMode]);
 
-  // Auth & Profile state (Mocked and persistent)
-  const [user, setUser] = useState<any>({
-    uid: 'mocked_orkto_user',
-    displayName: 'Dono do Negócio',
-    email: 'contato@orkto.co'
-  });
+  // Auth & Profile state
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('orkto_profile');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
+  // Listen for Supabase auth state changes on mount
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = session.user;
+        setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
+        loadUserProfile(u.id);
+      }
+      setAuthLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const u = session.user;
+        setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
+        loadUserProfile(u.id);
+      } else {
+        setUser(null);
+        setUserProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const loadUserProfile = async (uid: string) => {
+    const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+    if (data) {
+      const profile: UserProfile = {
+        uid: data.id,
+        displayName: data.display_name || '',
+        email: data.email || '',
+        photoURL: data.photo_url || null,
+        createdAt: data.created_at ? Timestamp.fromDate(new Date(data.created_at)) : Timestamp.now(),
+        onboardingCompleted: data.onboarding_completed || false,
+        companyName: data.company_name || '',
+        taxID: data.tax_id || '',
+        companyLogo: data.company_logo || '',
+        whatsappNumber: data.whatsapp_number || '',
+        whatsappTemplate: data.whatsapp_template || '',
+        paymentInfo: data.payment_info || '',
+        quoteColor: data.quote_color || '#FF9F1C',
+        address: data.address || '',
+        profession: data.profession || '',
+        brandName: data.brand_name || '',
+        brandTone: data.brand_tone || 'comercial',
+        activePlan: data.active_plan || 'free',
+        planPeriod: data.plan_period || 'monthly',
+        asaasApiKey: data.asaas_api_key || '',
+        asaasCustomerId: data.asaas_customer_id || '',
+      };
+      setUserProfile(profile);
+      localStorage.setItem('orkto_profile', JSON.stringify(profile));
+      loadUserData(uid);
+    } else {
+      const defaultProfile: UserProfile = {
+        uid,
+        displayName: user?.displayName || '',
+        email: user?.email || '',
+        photoURL: user?.photoURL || null,
+        createdAt: Timestamp.now(),
+        onboardingCompleted: false,
+        activePlan: 'free',
+      };
+      setUserProfile(defaultProfile);
     }
-    return {
-      uid: 'mocked_orkto_user',
-      displayName: 'Dono do Negócio',
-      email: 'contato@orkto.co',
-      photoURL: null,
-      createdAt: Timestamp.now(),
-      onboardingCompleted: true,
-      companyName: 'Orkto Premium Design Studio',
-      taxID: '14.502.836/0001-90',
-      whatsappNumber: '11999999999',
-      whatsappTemplate: 'Olá *[CLIENT_NAME]*, aqui está a proposta de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar os detalhes e aprovar:\n\n*[LINK]*',
-      paymentInfo: 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: ORKTO PRO SOLUTIONS LTDA',
-      quoteColor: '#ff9f1c',
-      address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
-      brandName: 'Orkto design',
-      brandTone: 'comercial',
-      profession: 'Design & Tecnologia',
-      activePlan: 'free'
-    };
-  });
+  };
+
+  const loadUserData = async (uid: string) => {
+    try {
+      const [quotesRes, clientsRes, servicesRes] = await Promise.all([
+        fetch(`/api/quotes/${uid}`).then(r => r.ok ? r.json() : []).catch(() => []),
+        supabase.from('clients').select('*').eq('user_id', uid).order('created_at', { ascending: false }).then(r => r.data || []),
+        supabase.from('services').select('*').eq('user_id', uid).order('created_at', { ascending: false }).then(r => r.data || []),
+      ]);
+
+      if (quotesRes.length > 0) {
+        const mappedQuotes: Quote[] = quotesRes.map((q: any) => ({
+          id: q.id,
+          userId: q.user_id,
+          quoteNumber: q.quote_number,
+          clientName: q.client_name,
+          clientPhone: q.client_phone,
+          clientEmail: q.client_email || '',
+          clientCompany: q.client_company || '',
+          clientVehicleOrService: q.client_vehicle_or_service || '',
+          notes: q.notes || '',
+          items: Array.isArray(q.items) ? q.items : JSON.parse(q.items || '[]'),
+          subtotal: Number(q.subtotal) || 0,
+          discountTotal: Number(q.discount_total) || 0,
+          taxes: Number(q.taxes) || 0,
+          total: Number(q.total) || 0,
+          validValueDays: q.valid_value_days || 15,
+          paymentInstructions: q.payment_instructions || '',
+          status: q.status || 'draft',
+          createdAt: q.created_at ? Timestamp.fromDate(new Date(q.created_at)) : Timestamp.now(),
+          updatedAt: q.updated_at ? Timestamp.fromDate(new Date(q.updated_at)) : Timestamp.now(),
+          sentAt: q.sent_at ? Timestamp.fromDate(new Date(q.sent_at)) : null,
+          viewedAt: q.viewed_at ? Timestamp.fromDate(new Date(q.viewed_at)) : null,
+          approvedAt: q.approved_at ? Timestamp.fromDate(new Date(q.approved_at)) : null,
+          rejectedAt: q.rejected_at ? Timestamp.fromDate(new Date(q.rejected_at)) : null,
+        }));
+        setQuotes(mappedQuotes);
+      }
+
+      if (clientsRes.length > 0) {
+        const mappedClients: SavedClient[] = clientsRes.map((c: any) => ({
+          id: c.id,
+          userId: c.user_id,
+          name: c.name,
+          phone: c.phone,
+          company: c.company || '',
+          vehicleOrService: c.vehicle_or_service || '',
+          notes: c.notes || '',
+          createdAt: c.created_at ? Timestamp.fromDate(new Date(c.created_at)) : Timestamp.now(),
+          updatedAt: c.updated_at ? Timestamp.fromDate(new Date(c.updated_at)) : Timestamp.now(),
+        }));
+        setClients(mappedClients);
+      }
+
+      if (servicesRes.length > 0) {
+        const mappedServices: SavedService[] = servicesRes.map((s: any) => ({
+          id: s.id,
+          userId: s.user_id,
+          name: s.name,
+          description: s.description || '',
+          unitPrice: Number(s.unit_price) || 0,
+          category: s.category || 'Outros Serviços',
+          createdAt: s.created_at ? Timestamp.fromDate(new Date(s.created_at)) : Timestamp.now(),
+          updatedAt: s.updated_at ? Timestamp.fromDate(new Date(s.updated_at)) : Timestamp.now(),
+        }));
+        setServices(mappedServices);
+      }
+    } catch (err) {
+      console.error('Error loading user data:', err);
+    }
+  };
+  
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
   const [loading, setLoading] = useState(false);
 
-  // Persistent in-memory & local-storage states
-  const [quotes, setQuotes] = useState<Quote[]>(() => {
-    const saved = localStorage.getItem('orkto_quotes');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
-    return initialMockQuotes;
-  });
-
-  const [clients, setClients] = useState<SavedClient[]>(() => {
-    const saved = localStorage.getItem('orkto_clients');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
-    return initialMockClients;
-  });
-
-  const [services, setServices] = useState<SavedService[]>(() => {
-    const saved = localStorage.getItem('orkto_services');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {}
-    }
-    return initialMockServices;
-  });
-
-  // Sync state modifications to LocalStorage automatically
-  useEffect(() => {
-    localStorage.setItem('orkto_quotes', JSON.stringify(quotes));
-  }, [quotes]);
-
-  useEffect(() => {
-    localStorage.setItem('orkto_clients', JSON.stringify(clients));
-  }, [clients]);
-
-  useEffect(() => {
-    localStorage.setItem('orkto_services', JSON.stringify(services));
-  }, [services]);
+  // Persistent in-memory states
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [clients, setClients] = useState<SavedClient[]>([]);
+  const [services, setServices] = useState<SavedService[]>([]);
 
   useEffect(() => {
     if (userProfile) {
@@ -285,35 +294,94 @@ export default function App() {
   const loadPublicQuote = async (quoteId: string) => {
     setPublicQuoteLoading(true);
     try {
-      const found = quotes.find(q => q.id === quoteId);
-      if (found) {
-        setPublicQuote(found);
-        setPublicQuoteUser(userProfile);
-      } else {
-        // Check initial seed quotes too
-        const initialFound = initialMockQuotes.find(q => q.id === quoteId);
-        if (initialFound) {
-          setPublicQuote(initialFound);
-          setPublicQuoteUser(userProfile);
-        }
+      const res = await fetch(`/api/quote/public/${quoteId}`);
+      if (!res.ok) {
+        setPublicQuote(null);
+        return;
       }
+      const data = await res.json();
+
+      const mappedQuote: Quote = {
+        id: data.id,
+        userId: '',
+        quoteNumber: data.quote_number,
+        clientName: data.client_name,
+        clientPhone: data.client_phone,
+        clientEmail: data.client_email || '',
+        clientCompany: data.client_company || '',
+        clientVehicleOrService: data.client_vehicle_or_service || '',
+        notes: data.notes || '',
+        items: Array.isArray(data.items) ? data.items : JSON.parse(data.items || '[]'),
+        subtotal: Number(data.subtotal) || 0,
+        discountTotal: Number(data.discount_total) || 0,
+        taxes: Number(data.taxes) || 0,
+        total: Number(data.total) || 0,
+        validValueDays: data.valid_value_days || 15,
+        paymentInstructions: data.payment_instructions || '',
+        status: data.status || 'sent',
+        createdAt: data.created_at ? Timestamp.fromDate(new Date(data.created_at)) : Timestamp.now(),
+        updatedAt: data.updated_at ? Timestamp.fromDate(new Date(data.updated_at)) : Timestamp.now(),
+      };
+
+      const profiles = data.profiles;
+      const mappedUser: UserProfile = {
+        uid: '',
+        displayName: '',
+        email: '',
+        photoURL: profiles?.company_logo || null,
+        createdAt: Timestamp.now(),
+        companyName: profiles?.company_name || '',
+        quoteColor: profiles?.quote_color || '#FF9F1C',
+        address: profiles?.address || '',
+        whatsappNumber: profiles?.whatsapp_number || '',
+        brandName: profiles?.brand_name || '',
+      };
+
+      setPublicQuote(mappedQuote);
+      setPublicQuoteUser(mappedUser);
     } catch (err) {
-      console.error("Error loading public quote locally:", err);
+      console.error("Error loading public quote:", err);
+      setPublicQuote(null);
     } finally {
       setPublicQuoteLoading(false);
     }
   };
 
-  // Onboarding Completion click handler
   const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setOnboardSubmitting(true);
 
     try {
+      if (!user?.uid) return;
+      
+      const profileData = {
+        display_name: 'Dono do Negócio',
+        email: user.email || '',
+        company_name: onboardBusinessName,
+        tax_id: onboardTaxID,
+        whatsapp_number: onboardPhone,
+        address: onboardAddress,
+        payment_info: onboardPix,
+        profession: onboardProfession,
+        brand_name: onboardBrandName || onboardBusinessName,
+        brand_tone: onboardBrandTone,
+        quote_color: onboardQuoteColor,
+        onboarding_completed: true,
+      };
+
+      const { error } = await supabase.from('profiles').upsert({
+        id: user.uid,
+        ...profileData,
+      }, { onConflict: 'id' });
+
+      if (error) {
+        console.error('Profile save error:', error);
+      }
+
       const updated: UserProfile = {
-        uid: 'mocked_orkto_user',
+        uid: user.uid,
         displayName: 'Dono do Negócio',
-        email: 'contato@orkto.co',
+        email: user.email || '',
         photoURL: null,
         createdAt: Timestamp.now(),
         companyName: onboardBusinessName,
@@ -325,7 +393,8 @@ export default function App() {
         brandName: onboardBrandName || onboardBusinessName,
         brandTone: onboardBrandTone,
         quoteColor: onboardQuoteColor,
-        onboardingCompleted: true
+        onboardingCompleted: true,
+        activePlan: 'free',
       };
 
       setUserProfile(updated);
@@ -337,15 +406,14 @@ export default function App() {
     }
   };
 
-  // Reset/Sincronizar mocks function (loads baseline dataset)
   const handleLoadAppMocks = async () => {
     try {
-      setQuotes(initialMockQuotes);
-      setClients(initialMockClients);
-      setServices(initialMockServices);
-      alert('Demonstração reiniciada com sucesso!');
+      setQuotes([]);
+      setClients([]);
+      setServices([]);
+      alert('Dados reiniciados!');
     } catch (err) {
-      console.error("Error writing mocks:", err);
+      console.error("Error resetting data:", err);
     }
   };
 
@@ -353,100 +421,75 @@ export default function App() {
   const handlePublicStatusChange = async (newStatus: 'approved' | 'rejected') => {
     if (!publicQuote) return;
     try {
-      const updatedList = quotes.map(q => {
-        if (q.id === publicQuote.id) {
-          return {
-            ...q,
-            status: newStatus,
-            updatedAt: Timestamp.now(),
-            ...(newStatus === 'approved' ? { approvedAt: Timestamp.now() } : { rejectedAt: Timestamp.now() })
-          };
-        }
-        return q;
-      });
-      setQuotes(updatedList);
-      setPublicClientFeedback(newStatus);
-      // Reload quote to show update live on screen
-      setPublicQuote({
-        ...publicQuote,
-        status: newStatus
-      });
+      const endpoint = newStatus === 'approved' ? 'approve' : 'reject';
+      const res = await fetch(`/api/quote/${publicQuote.id}/${endpoint}`, { method: 'POST' });
+      if (res.ok) {
+        setPublicClientFeedback(newStatus);
+        setPublicQuote({ ...publicQuote, status: newStatus });
+      } else {
+        const err = await res.json();
+        console.error("Status change error:", err.error);
+      }
     } catch (error) {
       console.error(error);
-      setPublicClientFeedback(newStatus); // local display fallback
     }
   };
 
   // Auth screen bypass helper (for Evaluators / direct clicks)
   const handleDemoSignInSuccess = async () => {
-    setUser({
-      uid: 'mocked_orkto_user',
-      displayName: 'Dono do Negócio',
-      email: 'contato@orkto.co'
-    });
-    setUserProfile({
-      uid: 'mocked_orkto_user',
-      displayName: 'Dono do Negócio',
-      email: 'contato@orkto.co',
-      photoURL: null,
-      createdAt: Timestamp.now(),
-      onboardingCompleted: true,
-      companyName: 'Orkto Premium Design Studio',
-      whatsappNumber: '11999999999',
-      whatsappTemplate: 'Olá *[CLIENT_NAME]*, aqui está a proposta de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar os detalhes e aprovar:\n\n*[LINK]*',
-      paymentInfo: 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: ORKTO PRO SOLUTIONS LTDA',
-      quoteColor: '#ff9f1c',
-      address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
-      brandName: 'Orkto design',
-      brandTone: 'comercial',
-      profession: 'Design & Tecnologia'
-    });
-    setCurrentView('dashboard');
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: 'demo@orkto.co',
+        password: 'demo123456',
+      });
+      if (error) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: 'demo@orkto.co',
+          password: 'demo123456',
+          options: { data: { full_name: 'Dono do Negócio' } },
+        });
+        if (signUpError) throw signUpError;
+        await supabase.auth.signInWithPassword({ email: 'demo@orkto.co', password: 'demo123456' });
+      }
+      setCurrentView('dashboard');
+    } catch (err) {
+      console.error('Demo sign-in error:', err);
+    }
   };
 
   // Actual signed-in success handler
-  const handleSignInSuccess = async (emailVal?: string) => {
-    const userEmail = emailVal || 'contato@orkto.co';
-    const userName = userEmail.split('@')[0];
-    const capitalizedName = userName.charAt(0).toUpperCase() + userName.slice(1);
-
-    setUser({
-      uid: 'mocked_orkto_user',
-      displayName: capitalizedName || 'Dono do Negócio',
-      email: userEmail
-    });
-
-    if (!userProfile) {
-      setUserProfile({
-        uid: 'mocked_orkto_user',
-        displayName: capitalizedName || 'Dono do Negócio',
-        email: userEmail,
-        photoURL: null,
-        createdAt: Timestamp.now(),
-        onboardingCompleted: true,
-        companyName: 'Orkto Premium Design Studio',
-        taxID: '14.502.836/0001-90',
-        whatsappNumber: '11999999999',
-        whatsappTemplate: 'Olá *[CLIENT_NAME]*, aqui está a proposta de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar os detalhes e aprovar:\n\n*[LINK]*',
-        paymentInfo: 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: ORKTO PRO SOLUTIONS LTDA',
-        quoteColor: '#ff9f1c',
-        address: 'Av. Paulista, 1000 - Bela Vista, São Paulo - SP',
-        brandName: 'Orkto design',
-        brandTone: 'comercial',
-        profession: 'Design & Tecnologia',
-        activePlan: 'free'
+  const handleSignInSuccess = async (emailVal?: string, passwordVal?: string) => {
+    if (!emailVal || !passwordVal) return;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: emailVal,
+        password: passwordVal,
       });
-    } else {
-      setUserProfile({
-        ...userProfile,
-        uid: 'mocked_orkto_user',
-        email: userEmail
-      });
+      if (error) {
+        if (error.message.includes('Invalid login credentials')) {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: emailVal,
+            password: passwordVal,
+            options: { data: { full_name: emailVal.split('@')[0] } },
+          });
+          if (signUpError) throw signUpError;
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email: emailVal,
+            password: passwordVal,
+          });
+          if (signInError) throw signInError;
+        } else {
+          throw error;
+        }
+      }
+      setCurrentView('dashboard');
+    } catch (err: any) {
+      console.error('Sign-in error:', err);
+      alert('Erro ao acessar: ' + (err.message || 'Tente novamente.'));
     }
-    setCurrentView('dashboard');
   };
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white font-sans">
         <div className="text-center space-y-8 animate-pulse">
@@ -1192,7 +1235,7 @@ export default function App() {
           </div>
           
           <button 
-            onClick={() => { setUser(null); setUserProfile(null); setCurrentView('landing'); }}
+              onClick={() => { supabase.auth.signOut(); setUser(null); setUserProfile(null); setCurrentView('landing'); }}
             className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/40 text-red-400 hover:text-red-300 rounded-xl transition-all font-black text-xs flex items-center justify-center gap-2 shadow-sm shadow-red-950/20 active:scale-95 cursor-pointer"
           >
             <LogOutIcon className="w-4 h-4" />
@@ -1220,7 +1263,7 @@ export default function App() {
             
             {/* Highly visible Logout Button directly on mobile header */}
             <button 
-              onClick={() => { setUser(null); setUserProfile(null); setCurrentView('landing'); }}
+            onClick={() => { supabase.auth.signOut(); setUser(null); setUserProfile(null); setCurrentView('landing'); }}
               className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 rounded-lg transition-all font-extrabold text-[10px] flex items-center gap-1.5 cursor-pointer active:scale-95"
               title="Sair da Conta"
             >

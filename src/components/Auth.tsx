@@ -2,7 +2,7 @@ import React from 'react';
 import { SignInPage } from './ui/sign-in-flow-1';
 
 interface AuthProps {
-  onSignInSuccess: (email?: string) => void;
+  onSignInSuccess: (email?: string, password?: string) => void;
   isLoading: boolean;
 }
 
