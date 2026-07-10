@@ -205,6 +205,40 @@ if (supabase) {
     }
   });
 
+  // Create quote
+  app.post("/api/quotes", async (req, res) => {
+    try {
+      const body = req.body;
+      if (!body.userId) return res.status(400).json({ error: "userId required" });
+
+      const insertData: any = { user_id: body.userId };
+      if (body.id) insertData.id = body.id;
+      const fieldMap: Record<string, string> = {
+        quoteNumber: 'quote_number', clientName: 'client_name', clientPhone: 'client_phone',
+        clientEmail: 'client_email', clientCompany: 'client_company', clientVehicleOrService: 'client_vehicle_or_service',
+        notes: 'notes', items: 'items', subtotal: 'subtotal', discountTotal: 'discount_total',
+        taxes: 'taxes', total: 'total', validValueDays: 'valid_value_days', paymentInstructions: 'payment_instructions',
+        status: 'status',
+      };
+      for (const [camel, snake] of Object.entries(fieldMap)) {
+        if (body[camel] !== undefined) insertData[snake] = body[camel];
+      }
+      insertData.created_at = new Date().toISOString();
+      insertData.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('quotes')
+        .insert([insertData])
+        .select()
+        .single();
+
+      if (error) throw error;
+      res.json(data);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get single quote
   app.get("/api/quotes/detail/:quoteId", async (req, res) => {
     try {

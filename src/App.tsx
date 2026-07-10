@@ -1336,9 +1336,10 @@ export default function App() {
                     setEditQuoteSource(quote);
                     setCurrentView('create_quote');
                   }}
-                  onDeleteQuote={(quoteId) => {
-                    setQuotes(quotes.filter(q => q.id !== quoteId));
-                  }}
+                   onDeleteQuote={async (quoteId) => {
+                     setQuotes(quotes.filter(q => q.id !== quoteId));
+                     await fetch('/api/quotes/' + quoteId, { method: 'DELETE' });
+                   }}
                 />
               </motion.div>
             )}
@@ -1356,12 +1357,14 @@ export default function App() {
                   savedServices={services} 
                   duplicateQuoteSource={duplicateQuoteSource}
                   editQuoteSource={editQuoteSource}
-                  onQuoteCreated={(q) => {
-                    if (editQuoteSource) {
-                      setQuotes(quotes.map(item => item.id === editQuoteSource.id ? q : item));
-                    } else {
-                      setQuotes([q, ...quotes]);
-                    }
+                   onQuoteCreated={async (q) => {
+                     if (editQuoteSource) {
+                       await fetch('/api/quotes/' + editQuoteSource.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(q) });
+                       setQuotes(quotes.map(item => item.id === editQuoteSource.id ? q : item));
+                     } else {
+                       fetch('/api/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...q, userId: user?.uid }) });
+                       setQuotes([q, ...quotes]);
+                     }
                     setDuplicateQuoteSource(null);
                     setEditQuoteSource(null);
                     setSelectedQuoteId(q.id);
@@ -1404,14 +1407,16 @@ export default function App() {
                         setEditQuoteSource(null);
                         setCurrentView('create_quote');
                       }}
-                      onQuoteUpdated={(updatedQuote) => {
-                        setQuotes(quotes.map(item => item.id === updatedQuote.id ? updatedQuote : item));
-                      }}
-                      onQuoteDeleted={(deletedId) => {
-                        setQuotes(quotes.filter(item => item.id !== deletedId));
-                        setSelectedQuoteId(null);
-                        setCurrentView('dashboard');
-                      }}
+                       onQuoteUpdated={async (updatedQuote) => {
+                         setQuotes(quotes.map(item => item.id === updatedQuote.id ? updatedQuote : item));
+                         await fetch('/api/quotes/' + updatedQuote.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedQuote) });
+                       }}
+                       onQuoteDeleted={async (deletedId) => {
+                         setQuotes(quotes.filter(item => item.id !== deletedId));
+                         setSelectedQuoteId(null);
+                         setCurrentView('dashboard');
+                         await fetch('/api/quotes/' + deletedId, { method: 'DELETE' });
+                       }}
                     />
                   );
                 })()}
@@ -1428,15 +1433,26 @@ export default function App() {
                   clients={clients} 
                   quotes={quotes} 
                   userId={user.uid} 
-                  onClientAdded={(c) => {
-                    setClients([c, ...clients]);
-                  }} 
-                  onClientUpdated={(updatedClient) => {
-                    setClients(clients.map(c => c.id === updatedClient.id ? updatedClient : c));
-                  }}
-                  onClientDeleted={(clientId) => {
-                    setClients(clients.filter(c => c.id !== clientId));
-                  }}
+                   onClientAdded={async (c) => {
+                     setClients([c, ...clients]);
+                     await supabase.from('clients').upsert({
+                       id: c.id, user_id: user?.uid, name: c.name, phone: c.phone,
+                       company: c.company || null, vehicle_or_service: c.vehicleOrService || null,
+                       notes: c.notes || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+                     }, { onConflict: 'id' });
+                   }} 
+                   onClientUpdated={async (updatedClient) => {
+                     setClients(clients.map(c => c.id === updatedClient.id ? updatedClient : c));
+                     await supabase.from('clients').update({
+                       name: updatedClient.name, phone: updatedClient.phone,
+                       company: updatedClient.company || null, vehicle_or_service: updatedClient.vehicleOrService || null,
+                       notes: updatedClient.notes || null, updated_at: new Date().toISOString(),
+                     }).eq('id', updatedClient.id);
+                   }}
+                   onClientDeleted={async (clientId) => {
+                     setClients(clients.filter(c => c.id !== clientId));
+                     await supabase.from('clients').delete().eq('id', clientId);
+                   }}
                   onSelectQuote={(quoteId) => {
                     setSelectedQuoteId(quoteId);
                     setCurrentView('quote_detail');
@@ -1454,11 +1470,26 @@ export default function App() {
                 <ServicesPage 
                   services={services} 
                   userId={user.uid} 
-                  onServiceAdded={(newService) => setServices([newService, ...services])} 
-                  onServiceUpdated={(updatedService) => {
-                    setServices(services.map(i => i.id === updatedService.id ? updatedService : i));
-                  }} 
-                  onServiceDeleted={(deletedId) => setServices(services.filter(i => i.id !== deletedId))}
+                   onServiceAdded={async (newService) => {
+                     setServices([newService, ...services]);
+                     await supabase.from('services').upsert({
+                       id: newService.id, user_id: user?.uid, name: newService.name,
+                       description: newService.description || null, unit_price: newService.unitPrice,
+                       category: newService.category, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
+                     }, { onConflict: 'id' });
+                   }} 
+                   onServiceUpdated={async (updatedService) => {
+                     setServices(services.map(i => i.id === updatedService.id ? updatedService : i));
+                     await supabase.from('services').update({
+                       name: updatedService.name, description: updatedService.description || null,
+                       unit_price: updatedService.unitPrice, category: updatedService.category,
+                       updated_at: new Date().toISOString(),
+                     }).eq('id', updatedService.id);
+                   }} 
+                   onServiceDeleted={async (deletedId) => {
+                     setServices(services.filter(i => i.id !== deletedId));
+                     await supabase.from('services').delete().eq('id', deletedId);
+                   }}
                 />
               </motion.div>
             )}
@@ -1470,10 +1501,23 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <SettingsPage 
-                  userProfile={userProfile} 
-                  onProfileUpdated={(updatedProfile) => setUserProfile(updatedProfile)}
-                />
-              </motion.div>
+                   userProfile={userProfile} 
+                   onProfileUpdated={(updatedProfile) => {
+                     setUserProfile(updatedProfile);
+                     supabase.from('profiles').upsert({
+                       id: user?.uid, display_name: updatedProfile.displayName,
+                       email: updatedProfile.email, company_name: updatedProfile.companyName,
+                       tax_id: updatedProfile.taxID, company_logo: updatedProfile.companyLogo,
+                       whatsapp_number: updatedProfile.whatsappNumber,
+                       whatsapp_template: updatedProfile.whatsappTemplate,
+                       payment_info: updatedProfile.paymentInfo, quote_color: updatedProfile.quoteColor,
+                       address: updatedProfile.address, profession: updatedProfile.profession,
+                       brand_name: updatedProfile.brandName, brand_tone: updatedProfile.brandTone,
+                       asaas_api_key: updatedProfile.asaasApiKey,
+                      }, { onConflict: 'id' });
+                    }}
+                 />
+               </motion.div>
             )}
 
             {currentView === 'billing' && (
@@ -1483,9 +1527,16 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <BillingPage 
-                  userProfile={userProfile} 
-                  onProfileUpdated={(updatedProfile) => setUserProfile(updatedProfile)}
-                />
+                   userProfile={userProfile} 
+                   onProfileUpdated={(updatedProfile) => {
+                     setUserProfile(updatedProfile);
+                     supabase.from('profiles').upsert({
+                       id: user?.uid, active_plan: updatedProfile.activePlan,
+                       asaas_customer_id: updatedProfile.asaasCustomerId,
+                       asaas_api_key: updatedProfile.asaasApiKey,
+                      }, { onConflict: 'id' });
+                    }}
+                 />
               </motion.div>
             )}
 
