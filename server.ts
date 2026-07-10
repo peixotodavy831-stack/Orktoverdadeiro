@@ -441,14 +441,12 @@ app.post("/api/asaas/checkout", async (req, res) => {
     const planId = asaasPlanIds[plan];
     if (!planId) return res.status(400).json({ error: "Plano inválido" });
 
-    const { data: existingCustomer, error: selectError } = await supabase!.from('profiles').select('asaas_customer_id, is_founder, founder_price').eq('id', userId).maybeSingle();
+    const { data: existingCustomer, error: selectError } = await supabase!.from('profiles').select('asaas_customer_id').eq('id', userId).maybeSingle();
 
     if (selectError) {
       console.log("Profile select error:", selectError.message);
     }
     let customerId = existingCustomer?.asaas_customer_id;
-    const isFounder = existingCustomer?.is_founder || false;
-    const founderPrice = existingCustomer?.founder_price || null;
 
     if (!customerId) {
       const customer = await requestAsaas('POST', '/customers', {
@@ -472,7 +470,7 @@ app.post("/api/asaas/checkout", async (req, res) => {
     }
 
     const prices: Record<string, number> = { free: 49, pro: 79, business: 299 };
-    const planPrice = isFounder && founderPrice ? founderPrice : prices[plan];
+    const planPrice = prices[plan] || 49;
 
     const subscription = await requestAsaas('POST', '/subscriptions', {
       customer: customerId,
@@ -502,20 +500,14 @@ app.post("/api/asaas/checkout", async (req, res) => {
     const pixQrCode = null;
     const pixKey = null;
 
-    if (!isFounder) {
-      const upsertResult = await supabase!.from('profiles').upsert({
-        id: userId,
-        is_founder: true,
-        founder_price: planPrice,
-        active_plan: plan,
-        email: email || '',
-      }, { onConflict: 'id' });
+    const upsertResult = await supabase!.from('profiles').upsert({
+      id: userId,
+      active_plan: plan,
+      email: email || '',
+    }, { onConflict: 'id' });
 
-      if (upsertResult.error) {
-        console.log("Founder upsert error:", upsertResult.error.message);
-      } else {
-        console.log("Founder status saved: userId=", userId, "price=", planPrice);
-      }
+    if (upsertResult.error) {
+      console.log("Profile upsert error:", upsertResult.error.message);
     }
 
     res.json({

@@ -91,8 +91,6 @@ const FINAL_PLANS: { id: PlanType; name: string; icon: any; color: string; price
 
 export default function BillingPage({ userProfile, onProfileUpdated }: BillingPageProps) {
   const currentPlan = userProfile?.activePlan || 'free';
-  const isFounder = userProfile?.isFounder || false;
-  const founderPrice = userProfile?.founderPrice || 0;
   const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null);
   const [loading, setLoading] = useState(false);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
@@ -145,12 +143,12 @@ export default function BillingPage({ userProfile, onProfileUpdated }: BillingPa
           setCheckoutUrl(checkoutData.checkoutUrl);
           setStatusMessage('Redirecionando para cadastro do cartão...');
         } else {
-          onProfileUpdated({ ...userProfile!, activePlan: planId, isFounder: true, founderPrice: planId === 'pro' ? 7900 : 4900 } as UserProfile);
+          onProfileUpdated({ ...userProfile!, activePlan: planId } as UserProfile);
           setStatusMessage('Plano ativado! Acesse o link no seu e-mail para cadastrar o cartão.');
           setTimeout(() => { setSelectedPlan(null); setCheckoutUrl(null); }, 3000);
         }
       } else if (data.success) {
-        onProfileUpdated({ ...userProfile!, activePlan: planId, isFounder: true, founderPrice: planId === 'pro' ? 7900 : 4900 } as UserProfile);
+        onProfileUpdated({ ...userProfile!, activePlan: planId } as UserProfile);
         setStatusMessage('Plano ativado com sucesso!');
         setTimeout(() => { setSelectedPlan(null); setCheckoutUrl(null); }, 2000);
       }
@@ -171,21 +169,11 @@ export default function BillingPage({ userProfile, onProfileUpdated }: BillingPa
         </div>
       </div>
 
-      {isFounder && (
-        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-            ✅ Você é um fundador! Seu preço vitalício de R$ {(founderPrice / 100).toFixed(2).replace('.', ',')}/mês está garantido para sempre.
-          </p>
-        </div>
-      )}
-
-      {!isFounder && (
-        <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl">
-          <p className="text-xs font-bold text-orange-600 dark:text-orange-400">
-            🔥 Preço fundador — valor vitalício para os primeiros clientes. Beta aberto por 3 meses.
-          </p>
-        </div>
-      )}
+      <div className="mb-6 p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl">
+        <p className="text-xs font-bold text-orange-600 dark:text-orange-400">
+          🔥 Preço fundador — beta aberto por 3 meses.
+        </p>
+      </div>
 
       <div className={`grid gap-4 mb-8 ${plans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto' : 'grid-cols-1 md:grid-cols-3'}`}>
         {plans.map((plan) => {
