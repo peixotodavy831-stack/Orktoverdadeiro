@@ -474,4 +474,10 @@ async function startServer() {
   });
 }
 
-startServer();
+// Vercel export (no listening, Vercel handles that)
+export default app;
+
+// Start server only if not on Vercel
+if (!process.env.VERCEL) {
+  startServer();
+}
