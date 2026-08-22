@@ -1,7 +1,4 @@
--- =============================================
 -- ORKTO — Tabela de Propostas (links compartilháveis)
--- Cada proposta tem um slug de 8 caracteres, seguro e curto
--- =============================================
 
 CREATE TABLE IF NOT EXISTS proposals (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -15,27 +12,24 @@ CREATE TABLE IF NOT EXISTS proposals (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
--- Índices para queries rápidas
 CREATE INDEX IF NOT EXISTS idx_proposals_slug ON proposals(slug);
 CREATE INDEX IF NOT EXISTS idx_proposals_quote_id ON proposals(quote_id);
 CREATE INDEX IF NOT EXISTS idx_proposals_user_id ON proposals(user_id);
 
--- RLS
 ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
 
--- Qualquer pessoa com o slug pode ler (público, sem auth)
+DROP POLICY IF EXISTS "Proposta pode ser lida por slug" ON proposals;
 CREATE POLICY "Proposta pode ser lida por slug"
   ON proposals FOR SELECT USING (true);
 
--- Só o dono (profissional) pode criar propostas
+DROP POLICY IF EXISTS "Profissional cria proposta" ON proposals;
 CREATE POLICY "Profissional cria proposta"
   ON proposals FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Só o dono pode atualizar (regenerar slug, marcar visualizado)
+DROP POLICY IF EXISTS "Profissional atualiza proposta" ON proposals;
 CREATE POLICY "Profissional atualiza proposta"
   ON proposals FOR UPDATE USING (auth.uid() = user_id);
 
--- Função para invalidar propostas expiradas
 CREATE OR REPLACE FUNCTION deactivate_expired_proposals()
 RETURNS void AS $$
 BEGIN
@@ -43,7 +37,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger para auto-invalidar propostas expiradas ao acessar
 CREATE OR REPLACE FUNCTION check_proposal_expiry()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -54,7 +47,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_check_proposal_expiry ON proposals;
 CREATE TRIGGER trg_check_proposal_expiry
-  BEFORE SELECT ON proposals
+  BEFORE INSERT OR UPDATE ON proposals
   FOR EACH ROW
   EXECUTE FUNCTION check_proposal_expiry();
