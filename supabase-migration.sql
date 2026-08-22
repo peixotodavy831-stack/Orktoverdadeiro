@@ -65,3 +65,27 @@ SELECT
 FROM quotes q
 JOIN profiles p ON q.user_id = p.id
 WHERE q.status IN ('sent', 'viewed', 'pending');
+
+-- ============================================
+-- CORREÇÕES DE SEGURANÇA (v2.1)
+-- ============================================
+
+-- Adiciona política DELETE para profiles
+CREATE POLICY IF NOT EXISTS "Users can delete own profile"
+  ON profiles FOR DELETE
+  USING (auth.uid() = id);
+
+-- Corrige função increment_ai_usage com verificação de ownership
+CREATE OR REPLACE FUNCTION increment_ai_usage(user_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF auth.uid() != user_id THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
+  RAISE NOTICE 'AI usage incremented for user %', user_id;
+END;
+$$;

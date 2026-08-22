@@ -104,7 +104,23 @@ if (supabase && supabaseClient) {
   app.post("/api/quotes", authenticate, async (req, res) => {
     try {
       const body = req.body;
-      const insertData = { user_id: req.user.id };
+      const userId = req.user.id;
+
+      // Verificar limite do plano (Starter: 5 propostas ativas)
+      const { data: profile } = await supabaseClient.from('profiles').select('active_plan').eq('id', userId).maybeSingle();
+      const plan = profile?.active_plan || 'free';
+      const planLimits = { free: 5, starter: 5, pro: 50, business: 999 };
+      const maxQuotes = planLimits[plan] || 5;
+
+      const { count } = await supabaseClient.from('quotes').select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .not('status', 'in', '(rejected,expired)');
+
+      if (count && count >= maxQuotes) {
+        return res.status(403).json({ error: `Limite de ${maxQuotes} propostas ativas atingido no plano ${plan}. Faça upgrade para criar mais.`, limitReached: true });
+      }
+
+      const insertData = { user_id: userId };
       if (body.id) insertData.id = body.id;
       for (const [camel, snake] of Object.entries(FIELD_MAP_CAMEL_TO_SNAKE)) {
         if (body[camel] !== undefined) insertData[snake] = body[camel];
@@ -214,10 +230,53 @@ app.post("/api/quote/:id/approve", async (req, res) => {
   if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
   try {
     const { id } = req.params;
+    const { clientName } = req.body || {};
     const validationError = await validateQuoteStatusTransition(id, 'approved', ['sent', 'viewed', 'pending', 'draft']);
     if (validationError) return res.status(400).json({ error: validationError });
+
+    // Buscar dados do quote + perfil para envio de email
+    const { data: quote } = await supabase.from('quotes')
+      .select('id, quote_number, client_name, client_email, total, profiles!inner(company_name, email)')
+      .eq('id', id).single();
+
     const { error } = await supabase.from('quotes').update({ status: 'approved', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id);
     if (error) throw error;
+
+    // Email de confirmação ao CLIENTE
+    if (process.env.RESEND_API_KEY && quote?.client_email) {
+      const companyName = quote.profiles?.company_name || 'o profissional';
+      resend.emails.send({
+        from: process.env.RESEND_FROM || 'ORKTO <onboarding@resend.dev>',
+        to: [quote.client_email],
+        subject: `Proposta #${quote.quote_number} aprovada com sucesso!`,
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#111;color:#fff;border-radius:16px">
+          <h2 style="color:#25D366;margin:0 0 12px">Proposta Aprovada!</h2>
+          <p style="color:#aaa;font-size:14px;margin:0 0 8px">Sua proposta <strong style="color:#fff">#${quote.quote_number}</strong> foi aprovada com sucesso.</p>
+          <p style="color:#aaa;font-size:14px;margin:0 0 16px">Profissional: <strong style="color:#fff">${companyName}</strong></p>
+          <div style="background:#1a1a1a;border-radius:12px;padding:16px;margin:0 0 16px">
+            <p style="color:#888;font-size:12px;margin:0 0 4px">Valor total</p>
+            <p style="color:#FF9F1C;font-size:24px;font-weight:bold;margin:0">R$ ${(quote.total / 100).toFixed(2).replace('.', ',')}</p>
+          </div>
+          <p style="color:#666;font-size:12px;margin:0">O profissional entrará em contato para prosseguir com o pagamento.</p>
+          <p style="color:#555;font-size:11px;margin-top:20px">ORKTO — Sistema operacional de vendas</p>
+        </div>`,
+      }).catch(e => console.error('[ERRO] Resend cliente:', e));
+    }
+
+    // Notificar o DONO da proposta
+    if (process.env.RESEND_API_KEY && quote?.profiles?.email) {
+      resend.emails.send({
+        from: process.env.RESEND_FROM || 'ORKTO <onboarding@resend.dev>',
+        to: [quote.profiles.email],
+        subject: `Orçamento aprovado por ${clientName || quote?.client_name || 'cliente'}!`,
+        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#111;color:#fff;border-radius:16px">
+          <h2 style="color:#FF9F1C;margin:0 0 8px">Orçamento Aprovado!</h2>
+          <p style="color:#aaa;font-size:14px;margin:0 0 16px"><strong style="color:#fff">${clientName || quote?.client_name || 'Cliente'}</strong> acabou de aprovar o orçamento <strong style="color:#fff">#${quote?.quote_number}</strong>.</p>
+          <p style="color:#555;font-size:11px;margin-top:20px">ORKTO — Sistema operacional de vendas</p>
+        </div>`,
+      }).catch(e => console.error('[ERRO] Resend dono:', e));
+    }
+
     res.json({ success: true });
   } catch (error) {
     console.error(`[ERRO] ${req.method} ${req.path}:`, error);
@@ -241,6 +300,10 @@ app.post("/api/quote/:id/reject", async (req, res) => {
 });
 
 app.post("/api/auth/demo-login", async (req, res) => {
+  // Bloquear demo-login em produção
+  if (process.env.VERCEL_ENV === 'production' || process.env.ASAAS_ENVIRONMENT === 'production') {
+    return res.status(403).json({ error: 'Modo demo indisponível em produção. Crie uma conta.' });
+  }
   if (!supabaseClient) return res.status(500).json({ error: "Supabase not configured" });
   try {
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email: 'demo@orkto.co', password: 'demo123456' });

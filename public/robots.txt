@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://orkto.vercel.app/sitemap.xml

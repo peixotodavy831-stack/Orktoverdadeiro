@@ -125,6 +125,9 @@ CREATE POLICY "Users can update own profile" ON profiles
 CREATE POLICY "Users can insert own profile" ON profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
 
+CREATE POLICY "Users can delete own profile" ON profiles
+  FOR DELETE USING (auth.uid() = id);
+
 -- Quotes: usuário só vê os próprios
 CREATE POLICY "Users can view own quotes" ON quotes
   FOR SELECT USING (auth.uid() = user_id);
@@ -166,14 +169,22 @@ CREATE POLICY "Users can delete own services" ON services
 
 -- 7. Função RPC: incrementar uso de refinamentos IA
 CREATE OR REPLACE FUNCTION increment_ai_usage(user_id UUID)
-RETURNS VOID AS $$
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
-  -- Placeholder: lógica de contagem de refinamentos pode ser expandida
+  IF auth.uid() != user_id THEN
+    RAISE EXCEPTION 'Not authorized';
+  END IF;
   RAISE NOTICE 'AI usage incremented for user %', user_id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- 8. View pública de orçamentos (para aprovação online)
+-- NOTA: Acessada SOMENTE via server API (service role). RLS é bypassado intencionalmente.
+-- O endpoint GET /api/quote/public/:id tem rate limiting e validação.
 CREATE OR REPLACE VIEW public_quotes AS
 SELECT
   q.id,

@@ -29,6 +29,7 @@ interface ShaderProps {
 interface SignInPageProps {
   className?: string;
   onSignInSuccess: (email?: string, password?: string) => void;
+  onSignUp?: (email: string, password: string) => Promise<void>;
 }
       
 export const CanvasRevealEffect = ({
@@ -305,16 +306,17 @@ function MiniNavbar() {
   );
 }
 
-export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
+export const SignInPage = ({ className, onSignInSuccess, onSignUp }: SignInPageProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [step, setStep] = useState<"email" | "password" | "forgot" | "success">("email");
+  const [step, setStep] = useState<"email" | "password" | "forgot" | "success" | "signup">("email");
   const [resetEmail, setResetEmail] = useState("");
   const [resetSent, setResetSent] = useState(false);
   const [initialCanvasVisible, setInitialCanvasVisible] = useState(true);
   const [reverseCanvasVisible, setReverseCanvasVisible] = useState(false);
   const [authError, setAuthError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [signupName, setSignupName] = useState("");
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -364,12 +366,22 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
     setInitialCanvasVisible(true);
   };
 
-  const handleBypassOrkto = () => {
-      setEmail("demo@orkto.co");
-      setPassword("demo123456");
-      setReverseCanvasVisible(true);
-      setTimeout(() => { setInitialCanvasVisible(false); }, 50);
-      setTimeout(() => { setStep("success"); }, 1500);
+  const handleBypassOrkto = async () => {
+    try {
+      const res = await fetch('/api/auth/demo-login', { method: 'POST' });
+      if (!res.ok) {
+        setAuthError('Erro ao acessar conta demo');
+        return;
+      }
+      const data = await res.json();
+      if (data.session) {
+        const { supabase } = await import('../../lib/supabase');
+        await supabase.auth.setSession(data.session);
+      }
+      onSignInSuccess();
+    } catch {
+      setAuthError('Erro ao acessar conta demo');
+    }
   }
 
   return (
@@ -452,10 +464,10 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                         </div>
                       </form>
  
-                      <button 
-                         onClick={handleBypassOrkto}
-                         type="button" 
-                         className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-zinc-900/50 hover:bg-zinc-800 text-white border border-zinc-800 rounded-full py-3.5 px-4 transition-colors font-medium text-sm mt-4 cursor-pointer">
+                      <button
+                        onClick={handleBypassOrkto}
+                        type="button"
+                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-zinc-900/50 hover:bg-zinc-800 text-white border border-zinc-800 rounded-full py-3.5 px-4 transition-colors font-medium text-sm mt-4 cursor-pointer">
                         <svg className="w-5 h-5 text-[#FF9F1C]" viewBox="0 0 24 24">
                           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"/>
                           <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"/>
@@ -464,7 +476,28 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                         </svg>
                         <span>Entrar com Login Demo</span>
                       </button>
- 
+
+                      <button
+                        onClick={async () => {
+                          const { supabase } = await import('../../lib/supabase');
+                          await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+                        }}
+                        type="button"
+                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span>Entrar com Google</span>
+                      </button>
+
+                      <p className="text-[10px] text-zinc-600 pt-2">
+                        Precisa de ajuda? <a href="mailto:ola@orkto.co" className="text-zinc-400 hover:text-[#FF9F1C] transition-colors">ola@orkto.co</a>
+                      </p>
+
                       <button
                         onClick={() => { setStep("forgot"); setResetEmail(email || ""); }}
                         type="button"
@@ -472,10 +505,27 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                       >
                         Esqueci minha senha / código de acesso
                       </button>
+
+                      <div className="relative pt-6">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-zinc-800"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                          <span className="bg-[#111111] px-4 text-zinc-500">ou</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => { setStep("signup"); setSignupName(""); setAuthError(""); }}
+                        type="button"
+                        className="w-full backdrop-blur-[2px] flex items-center justify-center gap-3 bg-zinc-900/30 hover:bg-zinc-800/50 text-zinc-300 hover:text-white border border-zinc-800 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
+                      >
+                        Criar Conta
+                      </button>
                     </div>
                     
                     <p className="text-[10px] text-zinc-500 pt-10">
-                      Ao acessar, você concorda com nossos <a href="#" className="underline text-zinc-400 hover:text-white transition-colors">Termos</a> e <a href="#" className="underline text-zinc-400 hover:text-white transition-colors">Privacidade</a>.
+                      Ao acessar, você concorda com nossos <a href="/termos.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Termos</a> e <a href="/privacidade.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Privacidade</a>.
                     </p>
                   </motion.div>
                 ) : step === "forgot" ? (
@@ -526,6 +576,139 @@ export const SignInPage = ({ className, onSignInSuccess }: SignInPageProps) => {
                         </div>
                       </form>
                     )}
+                  </motion.div>
+                ) : step === "signup" ? (
+                  <motion.div
+                    key="signup-step"
+                    initial={{ opacity: 0, x: -100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -100 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="space-y-6 text-center relative z-20 pointer-events-auto"
+                  >
+                    <div className="space-y-1 mb-8">
+                      <h1 className="text-[2.2rem] font-bold leading-[1.1] tracking-tight">Criar Conta</h1>
+                      <p className="text-[1rem] text-zinc-400 font-light">Preencha seus dados para se cadastrar na plataforma <span className="text-[#FF9F1C] font-semibold">ORKTO</span></p>
+                    </div>
+
+                    {authError && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl text-xs font-semibold">
+                        {authError}
+                      </div>
+                    )}
+
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (!email || !password || !signupName) {
+                        setAuthError('Preencha todos os campos');
+                        return;
+                      }
+                      if (password.length < 6) {
+                        setAuthError('A senha deve ter no mínimo 6 caracteres');
+                        return;
+                      }
+                      setIsSubmitting(true);
+                      setAuthError('');
+                      try {
+                        if (onSignUp) {
+                          await onSignUp(email, password);
+                        }
+                        setReverseCanvasVisible(true);
+                        setTimeout(() => { setInitialCanvasVisible(false); }, 50);
+                        setTimeout(() => { setStep("success"); }, 1500);
+                      } catch (err: any) {
+                        setAuthError(err.message || 'Erro ao criar conta');
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }} className="space-y-4">
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Seu nome completo"
+                          value={signupName}
+                          onChange={(e) => setSignupName(e.target.value)}
+                          className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                          required
+                        />
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                          required
+                        />
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="password"
+                          placeholder="Sua senha (mín. 6 caracteres)"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                          required
+                          minLength={6}
+                        />
+                      </div>
+
+                      <div className="flex w-full gap-3">
+                        <button
+                          type="button"
+                          onClick={() => { setStep("email"); setAuthError(""); }}
+                          className="rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium px-6 py-3.5 hover:bg-zinc-800 transition-colors w-[30%] text-xs"
+                        >
+                          Voltar
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={!email || !password || !signupName || isSubmitting}
+                          className={`flex-1 rounded-full font-medium py-3.5 border transition-all duration-300 ${
+                            email && password && signupName && !isSubmitting
+                            ? "bg-[#FF9F1C] text-black border-transparent hover:bg-[#e88d0e]"
+                            : "bg-zinc-900 text-zinc-500 border-zinc-800 cursor-not-allowed"
+                          }`}
+                        >
+                          {isSubmitting ? 'Criando...' : 'Criar Conta'}
+                        </button>
+                      </div>
+                    </form>
+
+                      <div className="relative py-4">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-zinc-800"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs">
+                          <span className="bg-[#111111] px-4 text-zinc-500">ou</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={async () => {
+                          const { supabase } = await import('../../lib/supabase');
+                          await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+                        }}
+                        type="button"
+                        className="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
+                      >
+                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                        </svg>
+                        <span>Cadastrar com Google</span>
+                      </button>
+
+                    <p className="text-[10px] text-zinc-500">
+                      Ao criar uma conta, você concorda com nossos <a href="/termos.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Termos</a> e <a href="/privacidade.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Privacidade</a>.
+                    </p>
+
+                    <p className="text-[10px] text-zinc-600">
+                      Precisa de ajuda? <a href="mailto:ola@orkto.co" className="text-zinc-400 hover:text-[#FF9F1C] transition-colors">ola@orkto.co</a>
+                    </p>
                   </motion.div>
                 ) : step === "password" ? (
                   <motion.div 

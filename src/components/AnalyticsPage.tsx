@@ -56,16 +56,22 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
     const activeQuotes = quotes.filter(q => q.status !== 'expired');
     const approvalRate = activeQuotes.length > 0 
       ? Math.round((approvedQuotes.length / activeQuotes.length) * 100) 
-      : 74; // Handsome default if empty
+      : 0;
 
-    // 5. Taxa de Abertura / Visualização (Simulated based on reality, e.g. viewedAt is present or most get viewed in premium SaaS)
-    const viewedCount = quotes.filter(q => q.status === 'approved' || q.status === 'rejected' || Math.random() > 0.3).length;
+    // 5. Taxa de Abertura / Visualização
+    const viewedCount = quotes.filter(q => q.viewedAt).length;
     const openRate = totalQuotes > 0 
       ? Math.round((viewedCount / totalQuotes) * 100) 
-      : 88; // Industry high standard for ORKTO
+      : 0;
 
-    // 6. Tempo Médio para Fechar (Simulated elegantly: usually 2 to 6 hours for fast-closing ORKTO)
-    const averageClosingTimeHours = approvedQuotes.length > 0 ? "3.2 horas" : "4.5 horas";
+    // 6. Tempo Médio para Fechar
+    const averageClosingTimeHours = approvedQuotes.length > 0 
+      ? `${Math.round((approvedQuotes.reduce((acc, q) => {
+          const diff = q.approvedAt && q.createdAt ? 
+            (q.approvedAt.seconds - q.createdAt.seconds) / 3600 : 0;
+          return acc + diff;
+        }, 0) / approvedQuotes.length) * 10) / 10} horas`
+      : "—";
 
     return {
       totalQuotes,
@@ -85,18 +91,24 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
 
   // Status Distribution Pie Data
   const statusData = [
-    { name: 'Aprovados', value: metrics.approvedCount || 2, color: '#10B981' },
-    { name: 'Pendentes', value: metrics.pendingCount || 1, color: '#FF9F1C' },
-    { name: 'Recusados', value: metrics.rejectedCount || 0, color: '#EF4444' }
+    { name: 'Aprovados', value: metrics.approvedCount, color: '#10B981' },
+    { name: 'Pendentes', value: metrics.pendingCount, color: '#FF9F1C' },
+    { name: 'Recusados', value: metrics.rejectedCount, color: '#EF4444' }
   ].filter(i => i.value > 0);
 
-  // Growth / Category analysis data
-  const servicesData = [
-    { name: 'Design / Branding', propostas: 12, receita: 28800 },
-    { name: 'Software / Code', propostas: 18, receita: 99000 },
-    { name: 'Consultorias', propostas: 9, receita: 16200 },
-    { name: 'Audiência / Ads', propostas: 15, receita: 22500 }
-  ];
+  // Category analysis from actual quotes
+  const categoryMap = new Map<string, { propostas: number; receita: number }>();
+  quotes.forEach(q => {
+    const cat = q.clientVehicleOrService || 'Geral';
+    const existing = categoryMap.get(cat) || { propostas: 0, receita: 0 };
+    existing.propostas += 1;
+    existing.receita += q.total;
+    categoryMap.set(cat, existing);
+  });
+  const servicesData = Array.from(categoryMap.entries())
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => b.receita - a.receita)
+    .slice(0, 6);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 bg-[#111111] text-white min-h-screen">
@@ -224,10 +236,12 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
             <div className="space-y-1">
               <span className="text-[10px] font-bold text-[#FF9F1C] uppercase tracking-widest flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5" />
-                Dica Orko Speed
+                Dica Orkto
               </span>
               <p className="text-xs text-zinc-300 leading-relaxed max-w-xl">
-                Clientes que recebem a proposta em até <strong>15 minutos</strong> após o primeiro contato possuem uma probabilidade <strong>82% maior</strong> de aprovação no mesmo dia. Use o Orçamento Rápido em 1 Clique.
+                {quotes.length > 0 
+                  ? `Você já enviou ${quotes.length} proposta${quotes.length > 1 ? 's' : ''}. Continue assim para aumentar suas chances de fechamento.`
+                  : 'Envie sua primeira proposta para começar a acompanhar suas métricas de conversão.'}
               </p>
             </div>
           </div>

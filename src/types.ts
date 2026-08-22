@@ -61,7 +61,9 @@ export interface UserProfile {
   planPeriod?: 'monthly' | 'annual';
   trialExpirationDate?: string;
   checklistDismissed?: boolean;
+  /** @deprecated Nao persistir em localStorage */
   asaasApiKey?: string;
+  /** @deprecated Nao persistir em localStorage */
   asaasCustomerId?: string;
   isFounder?: boolean;
   founderPrice?: number;

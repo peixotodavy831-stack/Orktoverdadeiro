@@ -89,7 +89,11 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
     if (!approverName.trim()) return;
     try {
       setActionLoading(true);
-      const res = await fetch(`/api/quote/${data!.quote.id}/approve`, { method: 'POST' });
+      const res = await fetch(`/api/quote/${data!.quote.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientName: approverName }),
+      });
       if (!res.ok) throw new Error();
       setApproved(true);
     } catch { alert('Erro ao aprovar'); } finally { setActionLoading(false); }

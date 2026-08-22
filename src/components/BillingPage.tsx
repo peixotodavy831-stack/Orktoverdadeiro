@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { CreditCard, Crown, Star, Zap, Check, Loader2, ArrowUpRight, X, ShieldCheck, Award } from 'lucide-react';
 import { UserProfile, PlanType, PLAN_LIMITS } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface BillingPageProps {
   userProfile: UserProfile | null;
@@ -99,18 +100,19 @@ export default function BillingPage({ userProfile, onProfileUpdated }: BillingPa
   const plans = BETA_PLANS;
 
   const handleSelectPlan = async (planId: PlanType) => {
-    if (planId === 'free' && currentPlan !== 'free') return;
     if (planId === currentPlan) return;
     setSelectedPlan(planId);
     setLoading(true);
     setStatusMessage('Preparando checkout Asaas...');
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const authHeaders: Record<string, string> = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
       const res = await fetch('/api/asaas/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders,
         body: JSON.stringify({
-          userId: userProfile?.uid,
           plan: planId,
           email: userProfile?.email,
           name: userProfile?.companyName || userProfile?.displayName,
@@ -135,8 +137,8 @@ export default function BillingPage({ userProfile, onProfileUpdated }: BillingPa
         setStatusMessage('Gerando link de pagamento...');
         const checkoutRes = await fetch('/api/asaas/generate-checkout', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: userProfile?.uid, subscriptionId: data.subscriptionId }),
+          headers: authHeaders,
+          body: JSON.stringify({ subscriptionId: data.subscriptionId, plan: planId }),
         });
         const checkoutData = await checkoutRes.json();
         if (checkoutData.checkoutUrl) {
@@ -178,7 +180,7 @@ export default function BillingPage({ userProfile, onProfileUpdated }: BillingPa
       <div className={`grid gap-4 mb-8 ${plans.length === 2 ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto' : 'grid-cols-1 md:grid-cols-3'}`}>
         {plans.map((plan) => {
           const Icon = plan.icon;
-          const isCurrent = plan.id === currentPlan && currentPlan !== 'free';
+          const isCurrent = plan.id === currentPlan;
           return (
             <div
               key={plan.id}
@@ -221,7 +223,7 @@ export default function BillingPage({ userProfile, onProfileUpdated }: BillingPa
                       : 'bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-orange-500 dark:hover:bg-orange-600 dark:text-zinc-950'
                 }`}
               >
-                {isCurrent ? 'Plano Atual' : 'Assinar'} <ArrowUpRight className="w-3.5 h-3.5" />
+                {isCurrent ? 'Plano Atual' : plan.price === 0 ? 'Ativar Grátis' : 'Assinar'} <ArrowUpRight className="w-3.5 h-3.5" />
               </button>
             </div>
           );

@@ -90,7 +90,7 @@ export default function CreateQuote({
       // Deep clone items so modified IDs won't conflict
       setItems(source.items.map(item => ({ 
         ...item, 
-        id: editQuoteSource ? item.id : Math.random().toString(36).substring(2, 9) 
+        id: editQuoteSource ? item.id : crypto.randomUUID().replace(/-/g, '').substring(0, 7) 
       })));
       setValidValueDays(source.validValueDays || 10);
       setPaymentInstructions(source.paymentInstructions || '');
@@ -175,7 +175,7 @@ export default function CreateQuote({
   // Handlers for Items
   const handleAddItem = () => {
     const newItem: QuoteItem = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: crypto.randomUUID().replace(/-/g, '').substring(0, 7),
       name: '',
       description: '',
       quantity: 1,
@@ -289,7 +289,7 @@ export default function CreateQuote({
 
     try {
       const userUid = userProfile?.uid || 'anonymous';
-      const quoteId = editQuoteSource ? editQuoteSource.id : 'q_' + Math.random().toString(36).substring(2, 11);
+      const quoteId = editQuoteSource ? editQuoteSource.id : 'q_' + crypto.randomUUID().replace(/-/g, '').substring(0, 9);
       
       // Auto-generate random Quote Number or keep original
       const quoteNumberStr = editQuoteSource ? editQuoteSource.quoteNumber : Math.floor(1000 + Math.random() * 9000).toString();
@@ -321,7 +321,7 @@ export default function CreateQuote({
       // 2. Notify parent if client is new so client list updates
       const existingClientRef = savedClients.find(c => c.name.toLowerCase() === clientName.toLowerCase() || c.phone === clientPhone);
       if (!existingClientRef && onClientAdded) {
-        const clientUid = 'cl_' + Math.random().toString(36).substring(2, 9);
+        const clientUid = 'cl_' + crypto.randomUUID().replace(/-/g, '').substring(0, 7);
         onClientAdded({
           id: clientUid,
           userId: userUid,

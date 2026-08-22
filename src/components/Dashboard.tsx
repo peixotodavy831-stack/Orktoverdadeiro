@@ -249,7 +249,7 @@ export default function Dashboard({
     <div className="max-w-6xl mx-auto px-4 py-8 bg-transparent text-zinc-900 dark:text-zinc-50 min-h-screen">
       
       {/* Top action header */}
-      <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-200 dark:border-zinc-850">
+      <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-4">
           <OrktoLogo size="md" showSlogan={false} />
           <div className="h-6 w-[1px] bg-zinc-200 dark:bg-zinc-800 hidden sm:block" />
@@ -447,7 +447,7 @@ export default function Dashboard({
                         </div>
 
                         <div>
-                          <p className={`text-xs font-bold ${step.completed ? 'text-zinc-400 dark:text-zinc-550 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
+                          <p className={`text-xs font-bold ${step.completed ? 'text-zinc-400 dark:text-zinc-500 line-through' : 'text-zinc-900 dark:text-zinc-100'}`}>
                             {step.title}
                           </p>
                           <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">{step.desc}</p>
@@ -494,11 +494,11 @@ export default function Dashboard({
                   
                   <div className="flex justify-between items-center text-xs border-t border-zinc-100 dark:border-zinc-900 pt-2">
                     <span className="text-zinc-500 dark:text-zinc-400">Total de Orçamentos:</span>
-                    <span className="font-bold text-zinc-850 dark:text-white font-mono">{usedQuotes} enviados</span>
+                    <span className="font-bold text-zinc-800 dark:text-white font-mono">{usedQuotes} enviados</span>
                   </div>
 
-                  <div className="flex justify-between items-center text-xs border-t border-zinc-105 dark:border-zinc-900 pt-2">
-                    <span className="text-zinc-550 dark:text-zinc-400">Conversão Média:</span>
+                  <div className="flex justify-between items-center text-xs border-t border-zinc-100 dark:border-zinc-900 pt-2">
+                    <span className="text-zinc-500 dark:text-zinc-400">Conversão Média:</span>
                     <span className="font-bold text-emerald-500 dark:text-emerald-400 font-mono">
                       {quotes.length > 0 
                         ? `${Math.round((quotes.filter(q => q.status === 'approved').length / quotes.length) * 100)}%` 
@@ -518,7 +518,7 @@ export default function Dashboard({
                         style={{ width: `${Math.min(100, (usedQuotes / maxStarterQuotes) * 100)}%` }}
                       />
                     </div>
-                    <p className="text-[9px] text-right text-zinc-450 dark:text-zinc-500 font-mono mt-1">{usedQuotes} de 5 utilizados</p>
+                    <p className="text-[9px] text-right text-zinc-400 dark:text-zinc-500 font-mono mt-1">{usedQuotes} de 5 utilizados</p>
                   </div>
                 )}
 
@@ -611,18 +611,18 @@ export default function Dashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-10">
         
         {/* Receita potencial */}
-        <div className="bg-white dark:bg-zinc-905 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm dark:shadow-md relative overflow-hidden flex flex-col justify-between transition-all duration-300">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm dark:shadow-md relative overflow-hidden flex flex-col justify-between transition-all duration-300">
           <div>
-            <p className="text-[9px] font-bold text-zinc-550 dark:text-zinc-400 uppercase tracking-widest mb-1">Receita Potencial</p>
+            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">Receita Potencial</p>
             <p className="text-lg font-bold font-mono text-zinc-900 dark:text-white tracking-tight mt-1">{formatBRL(stats.totalPotential)}</p>
           </div>
           <span className="text-[10px] text-zinc-400 dark:text-zinc-500 self-end mt-4">Todos os envios</span>
         </div>
 
         {/* Enviados */}
-        <div className="bg-white/80 dark:bg-zinc-900/60 p-5 rounded-2xl border border-zinc-195 dark:border-zinc-800/80 shadow-sm relative overflow-hidden flex flex-col justify-between transition-all duration-300">
+        <div className="bg-white/80 dark:bg-zinc-900/60 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 shadow-sm relative overflow-hidden flex flex-col justify-between transition-all duration-300">
           <div>
-            <p className="text-[9px] font-bold text-zinc-550 dark:text-zinc-400 uppercase tracking-widest mb-1 font-sans">Enviados</p>
+            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1 font-sans">Enviados</p>
             <p className="text-lg font-bold font-mono text-zinc-900 dark:text-white mt-1">{stats.sentCount} propostas</p>
           </div>
           <span className="text-[10px] text-zinc-400 dark:text-zinc-500 self-end mt-4">Digital pipeline</span>
@@ -649,7 +649,7 @@ export default function Dashboard({
         {/* Taxa de Conversão */}
         <div className="bg-white/60 dark:bg-zinc-900/40 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800/60 shadow-sm relative overflow-hidden flex flex-col justify-between transition-all duration-300">
           <div>
-            <p className="text-[9px] font-bold text-zinc-550 dark:text-zinc-400 uppercase tracking-widest mb-1">Conversão</p>
+            <p className="text-[9px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-1">Conversão</p>
             <p className="text-2xl font-black mt-1 text-zinc-900 dark:text-white">{stats.conversionRate}%</p>
           </div>
           <span className="text-[10px] text-zinc-500 self-end mt-4">Propostas aceitas</span>
@@ -661,11 +661,11 @@ export default function Dashboard({
       <div className="mb-10 p-6 bg-zinc-100/50 dark:bg-zinc-900/30 border border-zinc-200 dark:border-zinc-800 rounded-3xl transition-colors">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-xs font-bold text-zinc-550 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 leading-none">
+            <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest flex items-center gap-1.5 leading-none">
               <Zap className="w-4 h-4 text-[#FF9F1C] animate-pulse" />
               Fechamento Rápido Orko
             </h3>
-            <p className="text-[10px] text-zinc-450 dark:text-zinc-500 mt-1">Gargalos comerciais e oportunidades de fechamento imediato</p>
+            <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">Gargalos comerciais e oportunidades de fechamento imediato</p>
           </div>
           <span className="text-[9px] uppercase tracking-widest font-extrabold bg-[#FF9F1C]/15 text-[#FF9F1C] border border-[#FF9F1C]/25 px-2 py-0.5 rounded">
             Foco Conversão
@@ -674,100 +674,141 @@ export default function Dashboard({
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          {/* Card 1: Cliente visualizou */}
-          <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-cyan-500/35 transition-all group shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[8px] font-extrabold uppercase tracking-widest rounded">
-                  Cliente Visualizou
-                </span>
-                <span className="text-[9px] text-zinc-400 dark:text-zinc-550 font-bold">Hoje, 14:32</span>
-              </div>
-              <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">Juliana Albuquerque</p>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">Visualizou "Landing Page Premium". Retorno imediato aumenta conversão em até 82%.</p>
-            </div>
-            <button
-              onClick={() => onSelectQuote('mq_1')}
-              className="mt-3 py-1.5 bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-950/40 text-cyan-750 dark:text-cyan-400 dark:hover:bg-cyan-900/30 border border-cyan-250 dark:border-cyan-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <span>Ver Detalhes</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
+          {(() => {
+            const viewed = quotes.filter(q => q.status === 'viewed')[0];
+            const pending = quotes.filter(q => q.status === 'pending');
+            const oldestPending = pending.length > 0 ? pending.reduce((a, b) => new Date(a.created_at || a.updated_at || Date.now()) < new Date(b.created_at || b.updated_at || Date.now()) ? a : b) : null;
+            const approved = quotes.filter(q => q.status === 'approved');
+            const recentApproved = approved.length > 0 ? approved[approved.length - 1] : null;
+            const unpaid = quotes.filter(q => q.status === 'approved')[0];
+            const hasQuotes = quotes.length > 0;
 
-          {/* Card 2: Follow-up sugerido */}
-          <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-[#FF9F1C]/35 transition-all group shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 bg-orange-500/10 text-[#FF9F1C] text-[8px] font-extrabold uppercase tracking-widest rounded">
-                  Follow-up Sugerido
-                </span>
-                <span className="text-[9px] text-zinc-400 dark:text-zinc-550 font-bold">Há 1 dia</span>
+            return (<>
+              {/* Card 1: Cliente Visualizou */}
+              <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-cyan-500/35 transition-all group shadow-sm">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[8px] font-extrabold uppercase tracking-widest rounded">
+                      {viewed ? 'Cliente Visualizou' : 'Nenhum Orçamento'}
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                    {viewed ? viewed.client_name || 'Cliente' : '—'}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                    {viewed ? `Visualizou orçamento de ${formatBRL(viewed.total)}` : hasQuotes ? 'Nenhum cliente visualizou ainda' : 'Crie seu primeiro orçamento'}
+                  </p>
+                </div>
+                {viewed && (
+                  <button
+                    onClick={() => onSelectQuote(viewed.id)}
+                    className="mt-3 py-1.5 bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-950/40 text-cyan-600 dark:text-cyan-400 dark:hover:bg-cyan-900/30 border border-cyan-300 dark:border-cyan-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Ver Detalhes</span>
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                )}
               </div>
-              <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-[#FF9F1C] transition-colors">Henrique Silveira</p>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">Vortex Tech visualizou mas não assinou a proposta de UX Audit.</p>
-            </div>
-            {quotes.find(q => q.id === 'mq_2') ? (
-              <a
-                href={getWhatsAppReminderLink(quotes.find(q => q.id === 'mq_2')!)}
-                target="_blank"
-                referrerPolicy="no-referrer"
-                className="mt-3 py-1.5 bg-[#FF9F1C]/10 text-[#FF9F1C] hover:bg-[#FF9F1C]/20 border border-[#FF9F1C]/25 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 text-center cursor-pointer"
-              >
-                <Send className="w-3 h-3" />
-                <span>Enviar Cobrança</span>
-              </a>
-            ) : (
-              <button
-                onClick={onCreateQuoteClick}
-                className="mt-3 py-1.5 bg-[#FF9F1C]/10 text-[#FF9F1C] text-[9px] font-bold uppercase tracking-widest rounded-lg cursor-pointer"
-              >
-                <span>Criar Proposta</span>
-              </button>
-            )}
-          </div>
 
-          {/* Card 3: Proposta aprovada */}
-          <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-emerald-500/35 transition-all group shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-extrabold uppercase tracking-widest rounded">
-                  Proposta Aprovada
-                </span>
-                <span className="text-[9px] text-emerald-600 dark:text-[#10B981] font-bold">Aceite Ativo</span>
+              {/* Card 2: Follow-up Sugerido */}
+              <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-[#FF9F1C]/35 transition-all group shadow-sm">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 bg-orange-500/10 text-[#FF9F1C] text-[8px] font-extrabold uppercase tracking-widest rounded">
+                      {oldestPending ? 'Follow-up Sugerido' : 'Nenhum Pendente'}
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-[#FF9F1C] transition-colors">
+                    {oldestPending ? (oldestPending.client_name || 'Cliente') : '—'}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                    {oldestPending ? `Aguardando resposta — ${formatBRL(oldestPending.total)}` : hasQuotes ? 'Todas as propostas foram respondidas' : 'Crie seu primeiro orçamento'}
+                  </p>
+                </div>
+                {oldestPending ? (
+                  <a
+                    href={getWhatsAppReminderLink(oldestPending)}
+                    target="_blank"
+                    referrerPolicy="no-referrer"
+                    className="mt-3 py-1.5 bg-[#FF9F1C]/10 text-[#FF9F1C] hover:bg-[#FF9F1C]/20 border border-[#FF9F1C]/25 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 text-center cursor-pointer"
+                  >
+                    <Send className="w-3 h-3" />
+                    <span>Enviar Cobrança</span>
+                  </a>
+                ) : !hasQuotes ? (
+                  <button
+                    onClick={onCreateQuoteClick}
+                    className="mt-3 py-1.5 bg-[#FF9F1C]/10 text-[#FF9F1C] text-[9px] font-bold uppercase tracking-widest rounded-lg cursor-pointer"
+                  >
+                    <span>Criar Proposta</span>
+                  </button>
+                ) : null}
               </div>
-              <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Juliana Albuquerque</p>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">Assinatura digital efetuada com sucesso: "Marinho Negócios Digitais".</p>
-            </div>
-            <button
-              onClick={() => onSelectQuote('mq_1')}
-              className="mt-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/40 text-emerald-750 dark:text-emerald-400 dark:hover:bg-emerald-900/30 border border-emerald-250 dark:border-emerald-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <span>Ver Assinatura</span>
-              <CheckCircle className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
-            </button>
-          </div>
 
-          {/* Card 4: Pagamento pendente */}
-          <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-yellow-500/35 transition-all group shadow-sm">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[8px] font-extrabold uppercase tracking-widest rounded">
-                  Pagamento Pendente
-                </span>
-                <span className="text-[9px] text-zinc-450 dark:text-zinc-500 font-bold">R$ 7.500</span>
+              {/* Card 3: Proposta Aprovada */}
+              <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-emerald-500/35 transition-all group shadow-sm">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[8px] font-extrabold uppercase tracking-widest rounded">
+                      {recentApproved ? 'Proposta Aprovada' : 'Nenhuma Aprovação'}
+                    </span>
+                  </div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    {recentApproved ? (recentApproved.client_name || 'Cliente') : '—'}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                    {recentApproved ? `Proposta de ${formatBRL(recentApproved.total)} aprovada` : hasQuotes ? 'Nenhuma proposta foi aprovada ainda' : 'Crie e envie seu primeiro orçamento'}
+                  </p>
+                </div>
+                {recentApproved && (
+                  <button
+                    onClick={() => onSelectQuote(recentApproved.id)}
+                    className="mt-3 py-1.5 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 dark:hover:bg-emerald-900/30 border border-emerald-300 dark:border-emerald-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Ver Proposta</span>
+                    <CheckCircle className="w-3 h-3 text-emerald-500 dark:text-emerald-400" />
+                  </button>
+                )}
               </div>
-              <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">Marinho Negócios</p>
-              <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">Pix de R$ 7.500 gerado de forma automática. Aguardando liberação bancária.</p>
-            </div>
-            <button
-              onClick={() => onSelectQuote('mq_1')}
-              className="mt-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-950/40 text-yellow-750 dark:text-yellow-450 dark:hover:bg-yellow-905/30 border border-yellow-250 dark:border-yellow-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
-            >
-              <span>Ver Pix / QR Code</span>
-              <TrendingUp className="w-3 h-3 text-yellow-500 dark:text-yellow-450" />
-            </button>
-          </div>
+
+              {/* Card 4: Último Orçamento */}
+              <div className="bg-white dark:bg-zinc-900/60 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800/80 flex flex-col justify-between hover:border-yellow-500/35 transition-all group shadow-sm">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 text-[8px] font-extrabold uppercase tracking-widest rounded">
+                      {hasQuotes ? 'Último Orçamento' : 'Comece Agora'}
+                    </span>
+                    {hasQuotes && (
+                      <span className="text-[9px] text-zinc-400 dark:text-zinc-500 font-bold">{formatBRL(quotes[quotes.length - 1].total)}</span>
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
+                    {hasQuotes ? (quotes[quotes.length - 1].client_name || 'Cliente') : 'Bem-vindo!'}
+                  </p>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                    {hasQuotes ? `${quotes.length} orçamento${quotes.length === 1 ? '' : 's'} criado${quotes.length === 1 ? '' : 's'} no total` : 'Crie seu primeiro orçamento com IA'}
+                  </p>
+                </div>
+                {hasQuotes ? (
+                  <button
+                    onClick={() => onSelectQuote(quotes[quotes.length - 1].id)}
+                    className="mt-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-950/40 text-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Ver Orçamento</span>
+                    <TrendingUp className="w-3 h-3 text-yellow-500 dark:text-yellow-400" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={onCreateQuoteClick}
+                    className="mt-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-950/40 text-yellow-600 dark:text-yellow-400 dark:hover:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-800/35 text-[9px] font-bold uppercase tracking-widest rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Criar Orçamento</span>
+                    <Plus className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </>);
+          })()}
 
         </div>
       </div>
@@ -779,7 +820,7 @@ export default function Dashboard({
           
           {/* Revenue chart */}
           <div className="bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm transition-colors">
-            <div className="flex justify-between items-center mb-4 pb-4 border-b border-zinc-150 dark:border-zinc-850">
+            <div className="flex justify-between items-center mb-4 pb-4 border-b border-zinc-100 dark:border-zinc-800">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-1.5">
                   <TrendingUp className="w-4 h-4 text-[#FF9F1C]" />
@@ -810,7 +851,7 @@ export default function Dashboard({
 
           {/* Proposals List Card */}
           <section className="bg-[#2B2B2B]/40 border border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-zinc-850 space-y-4">
+            <div className="p-5 border-b border-zinc-800 space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold text-white">Propostas Recentes</h3>
                 
@@ -856,7 +897,7 @@ export default function Dashboard({
                 <p className="text-xs font-bold text-zinc-400">Nenhum registro encontrado</p>
               </div>
             ) : (
-              <div className="divide-y divide-zinc-850">
+              <div className="divide-y divide-zinc-800">
                 {filteredQuotes.map(quote => (
                   <div key={quote.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#2B2B2B]/60 transition-all group">
                     <div className="flex items-center gap-3">
@@ -876,7 +917,7 @@ export default function Dashboard({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-zinc-850 sm:border-0 pt-3 sm:pt-0 shrink-0">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-zinc-800 sm:border-0 pt-3 sm:pt-0 shrink-0">
                       <div className="text-left sm:text-right">
                         <p className="text-base font-bold font-mono text-white">{formatBRL(quote.total)}</p>
                         <div className="mt-1">{getStatusBadge(quote.status)}</div>
@@ -884,7 +925,7 @@ export default function Dashboard({
 
                       <button
                         onClick={() => onSelectQuote(quote.id)}
-                        className="p-2 BG-[#111111] hover:bg-[#2B2B2B] border border-zinc-800 text-zinc-300 hover:text-white rounded-xl transition-all"
+                        className="p-2 bg-[#111111] hover:bg-[#2B2B2B] border border-zinc-800 text-zinc-300 hover:text-white rounded-xl transition-all"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -915,7 +956,7 @@ export default function Dashboard({
             ) : (
               <div className="space-y-2.5">
                 {followUps.slice(0, 3).map(q => (
-                  <div key={q.id} className="p-3 bg-[#111111]/40 border border-zinc-850 rounded-xl flex flex-col gap-2.5 text-xs text-zinc-300">
+                  <div key={q.id} className="p-3 bg-[#111111]/40 border border-zinc-800 rounded-xl flex flex-col gap-2.5 text-xs text-zinc-300">
                     <div>
                       <p className="font-extrabold text-white truncate">{q.clientName}</p>
                       <p className="text-[10px] text-zinc-500 mt-0.5">#{q.quoteNumber} • {formatBRL(q.total)}</p>
@@ -975,6 +1016,13 @@ export default function Dashboard({
             )}
           </div>
 
+        </div>
+
+        {/* Support */}
+        <div className="text-center pt-6 pb-4">
+          <p className="text-[10px] text-zinc-600">
+            Precisa de ajuda? <a href="mailto:ola@orkto.co" className="text-zinc-400 hover:text-[#FF9F1C] transition-colors">ola@orkto.co</a>
+          </p>
         </div>
 
       </div>

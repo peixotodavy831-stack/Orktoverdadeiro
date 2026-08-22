@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "01-security-fundamentals": {
+      "description": "FASE 1 — Corrige RLS, remove secrets do client/localStorage, desliga TLS bypass, gera .env.example",
+      "mode": "subagent"
+    },
+    "02-auth-hardening": {
+      "description": "FASE 2 — Adiciona JWT middleware em todas as rotas, remove IDOR, corrige auto-signup, remove demo hardcoded",
+      "mode": "subagent"
+    },
+    "03-server-hardening": {
+      "description": "FASE 3 — Webhook HMAC, rate limiting, CORS, Helmet, sanitiza erros, fix Math.random, fix JSON.parse",
+      "mode": "subagent"
+    },
+    "04-site-optimizer": {
+      "description": "Auditoria completa de UX, conversão, SEO, acessibilidade, performance e mobile com tom ORKTO",
+      "mode": "subagent"
+    },
+    "05-market-analysis": {
+      "description": "Pesquisa concorrência, posicionamento, precificação e oportunidades no mercado de orçamentos digitais BR",
+      "mode": "subagent"
+    }
+  }
+}

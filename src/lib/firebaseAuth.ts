@@ -1,7 +1,6 @@
-let cachedAccessToken: string | null = localStorage.getItem('google_access_token');
-
+// Google Sheets/Gmail desabilitados — serviço removido por segurança
 export const getAccessToken = async (): Promise<string | null> => {
-  return cachedAccessToken || localStorage.getItem('google_access_token');
+  return null;
 };
 
 export const googleSignIn = async (): Promise<{ user: any; accessToken: string } | null> => {
@@ -9,6 +8,5 @@ export const googleSignIn = async (): Promise<{ user: any; accessToken: string }
 };
 
 export const logout = async () => {
-  cachedAccessToken = null;
-  localStorage.removeItem('google_access_token');
+  // Sem tokens para limpar
 };
