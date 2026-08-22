@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { Quote, UserProfile, Timestamp } from '../types';
 import { formatBRL, formatPhone, formatCurrency, getCleanPhoneForWhatsApp } from '../utils/format';
+import { supabase } from '../lib/supabase';
 
 interface QuoteDetailProps {
   quote: Quote;
@@ -43,6 +44,27 @@ export default function QuoteDetail({
 }: QuoteDetailProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [proposalLink, setProposalLink] = useState<string | null>(null);
+  const [proposalLoading, setProposalLoading] = useState(false);
+  const [proposalCopied, setProposalCopied] = useState(false);
+
+  const generateProposalLink = async () => {
+    try {
+      setProposalLoading(true);
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const res = await fetch('/api/proposal/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ quoteId: quote.id }),
+      });
+      const data = await res.json();
+      if (data.success) setProposalLink(data.link);
+    } catch { alert('Erro ao gerar link'); } finally { setProposalLoading(false); }
+  };
+
+  const copyProposalLink = () => {
+    if (proposalLink) { navigator.clipboard.writeText(proposalLink); setProposalCopied(true); setTimeout(() => setProposalCopied(false), 2000); }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -86,12 +108,12 @@ export default function QuoteDetail({
 
   const getWhatsAppLink = () => {
     const origin = window.location.origin;
-    const viewLink = `${origin}?quoteId=${quote.id}`;
+    const viewLink = proposalLink || `${origin}?quoteId=${quote.id}`;
     
     // Check if the user has a custom template, if they chose to use the default, we inject summary
     let itemsSummary = quote.items.map((item, idx) => `• ${item.quantity}x ${item.name} (${formatBRL((item.quantity * item.unitPrice) * (1 - item.discount / 100))})`).join('\n');
     
-    let defaultMsg = `Olá *[CLIENT_NAME]*, aqui está o seu orçamento detalhado.\n\n*Resumo dos Itens:*\n${itemsSummary}\n\n*Total: [TOTAL]*\n\nClique no link abaixo para visualizar, salvar em PDF ou aprovar o orçamento:\n*[LINK]*`;
+    let defaultMsg = `Olá *[CLIENT_NAME]*, aqui está o seu orçamento detalhado.\n\n*Resumo dos Itens:*\n${itemsSummary}\n\n*Total: [TOTAL]*\n\nClique no link abaixo para visualizar e aprovar o orçamento:\n*[LINK]*`;
     
     let text = userProfile?.whatsappTemplate || defaultMsg;
     
@@ -327,9 +349,30 @@ export default function QuoteDetail({
           <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl text-white space-y-4">
             <h3 className="text-sm font-bold font-display uppercase tracking-widest text-zinc-400">Enviar para o Cliente</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
-              O WhatsApp é o canal mais rápido! Prefiram enviar o link interativo para o celular do cliente.
+              Gere um link seguro de 30 min para compartilhar via WhatsApp.
             </p>
-            
+
+            {!proposalLink ? (
+              <button
+                onClick={generateProposalLink}
+                disabled={proposalLoading}
+                className="w-full py-3.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2"
+              >
+                <ExternalLink className="w-4 h-4" />
+                {proposalLoading ? 'Gerando...' : 'Gerar Link da Proposta'}
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 bg-zinc-800 rounded-xl px-3 py-2">
+                  <span className="flex-1 text-xs text-zinc-300 font-mono truncate">{proposalLink}</span>
+                  <button onClick={copyProposalLink} className="text-xs font-bold text-orange-400 hover:text-orange-300 shrink-0">
+                    {proposalCopied ? 'Copiado!' : 'Copiar'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-zinc-600 text-center">Link valido por 30 minutos</p>
+              </div>
+            )}
+
             <a
               href={getWhatsAppLink()}
               target="_blank"
@@ -340,31 +383,20 @@ export default function QuoteDetail({
               Enviar pelo WhatsApp
             </a>
 
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <a
-                href={`${window.location.origin}?quoteId=${quote.id}`}
-                target="_blank"
-                className="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1 transition-colors text-center text-[10px] sm:text-xs"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Tela Cheia</span>
-                <span className="sm:hidden">Abrir</span>
-              </a>
-              <button
-                onClick={() => {
-                  const link = `${window.location.origin}?quoteId=${quote.id}`;
-                  navigator.clipboard.writeText(link);
-                  alert('Link copiado!');
-                }}
-                className="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1 transition-colors text-center text-[10px] sm:text-xs"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Copiar Link</span>
-                <span className="sm:hidden">Copiar</span>
-              </button>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {proposalLink && (
+                <a
+                  href={proposalLink}
+                  target="_blank"
+                  className="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold flex items-center justify-center gap-1 transition-colors text-center text-[10px] sm:text-xs"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Abrir Proposta</span>
+                </a>
+              )}
               <button
                 onClick={() => window.print()}
-                className="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold flex flex-col sm:flex-row items-center justify-center gap-1 transition-colors text-center text-[10px] sm:text-xs"
+                className="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold flex items-center justify-center gap-1 transition-colors text-center text-[10px] sm:text-xs"
               >
                 <Printer className="w-3.5 h-3.5" />
                 <span>Imprimir</span>

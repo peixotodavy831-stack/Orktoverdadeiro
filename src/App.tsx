@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Timestamp } from './types';
 import { 
   Zap, 
@@ -18,8 +18,6 @@ import {
   DollarSign,
   Briefcase,
   AlertCircle,
-  HelpCircle,
-  Send,
   XCircle,
   FileText,
   BarChart3,
@@ -33,20 +31,36 @@ import { Quote, SavedClient, SavedService, UserProfile } from './types';
 import { formatBRL, formatPhone } from './utils/format';
 import { supabase } from './lib/supabase';
 
-// Core UI Modules
+// Core UI Modules (kept as static — always needed)
 import LandingPage from './components/LandingPage';
 import Auth from './components/Auth';
-import Dashboard from './components/Dashboard';
-import CreateQuote from './components/CreateQuote';
-import QuoteDetail from './components/QuoteDetail';
-import ClientsPage from './components/ClientsPage';
 import OrktoLogo from './components/OrktoLogo';
-import ServicesPage from './components/ServicesPage';
-import SettingsPage from './components/SettingsPage';
-import BillingPage from './components/BillingPage';
-import AnalyticsPage from './components/AnalyticsPage';
-import QuotesPage from './components/QuotesPage';
 import TubelightNavbar from './components/ui/tubelight-navbar';
+
+// Client proposal view (public, no auth)
+import ClientProposalView from './components/ClientProposalView';
+
+// Lazy-loaded pages (code-split)
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const CreateQuote = lazy(() => import('./components/CreateQuote'));
+const QuoteDetail = lazy(() => import('./components/QuoteDetail'));
+const ClientsPage = lazy(() => import('./components/ClientsPage'));
+const ServicesPage = lazy(() => import('./components/ServicesPage'));
+const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const BillingPage = lazy(() => import('./components/BillingPage'));
+const AnalyticsPage = lazy(() => import('./components/AnalyticsPage'));
+const QuotesPage = lazy(() => import('./components/QuotesPage'));
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[60vh] text-zinc-500 text-xs font-bold uppercase tracking-widest">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#FF9F1C] rounded-full animate-spin" />
+        Carregando...
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const getMillis = (dateObj: any): number => {
@@ -82,6 +96,7 @@ export default function App() {
   // Auth & Profile state
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   
   // Listen for Supabase auth state changes on mount
   useEffect(() => {
@@ -89,6 +104,7 @@ export default function App() {
       if (session?.user) {
         const u = session.user;
         setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
+        setAccessToken(session.access_token);
         loadUserProfile(u.id);
       }
       setAuthLoading(false);
@@ -98,10 +114,12 @@ export default function App() {
       if (session?.user) {
         const u = session.user;
         setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
+        setAccessToken(session.access_token);
         loadUserProfile(u.id);
       } else {
         setUser(null);
         setUserProfile(null);
+        setAccessToken(null);
       }
     });
 
@@ -131,11 +149,14 @@ export default function App() {
         brandTone: data.brand_tone || 'comercial',
         activePlan: data.active_plan || 'free',
         planPeriod: data.plan_period || 'monthly',
-        asaasApiKey: data.asaas_api_key || '',
+        // asaasApiKey removido por segurança — só existe no servidor
         asaasCustomerId: data.asaas_customer_id || '',
       };
       setUserProfile(profile);
-      localStorage.setItem('orkto_profile', JSON.stringify(profile));
+      const safeProfile = { ...profile };
+      // @ts-ignore - campo removido por segurança
+      delete safeProfile.asaasCustomerId;
+      localStorage.setItem('orkto_profile', JSON.stringify(safeProfile));
       loadUserData(uid);
     } else {
       const defaultProfile: UserProfile = {
@@ -153,8 +174,10 @@ export default function App() {
 
   const loadUserData = async (uid: string) => {
     try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
       const [quotesRes, clientsRes, servicesRes] = await Promise.all([
-        fetch(`/api/quotes/${uid}`).then(r => r.ok ? r.json() : []).catch(() => []),
+        fetch('/api/quotes/list', { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => []),
         supabase.from('clients').select('*').eq('user_id', uid).order('created_at', { ascending: false }).then(r => r.data || []),
         supabase.from('services').select('*').eq('user_id', uid).order('created_at', { ascending: false }).then(r => r.data || []),
       ]);
@@ -170,7 +193,7 @@ export default function App() {
           clientCompany: q.client_company || '',
           clientVehicleOrService: q.client_vehicle_or_service || '',
           notes: q.notes || '',
-          items: Array.isArray(q.items) ? q.items : JSON.parse(q.items || '[]'),
+          items: Array.isArray(q.items) ? q.items : (() => { try { return JSON.parse(q.items || '[]'); } catch { return []; } })(),
           subtotal: Number(q.subtotal) || 0,
           discountTotal: Number(q.discount_total) || 0,
           taxes: Number(q.taxes) || 0,
@@ -232,11 +255,24 @@ export default function App() {
 
   useEffect(() => {
     if (userProfile) {
-      localStorage.setItem('orkto_profile', JSON.stringify(userProfile));
+      const safeProfile = { ...userProfile };
+      // @ts-ignore - campo removido por segurança
+      delete safeProfile.asaasCustomerId;
+      delete safeProfile.asaasApiKey;
+      localStorage.setItem('orkto_profile', JSON.stringify(safeProfile));
     } else {
       localStorage.removeItem('orkto_profile');
     }
   }, [userProfile]);
+
+  // Proposal slug route (/p/{slug})
+  const [proposalSlug, setProposalSlug] = useState<string | null>(null);
+
+  useEffect(() => {
+    const path = window.location.pathname;
+    const match = path.match(/^\/p\/([a-zA-Z0-9]+)$/);
+    if (match) setProposalSlug(match[1]);
+  }, []);
 
   // Public checkout state (?quoteId=XYZ)
   const [publicQuoteId, setPublicQuoteId] = useState<string | null>(null);
@@ -249,6 +285,17 @@ export default function App() {
   const [acceptTermsCheckbox, setAcceptTermsCheckbox] = useState(false);
   const [showPixDetails, setShowPixDetails] = useState(false);
   const [isPixPaid, setIsPixPaid] = useState(false);
+  const [pixData, setPixData] = useState<{qrCode: string | null; key: string | null; paymentId: string} | null>(null);
+  const [pixLoading, setPixLoading] = useState(false);
+  const [pixError, setPixError] = useState('');
+
+  // Toast state
+  const [toast, setToast] = useState<{message: string; type: 'success' | 'error' | 'info'} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Sidebar controls
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -259,12 +306,20 @@ export default function App() {
   const [onboardPhone, setOnboardPhone] = useState('');
   const [onboardAddress, setOnboardAddress] = useState('');
   const [onboardPix, setOnboardPix] = useState('');
-  const [onboardProfession, setOnboardProfession] = useState('Serviços Gerais');
+  const [onboardProfession, setOnboardProfession] = useState('Oficina');
   const [onboardBrandName, setOnboardBrandName] = useState('');
   const [onboardBrandTone, setOnboardBrandTone] = useState<'formal' | 'técnico' | 'comercial' | 'criativo'>('comercial');
   const [onboardQuoteColor, setOnboardQuoteColor] = useState('#ff9f1c');
   const [onboardStep, setOnboardStep] = useState(1);
   const [onboardSubmitting, setOnboardSubmitting] = useState(false);
+
+  // Onboarding step 3 — quick first quote
+  const [oqClientName, setOqClientName] = useState('');
+  const [oqClientPhone, setOqClientPhone] = useState('');
+  const [oqService, setOqService] = useState('');
+  const [oqValue, setOqValue] = useState('');
+  const [oqCreating, setOqCreating] = useState(false);
+  const [oqDone, setOqDone] = useState(false);
 
   // Sync initial onboarding values if profile updates
   useEffect(() => {
@@ -274,7 +329,7 @@ export default function App() {
       setOnboardPhone(userProfile.whatsappNumber || '');
       setOnboardAddress(userProfile.address || '');
       setOnboardPix(userProfile.paymentInfo || '');
-      setOnboardProfession(userProfile.profession || 'Serviços Gerais');
+      setOnboardProfession(userProfile.profession || 'Oficina');
       setOnboardBrandName(userProfile.brandName || userProfile.companyName || '');
       setOnboardBrandTone(userProfile.brandTone || 'comercial');
       setOnboardQuoteColor(userProfile.quoteColor || '#ff9f1c');
@@ -311,7 +366,7 @@ export default function App() {
         clientCompany: data.client_company || '',
         clientVehicleOrService: data.client_vehicle_or_service || '',
         notes: data.notes || '',
-        items: Array.isArray(data.items) ? data.items : JSON.parse(data.items || '[]'),
+        items: Array.isArray(data.items) ? data.items : (() => { try { return JSON.parse(data.items || '[]'); } catch { return []; } })(),
         subtotal: Number(data.subtotal) || 0,
         discountTotal: Number(data.discount_total) || 0,
         taxes: Number(data.taxes) || 0,
@@ -398,6 +453,7 @@ export default function App() {
       };
 
       setUserProfile(updated);
+      setOnboardStep(3);
     } catch (err) {
       console.error(err);
       setUserProfile(prev => prev ? { ...prev, onboardingCompleted: true } : null);
@@ -411,7 +467,7 @@ export default function App() {
       setQuotes([]);
       setClients([]);
       setServices([]);
-      alert('Dados reiniciados!');
+      showToast('Dados reiniciados!', 'info');
     } catch (err) {
       console.error("Error resetting data:", err);
     }
@@ -435,21 +491,17 @@ export default function App() {
     }
   };
 
-  // Auth screen bypass helper (for Evaluators / direct clicks)
+  // Demo login — calls server-side endpoint (credentials not in bundle)
   const handleDemoSignInSuccess = async () => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: 'demo@orkto.co',
-        password: 'demo123456',
-      });
-      if (error) {
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: 'demo@orkto.co',
-          password: 'demo123456',
-          options: { data: { full_name: 'Dono do Negócio' } },
-        });
-        if (signUpError) throw signUpError;
-        await supabase.auth.signInWithPassword({ email: 'demo@orkto.co', password: 'demo123456' });
+      const res = await fetch('/api/auth/demo-login', { method: 'POST' });
+      if (!res.ok) {
+        console.error('Demo login failed');
+        return;
+      }
+      const data = await res.json();
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
       }
       setCurrentView('dashboard');
     } catch (err) {
@@ -457,36 +509,32 @@ export default function App() {
     }
   };
 
-  // Actual signed-in success handler
+  // Sign-in handler — NO auto-signup. Shows error for invalid credentials.
   const handleSignInSuccess = async (emailVal?: string, passwordVal?: string) => {
-    if (!emailVal || !passwordVal) return;
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailVal,
-        password: passwordVal,
-      });
-      if (error) {
-        if (error.message.includes('Invalid login credentials')) {
-          const { error: signUpError } = await supabase.auth.signUp({
-            email: emailVal,
-            password: passwordVal,
-            options: { data: { full_name: emailVal.split('@')[0] } },
-          });
-          if (signUpError) throw signUpError;
-          const { error: signInError } = await supabase.auth.signInWithPassword({
-            email: emailVal,
-            password: passwordVal,
-          });
-          if (signInError) throw signInError;
-        } else {
-          throw error;
-        }
+      if (emailVal && passwordVal) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: emailVal,
+          password: passwordVal,
+        });
+        if (error) throw new Error('Email ou senha inválidos');
+      } else if (!user) {
+        return;
       }
       setCurrentView('dashboard');
     } catch (err: any) {
       console.error('Sign-in error:', err);
-      alert('Erro ao acessar: ' + (err.message || 'Tente novamente.'));
+      showToast(err.message || 'Email ou senha inválidos', 'error');
     }
+  };
+
+  const handleSignUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: email.split('@')[0] } },
+    });
+    if (error) throw error;
   };
 
   if (authLoading) {
@@ -503,6 +551,11 @@ export default function App() {
         </div>
       </div>
     );
+  }
+
+  // PROPOSAL VIEW (/p/{slug})
+  if (proposalSlug) {
+    return <ClientProposalView slug={proposalSlug} />;
   }
 
   // PUBLIC CUSTOMER APPROVAL VIEW (?quoteId=XYZ)
@@ -530,6 +583,7 @@ export default function App() {
     }
 
     return (
+      <>
       <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col justify-between py-10 px-4 sm:px-6 relative overflow-x-hidden font-sans">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.06),transparent_45%)] pointer-events-none" />
         
@@ -755,16 +809,29 @@ export default function App() {
                   type="button"
                   onClick={() => {
                     if (!approverName.trim()) {
-                      alert('Por favor, informe seu nome completo para assinar.');
+                      showToast('Por favor, informe seu nome completo para assinar.', 'error');
                       return;
                     }
                     if (!acceptTermsCheckbox) {
-                      alert('Marque a caixa de declaração para aprovar.');
+                      showToast('Marque a caixa de declaração para aprovar.', 'error');
                       return;
                     }
                     handlePublicStatusChange('approved');
                     setAcceptModalOpen(false);
                     setShowPixDetails(true);
+                    setPixLoading(true);
+                    setPixError('');
+                    fetch(`/api/quote/${publicQuote?.id}/pix`, { method: 'POST' })
+                      .then(r => r.json())
+                      .then(data => {
+                        if (data.success && data.pix) {
+                          setPixData({ qrCode: data.pix.qrCode, key: data.pix.key, paymentId: data.paymentId });
+                        } else {
+                          setPixError('Não foi possível gerar PIX. Entre em contato.');
+                        }
+                      })
+                      .catch(() => setPixError('Erro ao gerar PIX'))
+                      .finally(() => setPixLoading(false));
                   }}
                   className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all"
                 >
@@ -774,47 +841,83 @@ export default function App() {
             </div>
           )}
 
-          {/* PIX PAYMENT FLOW PANEL */}
+          {/* PIX PAYMENT FLOW PANEL — REAL */}
           {publicQuote.status === 'approved' && !isPixPaid && (
             <div className="p-5 mt-6 bg-orange-500/5 border border-orange-500/15 rounded-2xl space-y-4">
               <div className="flex items-center justify-between border-b border-orange-500/10 pb-2">
                 <h4 className="text-xs font-black text-orange-600 flex items-center gap-1.5 leading-none">
                   <DollarSign className="w-4 h-4 text-[#FF9F1C] animate-pulse" />
-                  Efetuar Pagamento de Sinal via Pix
+                  Pagamento via Pix
                 </h4>
-                <span className="text-[8px] uppercase tracking-wider font-extrabold bg-[#FF9F1C]/15 text-[#FF9F1C] px-2 py-0.5 rounded">QR Code Integrado</span>
+                <span className="text-[8px] uppercase tracking-wider font-extrabold bg-[#FF9F1C]/15 text-[#FF9F1C] px-2 py-0.5 rounded">Seguro Asaas</span>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-900 p-4 rounded-xl text-white">
-                <div className="w-24 h-24 bg-white p-1 rounded-lg flex items-center justify-center shrink-0 border border-zinc-800">
-                  <div className="w-full h-full flex flex-col items-center justify-center relative bg-white">
-                    <div className="text-[6px] font-black font-mono text-black uppercase tracking-widest text-center leading-none mb-1">ORKTO SECURE</div>
-                    <div className="grid grid-cols-4 gap-1 p-1 w-full h-full opacity-70">
-                      {[1,0,1,1,0,1,0,0,1,1,0,1,1,0,1,1].map((b, i) => (
-                        <div key={i} className={`w-3.5 h-3.5 ${b === 1 ? 'bg-zinc-950' : 'bg-transparent'}`} />
-                      ))}
+              {pixLoading ? (
+                <div className="flex items-center justify-center py-8 text-zinc-400 text-xs gap-2">
+                  <div className="w-4 h-4 border-2 border-zinc-600 border-t-[#FF9F1C] rounded-full animate-spin" />
+                  Gerando cobrança PIX...
+                </div>
+              ) : pixError ? (
+                <div className="text-center py-4">
+                  <p className="text-xs text-red-400">{pixError}</p>
+                </div>
+              ) : pixData ? (
+                <>
+                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-900 p-4 rounded-xl text-white">
+                    {pixData.qrCode ? (
+                      <div className="w-32 h-32 bg-white p-2 rounded-lg flex items-center justify-center shrink-0">
+                        <img src={`data:image/png;base64,${pixData.qrCode}`} alt="PIX QR Code" className="w-full h-full object-contain" />
+                      </div>
+                    ) : (
+                      <div className="w-20 h-20 bg-zinc-800 rounded-lg flex items-center justify-center text-2xl">💳</div>
+                    )}
+                    <div className="flex-1 min-w-0 space-y-2 text-xs text-zinc-300">
+                      <p className="font-extrabold text-white">Pix Copia e Cola:</p>
+                      <p
+                        onClick={() => { navigator.clipboard?.writeText(pixData.key || ''); showToast('Chave PIX copiada!', 'success'); }}
+                        className="font-mono bg-zinc-950 p-2 border border-zinc-800 rounded text-[9px] break-all select-all text-[#FF9F1C] cursor-pointer hover:border-[#FF9F1C]/50"
+                      >
+                        {pixData.key || 'Indisponível'}
+                      </p>
+                      <p className="text-[10px] text-zinc-400">Valor: <span className="font-bold text-white">{formatBRL(publicQuote.total)}</span></p>
                     </div>
                   </div>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsPixPaid(true)}
+                      className="flex-1 py-2.5 bg-[#FF9F1C] hover:bg-orange-500 text-black font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all"
+                    >
+                      Já Paguei — Confirmar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-xs text-zinc-400">Clique em "Gerar PIX" para pagar</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPixLoading(true);
+                      setPixError('');
+                      fetch(`/api/quote/${publicQuote?.id}/pix`, { method: 'POST' })
+                        .then(r => r.json())
+                        .then(data => {
+                          if (data.success && data.pix) {
+                            setPixData({ qrCode: data.pix.qrCode, key: data.pix.key, paymentId: data.paymentId });
+                          } else {
+                            setPixError('Não foi possível gerar PIX');
+                          }
+                        })
+                        .catch(() => setPixError('Erro ao gerar PIX'))
+                        .finally(() => setPixLoading(false));
+                    }}
+                    className="mt-3 px-6 py-2.5 bg-[#FF9F1C] text-black font-extrabold text-xs rounded-xl transition-all"
+                  >
+                    Gerar PIX
+                  </button>
                 </div>
-                
-                <div className="flex-1 min-w-0 space-y-2 text-xs text-zinc-300">
-                  <p className="font-extrabold text-white">Chave Pix Copia e Cola:</p>
-                  <p className="font-mono bg-zinc-950 p-2 border border-zinc-800 rounded text-[9px] break-all select-all text-[#FF9F1C]">00020101021226870014br.gov.bcb.pix2565orktosecurepayments1450283600019052040000530398654057500.005802BR5915OrktoPayStudio6009Sao_Paulo62070503ORK</p>
-                  <p className="text-[10px] text-zinc-400">Clique acima para copiar a chave Pix. Valor exato do orçamento: <span className="font-bold text-white">{formatBRL(publicQuote.total)}</span></p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsPixPaid(true);
-                  }}
-                  className="flex-1 py-2.5 bg-[#FF9F1C] hover:bg-orange-500 text-black font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all"
-                >
-                  Confirmar Pagamento Realizado
-                </button>
-              </div>
+              )}
             </div>
           )}
 
@@ -856,6 +959,13 @@ export default function App() {
           ORKTO — Aceleração Comercial Inteligente.
         </div>
       </div>
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[200] bg-zinc-900 text-white px-5 py-3 rounded-2xl border border-zinc-800 shadow-2xl text-sm font-bold max-w-xs flex items-center gap-2">
+          {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" /> : <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
+          {toast.message}
+        </div>
+      )}
+    </>
     );
   }
 
@@ -872,15 +982,25 @@ export default function App() {
   // EXPLICIT AUTH LOGIN ROUTE
   if (currentView === 'auth' && !user) {
     return (
+      <>
       <Auth 
         onSignInSuccess={handleSignInSuccess} 
+        onSignUp={handleSignUp}
         isLoading={false} 
       />
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[200] bg-zinc-900 text-white px-5 py-3 rounded-2xl border border-zinc-800 shadow-2xl text-sm font-bold max-w-xs flex items-center gap-2">
+          {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" /> : <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
+          {toast.message}
+        </div>
+      )}
+      </>
     );
   }
 
   // AUTHENTICATED MANAGER PANEL OR ONBOARDING IF INCOMPLETE
   return (
+    <>
     <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 font-sans selection:bg-orange-100 selection:text-orange-950 relative overflow-hidden transition-all duration-300">
       
       {/* Onboarding Assistant Overlay modal */}
@@ -903,12 +1023,13 @@ export default function App() {
                   </div>
                   <div>
                     <h2 className="text-xl font-display font-extrabold tracking-tight">Onboarding Inteligente</h2>
-                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Passo {onboardStep} de 2</p>
+                    <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider">Passo {onboardStep} de 3</p>
                   </div>
                 </div>
                 <div className="flex gap-1">
                   <span className={`w-6 h-1.5 rounded-full transition-all ${onboardStep === 1 ? 'bg-orange-500' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
                   <span className={`w-6 h-1.5 rounded-full transition-all ${onboardStep === 2 ? 'bg-orange-500' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
+                  <span className={`w-6 h-1.5 rounded-full transition-all ${onboardStep === 3 ? 'bg-orange-500' : 'bg-zinc-200 dark:bg-zinc-800'}`} />
                 </div>
               </div>
 
@@ -988,7 +1109,7 @@ export default function App() {
                       type="button"
                       onClick={() => {
                         if (!onboardBusinessName.trim() || !onboardTaxID.trim() || !onboardPhone.trim()) {
-                          alert("Preencha o Nome do Estabelecimento, CNPJ/CPF e WhatsApp para prosseguir.");
+                          showToast("Preencha o Nome do Estabelecimento, CNPJ/CPF e WhatsApp para prosseguir.", 'error');
                           return;
                         }
                         setOnboardStep(2);
@@ -1000,7 +1121,7 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-              ) : (
+              ) : onboardStep === 2 ? (
                 <form onSubmit={handleOnboardSubmit} className="space-y-4">
                   <div>
                     <h3 className="text-md font-bold text-zinc-800 dark:text-zinc-200">Personalização de Estilo & Adaptabilidade por IA</h3>
@@ -1017,6 +1138,7 @@ export default function App() {
                           className="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none"
                           required
                         >
+                          <option value="Oficina">🛞 Oficina Mecânica</option>
                           <option value="Serviços Gerais">Serviços Gerais</option>
                           <option value="Advogado">Advogado</option>
                           <option value="Arquiteto">Arquiteto</option>
@@ -1025,7 +1147,6 @@ export default function App() {
                           <option value="Eletricista">Eletricista</option>
                           <option value="Manutenção">Manutenção</option>
                           <option value="Marcenaria">Marcenaria</option>
-                          <option value="Oficina">Oficina Mecânica</option>
                           <option value="Construção">Construção & Reformas</option>
                         </select>
                       </div>
@@ -1095,11 +1216,103 @@ export default function App() {
                       disabled={onboardSubmitting}
                       className="flex-1 py-3.5 bg-emerald-600 hover:bg-emerald-700 font-extrabold text-sm text-white rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 active:scale-95 disabled:opacity-50"
                     >
-                      {onboardSubmitting ? 'Personalizando...' : 'Concluir e Abrir Painel Orkto'}
+                      {onboardSubmitting ? 'Salvando...' : 'Salvar e Criar Primeiro Orçamento →'}
                       <CheckCircle className="w-4 h-4" />
                     </button>
                   </div>
                 </form>
+              ) : (
+                /* Step 3 — Quick first quote */
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-md font-bold text-zinc-800 dark:text-zinc-200">Criar Primeiro Orçamento</h3>
+                    <p className="text-xs text-zinc-500 mb-4">Preencha abaixo e envie o primeiro orçamento para um cliente real.</p>
+                  </div>
+
+                  {oqDone ? (
+                    <div className="text-center py-8 space-y-3">
+                      <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
+                        <CheckCircle className="w-7 h-7 text-emerald-500" />
+                      </div>
+                      <p className="font-bold text-white">Primeiro orçamento criado com sucesso!</p>
+                      <p className="text-xs text-zinc-400">Agora você já pode gerenciar seus orçamentos no painel.</p>
+                      <button
+                        onClick={async (e) => {
+                          setOnboardSubmitting(false);
+                          setUserProfile(prev => prev ? { ...prev, onboardingCompleted: true } : null);
+                        }}
+                        className="px-6 py-3 bg-[#FF9F1C] text-black font-extrabold text-sm rounded-xl shadow-lg transition-all cursor-pointer"
+                      >
+                        Ir para o Painel →
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Nome do Cliente *</label>
+                          <input type="text" value={oqClientName} onChange={e => setOqClientName(e.target.value)} placeholder="Ex: João Silva" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-orange-500" />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">WhatsApp *</label>
+                          <input type="text" value={oqClientPhone} onChange={e => setOqClientPhone(e.target.value)} placeholder="Ex: 11999998888" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-orange-500" />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Serviço *</label>
+                        <input type="text" value={oqService} onChange={e => setOqService(e.target.value)} placeholder="Ex: Pintura de 3 cômodos" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-orange-500" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Valor (R$) *</label>
+                        <input type="number" value={oqValue} onChange={e => setOqValue(e.target.value)} placeholder="Ex: 1200" className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-orange-500" />
+                      </div>
+                      <button
+                        onClick={async () => {
+                          if (!oqClientName.trim() || !oqClientPhone.trim() || !oqService.trim() || !oqValue.trim()) {
+                            showToast('Preencha todos os campos', 'error');
+                            return;
+                          }
+                          setOqCreating(true);
+                          try {
+                            const quoteData = {
+                              clientName: oqClientName,
+                              clientPhone: oqClientPhone,
+                              items: [{ id: crypto.randomUUID(), name: oqService, description: '', quantity: 1, unitPrice: Number(oqValue), discount: 0 }],
+                              subtotal: Number(oqValue),
+                              total: Number(oqValue),
+                              status: 'draft',
+                            };
+                            const token = (await supabase.auth.getSession()).data.session?.access_token;
+                            const res = await fetch('/api/quotes', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) },
+                              body: JSON.stringify(quoteData),
+                            });
+                            if (res.ok) {
+                              setOqDone(true);
+                            } else {
+                              showToast('Erro ao criar orçamento', 'error');
+                            }
+                          } catch (err) {
+                            showToast('Erro ao criar orçamento', 'error');
+                          } finally {
+                            setOqCreating(false);
+                          }
+                        }}
+                        disabled={oqCreating}
+                        className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 font-extrabold text-sm text-white rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        {oqCreating ? 'Criando...' : 'Criar Primeiro Orçamento 🚀'}
+                      </button>
+                      <button
+                        onClick={() => setOnboardStep(2)}
+                        className="w-full py-2 text-xs text-zinc-400 hover:text-white font-bold transition-colors cursor-pointer"
+                      >
+                        ← Voltar
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </motion.div>
           </div>
@@ -1290,6 +1503,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <Dashboard 
                   userProfile={userProfile} 
                   quotes={quotes} 
@@ -1305,6 +1519,7 @@ export default function App() {
                     setCurrentView(view);
                   }}
                 />
+                </Suspense>
               </motion.div>
             )}
 
@@ -1315,6 +1530,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <QuotesPage 
                   quotes={quotes}
                   clients={clients}
@@ -1338,9 +1554,11 @@ export default function App() {
                   }}
                    onDeleteQuote={async (quoteId) => {
                      setQuotes(quotes.filter(q => q.id !== quoteId));
-                     await fetch('/api/quotes/' + quoteId, { method: 'DELETE' });
+                     const token = (await supabase.auth.getSession()).data.session?.access_token;
+                     await fetch('/api/quotes/' + quoteId, { method: 'DELETE', headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) } });
                    }}
                 />
+                </Suspense>
               </motion.div>
             )}
 
@@ -1351,20 +1569,23 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <CreateQuote 
                   userProfile={userProfile} 
                   savedClients={clients} 
                   savedServices={services} 
                   duplicateQuoteSource={duplicateQuoteSource}
                   editQuoteSource={editQuoteSource}
-                   onQuoteCreated={async (q) => {
-                     if (editQuoteSource) {
-                       await fetch('/api/quotes/' + editQuoteSource.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(q) });
-                       setQuotes(quotes.map(item => item.id === editQuoteSource.id ? q : item));
-                     } else {
-                       fetch('/api/quotes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...q, userId: user?.uid }) });
-                       setQuotes([q, ...quotes]);
-                     }
+                    onQuoteCreated={async (q) => {
+                      const token = (await supabase.auth.getSession()).data.session?.access_token;
+                      const authHeaders: Record<string, string> = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+                      if (editQuoteSource) {
+                        await fetch('/api/quotes/' + editQuoteSource.id, { method: 'PUT', headers: authHeaders, body: JSON.stringify(q) });
+                        setQuotes(quotes.map(item => item.id === editQuoteSource.id ? q : item));
+                      } else {
+                        fetch('/api/quotes', { method: 'POST', headers: authHeaders, body: JSON.stringify(q) });
+                        setQuotes([q, ...quotes]);
+                      }
                     setDuplicateQuoteSource(null);
                     setEditQuoteSource(null);
                     setSelectedQuoteId(q.id);
@@ -1376,6 +1597,7 @@ export default function App() {
                     setCurrentView(editQuoteSource ? 'quote_detail' : 'dashboard');
                   }}
                 />
+                </Suspense>
               </motion.div>
             )}
 
@@ -1386,6 +1608,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 {(() => {
                   const q = quotes.find(quote => quote.id === selectedQuoteId);
                   if (!q) return <p className="p-8 text-center text-zinc-400">Carregando...</p>;
@@ -1409,17 +1632,20 @@ export default function App() {
                       }}
                        onQuoteUpdated={async (updatedQuote) => {
                          setQuotes(quotes.map(item => item.id === updatedQuote.id ? updatedQuote : item));
-                         await fetch('/api/quotes/' + updatedQuote.id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updatedQuote) });
+                         const token = (await supabase.auth.getSession()).data.session?.access_token;
+                         await fetch('/api/quotes/' + updatedQuote.id, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }, body: JSON.stringify(updatedQuote) });
                        }}
                        onQuoteDeleted={async (deletedId) => {
                          setQuotes(quotes.filter(item => item.id !== deletedId));
                          setSelectedQuoteId(null);
                          setCurrentView('dashboard');
-                         await fetch('/api/quotes/' + deletedId, { method: 'DELETE' });
+                         const token = (await supabase.auth.getSession()).data.session?.access_token;
+                         await fetch('/api/quotes/' + deletedId, { method: 'DELETE', headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) } });
                        }}
                     />
                   );
                 })()}
+                </Suspense>
               </motion.div>
             )}
 
@@ -1429,6 +1655,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <ClientsPage 
                   clients={clients} 
                   quotes={quotes} 
@@ -1458,6 +1685,7 @@ export default function App() {
                     setCurrentView('quote_detail');
                   }}
                 />
+                </Suspense>
               </motion.div>
             )}
 
@@ -1467,6 +1695,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <ServicesPage 
                   services={services} 
                   userId={user.uid} 
@@ -1491,6 +1720,7 @@ export default function App() {
                      await supabase.from('services').delete().eq('id', deletedId);
                    }}
                 />
+                </Suspense>
               </motion.div>
             )}
 
@@ -1500,6 +1730,7 @@ export default function App() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <SettingsPage 
                    userProfile={userProfile} 
                    onProfileUpdated={(updatedProfile) => {
@@ -1516,16 +1747,18 @@ export default function App() {
                        asaas_api_key: updatedProfile.asaasApiKey,
                       }, { onConflict: 'id' });
                     }}
-                 />
-               </motion.div>
-            )}
+                  />
+                </Suspense>
+                </motion.div>
+             )}
 
-            {currentView === 'billing' && (
+             {currentView === 'billing' && (
               <motion.div
                 key="billPage"
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <BillingPage 
                    userProfile={userProfile} 
                    onProfileUpdated={(updatedProfile) => {
@@ -1536,7 +1769,8 @@ export default function App() {
                        asaas_api_key: updatedProfile.asaasApiKey,
                       }, { onConflict: 'id' });
                     }}
-                 />
+                  />
+                  </Suspense>
               </motion.div>
             )}
 
@@ -1546,7 +1780,9 @@ export default function App() {
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
               >
+                <Suspense fallback={<PageFallback />}>
                 <AnalyticsPage quotes={quotes} />
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>
@@ -1560,5 +1796,12 @@ export default function App() {
         />
       </main>
     </div>
+    {toast && (
+      <div className="fixed bottom-6 right-6 z-[200] bg-zinc-900 text-white px-5 py-3 rounded-2xl border border-zinc-800 shadow-2xl text-sm font-bold max-w-xs flex items-center gap-2">
+        {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" /> : <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
+        {toast.message}
+      </div>
+    )}
+    </>
   );
 }
