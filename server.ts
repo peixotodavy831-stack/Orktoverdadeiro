@@ -11,6 +11,10 @@ const PORT = process.env.PORT || 3000;
 async function startServer() {
   const app = express();
 
+  // API routes MUST be before Vite middleware, otherwise Vite's SPA fallback
+  // intercepts /api/* and returns index.html instead of JSON responses.
+  app.use(apiApp);
+
   if (!process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -20,8 +24,6 @@ async function startServer() {
   } else {
     app.use(express.static(path.join(process.cwd(), 'dist')));
   }
-
-  app.use(apiApp);
 
   app.use('*', (_req, res) => {
     if (!process.env.VERCEL) {
