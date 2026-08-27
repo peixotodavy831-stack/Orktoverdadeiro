@@ -30,6 +30,7 @@ interface SignInPageProps {
   className?: string;
   onSignInSuccess: (email?: string, password?: string) => void;
   onSignUp?: (email: string, password: string) => Promise<void>;
+  onDemoLogin?: () => void;
 }
       
 export const CanvasRevealEffect = ({
@@ -306,7 +307,7 @@ function MiniNavbar() {
   );
 }
 
-export const SignInPage = ({ className, onSignInSuccess, onSignUp }: SignInPageProps) => {
+export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin }: SignInPageProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [step, setStep] = useState<"email" | "password" | "forgot" | "success" | "signup">("email");
@@ -367,6 +368,10 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp }: SignInPageP
   };
 
   const handleBypassOrkto = async () => {
+    if (onDemoLogin) {
+      onDemoLogin();
+      return;
+    }
     try {
       const res = await fetch('/api/auth/demo-login', { method: 'POST' });
       if (!res.ok) {

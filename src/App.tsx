@@ -503,7 +503,8 @@ export default function App() {
       if (data.session) {
         await supabase.auth.setSession(data.session);
       }
-      setCurrentView('dashboard');
+      // Don't set currentView here — onAuthStateChange will set user,
+      // and the render logic will show the dashboard automatically.
     } catch (err) {
       console.error('Demo sign-in error:', err);
     }
@@ -535,6 +536,12 @@ export default function App() {
       options: { data: { full_name: email.split('@')[0] } },
     });
     if (error) throw error;
+    // Auto-login after signup (works if email confirmation is disabled)
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      // Email confirmation required — user needs to confirm first
+      throw new Error('Conta criada! Verifique seu e-mail para confirmar o acesso.');
+    }
   };
 
   if (authLoading) {
@@ -986,6 +993,7 @@ export default function App() {
       <Auth 
         onSignInSuccess={handleSignInSuccess} 
         onSignUp={handleSignUp}
+        onDemoLogin={handleDemoSignInSuccess}
         isLoading={false} 
       />
       {toast && (
