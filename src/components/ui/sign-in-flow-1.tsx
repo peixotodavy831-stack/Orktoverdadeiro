@@ -31,6 +31,7 @@ interface SignInPageProps {
   onSignInSuccess: (email?: string, password?: string) => void;
   onSignUp?: (email: string, password: string) => Promise<void>;
   onDemoLogin?: () => void;
+  onAuthenticate?: (email: string, password: string) => Promise<{ error?: string }>;
 }
       
 export const CanvasRevealEffect = ({
@@ -307,7 +308,7 @@ function MiniNavbar() {
   );
 }
 
-export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin }: SignInPageProps) => {
+export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, onAuthenticate }: SignInPageProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [step, setStep] = useState<"email" | "password" | "forgot" | "success" | "signup">("email");
@@ -330,6 +331,15 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin }
     setIsSubmitting(true);
     setAuthError("");
     try {
+      if (onAuthenticate) {
+        const result = await onAuthenticate(email, password);
+        if (result.error) {
+          setAuthError(result.error);
+          setReverseCanvasVisible(false);
+          setInitialCanvasVisible(true);
+          return;
+        }
+      }
       setReverseCanvasVisible(true);
       setTimeout(() => { setInitialCanvasVisible(false); }, 50);
       setTimeout(() => { setStep("success"); }, 1500);
@@ -348,14 +358,25 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin }
     }
   }, [step]);
 
-  const handleResetSubmit = (e: React.FormEvent) => {
+  const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (resetEmail) {
+    if (!resetEmail) return;
+    try {
+      const { supabase } = await import('../../lib/supabase');
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: window.location.origin,
+      });
+      if (error) {
+        setAuthError('Não foi possível enviar o link. Verifique o e-mail.');
+        return;
+      }
       setResetSent(true);
       setTimeout(() => {
         setResetSent(false);
         setStep("email");
-      }, 3000);
+      }, 4000);
+    } catch {
+      setAuthError('Erro ao enviar link de recuperação.');
     }
   };
 
@@ -484,8 +505,18 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin }
 
                       <button
                         onClick={async () => {
-                          const { supabase } = await import('../../lib/supabase');
-                          await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+                          try {
+                            const { supabase } = await import('../../lib/supabase');
+                            const { error } = await supabase.auth.signInWithOAuth({
+                              provider: 'google',
+                              options: { redirectTo: window.location.origin },
+                            });
+                            if (error) {
+                              setAuthError('Não foi possível entrar com o Google. Tente novamente.');
+                            }
+                          } catch {
+                            setAuthError('Erro ao conectar com Google. Tente novamente.');
+                          }
                         }}
                         type="button"
                         className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
@@ -692,8 +723,18 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin }
 
                       <button
                         onClick={async () => {
-                          const { supabase } = await import('../../lib/supabase');
-                          await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+                          try {
+                            const { supabase } = await import('../../lib/supabase');
+                            const { error } = await supabase.auth.signInWithOAuth({
+                              provider: 'google',
+                              options: { redirectTo: window.location.origin },
+                            });
+                            if (error) {
+                              setAuthError('Não foi possível cadastrar com o Google. Tente novamente.');
+                            }
+                          } catch {
+                            setAuthError('Erro ao conectar com Google. Tente novamente.');
+                          }
                         }}
                         type="button"
                         className="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"

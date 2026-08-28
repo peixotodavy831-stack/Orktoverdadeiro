@@ -49,6 +49,13 @@ const globalLimiter = rateLimit({
 });
 app.use('/api/', globalLimiter);
 
+// Stricter rate limit for notification endpoints (email sending)
+const notifyLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 20,
+  message: { error: 'Muitas notificações. Tente novamente em 15 minutos.' },
+  standardHeaders: 'draft-7', legacyHeaders: false,
+});
+
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -311,16 +318,28 @@ app.post("/api/auth/demo-login", async (req, res) => {
   if (process.env.VERCEL_ENV === 'production' || process.env.ASAAS_ENVIRONMENT === 'production') {
     return res.status(403).json({ error: 'Modo demo indisponível em produção. Crie uma conta.' });
   }
-  if (!supabaseClient) return res.status(500).json({ error: "Supabase not configured" });
+  if (!supabaseClient || !supabase) return res.status(500).json({ error: "Supabase not configured" });
   try {
+    // Try to sign in with existing demo account
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email: 'demo@orkto.co', password: 'demo123456' });
-    if (error) {
-      await supabaseClient.auth.signUp({ email: 'demo@orkto.co', password: 'demo123456', options: { data: { full_name: 'Dono do Negócio' } } });
-      const { data: sessionData, error: sessionError } = await supabaseClient.auth.signInWithPassword({ email: 'demo@orkto.co', password: 'demo123456' });
-      if (sessionError) throw sessionError;
-      return res.json({ session: sessionData.session });
+    if (!error && data.session) {
+      return res.json({ session: data.session });
     }
-    res.json({ session: data.session });
+    // Demo account doesn't exist yet — create it
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: 'demo@orkto.co',
+      password: 'demo123456',
+      options: { data: { full_name: 'Dono do Negócio' } },
+    });
+    if (signUpError && !signUpError.message?.includes('already registered')) {
+      throw signUpError;
+    }
+    // Now sign in (works whether we just created or it already existed but was unconfirmed)
+    const { data: sessionData, error: sessionError } = await supabaseClient.auth.signInWithPassword({
+      email: 'demo@orkto.co', password: 'demo123456',
+    });
+    if (sessionError) throw sessionError;
+    res.json({ session: sessionData.session });
   } catch (error) {
     console.error(`[ERRO] ${req.method} ${req.path}:`, error);
     res.status(500).json({ error: 'Erro interno do servidor. Tente novamente.' });
@@ -675,7 +694,7 @@ app.post("/api/proposal/:slug/refresh", authenticate, async (req, res) => {
 });
 
 // ===== Notificações =====
-app.post("/api/notify/quote-approved", async (req, res) => {
+app.post("/api/notify/quote-approved", notifyLimiter, async (req, res) => {
   try {
     const { quoteId, ownerEmail, clientName, quoteUrl } = req.body;
     if (!quoteId) return res.status(400).json({ error: "quoteId required" });
@@ -701,7 +720,7 @@ app.post("/api/notify/quote-approved", async (req, res) => {
   }
 });
 
-app.post("/api/notify/quote-paid", async (req, res) => {
+app.post("/api/notify/quote-paid", notifyLimiter, async (req, res) => {
   try {
     const { quoteId, ownerEmail, clientName, value } = req.body;
     if (!quoteId) return res.status(400).json({ error: "quoteId required" });

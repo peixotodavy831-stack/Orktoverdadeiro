@@ -4,10 +4,16 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn("Supabase environment variables not configured");
+  console.error(
+    "[ORKTO] Variáveis de ambiente Supabase não configuradas.\n" +
+    "Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env"
+  );
 }
 
-export const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
+export const supabase = createClient(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder"
+);
 
 // Types for Orkto data
 export interface OrktoQuote {

@@ -274,6 +274,22 @@ export default function App() {
     if (match) setProposalSlug(match[1]);
   }, []);
 
+  // Handle OAuth callback errors from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    const errorDescription = params.get('error_description');
+    if (error) {
+      // Clean URL without reload
+      window.history.replaceState({}, '', window.location.pathname);
+      if (error === 'server_error' || error === 'access_denied') {
+        showToast('Não foi possível entrar com o Google. Tente novamente.', 'error');
+      } else {
+        showToast(errorDescription || 'Erro na autenticação. Tente novamente.', 'error');
+      }
+    }
+  }, []);
+
   // Public checkout state (?quoteId=XYZ)
   const [publicQuoteId, setPublicQuoteId] = useState<string | null>(null);
   const [publicQuote, setPublicQuote] = useState<Quote | null>(null);
@@ -526,6 +542,19 @@ export default function App() {
     } catch (err: any) {
       console.error('Sign-in error:', err);
       showToast(err.message || 'Email ou senha inválidos', 'error');
+    }
+  };
+
+  // Authenticate and return result (used by password step before showing success screen)
+  const handleAuthenticate = async (email: string, password: string): Promise<{ error?: string }> => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        return { error: 'Email ou senha inválidos' };
+      }
+      return {};
+    } catch {
+      return { error: 'Erro ao conectar ao servidor' };
     }
   };
 
@@ -994,6 +1023,7 @@ export default function App() {
         onSignInSuccess={handleSignInSuccess} 
         onSignUp={handleSignUp}
         onDemoLogin={handleDemoSignInSuccess}
+        onAuthenticate={handleAuthenticate}
         isLoading={false} 
       />
       {toast && (
