@@ -274,22 +274,6 @@ export default function App() {
     if (match) setProposalSlug(match[1]);
   }, []);
 
-  // Handle OAuth callback errors from URL params
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const error = params.get('error');
-    const errorDescription = params.get('error_description');
-    if (error) {
-      // Clean URL without reload
-      window.history.replaceState({}, '', window.location.pathname);
-      if (error === 'server_error' || error === 'access_denied') {
-        showToast('Não foi possível entrar com o Google. Tente novamente.', 'error');
-      } else {
-        showToast(errorDescription || 'Erro na autenticação. Tente novamente.', 'error');
-      }
-    }
-  }, []);
-
   // Public checkout state (?quoteId=XYZ)
   const [publicQuoteId, setPublicQuoteId] = useState<string | null>(null);
   const [publicQuote, setPublicQuote] = useState<Quote | null>(null);
