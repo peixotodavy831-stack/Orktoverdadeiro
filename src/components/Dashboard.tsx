@@ -32,7 +32,7 @@ interface DashboardProps {
   onSelectQuote: (id: string) => void;
   onCreateQuoteClick: () => void;
   onLoadMocksClick?: () => void;
-  onNavigateToTab?: (tab: 'landing' | 'auth' | 'dashboard' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics') => void;
+  onNavigateToTab?: (tab: 'landing' | 'auth' | 'dashboard' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing') => void;
 }
 
 import { MagnetizeButton } from './ui/magnetize-button';
@@ -241,7 +241,7 @@ export default function Dashboard({
               )}
               {(!userProfile?.activePlan || userProfile?.activePlan === 'free') && (
                 <button
-                  onClick={() => onNavigateToTab?.('settings')}
+                  onClick={() => onNavigateToTab?.('billing')}
                   className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#FF9F1C]/10 border border-[#FF9F1C]/30 text-[#FF9F1C] hover:bg-[#FF9F1C]/25 text-[9px] font-extrabold uppercase rounded-full tracking-wide transition-all select-none hover:scale-105 active:scale-95 cursor-pointer"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-[#FF9F1C] animate-ping" />
@@ -504,7 +504,7 @@ export default function Dashboard({
               {isStarter && (
                 <button
                   type="button"
-                  onClick={() => onNavigateToTab?.('settings')}
+                  onClick={() => onNavigateToTab?.('billing')}
                   className="w-full mt-4 py-3 bg-[#FF9F1C] hover:opacity-90 text-black font-extrabold text-xs rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-1.5 select-none cursor-pointer"
                 >
                   <Zap className="w-3.5 h-3.5 fill-black" />

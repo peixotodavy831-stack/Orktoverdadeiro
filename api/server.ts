@@ -36,7 +36,7 @@ app.set('trust proxy', 1);
 app.use(express.json({ limit: '10mb' }));
 
 const allowedOrigins = [
-  'http://localhost:3000', 'http://localhost:5173',
+  'http://localhost:3000', 'http://localhost:4173', 'http://localhost:5173',
   'https://orktoverdeiro.vercel.app', 'https://orkto.co', 'https://www.orkto.co',
   'https://orkto.vercel.app', 'https://project-ao409.vercel.app',
   ...(process.env.ALLOWED_ORIGINS || '').split(',').map(origin => origin.trim()).filter(Boolean),
