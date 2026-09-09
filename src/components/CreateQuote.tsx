@@ -27,7 +27,8 @@ import {
 } from 'lucide-react';
 import { Quote, QuoteItem, SavedClient, SavedService, UserProfile, Timestamp } from '../types';
 import { formatCurrency, formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
-import { enhanceWithLocalAI } from '../lib/localCopywriter';
+import { improveQuoteCopy, QuoteTone } from '../lib/localCopywriter';
+import { supabase } from '../lib/supabase';
 
 interface CreateQuoteProps {
   userProfile: UserProfile | null;
@@ -35,7 +36,7 @@ interface CreateQuoteProps {
   savedServices: SavedService[];
   duplicateQuoteSource?: Quote | null;
   editQuoteSource?: Quote | null;
-  onQuoteCreated: (quote: Quote) => void;
+  onQuoteCreated: (quote: Quote) => Promise<Quote>;
   onCancel: () => void;
   onClientAdded?: (client: SavedClient) => void;
 }
@@ -77,6 +78,8 @@ export default function CreateQuote({
   );
   const [taxes, setTaxes] = useState<number>(0);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [proposalLink, setProposalLink] = useState<string | null>(null);
+  const [quoteTone, setQuoteTone] = useState<QuoteTone>((userProfile?.brandTone as QuoteTone) || 'comercial');
 
   // Use useEffect to prefill if duplication or editing source is active
   useEffect(() => {
@@ -103,14 +106,14 @@ export default function CreateQuote({
 
   const [isEnhancingIndex, setIsEnhancingIndex] = useState<number | null>(null);
 
-  const handleEnhanceWithAI = async (index: number) => {
+  const handleImproveItem = async (index: number) => {
     setIsEnhancingIndex(index);
     try {
       const item = items[index];
       
-      const result = enhanceWithLocalAI({
+      const result = improveQuoteCopy({
         profession: userProfile?.profession || 'Design & Tecnologia',
-        tone: (userProfile?.brandTone as any) || 'comercial',
+        tone: quoteTone,
         items: [item],
         clientName: clientName || 'Cliente',
         clientVehicleOrService: clientVehicleOrService || 'Prestação de Serviço',
@@ -140,6 +143,26 @@ export default function CreateQuote({
     } finally {
       setTimeout(() => setIsEnhancingIndex(null), 300);
     }
+  };
+
+  const handleApplyToneToQuote = () => {
+    if (items.some(item => !item.name.trim())) {
+      setErrorMessage('Preencha o nome dos itens antes de aplicar o tom.');
+      return;
+    }
+    setErrorMessage(null);
+    const result = improveQuoteCopy({
+      profession: userProfile?.profession || 'Serviços',
+      tone: quoteTone,
+      items,
+      clientName: clientName || 'Cliente',
+      clientVehicleOrService: clientVehicleOrService || 'prestação de serviço',
+      notes,
+      paymentInstructions,
+    });
+    setItems(result.items);
+    setNotes(result.notes);
+    setPaymentInstructions(result.paymentInstructions);
   };
 
   // Auto-fill values on user profile load
@@ -289,7 +312,7 @@ export default function CreateQuote({
 
     try {
       const userUid = userProfile?.uid || 'anonymous';
-      const quoteId = editQuoteSource ? editQuoteSource.id : 'q_' + crypto.randomUUID().replace(/-/g, '').substring(0, 9);
+      const quoteId = editQuoteSource ? editQuoteSource.id : crypto.randomUUID();
       
       // Auto-generate random Quote Number or keep original
       const quoteNumberStr = editQuoteSource ? editQuoteSource.quoteNumber : Math.floor(1000 + Math.random() * 9000).toString();
@@ -315,8 +338,8 @@ export default function CreateQuote({
         updatedAt: Timestamp.now()
       };
 
-      // 1. Notify parent that quote is created (which will write to local state and localStorage)
-      onQuoteCreated(newQuote);
+      // O servidor devolve o UUID, número e totais definitivos.
+      const persistedQuote = await onQuoteCreated(newQuote);
 
       // 2. Notify parent if client is new so client list updates
       const existingClientRef = savedClients.find(c => c.name.toLowerCase() === clientName.toLowerCase() || c.phone === clientPhone);
@@ -334,7 +357,21 @@ export default function CreateQuote({
         });
       }
 
-      setCreatedQuote(newQuote);
+      setCreatedQuote(persistedQuote);
+      if (!editQuoteSource) {
+        try {
+          const token = (await supabase.auth.getSession()).data.session?.access_token;
+          const response = await fetch('/api/proposal/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            body: JSON.stringify({ quoteId: persistedQuote.id }),
+          });
+          const result = await response.json();
+          if (response.ok && result.link) setProposalLink(result.link);
+        } catch (linkError) {
+          console.warn('Orçamento salvo, mas o link seguro não pôde ser gerado:', linkError);
+        }
+      }
       setStep(4);
     } catch (err: any) {
       console.error(err);
@@ -352,7 +389,7 @@ export default function CreateQuote({
   const getWhatsAppLink = () => {
     if (!createdQuote) return '';
     const origin = window.location.origin;
-    const viewLink = `${origin}?quoteId=${createdQuote.id}`;
+    const viewLink = proposalLink || origin;
     
     // Custom template replace
     let text = userProfile?.whatsappTemplate || 
@@ -564,6 +601,24 @@ export default function CreateQuote({
                   </button>
                 </div>
 
+                <div className="p-4 rounded-2xl border border-orange-500/20 bg-orange-500/5 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                    <div className="flex-1">
+                      <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Tom do orçamento</label>
+                      <select value={quoteTone} onChange={(event) => setQuoteTone(event.target.value as QuoteTone)} className="w-full px-3 py-2.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-500">
+                        <option value="comercial">Comercial — direto para fechar</option>
+                        <option value="técnico">Técnico — preciso e detalhado</option>
+                        <option value="formal">Formal — sóbrio e institucional</option>
+                        <option value="criativo">Criativo — leve e marcante</option>
+                      </select>
+                    </div>
+                    <button type="button" onClick={handleApplyToneToQuote} className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                      <Sparkles className="w-4 h-4" /> Aplicar ao orçamento
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-zinc-500">Reescrita local por modelos de texto prontos. Sem IA, sem envio de dados e totalmente editável.</p>
+                </div>
+
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
                   {items.map((item, index) => (
                     <div 
@@ -633,16 +688,16 @@ export default function CreateQuote({
                         </div>
                       </div>
 
-                      {/* AI Sparkle action button */}
+                      {/* Local deterministic copy action */}
                       <div className="flex items-center justify-between gap-2 border-t border-zinc-100 dark:border-zinc-800/60 pt-2 text-xs">
                         <button
                           type="button"
-                          onClick={() => handleEnhanceWithAI(index)}
+                          onClick={() => handleImproveItem(index)}
                           disabled={isEnhancingIndex === index}
                           className="px-3 py-1.5 bg-orange-500/10 text-[#FF9F1C] hover:bg-orange-500/20 border border-orange-500/20 rounded-xl text-[10px] font-bold flex items-center gap-1.5 transition-all disabled:opacity-40"
                         >
                           <Sparkles className="w-3.5 h-3.5 text-[#FF9F1C] animate-pulse" />
-                          {isEnhancingIndex === index ? 'Polindo Copywriter...' : 'Melhorar escopo com IA'}
+                          {isEnhancingIndex === index ? 'Aprimorando texto...' : 'Aprimorar este item'}
                         </button>
                         <span className="text-[10px] text-zinc-400 italic">Conversão baseada em copy de alta relevância</span>
                       </div>
@@ -808,7 +863,7 @@ export default function CreateQuote({
 
                 <div className="bg-zinc-950 p-4 border border-zinc-800 rounded-2xl font-mono text-xs break-all space-y-2">
                   <p className="font-bold text-zinc-500 uppercase tracking-widest text-[9px] mb-2">LINK DO ORÇAMENTO PARA O CLIENTE</p>
-                  <p className="text-orange-400 select-all underline">{window.location.origin}?quoteId={createdQuote.id}</p>
+                  <p className="text-orange-400 select-all underline">{proposalLink || 'Link seguro disponível na tela de detalhes'}</p>
                 </div>
 
                 <div className="space-y-3 pt-3">
@@ -824,7 +879,7 @@ export default function CreateQuote({
 
                   <div className="grid grid-cols-3 gap-2">
                     <a
-                      href={`${window.location.origin}?quoteId=${createdQuote.id}`}
+                    href={proposalLink || '#'}
                       target="_blank"
                       className="py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold text-[10px] sm:text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >
@@ -834,7 +889,8 @@ export default function CreateQuote({
                     <button
                       type="button"
                       onClick={() => {
-                        const link = `${window.location.origin}?quoteId=${createdQuote.id}`;
+                        const link = proposalLink;
+                        if (!link) return;
                         navigator.clipboard.writeText(link);
                         setLinkCopied(true);
                         setTimeout(() => setLinkCopied(false), 2000);

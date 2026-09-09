@@ -33,15 +33,17 @@ import { supabase } from './lib/supabase';
 
 // Core UI Modules (kept as static — always needed)
 import LandingPage from './components/LandingPage';
-import Auth from './components/Auth';
 import OrktoLogo from './components/OrktoLogo';
 import TubelightNavbar from './components/ui/tubelight-navbar';
+import LiquidMorphFloatingMenu from './components/ui/liquid-morph-floating-menu';
 
 // Client proposal view (public, no auth)
 import ClientProposalView from './components/ClientProposalView';
 
 // Lazy-loaded pages (code-split)
 const Dashboard = lazy(() => import('./components/Dashboard'));
+const Auth = lazy(() => import('./components/Auth'));
+const DemoExperience = lazy(() => import('./components/DemoExperience'));
 const CreateQuote = lazy(() => import('./components/CreateQuote'));
 const QuoteDetail = lazy(() => import('./components/QuoteDetail'));
 const ClientsPage = lazy(() => import('./components/ClientsPage'));
@@ -54,15 +56,19 @@ const QuotesPage = lazy(() => import('./components/QuotesPage'));
 function PageFallback() {
   return (
     <div className="flex items-center justify-center min-h-[60vh] text-zinc-500 text-xs font-bold uppercase tracking-widest">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-5 h-5 border-2 border-zinc-800 border-t-[#FF9F1C] rounded-full animate-spin" />
-        Carregando...
+      <div className="flex flex-col items-center gap-4 rounded-3xl border border-zinc-200 bg-white px-8 py-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+        <div className="relative h-9 w-9">
+          <div className="absolute inset-0 rounded-full border-2 border-zinc-200 dark:border-zinc-800" />
+          <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-[#FF9F1C]" />
+        </div>
+        Preparando sua tela...
       </div>
     </div>
   );
 }
 
 export default function App() {
+  const [demoView, setDemoView] = useState<'dashboard' | 'proposal' | null>(null);
   const getMillis = (dateObj: any): number => {
     if (!dateObj) return 0;
     if (typeof dateObj.toMillis === 'function') return dateObj.toMillis();
@@ -71,6 +77,33 @@ export default function App() {
     const d = new Date(dateObj);
     return isNaN(d.getTime()) ? 0 : d.getTime();
   };
+
+  const mapApiQuote = (q: any): Quote => ({
+    id: q.id,
+    userId: q.user_id,
+    quoteNumber: q.quote_number,
+    clientName: q.client_name,
+    clientPhone: q.client_phone,
+    clientEmail: q.client_email || '',
+    clientCompany: q.client_company || '',
+    clientVehicleOrService: q.client_vehicle_or_service || '',
+    notes: q.notes || '',
+    items: Array.isArray(q.items) ? q.items : (() => { try { return JSON.parse(q.items || '[]'); } catch { return []; } })(),
+    subtotal: Number(q.subtotal) || 0,
+    discountTotal: Number(q.discount_total) || 0,
+    taxes: Number(q.taxes) || 0,
+    total: Number(q.total) || 0,
+    validValueDays: q.valid_value_days || 15,
+    paymentInstructions: q.payment_instructions || '',
+    status: q.status || 'draft',
+    createdAt: q.created_at ? Timestamp.fromDate(new Date(q.created_at)) : Timestamp.now(),
+    updatedAt: q.updated_at ? Timestamp.fromDate(new Date(q.updated_at)) : Timestamp.now(),
+    sentAt: q.sent_at ? Timestamp.fromDate(new Date(q.sent_at)) : null,
+    retentionExpiresAt: q.retention_expires_at || null,
+    viewedAt: q.viewed_at ? Timestamp.fromDate(new Date(q.viewed_at)) : null,
+    approvedAt: q.approved_at ? Timestamp.fromDate(new Date(q.approved_at)) : null,
+    rejectedAt: q.rejected_at ? Timestamp.fromDate(new Date(q.rejected_at)) : null,
+  });
 
   // Navigation & Viewing states
   const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing'>('landing');
@@ -90,6 +123,7 @@ export default function App() {
     } else {
       document.documentElement.classList.remove('dark');
     }
+    document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
     localStorage.setItem('orkto_dark_mode', String(darkMode));
   }, [darkMode]);
 
@@ -100,22 +134,26 @@ export default function App() {
   
   // Listen for Supabase auth state changes on mount
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const u = session.user;
-        setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
-        setAccessToken(session.access_token);
-        loadUserProfile(u.id);
-      }
-      setAuthLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (session?.user) {
+          const u = session.user;
+          setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
+          setAccessToken(session.access_token);
+          setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
+          loadUserProfile(u.id, u);
+        }
+      })
+      .catch(err => console.error('[ORKTO] getSession error:', err))
+      .finally(() => setAuthLoading(false));
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const u = session.user;
         setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
         setAccessToken(session.access_token);
-        loadUserProfile(u.id);
+        setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
+        loadUserProfile(u.id, u);
       } else {
         setUser(null);
         setUserProfile(null);
@@ -126,8 +164,8 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserProfile = async (uid: string) => {
-    const { data } = await supabase.from('profiles').select('*').eq('id', uid).maybeSingle();
+  const loadUserProfile = async (uid: string, authUser?: any) => {
+    const { data } = await supabase.from('profiles').select('id, display_name, email, photo_url, created_at, onboarding_completed, company_name, tax_id, company_logo, whatsapp_number, whatsapp_template, payment_info, quote_color, address, profession, brand_name, brand_tone, active_plan, plan_period').eq('id', uid).maybeSingle();
     if (data) {
       const profile: UserProfile = {
         uid: data.id,
@@ -149,21 +187,17 @@ export default function App() {
         brandTone: data.brand_tone || 'comercial',
         activePlan: data.active_plan || 'free',
         planPeriod: data.plan_period || 'monthly',
-        // asaasApiKey removido por segurança — só existe no servidor
-        asaasCustomerId: data.asaas_customer_id || '',
       };
       setUserProfile(profile);
       const safeProfile = { ...profile };
-      // @ts-ignore - campo removido por segurança
-      delete safeProfile.asaasCustomerId;
       localStorage.setItem('orkto_profile', JSON.stringify(safeProfile));
       loadUserData(uid);
     } else {
       const defaultProfile: UserProfile = {
         uid,
-        displayName: user?.displayName || '',
-        email: user?.email || '',
-        photoURL: user?.photoURL || null,
+        displayName: authUser?.user_metadata?.full_name || authUser?.email?.split('@')[0] || '',
+        email: authUser?.email || '',
+        photoURL: authUser?.user_metadata?.avatar_url || null,
         createdAt: Timestamp.now(),
         onboardingCompleted: false,
         activePlan: 'free',
@@ -176,43 +210,37 @@ export default function App() {
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+      const fetchQuotePages = async () => {
+        const rows: any[] = [];
+        const pageSize = 250;
+        for (let offset = 0; ; offset += pageSize) {
+          const response = await fetch(`/api/quotes/list?offset=${offset}&limit=${pageSize}`, { headers: authHeaders });
+          if (!response.ok) throw new Error('Não foi possível carregar os orçamentos.');
+          const page = await response.json();
+          rows.push(...page);
+          if (page.length < pageSize) return rows;
+        }
+      };
+      const fetchTablePages = async (table: 'clients' | 'services') => {
+        const rows: any[] = [];
+        const pageSize = 500;
+        for (let offset = 0; ; offset += pageSize) {
+          const { data, error } = await supabase.from(table).select('*').eq('user_id', uid).order('created_at', { ascending: false }).range(offset, offset + pageSize - 1);
+          if (error) throw error;
+          rows.push(...(data || []));
+          if (!data || data.length < pageSize) return rows;
+        }
+      };
       const [quotesRes, clientsRes, servicesRes] = await Promise.all([
-        fetch('/api/quotes/list', { headers: authHeaders }).then(r => r.ok ? r.json() : []).catch(() => []),
-        supabase.from('clients').select('*').eq('user_id', uid).order('created_at', { ascending: false }).then(r => r.data || []),
-        supabase.from('services').select('*').eq('user_id', uid).order('created_at', { ascending: false }).then(r => r.data || []),
+        fetchQuotePages(),
+        fetchTablePages('clients'),
+        fetchTablePages('services'),
       ]);
 
-      if (quotesRes.length > 0) {
-        const mappedQuotes: Quote[] = quotesRes.map((q: any) => ({
-          id: q.id,
-          userId: q.user_id,
-          quoteNumber: q.quote_number,
-          clientName: q.client_name,
-          clientPhone: q.client_phone,
-          clientEmail: q.client_email || '',
-          clientCompany: q.client_company || '',
-          clientVehicleOrService: q.client_vehicle_or_service || '',
-          notes: q.notes || '',
-          items: Array.isArray(q.items) ? q.items : (() => { try { return JSON.parse(q.items || '[]'); } catch { return []; } })(),
-          subtotal: Number(q.subtotal) || 0,
-          discountTotal: Number(q.discount_total) || 0,
-          taxes: Number(q.taxes) || 0,
-          total: Number(q.total) || 0,
-          validValueDays: q.valid_value_days || 15,
-          paymentInstructions: q.payment_instructions || '',
-          status: q.status || 'draft',
-          createdAt: q.created_at ? Timestamp.fromDate(new Date(q.created_at)) : Timestamp.now(),
-          updatedAt: q.updated_at ? Timestamp.fromDate(new Date(q.updated_at)) : Timestamp.now(),
-          sentAt: q.sent_at ? Timestamp.fromDate(new Date(q.sent_at)) : null,
-          viewedAt: q.viewed_at ? Timestamp.fromDate(new Date(q.viewed_at)) : null,
-          approvedAt: q.approved_at ? Timestamp.fromDate(new Date(q.approved_at)) : null,
-          rejectedAt: q.rejected_at ? Timestamp.fromDate(new Date(q.rejected_at)) : null,
-        }));
-        setQuotes(mappedQuotes);
-      }
+      const mappedQuotes: Quote[] = quotesRes.map(mapApiQuote);
+      setQuotes(mappedQuotes);
 
-      if (clientsRes.length > 0) {
-        const mappedClients: SavedClient[] = clientsRes.map((c: any) => ({
+      const mappedClients: SavedClient[] = clientsRes.map((c: any) => ({
           id: c.id,
           userId: c.user_id,
           name: c.name,
@@ -223,11 +251,9 @@ export default function App() {
           createdAt: c.created_at ? Timestamp.fromDate(new Date(c.created_at)) : Timestamp.now(),
           updatedAt: c.updated_at ? Timestamp.fromDate(new Date(c.updated_at)) : Timestamp.now(),
         }));
-        setClients(mappedClients);
-      }
+      setClients(mappedClients);
 
-      if (servicesRes.length > 0) {
-        const mappedServices: SavedService[] = servicesRes.map((s: any) => ({
+      const mappedServices: SavedService[] = servicesRes.map((s: any) => ({
           id: s.id,
           userId: s.user_id,
           name: s.name,
@@ -237,8 +263,7 @@ export default function App() {
           createdAt: s.created_at ? Timestamp.fromDate(new Date(s.created_at)) : Timestamp.now(),
           updatedAt: s.updated_at ? Timestamp.fromDate(new Date(s.updated_at)) : Timestamp.now(),
         }));
-        setServices(mappedServices);
-      }
+      setServices(mappedServices);
     } catch (err) {
       console.error('Error loading user data:', err);
     }
@@ -256,9 +281,9 @@ export default function App() {
   useEffect(() => {
     if (userProfile) {
       const safeProfile = { ...userProfile };
-      // @ts-ignore - campo removido por segurança
-      delete safeProfile.asaasCustomerId;
-      delete safeProfile.asaasApiKey;
+      // Remove dados legados caso uma versão anterior os tenha deixado em memória.
+      delete (safeProfile as Record<string, unknown>).asaasCustomerId;
+      delete (safeProfile as Record<string, unknown>).asaasApiKey;
       localStorage.setItem('orkto_profile', JSON.stringify(safeProfile));
     } else {
       localStorage.removeItem('orkto_profile');
@@ -410,7 +435,7 @@ export default function App() {
       if (!user?.uid) return;
       
       const profileData = {
-        display_name: 'Dono do Negócio',
+        display_name: user.displayName || user.email?.split('@')[0] || 'Usuário',
         email: user.email || '',
         company_name: onboardBusinessName,
         tax_id: onboardTaxID,
@@ -424,18 +449,21 @@ export default function App() {
         onboarding_completed: true,
       };
 
-      const { error } = await supabase.from('profiles').upsert({
-        id: user.uid,
-        ...profileData,
-      }, { onConflict: 'id' });
-
-      if (error) {
-        console.error('Profile save error:', error);
+      const session = (await supabase.auth.getSession()).data.session;
+      if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+        body: JSON.stringify(profileData),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.error || 'Não foi possível salvar os dados da empresa. Tente novamente.');
       }
 
       const updated: UserProfile = {
         uid: user.uid,
-        displayName: 'Dono do Negócio',
+        displayName: user.displayName || user.email?.split('@')[0] || 'Usuário',
         email: user.email || '',
         photoURL: null,
         createdAt: Timestamp.now(),
@@ -453,10 +481,12 @@ export default function App() {
       };
 
       setUserProfile(updated);
-      setOnboardStep(3);
+      setOnboardStep(1);
+      setCurrentView('dashboard');
+      showToast('Empresa configurada com sucesso!', 'success');
     } catch (err) {
       console.error(err);
-      setUserProfile(prev => prev ? { ...prev, onboardingCompleted: true } : null);
+      showToast(err instanceof Error ? err.message : 'Erro ao concluir a configuração.', 'error');
     } finally {
       setOnboardSubmitting(false);
     }
@@ -493,35 +523,14 @@ export default function App() {
 
   // Demo login — calls server-side endpoint (credentials not in bundle)
   const handleDemoSignInSuccess = async () => {
-    try {
-      const res = await fetch('/api/auth/demo-login', { method: 'POST' });
-      if (!res.ok) {
-        console.error('Demo login failed');
-        return;
-      }
-      const data = await res.json();
-      if (data.session) {
-        await supabase.auth.setSession(data.session);
-      }
-      // Don't set currentView here — onAuthStateChange will set user,
-      // and the render logic will show the dashboard automatically.
-    } catch (err) {
-      console.error('Demo sign-in error:', err);
-    }
+    setDemoView('dashboard');
   };
 
   // Sign-in handler — NO auto-signup. Shows error for invalid credentials.
-  const handleSignInSuccess = async (emailVal?: string, passwordVal?: string) => {
+  const handleSignInSuccess = async () => {
     try {
-      if (emailVal && passwordVal) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: emailVal,
-          password: passwordVal,
-        });
-        if (error) throw new Error('Email ou senha inválidos');
-      } else if (!user) {
-        return;
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('Sessão não encontrada. Entre novamente.');
       setCurrentView('dashboard');
     } catch (err: any) {
       console.error('Sign-in error:', err);
@@ -542,11 +551,11 @@ export default function App() {
     }
   };
 
-  const handleSignUp = async (email: string, password: string) => {
+  const handleSignUp = async (email: string, password: string, name: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: email.split('@')[0] } },
+      options: { data: { full_name: name.trim() } },
     });
     if (error) throw error;
     // Auto-login after signup (works if email confirmation is disabled)
@@ -559,14 +568,14 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-950 text-white font-sans">
+      <div className="flex items-center justify-center min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white font-sans">
         <div className="text-center space-y-8 animate-pulse">
           <OrktoLogo size="lg" showSlogan={true} />
           <div className="space-y-2 max-w-xs mx-auto">
-            <div className="h-1 w-full bg-zinc-900 rounded-full overflow-hidden">
+            <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
               <div className="h-full w-2/3 rounded-full bg-brand-orange animate-infinite-loading" style={{ backgroundColor: '#FF9F1C', width: '40%' }} />
             </div>
-            <p className="text-zinc-550 text-[10px] uppercase tracking-widest font-bold">Carregando tecnologia ORKTO...</p>
+            <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">Preparando sua ORKTO...</p>
           </div>
         </div>
       </div>
@@ -990,11 +999,15 @@ export default function App() {
   }
 
   // LANDING PAGE ROUTE
+  if (demoView && !user) {
+    return <Suspense fallback={<PageFallback />}><DemoExperience initialView={demoView} onClose={() => setDemoView(null)} onStart={() => { setDemoView(null); setCurrentView('auth'); }} /></Suspense>;
+  }
+
   if (currentView === 'landing' && !user) {
     return (
       <LandingPage 
         onStartClick={() => setCurrentView('auth')} 
-        onDemoClick={handleDemoSignInSuccess} 
+        onDemoClick={() => setDemoView('proposal')}
       />
     );
   }
@@ -1003,13 +1016,15 @@ export default function App() {
   if (currentView === 'auth' && !user) {
     return (
       <>
-      <Auth 
-        onSignInSuccess={handleSignInSuccess} 
-        onSignUp={handleSignUp}
-        onDemoLogin={handleDemoSignInSuccess}
-        onAuthenticate={handleAuthenticate}
-        isLoading={false} 
-      />
+      <Suspense fallback={<PageFallback />}>
+        <Auth
+          onSignInSuccess={handleSignInSuccess}
+          onSignUp={handleSignUp}
+          onDemoLogin={handleDemoSignInSuccess}
+          onAuthenticate={handleAuthenticate}
+          isLoading={false}
+        />
+      </Suspense>
       {toast && (
         <div className="fixed bottom-6 right-6 z-[200] bg-zinc-900 text-white px-5 py-3 rounded-2xl border border-zinc-800 shadow-2xl text-sm font-bold max-w-xs flex items-center gap-2">
           {toast.type === 'error' ? <AlertCircle className="w-4 h-4 text-red-400 shrink-0" /> : <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />}
@@ -1058,8 +1073,8 @@ export default function App() {
               {onboardStep === 1 ? (
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-md font-bold text-zinc-800 dark:text-zinc-200">Dados Básicos da Empresa</h3>
-                    <p className="text-xs text-zinc-500 mb-4">Insira o nome do seu negócio e dados para aparecerem no cabeçalho das propostas.</p>
+                    <h3 className="text-md font-bold text-zinc-800 dark:text-zinc-200">Vamos preparar sua primeira proposta</h3>
+                    <p className="text-xs text-zinc-500 mb-4">Só precisamos do essencial. Você pode completar os demais dados depois nas configurações.</p>
                   </div>
 
                   <div className="space-y-3">
@@ -1079,14 +1094,13 @@ export default function App() {
                     </div>
                     
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">CNPJ ou CPF *</label>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">CNPJ ou CPF (opcional)</label>
                       <input
                         type="text"
                         value={onboardTaxID}
                         onChange={(e) => setOnboardTaxID(e.target.value)}
                         placeholder="Ex: 00.000.000/0001-00"
                         className="w-full px-4 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
-                        required
                       />
                     </div>
 
@@ -1103,7 +1117,7 @@ export default function App() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Cidade e Endereço</label>
+                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Cidade e endereço (opcional)</label>
                         <input
                           type="text"
                           value={onboardAddress}
@@ -1130,15 +1144,15 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => {
-                        if (!onboardBusinessName.trim() || !onboardTaxID.trim() || !onboardPhone.trim()) {
-                          showToast("Preencha o Nome do Estabelecimento, CNPJ/CPF e WhatsApp para prosseguir.", 'error');
+                        if (!onboardBusinessName.trim() || !onboardPhone.trim()) {
+                          showToast("Preencha o nome do negócio e o WhatsApp para prosseguir.", 'error');
                           return;
                         }
                         setOnboardStep(2);
                       }}
                       className="w-full py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-orange-500 dark:hover:bg-orange-600 font-extrabold text-sm rounded-xl shadow-lg transition-all flex justify-center items-center gap-2 active:scale-95"
                     >
-                      Avançar para Estilo & IA
+                      Avançar para Estilo & Tom
                       <Sparkles className="w-4 h-4" />
                     </button>
                   </div>
@@ -1146,8 +1160,8 @@ export default function App() {
               ) : onboardStep === 2 ? (
                 <form onSubmit={handleOnboardSubmit} className="space-y-4">
                   <div>
-                    <h3 className="text-md font-bold text-zinc-800 dark:text-zinc-200">Personalização de Estilo & Adaptabilidade por IA</h3>
-                    <p className="text-xs text-zinc-500 mb-4">Selecione sua profissão e o tom de preferência. A IA ORKTO usará esses dados para ajustar e otimizar cada detalhe visual e textual de suas propostas.</p>
+                    <h3 className="text-md font-bold text-zinc-800 dark:text-zinc-200">Personalização de estilo e comunicação</h3>
+                    <p className="text-xs text-zinc-500 mb-4">Selecione sua profissão e o tom de preferência. O ORKTO aplicará modelos locais de texto para adaptar suas propostas.</p>
                   </div>
 
                   <div className="space-y-3.5">
@@ -1174,7 +1188,7 @@ export default function App() {
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Tom de Voz da IA *</label>
+                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Tom de voz do orçamento *</label>
                         <select
                           value={onboardBrandTone}
                           onChange={(e) => setOnboardBrandTone(e.target.value as any)}
@@ -1354,10 +1368,9 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Primary Sidebar Rail (Left) */}
+      {/* Primary Sidebar Rail (desktop only) */}
       <aside className={`
-        fixed lg:static inset-y-0 left-0 w-68 bg-zinc-950 text-white flex flex-col z-50 lg:z-10 transition-all duration-300 ease-in-out border-r border-zinc-900/80
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        hidden lg:static lg:flex inset-y-0 left-0 w-68 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white flex-col z-50 lg:z-10 border-r border-zinc-200 dark:border-zinc-900/80
       `}>
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-5">
           <div className="absolute -top-24 -left-24 w-60 h-60 bg-orange-500 rounded-full blur-[100px]" />
@@ -1371,7 +1384,7 @@ export default function App() {
             
             <button 
               onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-2 text-zinc-400 hover:text-white"
+              className="lg:hidden p-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
               <X className="w-6 h-6" />
             </button>
@@ -1380,7 +1393,7 @@ export default function App() {
           <nav className="space-y-1.5 text-xs sm:text-sm font-bold">
             <button 
               onClick={() => { setCurrentView('dashboard'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'dashboard' && !selectedQuoteId ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-400 hover:bg-zinc-900/60 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'dashboard' && !selectedQuoteId ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-white'}`}
             >
               <Home className="w-5 h-5" />
               <span>Painel</span>
@@ -1388,7 +1401,7 @@ export default function App() {
             
             <button 
               onClick={() => { setCurrentView('quotes'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'quotes' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-400 hover:bg-zinc-900/30 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'quotes' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/30 dark:hover:text-white'}`}
             >
               <FileText className="w-5 h-5" />
               <span>Orçamentos</span>
@@ -1396,7 +1409,7 @@ export default function App() {
 
             <button 
               onClick={() => { setCurrentView('clients'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'clients' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-400 hover:bg-zinc-900/30 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'clients' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/30 dark:hover:text-white'}`}
             >
               <Users className="w-5 h-5" />
               <span>Clientes</span>
@@ -1404,7 +1417,7 @@ export default function App() {
 
             <button 
               onClick={() => { setCurrentView('services'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'services' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-400 hover:bg-zinc-900/40 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'services' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
             >
               <Briefcase className="w-5 h-5" />
               <span>Catálogo</span>
@@ -1412,7 +1425,7 @@ export default function App() {
 
             <button 
               onClick={() => { setCurrentView('analytics'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'analytics' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-400 hover:bg-zinc-900/40 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'analytics' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
             >
               <BarChart3 className="w-5 h-5" />
               <span>Analytics</span>
@@ -1420,7 +1433,7 @@ export default function App() {
 
             <button 
               onClick={() => { setCurrentView('settings'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'settings' ? 'bg-orange-500 text-white shadow-xl' : 'text-zinc-400 hover:bg-zinc-900/40 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'settings' ? 'bg-orange-500 text-white shadow-xl' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
             >
               <SettingsIcon className="w-5 h-5" />
               <span>Config. da Empresa</span>
@@ -1428,7 +1441,7 @@ export default function App() {
 
             <button 
               onClick={() => { setCurrentView('billing'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'billing' ? 'bg-[#FF9F1C] text-black shadow-xl font-extrabold' : 'text-zinc-400 hover:bg-zinc-900/40 hover:text-white'}`}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'billing' ? 'bg-[#FF9F1C] text-black shadow-xl font-extrabold' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
             >
               <CreditCard className="w-5 h-5 shrink-0" />
               <span>Pagar Orkto (Planos)</span>
@@ -1437,11 +1450,11 @@ export default function App() {
         </div>
 
         {/* User identification settings bottom bar */}
-        <div className="p-5 mt-auto relative z-10 shrink-0 border-t border-zinc-900">
+        <div className="p-5 mt-auto relative z-10 shrink-0 border-t border-zinc-200 dark:border-zinc-900">
           {/* Custom Theme Switcher Card */}
-          <div className="mb-4 px-3 py-2.5 bg-zinc-900/40 border border-zinc-900 rounded-2xl flex items-center justify-between">
+          <div className="mb-4 px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-900 rounded-2xl flex items-center justify-between">
             <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Aparência</span>
-            <div className="flex bg-zinc-950 p-1 rounded-xl border border-zinc-900">
+            <div className="flex bg-white dark:bg-zinc-950 p-1 rounded-xl border border-zinc-200 dark:border-zinc-900">
               <button
                 type="button"
                 onClick={() => setDarkMode(false)}
@@ -1461,10 +1474,10 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-3 bg-zinc-900/50 rounded-2xl flex items-center gap-2.5 mb-4 border border-zinc-900/50 hover:border-zinc-800 transition-all duration-300">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl flex items-center gap-2.5 mb-4 border border-zinc-200 dark:border-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-800 transition-all duration-300">
             <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-xs font-bold text-orange-400 font-mono">OK</div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-white truncate">{userProfile?.companyName || 'Dono do Negócio'}</p>
+              <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{userProfile?.companyName || 'Dono do Negócio'}</p>
               <p className="text-[9px] text-zinc-500 truncate font-mono">Autenticado</p>
             </div>
           </div>
@@ -1482,7 +1495,7 @@ export default function App() {
       {/* Main Content Workspace viewport */}
       <main className="flex-1 overflow-y-auto relative w-full">
         {/* Mobile top structural Navigation */}
-        <div className="lg:hidden flex items-center justify-between p-4 bg-zinc-950 border-b border-zinc-900 sticky top-0 z-30 text-white">
+        <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-30 text-zinc-900 dark:text-white">
           <div className="flex items-center gap-2">
             <OrktoLogo size="sm" showSlogan={false} onlyO={true} />
           </div>
@@ -1490,7 +1503,7 @@ export default function App() {
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-xl transition-all cursor-pointer"
+              className="p-2 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900 rounded-xl transition-all cursor-pointer"
               title="Alternar Aparência"
             >
               {darkMode ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
@@ -1507,8 +1520,10 @@ export default function App() {
             </button>
 
             <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-900/60 rounded-lg"
+              onClick={() => setIsSidebarOpen(open => !open)}
+              aria-expanded={isSidebarOpen}
+              aria-label={isSidebarOpen ? 'Fechar menu' : 'Abrir menu'}
+              className="p-1.5 text-zinc-500 hover:text-zinc-950 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900/60 rounded-lg"
             >
               <Menu className="w-6 h-6 shrink-0" />
             </button>
@@ -1528,6 +1543,7 @@ export default function App() {
                 <Suspense fallback={<PageFallback />}>
                 <Dashboard 
                   userProfile={userProfile} 
+                  darkMode={darkMode}
                   quotes={quotes} 
                   clients={clients} 
                   onSelectQuote={(quoteId) => {
@@ -1602,16 +1618,28 @@ export default function App() {
                       const token = (await supabase.auth.getSession()).data.session?.access_token;
                       const authHeaders: Record<string, string> = { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
                       if (editQuoteSource) {
-                        await fetch('/api/quotes/' + editQuoteSource.id, { method: 'PUT', headers: authHeaders, body: JSON.stringify(q) });
-                        setQuotes(quotes.map(item => item.id === editQuoteSource.id ? q : item));
+                        const response = await fetch('/api/quotes/' + editQuoteSource.id, { method: 'PUT', headers: authHeaders, body: JSON.stringify(q) });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'Não foi possível atualizar o orçamento.');
+                        const persistedQuote = mapApiQuote(result);
+                        setQuotes(current => current.map(item => item.id === editQuoteSource.id ? persistedQuote : item));
+                        setDuplicateQuoteSource(null);
+                        setEditQuoteSource(null);
+                        setSelectedQuoteId(persistedQuote.id);
+                        setCurrentView('quote_detail');
+                        return persistedQuote;
                       } else {
-                        fetch('/api/quotes', { method: 'POST', headers: authHeaders, body: JSON.stringify(q) });
-                        setQuotes([q, ...quotes]);
+                        const response = await fetch('/api/quotes', { method: 'POST', headers: authHeaders, body: JSON.stringify(q) });
+                        const result = await response.json();
+                        if (!response.ok) throw new Error(result.error || 'Não foi possível salvar o orçamento.');
+                        const persistedQuote = mapApiQuote(result);
+                        setQuotes(current => [persistedQuote, ...current]);
+                        setDuplicateQuoteSource(null);
+                        setEditQuoteSource(null);
+                        setSelectedQuoteId(persistedQuote.id);
+                        setCurrentView('quote_detail');
+                        return persistedQuote;
                       }
-                    setDuplicateQuoteSource(null);
-                    setEditQuoteSource(null);
-                    setSelectedQuoteId(q.id);
-                    setCurrentView('quote_detail');
                   }} 
                   onCancel={() => { 
                     setDuplicateQuoteSource(null);
@@ -1755,19 +1783,34 @@ export default function App() {
                 <Suspense fallback={<PageFallback />}>
                 <SettingsPage 
                    userProfile={userProfile} 
-                   onProfileUpdated={(updatedProfile) => {
+                   onProfileUpdated={async (updatedProfile) => {
+                     const session = (await supabase.auth.getSession()).data.session;
+                     if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
+                     const response = await fetch('/api/profile', {
+                       method: 'PUT',
+                       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+                       body: JSON.stringify({
+                         display_name: updatedProfile.displayName,
+                         email: updatedProfile.email,
+                         onboarding_completed: true,
+                         company_name: updatedProfile.companyName,
+                         tax_id: updatedProfile.taxID,
+                         company_logo: updatedProfile.companyLogo,
+                         whatsapp_number: updatedProfile.whatsappNumber,
+                         whatsapp_template: updatedProfile.whatsappTemplate,
+                         payment_info: updatedProfile.paymentInfo,
+                         quote_color: updatedProfile.quoteColor,
+                         address: updatedProfile.address,
+                         profession: updatedProfile.profession,
+                         brand_name: updatedProfile.brandName,
+                         brand_tone: updatedProfile.brandTone,
+                       }),
+                     });
+                     if (!response.ok) {
+                       const result = await response.json().catch(() => ({}));
+                       throw new Error(result.error || 'Não foi possível salvar as configurações.');
+                     }
                      setUserProfile(updatedProfile);
-                     supabase.from('profiles').upsert({
-                       id: user?.uid, display_name: updatedProfile.displayName,
-                       email: updatedProfile.email, company_name: updatedProfile.companyName,
-                       tax_id: updatedProfile.taxID, company_logo: updatedProfile.companyLogo,
-                       whatsapp_number: updatedProfile.whatsappNumber,
-                       whatsapp_template: updatedProfile.whatsappTemplate,
-                       payment_info: updatedProfile.paymentInfo, quote_color: updatedProfile.quoteColor,
-                       address: updatedProfile.address, profession: updatedProfile.profession,
-                       brand_name: updatedProfile.brandName, brand_tone: updatedProfile.brandTone,
-                       asaas_api_key: updatedProfile.asaasApiKey,
-                      }, { onConflict: 'id' });
                     }}
                   />
                 </Suspense>
@@ -1785,11 +1828,7 @@ export default function App() {
                    userProfile={userProfile} 
                    onProfileUpdated={(updatedProfile) => {
                      setUserProfile(updatedProfile);
-                     supabase.from('profiles').upsert({
-                       id: user?.uid, active_plan: updatedProfile.activePlan,
-                       asaas_customer_id: updatedProfile.asaasCustomerId,
-                       asaas_api_key: updatedProfile.asaasApiKey,
-                      }, { onConflict: 'id' });
+                     // O plano é atualizado pelo webhook autenticado do Asaas.
                     }}
                   />
                   </Suspense>
@@ -1803,7 +1842,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <AnalyticsPage quotes={quotes} />
+                <AnalyticsPage quotes={quotes} plan={userProfile?.activePlan || 'free'} />
                 </Suspense>
               </motion.div>
             )}
@@ -1815,6 +1854,21 @@ export default function App() {
           currentView={currentView}
           setCurrentView={setCurrentView}
           setSelectedQuoteId={setSelectedQuoteId}
+          onMenuOpen={() => setIsSidebarOpen(true)}
+        />
+        <LiquidMorphFloatingMenu
+          isOpen={isSidebarOpen}
+          onOpenChange={setIsSidebarOpen}
+          items={[
+            { label: 'Painel', active: currentView === 'dashboard', onClick: () => { setSelectedQuoteId(null); setCurrentView('dashboard'); } },
+            { label: 'Orçamentos', active: currentView === 'quotes', onClick: () => { setSelectedQuoteId(null); setCurrentView('quotes'); } },
+            { label: 'Novo orçamento', active: currentView === 'create_quote', onClick: () => { setSelectedQuoteId(null); setCurrentView('create_quote'); } },
+            { label: 'Clientes', active: currentView === 'clients', onClick: () => { setSelectedQuoteId(null); setCurrentView('clients'); } },
+            { label: 'Catálogo', active: currentView === 'services', onClick: () => { setSelectedQuoteId(null); setCurrentView('services'); } },
+            { label: 'Analytics', active: currentView === 'analytics', onClick: () => { setSelectedQuoteId(null); setCurrentView('analytics'); } },
+            { label: 'Configurações', active: currentView === 'settings', onClick: () => { setSelectedQuoteId(null); setCurrentView('settings'); } },
+            { label: 'Planos', active: currentView === 'billing', onClick: () => { setSelectedQuoteId(null); setCurrentView('billing'); } },
+          ]}
         />
       </main>
     </div>

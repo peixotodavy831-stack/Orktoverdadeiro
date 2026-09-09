@@ -33,6 +33,7 @@ function formatBRL(value: number): string {
 function getTimeRemaining(expiresAt: string): string {
   const diff = new Date(expiresAt).getTime() - Date.now();
   if (diff <= 0) return '00:00';
+  if (diff >= 86400000) return `${Math.floor(diff / 86400000)} dias e ${Math.floor(diff % 86400000 / 3600000)} horas`;
   const mins = Math.floor(diff / 60000);
   const secs = Math.floor((diff % 60000) / 1000);
   return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
@@ -61,10 +62,15 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
 
   useEffect(() => {
     if (!data) return;
+    const updateTimeLeft = () => {
+      const remaining = getTimeRemaining(data.proposal.expires_at);
+      setTimeLeft(remaining);
+      if (remaining === '00:00') setExpired(true);
+      return remaining;
+    };
+    updateTimeLeft();
     const timer = setInterval(() => {
-      const r = getTimeRemaining(data.proposal.expires_at);
-      setTimeLeft(r);
-      if (r === '00:00') { setExpired(true); clearInterval(timer); }
+      if (updateTimeLeft() === '00:00') clearInterval(timer);
     }, 1000);
     return () => clearInterval(timer);
   }, [data]);
@@ -89,7 +95,7 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
     if (!approverName.trim()) return;
     try {
       setActionLoading(true);
-      const res = await fetch(`/api/quote/${data!.quote.id}/approve`, {
+      const res = await fetch(`/api/proposal/${slug}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ clientName: approverName }),
@@ -102,7 +108,7 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
   const handleReject = async () => {
     try {
       setActionLoading(true);
-      const res = await fetch(`/api/quote/${data!.quote.id}/reject`, { method: 'POST' });
+      const res = await fetch(`/api/proposal/${slug}/reject`, { method: 'POST' });
       if (!res.ok) throw new Error();
       setRejected(true);
     } catch { alert('Erro ao recusar'); } finally { setActionLoading(false); }
@@ -111,7 +117,7 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
   const handlePix = async () => {
     try {
       setPixLoading(true);
-      const res = await fetch(`/api/quote/${data!.quote.id}/pix`, { method: 'POST' });
+      const res = await fetch(`/api/proposal/${slug}/pix`, { method: 'POST' });
       const json = await res.json();
       if (json.success) { setPixData(json.pix); setShowPix(true); }
     } catch { alert('Erro ao gerar PIX'); } finally { setPixLoading(false); }

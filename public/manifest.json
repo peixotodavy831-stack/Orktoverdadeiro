@@ -1,11 +1,11 @@
 {
-  "name": "ORKTO - Orçamento Online com IA",
+  "name": "ORKTO - Orçamentos Profissionais",
   "short_name": "ORKTO",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",
-  "description": "Crie orçamentos profissionais em segundos com IA e envie pelo WhatsApp.",
+  "description": "Crie orçamentos profissionais, envie pelo WhatsApp e acompanhe aprovações em um só lugar.",
   "icons": [
     {
       "src": "favicon.ico",

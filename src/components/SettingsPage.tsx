@@ -20,11 +20,12 @@ import {
   Table as TableIcon
 } from 'lucide-react';
 import { UserProfile, Timestamp } from '../types';
+import { supabase } from '../lib/supabase';
 
 
 interface SettingsPageProps {
   userProfile: UserProfile | null;
-  onProfileUpdated: (profile: UserProfile) => void;
+  onProfileUpdated: (profile: UserProfile) => void | Promise<void>;
 }
 
 export default function SettingsPage({ userProfile, onProfileUpdated }: SettingsPageProps) {
@@ -32,23 +33,31 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
 
   const [isSaving, setIsSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   // States
   const [companyName, setCompanyName] = useState(userProfile?.companyName || '');
   const [taxID, setTaxID] = useState(userProfile?.taxID || '');
   const [companyLogo, setCompanyLogo] = useState(userProfile?.companyLogo || '');
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleLogoFile = (file: File) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor, envie um arquivo de imagem válido (PNG ou JPG).');
+    const acceptedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+    if (!acceptedTypes.includes(file.type)) {
+      alert('Envie um arquivo PNG, JPG ou WebP.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert('O logotipo deve ter no máximo 2 MB.');
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
         setCompanyLogo(e.target.result as string);
+        setLogoFile(file);
       }
     };
     reader.readAsDataURL(file);
@@ -116,9 +125,22 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
 
     setIsSaving(true);
     setSuccess(false);
+    setSaveError('');
 
     try {
       const userUid = userProfile?.uid || 'anonymous';
+      let persistedLogo = companyLogo;
+      if (logoFile) {
+        if (userUid === 'anonymous') throw new Error('Sua sessão expirou. Entre novamente.');
+        const extension = logoFile.type === 'image/png' ? 'png' : logoFile.type === 'image/webp' ? 'webp' : 'jpg';
+        const storagePath = `${userUid}/logo.${extension}`;
+        const { error: uploadError } = await supabase.storage
+          .from('company-logos')
+          .upload(storagePath, logoFile, { upsert: true, contentType: logoFile.type, cacheControl: '3600' });
+        if (uploadError) throw new Error(`Não foi possível enviar o logotipo: ${uploadError.message}`);
+        const { data } = supabase.storage.from('company-logos').getPublicUrl(storagePath);
+        persistedLogo = `${data.publicUrl}?v=${Date.now()}`;
+      }
       const updatedProfile: UserProfile = {
         uid: userUid,
         displayName: userProfile?.displayName || 'Dono do Negócio',
@@ -128,7 +150,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
         onboardingCompleted: true,
         companyName,
         taxID,
-        companyLogo,
+        companyLogo: persistedLogo,
         whatsappNumber,
         whatsappTemplate,
         paymentInfo,
@@ -136,11 +158,14 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
         address
       };
 
-      onProfileUpdated(updatedProfile);
+      await onProfileUpdated(updatedProfile);
+      setCompanyLogo(persistedLogo);
+      setLogoFile(null);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
       console.error(err);
+      setSaveError(err instanceof Error ? err.message : 'Não foi possível salvar as configurações.');
     } finally {
       setIsSaving(false);
     }
@@ -165,6 +190,13 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
         <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 rounded-2xl flex items-center gap-2 text-xs font-bold">
           <Check className="w-5 h-5 shrink-0" />
           Configurações salvas com sucesso! Suas alterações já estão ativas nos novos orçamentos.
+        </div>
+      )}
+
+      {saveError && (
+        <div role="alert" className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-2xl flex items-center gap-2 text-xs font-bold">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          {saveError}
         </div>
       )}
 
@@ -205,7 +237,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
                     <p className="text-[10px] text-zinc-400">Este logotipo aparecerá no cabeçalho das suas propostas e links.</p>
                     <button
                       type="button"
-                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCompanyLogo(''); }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCompanyLogo(''); setLogoFile(null); }}
                       className="px-2.5 py-1 bg-red-500/10 hover:bg-red-500/25 text-red-500 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1 mt-1.5 cursor-pointer relative z-30"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Remover Logotipo
@@ -220,7 +252,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
                   <p className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
                     Arraste o arquivo do seu logo aqui ou <span className="text-orange-500 hover:underline cursor-pointer font-extrabold">clique para selecionar</span>
                   </p>
-                  <p className="text-[10px] text-zinc-400">Até 2MB. Formatos aceitos: PNG, JPG, JPEG, SVG ou GIF.</p>
+                  <p className="text-[10px] text-zinc-400">Até 2MB. Formatos aceitos: PNG, JPG, JPEG ou WebP.</p>
                 </div>
               )}
             </div>

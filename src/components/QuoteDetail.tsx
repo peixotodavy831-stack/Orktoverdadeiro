@@ -47,6 +47,23 @@ export default function QuoteDetail({
   const [proposalLink, setProposalLink] = useState<string | null>(null);
   const [proposalLoading, setProposalLoading] = useState(false);
   const [proposalCopied, setProposalCopied] = useState(false);
+  const [expiresAt, setExpiresAt] = useState(quote.retentionExpiresAt || null);
+  const [extending, setExtending] = useState(false);
+  const canExtend = ['pro', 'business'].includes(userProfile?.activePlan || 'free');
+  const extendDeadline = async () => {
+    setExtending(true);
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      const response = await fetch(`/api/quotes/${quote.id}/extend`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ expectedExpiry: expiresAt }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      setExpiresAt(data.expiresAt);
+    } catch (error) { alert(error instanceof Error ? error.message : 'Falha ao prorrogar'); }
+    finally { setExtending(false); }
+  };
 
   const generateProposalLink = async () => {
     try {
@@ -58,12 +75,30 @@ export default function QuoteDetail({
         body: JSON.stringify({ quoteId: quote.id }),
       });
       const data = await res.json();
-      if (data.success) setProposalLink(data.link);
+      if (!res.ok) throw new Error(data.error || 'Erro ao gerar link');
+      if (data.success) { setProposalLink(data.link); setExpiresAt(data.expiresAt); }
     } catch { alert('Erro ao gerar link'); } finally { setProposalLoading(false); }
   };
 
   const copyProposalLink = () => {
     if (proposalLink) { navigator.clipboard.writeText(proposalLink); setProposalCopied(true); setTimeout(() => setProposalCopied(false), 2000); }
+  };
+
+  const downloadArchive = () => {
+    const archive = { version: 1, exportedAt: new Date().toISOString(), expiresAt, company: { name: userProfile?.companyName, taxId: userProfile?.taxID, address: userProfile?.address }, quote };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(archive, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = `orcamento-${quote.quoteNumber.replace(/[^a-zA-Z0-9-]/g, '')}.json`; link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  const printArchive = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { alert('Permita abrir a janela para salvar o PDF.'); return; }
+    const safe = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]!));
+    const rows = quote.items.map(item => `<tr><td>${safe(item.name)}<br>${safe(item.description)}</td><td>${item.quantity}</td><td>${safe(formatBRL(item.unitPrice))}</td><td>${item.discount}%</td><td>${safe(formatBRL(item.quantity * item.unitPrice * (1-item.discount/100)))}</td></tr>`).join('');
+    printWindow.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Orçamento ${safe(quote.quoteNumber)}</title><style>body{font:14px Arial;color:#18181b;margin:32px}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}p{white-space:pre-wrap}footer{margin-top:32px;color:#666}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Imprimir / salvar como PDF</button><h1>${safe(userProfile?.companyName || 'Orçamento')}</h1><p>${safe(userProfile?.taxID)} • ${safe(userProfile?.address)}</p><h2>Orçamento ${safe(quote.quoteNumber)}</h2><p>Cliente: ${safe(quote.clientName)}\nTelefone: ${safe(quote.clientPhone)}\nE-mail: ${safe(quote.clientEmail)}\nEmpresa: ${safe(quote.clientCompany)}\nServiço: ${safe(quote.clientVehicleOrService)}\nCriado: ${safe(formatDate(quote.createdAt))}\nEnviado: ${safe(formatDate(quote.sentAt))}\nDisponível até: ${safe(expiresAt ? new Date(expiresAt).toLocaleString('pt-BR') : 'Ainda não enviado')}\nStatus do orçamento: ${safe(quote.status)} (não comprova pagamento)</p><table><thead><tr><th>Item</th><th>Qtd.</th><th>Unitário</th><th>Desconto</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table><p>Subtotal: ${safe(formatBRL(quote.subtotal))}\nDescontos: ${safe(formatBRL(quote.discountTotal))}\nTaxas: ${safe(formatBRL(quote.taxes || 0))}</p><h2>Total: ${safe(formatBRL(quote.total))}</h2><p>${safe(quote.notes)}\n${safe(quote.paymentInstructions)}</p>${userProfile?.activePlan !== 'business' ? '<footer>Orçamento criado com ORKTO</footer>' : ''}</body></html>`);
+    printWindow.document.close();
   };
 
   const getStatusBadge = (status: string) => {
@@ -107,8 +142,7 @@ export default function QuoteDetail({
   };
 
   const getWhatsAppLink = () => {
-    const origin = window.location.origin;
-    const viewLink = proposalLink || `${origin}?quoteId=${quote.id}`;
+    const viewLink = proposalLink || '';
     
     // Check if the user has a custom template, if they chose to use the default, we inject summary
     let itemsSummary = quote.items.map((item, idx) => `• ${item.quantity}x ${item.name} (${formatBRL((item.quantity * item.unitPrice) * (1 - item.discount / 100))})`).join('\n');
@@ -142,6 +176,11 @@ export default function QuoteDetail({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
+      <section className="mb-5 rounded-xl border border-orange-300 bg-orange-50 p-4 text-zinc-900 dark:bg-zinc-900 dark:text-white">
+        <p>{expiresAt ? `Exclusão programada: ${new Date(expiresAt).toLocaleString('pt-BR')}. Baixe seu orçamento antes dessa data.` : 'Ao gerar o link de envio, começa o prazo de 14 dias. Depois o orçamento e seus dados serão excluídos.'}</p>
+        {expiresAt && new Date(expiresAt).getTime() - Date.now() < 3 * 86400000 && <p role="alert" className="font-bold">Atenção: faltam menos de 3 dias para a exclusão.</p>}
+        <button onClick={extendDeadline} disabled={!canExtend || !expiresAt || extending || new Date(expiresAt).getTime() <= Date.now()} className="mt-3 rounded-lg bg-orange-500 px-4 py-2 text-black disabled:opacity-50">{extending ? 'Prorrogando...' : canExtend ? 'Prorrogar por 14 dias' : 'Prorrogação: Pro ou Business'}</button>
+      </section>
       {/* Back button & quick bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-zinc-200 dark:border-zinc-800">
         <button
@@ -349,7 +388,7 @@ export default function QuoteDetail({
           <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl text-white space-y-4">
             <h3 className="text-sm font-bold font-display uppercase tracking-widest text-zinc-400">Enviar para o Cliente</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
-              Gere um link seguro de 30 min para compartilhar via WhatsApp.
+              Gere o link para enviar via WhatsApp. O primeiro envio inicia os 14 dias de disponibilidade.
             </p>
 
             {!proposalLink ? (
@@ -369,18 +408,18 @@ export default function QuoteDetail({
                     {proposalCopied ? 'Copiado!' : 'Copiar'}
                   </button>
                 </div>
-                <p className="text-[10px] text-zinc-600 text-center">Link valido por 30 minutos</p>
+                <p className="text-xs text-zinc-500 text-center">Reenviar o link não reinicia o prazo. Baixe antes da exclusão.</p>
               </div>
             )}
 
             <a
-              href={getWhatsAppLink()}
+              href={proposalLink ? getWhatsAppLink() : undefined}
               target="_blank"
               referrerPolicy="no-referrer"
-              className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-95"
+              className={`w-full py-3.5 text-white font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 ${proposalLink ? 'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 active:scale-95' : 'bg-zinc-700 cursor-not-allowed opacity-60'}`}
             >
               <Send className="w-4 h-4" />
-              Enviar pelo WhatsApp
+              {proposalLink ? 'Enviar pelo WhatsApp' : 'Gere o link antes de enviar'}
             </a>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -395,12 +434,13 @@ export default function QuoteDetail({
                 </a>
               )}
               <button
-                onClick={() => window.print()}
+                onClick={printArchive}
                 className="py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl font-bold flex items-center justify-center gap-1 transition-colors text-center text-[10px] sm:text-xs"
               >
                 <Printer className="w-3.5 h-3.5" />
-                <span>Imprimir</span>
+                <span>Imprimir / salvar PDF</span>
               </button>
+              <button onClick={downloadArchive} className="py-2.5 bg-orange-500 text-black rounded-xl font-bold">Baixar dados completos</button>
             </div>
           </div>
 

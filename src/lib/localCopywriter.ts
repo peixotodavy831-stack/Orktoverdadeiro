@@ -1,5 +1,6 @@
 type Profession = string;
-type Tone = 'formal' | 'técnico' | 'comercial' | 'criativo';
+export type QuoteTone = 'formal' | 'técnico' | 'comercial' | 'criativo';
+type Tone = QuoteTone;
 
 interface CopywriterInput {
   profession: string;
@@ -16,6 +17,14 @@ interface CopywriterOutput {
   notes: string;
   paymentInstructions: string;
   aestheticAdvice: string;
+}
+
+function deterministicPick<T>(values: T[], seed: string): T {
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(index)) | 0;
+  }
+  return values[Math.abs(hash) % values.length];
 }
 
 const professionStyles: Record<string, { prefix: string; adjectives: string[]; verbs: string[]; nouns: string[]; closing: string }> = {
@@ -184,27 +193,36 @@ function generateDescription(profession: string, tone: Tone, itemName: string, i
   const template = categoryTemplates[category];
 
   if (template) {
-    return template(style, tone, itemName);
+    const generated = template(style, tone, itemName);
+    const toneLead: Record<Tone, string> = {
+      comercial: 'Resultado esperado:',
+      técnico: 'Especificação técnica:',
+      formal: 'Objeto desta proposta:',
+      criativo: 'A experiência proposta:',
+    };
+    return { ...generated, description: `${toneLead[tone]} ${generated.description}` };
   }
 
-  const adj = style.adjectives[Math.floor(Math.random() * style.adjectives.length)];
-  const verb = style.verbs[Math.floor(Math.random() * style.verbs.length)];
-  const noun = style.nouns[Math.floor(Math.random() * style.nouns.length)];
+  const seed = `${profession}:${tone}:${itemName}:${itemDesc}`;
+  const adj = deterministicPick(style.adjectives, `${seed}:adjective`);
+  const verb = deterministicPick(style.verbs, `${seed}:verb`);
+  const noun = deterministicPick(style.nouns, `${seed}:noun`);
 
   return {
     name: `${style.prefix} ${itemName}`,
     description: itemDesc
-      ? `${verb.charAt(0).toUpperCase() + verb.slice(1)} ${itemDesc.toLowerCase()} com abordagem ${adj}, garantindo resultado profissional e seguro. Inclui todas as etapas necessárias para entrega completa do ${noun}.`
-      : `Serviço especializado de ${itemName.toLowerCase()} com qualidade ${adj}. Inclui planejamento, execução e acompanhamento dedicado.`
+      ? `${tone === 'técnico' ? 'Especificação técnica:' : tone === 'formal' ? 'Objeto desta proposta:' : tone === 'criativo' ? 'A experiência proposta:' : 'Resultado esperado:'} ${verb.charAt(0).toUpperCase() + verb.slice(1)} ${itemDesc.toLowerCase()} com abordagem ${adj}, garantindo resultado profissional e seguro. Inclui todas as etapas necessárias para entrega completa do ${noun}.`
+      : `${tone === 'técnico' ? 'Especificação técnica:' : tone === 'formal' ? 'Objeto desta proposta:' : tone === 'criativo' ? 'A experiência proposta:' : 'Resultado esperado:'} Serviço especializado de ${itemName.toLowerCase()} com qualidade ${adj}. Inclui planejamento, execução e acompanhamento dedicado.`
   };
 }
 
 function generateNotes(profession: string, tone: Tone, clientName: string, vehicleOrService: string, originalNotes: string): string {
   const style = professionStyles[profession] || defaultStyle;
   const toneTemplate = toneTemplates[tone] || toneTemplates.comercial;
-  const connector = toneTemplate.connectors[Math.floor(Math.random() * toneTemplate.connectors.length)];
-  const adj = style.adjectives[Math.floor(Math.random() * style.adjectives.length)];
-  const verb = style.verbs[Math.floor(Math.random() * style.verbs.length)];
+  const seed = `${profession}:${tone}:${clientName}:${vehicleOrService}`;
+  const connector = deterministicPick(toneTemplate.connectors, `${seed}:connector`);
+  const adj = deterministicPick(style.adjectives, `${seed}:adjective`);
+  const verb = deterministicPick(style.verbs, `${seed}:verb`);
 
   if (originalNotes) return originalNotes;
 
@@ -233,18 +251,19 @@ function generatePaymentInstructions(profession: string, tone: Tone, originalIns
 function generateAestheticAdvice(profession: string, tone: Tone): string {
   const style = professionStyles[profession] || defaultStyle;
   const toneTemplate = toneTemplates[tone] || toneTemplates.comercial;
-  const adj = style.adjectives[Math.floor(Math.random() * style.adjectives.length)];
+  const adj = deterministicPick(style.adjectives, `${profession}:${tone}:advice`);
 
   const advice = [
     `💡 Dica visual: Para maximizar a taxa de conversão deste orçamento, destaque os diferenciais competitivos com ícones e bullet points. Clientes do segmento de ${profession} respondem melhor a propostas objetivas e visualmente organizadas.`,
-    `💡 Dica de conversão: Inclua depoimentos de clientes anteriores e cases de sucesso similares ao final da proposta. Isso gera prova social e acelera a decisão de compra em até 40%.`,
+    `💡 Dica de apresentação: Inclua referências reais e autorizadas de trabalhos anteriores quando fizer sentido. Uma proposta objetiva ajuda o cliente a entender o serviço.`,
     `💡 Dica estratégica: Personalize o tom da conversa de acordo com o perfil do cliente. Para este nicho (${profession}), um tom ${tone} com linguagem ${adj} tende a gerar mais engajamento e fechamento.`,
   ];
 
-  return advice[Math.floor(Math.random() * advice.length)];
+  return deterministicPick(advice, `${profession}:${tone}:advice-template`);
 }
 
-export function enhanceWithLocalAI(input: CopywriterInput): CopywriterOutput {
+/** Aprimora a redação com regras locais e determinísticas. Não usa IA nem serviços externos. */
+export function improveQuoteCopy(input: CopywriterInput): CopywriterOutput {
   const tone: Tone = (input.tone as Tone) || 'comercial';
 
   const enhancedItems = input.items.map(item => {

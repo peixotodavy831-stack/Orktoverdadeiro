@@ -20,7 +20,7 @@ ALTER TABLE proposals ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Proposta pode ser lida por slug" ON proposals;
 CREATE POLICY "Proposta pode ser lida por slug"
-  ON proposals FOR SELECT USING (true);
+  ON proposals FOR SELECT USING (auth.uid() = user_id);
 
 DROP POLICY IF EXISTS "Profissional cria proposta" ON proposals;
 CREATE POLICY "Profissional cria proposta"

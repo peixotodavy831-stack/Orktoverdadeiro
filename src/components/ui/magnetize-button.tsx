@@ -3,7 +3,6 @@
 import * as React from "react"
 import { cn } from "@/src/lib/utils"
 import { motion, useAnimation } from "motion/react"
-import { Magnet } from "lucide-react"
 import { useEffect, useState, useCallback } from "react"
 import { Button } from "@/src/components/ui/button"
 
@@ -67,7 +66,7 @@ function MagnetizeButton({
     return (
         <Button
             className={cn(
-                "min-w-40 relative touch-none",
+                "relative min-w-0 max-w-full min-h-11 h-auto touch-manipulation whitespace-normal overflow-hidden",
                 "bg-violet-100 dark:bg-violet-900",
                 "hover:bg-violet-200 dark:hover:bg-violet-800",
                 "text-violet-600 dark:text-violet-300",
@@ -96,7 +95,7 @@ function MagnetizeButton({
                 />
             ))}
             <span className={cn(
-                "relative w-full flex items-center justify-center gap-2",
+                "relative z-10 w-full min-w-0 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center leading-tight break-words",
                 "transition-transform duration-300",
                 isAttracting && "scale-105"
             )}>

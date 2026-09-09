@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# ORKTO
 
-# Run and deploy your AI Studio app
+Plataforma SaaS para criar, enviar e acompanhar orçamentos profissionais. O frontend é React/Vite, a API é Express e os dados e a autenticação ficam no Supabase.
 
-This contains everything you need to run your app locally.
+## Requisitos
 
-View your app in AI Studio: https://ai.studio/apps/2252ae18-653d-4b74-a138-2f02fdbac62f
+- Node.js 20 ou superior
+- Projeto Supabase configurado
+- Credenciais do Resend para e-mails
+- Credenciais do Asaas para pagamentos (opcional em desenvolvimento)
 
-## Run Locally
+## Desenvolvimento local
 
-**Prerequisites:**  Node.js
+1. Copie `.env.example` para `.env` e preencha as variáveis.
+2. Instale as dependências com `npm install`.
+3. Execute `npm run dev`.
+4. Abra `http://localhost:3000`.
 
+## Verificação
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```bash
+npm run lint
+npm run build
+npm start
+```
+
+O endpoint `GET /api/health` deve responder com `{"status":"ok","service":"orkto"}`.
+
+## Produção
+
+O projeto está preparado para Railway e continua compatível com Vercel.
+
+- Build: `npm run build`
+- Start: `npm start`
+- Healthcheck: `/api/health`
+
+Cadastre as variáveis descritas em `.env.example` no painel do provedor. Nunca envie arquivos `.env` ou chaves reais ao GitHub.
+
+As migrações oficiais ficam em `supabase/migrations/` e devem ser executadas em ordem cronológica.
+
+Consulte `docs/CHECKLIST-DEPLOY.md` para configuração e validação de produção.

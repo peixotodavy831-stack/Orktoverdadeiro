@@ -12,7 +12,6 @@ import {
   CheckCircle,
   AlertCircle,
   FileText,
-  Table as TableIcon,
   Bell,
   Search,
   Zap,
@@ -24,11 +23,10 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Quote, SavedClient, UserProfile } from '../types';
 import { formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
 import OrktoLogo from './OrktoLogo';
-import { getAccessToken, googleSignIn } from '../lib/firebaseAuth';
-import { exportQuotesToSheets } from '../lib/workspaceApi';
 
 interface DashboardProps {
   userProfile: UserProfile | null;
+  darkMode?: boolean;
   quotes: Quote[];
   clients: SavedClient[];
   onSelectQuote: (id: string) => void;
@@ -41,6 +39,7 @@ import { MagnetizeButton } from './ui/magnetize-button';
 
 export default function Dashboard({ 
   userProfile, 
+  darkMode = true,
   quotes, 
   clients, 
   onSelectQuote, 
@@ -50,8 +49,6 @@ export default function Dashboard({
 }: DashboardProps) {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isExporting, setIsExporting] = useState(false);
-  const [sheetUrl, setSheetUrl] = useState<string | null>(null);
   const [isChecklistCollapsed, setIsChecklistCollapsed] = useState(false);
 
   // Convert timestamps or dates safely to Date objects
@@ -63,32 +60,6 @@ export default function Dashboard({
     return new Date(timestamp);
   };
 
-  const handleExportToSheets = async () => {
-    try {
-      setIsExporting(true);
-      setSheetUrl(null);
-      
-      let token = await getAccessToken();
-      if (!token) {
-        // Authenticate with Google on-demand if no cached token exists
-        const loginRes = await googleSignIn();
-        if (loginRes?.accessToken) {
-          token = loginRes.accessToken;
-        } else {
-          throw new Error('Conta Google não está conectada. Por favor, conecte-a para prosseguir.');
-        }
-      }
-
-      const url = await exportQuotesToSheets(token, quotes);
-      setSheetUrl(url);
-      alert('Seus orçamentos foram sincronizados e exportados com sucesso para o Google Sheets!');
-    } catch (err: any) {
-      console.error(err);
-      alert('Falha na sincronização com o Google Sheets: ' + (err.message || err));
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   // Get trend data for the chart (approved quotes)
   const getTrendData = () => {
@@ -207,9 +178,7 @@ export default function Dashboard({
   };
 
   const getWhatsAppReminderLink = (quote: Quote) => {
-    const origin = window.location.origin;
-    const viewLink = `${origin}?quoteId=${quote.id}`;
-    const text = `Olá *${quote.clientName}*! Seu orçamento #${quote.quoteNumber} para *${quote.clientVehicleOrService || 'serviços'}* ainda está pendente de aprovação. Dê uma olhada no link do orçamento digital para conferir os itens e confirmar por lá: ${viewLink}`;
+    const text = `Olá *${quote.clientName}*! Seu orçamento #${quote.quoteNumber} para *${quote.clientVehicleOrService || 'serviços'}* ainda está pendente de aprovação. Posso esclarecer alguma dúvida para avançarmos?`;
     return `https://wa.me/${getCleanPhoneForWhatsApp(quote.clientPhone)}?text=${encodeURIComponent(text)}`;
   };
 
@@ -251,7 +220,7 @@ export default function Dashboard({
       {/* Top action header */}
       <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-200 dark:border-zinc-800">
         <div className="flex items-center gap-4">
-          <OrktoLogo size="md" showSlogan={false} />
+          <OrktoLogo size="md" showSlogan={false} darkMode={darkMode} />
           <div className="h-6 w-[1px] bg-zinc-200 dark:bg-zinc-800 hidden sm:block" />
           <div>
             <div className="flex flex-wrap items-center gap-2">
@@ -364,8 +333,8 @@ export default function Dashboard({
           },
           {
             id: 'step_quote',
-            title: 'Emitir primeiro orçamento com Copy por IA',
-            desc: 'Crie uma proposta única e use nosso Polidor de Escopo por Inteligência Artificial.',
+            title: 'Emitir primeiro orçamento profissional',
+            desc: 'Crie uma proposta e escolha o tom ideal para o seu cliente.',
             completed: quotes.length > 2,
             actionLabel: 'Disparar Orçamento',
             onClick: () => onCreateQuoteClick(),
@@ -677,7 +646,7 @@ export default function Dashboard({
           {(() => {
             const viewed = quotes.filter(q => q.status === 'viewed')[0];
             const pending = quotes.filter(q => q.status === 'pending');
-            const oldestPending = pending.length > 0 ? pending.reduce((a, b) => new Date(a.created_at || a.updated_at || Date.now()) < new Date(b.created_at || b.updated_at || Date.now()) ? a : b) : null;
+            const oldestPending = pending.length > 0 ? pending.reduce((a, b) => a.createdAt.toMillis() < b.createdAt.toMillis() ? a : b) : null;
             const approved = quotes.filter(q => q.status === 'approved');
             const recentApproved = approved.length > 0 ? approved[approved.length - 1] : null;
             const unpaid = quotes.filter(q => q.status === 'approved')[0];
@@ -693,7 +662,7 @@ export default function Dashboard({
                     </span>
                   </div>
                   <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
-                    {viewed ? viewed.client_name || 'Cliente' : '—'}
+                    {viewed ? viewed.clientName || 'Cliente' : '—'}
                   </p>
                   <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
                     {viewed ? `Visualizou orçamento de ${formatBRL(viewed.total)}` : hasQuotes ? 'Nenhum cliente visualizou ainda' : 'Crie seu primeiro orçamento'}
@@ -719,7 +688,7 @@ export default function Dashboard({
                     </span>
                   </div>
                   <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-[#FF9F1C] transition-colors">
-                    {oldestPending ? (oldestPending.client_name || 'Cliente') : '—'}
+                    {oldestPending ? (oldestPending.clientName || 'Cliente') : '—'}
                   </p>
                   <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
                     {oldestPending ? `Aguardando resposta — ${formatBRL(oldestPending.total)}` : hasQuotes ? 'Todas as propostas foram respondidas' : 'Crie seu primeiro orçamento'}
@@ -754,7 +723,7 @@ export default function Dashboard({
                     </span>
                   </div>
                   <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    {recentApproved ? (recentApproved.client_name || 'Cliente') : '—'}
+                    {recentApproved ? (recentApproved.clientName || 'Cliente') : '—'}
                   </p>
                   <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
                     {recentApproved ? `Proposta de ${formatBRL(recentApproved.total)} aprovada` : hasQuotes ? 'Nenhuma proposta foi aprovada ainda' : 'Crie e envie seu primeiro orçamento'}
@@ -783,10 +752,10 @@ export default function Dashboard({
                     )}
                   </div>
                   <p className="text-xs font-bold text-zinc-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
-                    {hasQuotes ? (quotes[quotes.length - 1].client_name || 'Cliente') : 'Bem-vindo!'}
+                    {hasQuotes ? (quotes[quotes.length - 1].clientName || 'Cliente') : 'Bem-vindo!'}
                   </p>
                   <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-2">
-                    {hasQuotes ? `${quotes.length} orçamento${quotes.length === 1 ? '' : 's'} criado${quotes.length === 1 ? '' : 's'} no total` : 'Crie seu primeiro orçamento com IA'}
+                    {hasQuotes ? `${quotes.length} orçamento${quotes.length === 1 ? '' : 's'} criado${quotes.length === 1 ? '' : 's'} no total` : 'Crie seu primeiro orçamento profissional'}
                   </p>
                 </div>
                 {hasQuotes ? (
@@ -850,28 +819,28 @@ export default function Dashboard({
           </div>
 
           {/* Proposals List Card */}
-          <section className="bg-[#2B2B2B]/40 border border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-zinc-800 space-y-4">
+          <section className="bg-white dark:bg-[#2B2B2B]/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm transition-colors">
+            <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold text-white">Propostas Recentes</h3>
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">Propostas Recentes</h3>
                 
                 {/* Status tabs */}
-                <div className="flex bg-[#111111] p-1 rounded-lg text-[10px] font-bold gap-1">
+                <div className="flex bg-zinc-100 dark:bg-[#111111] p-1 rounded-lg text-[10px] font-bold gap-1">
                   <button
                     onClick={() => setStatusFilter('all')}
-                    className={`px-2.5 py-1 rounded transition-colors ${statusFilter === 'all' ? 'bg-[#FF9F1C] text-black' : 'text-zinc-400 hover:text-white'}`}
+                    className={`px-2.5 py-1 rounded transition-colors ${statusFilter === 'all' ? 'bg-[#FF9F1C] text-black' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'}`}
                   >
                     Todos
                   </button>
                   <button
                     onClick={() => setStatusFilter('pending')}
-                    className={`px-2.5 py-1 rounded transition-colors ${statusFilter === 'pending' ? 'bg-[#FF9F1C] text-black' : 'text-zinc-400 hover:text-white'}`}
+                    className={`px-2.5 py-1 rounded transition-colors ${statusFilter === 'pending' ? 'bg-[#FF9F1C] text-black' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'}`}
                   >
                     Pendentes ({quotes.filter(q => q.status === 'pending').length})
                   </button>
                   <button
                     onClick={() => setStatusFilter('approved')}
-                    className={`px-2.5 py-1 rounded transition-colors ${statusFilter === 'approved' ? 'bg-[#FF9F1C] text-black' : 'text-zinc-400 hover:text-white'}`}
+                    className={`px-2.5 py-1 rounded transition-colors ${statusFilter === 'approved' ? 'bg-[#FF9F1C] text-black' : 'text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white'}`}
                   >
                     Aprovados
                   </button>
@@ -886,7 +855,7 @@ export default function Dashboard({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Filtrar por nome, escopo ou número..."
-                  className="w-full pl-9 pr-4 py-2 bg-[#111111] border border-zinc-800 rounded-lg text-xs text-white focus:outline-none"
+                  className="w-full pl-9 pr-4 py-2 bg-zinc-50 dark:bg-[#111111] border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:border-orange-400"
                 />
               </div>
             </div>
@@ -897,17 +866,17 @@ export default function Dashboard({
                 <p className="text-xs font-bold text-zinc-400">Nenhum registro encontrado</p>
               </div>
             ) : (
-              <div className="divide-y divide-zinc-800">
+              <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
                 {filteredQuotes.map(quote => (
-                  <div key={quote.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#2B2B2B]/60 transition-all group">
+                  <div key={quote.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-50 dark:hover:bg-[#2B2B2B]/60 transition-all group">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-[#111111] rounded-xl flex items-center justify-center text-zinc-400 border border-zinc-800 shrink-0">
+                      <div className="w-10 h-10 bg-zinc-100 dark:bg-[#111111] rounded-xl flex items-center justify-center text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 shrink-0">
                         <Receipt className="w-4.5 h-4.5 text-[#FF9F1C]" />
                       </div>
                       <div className="min-w-0 space-y-1">
-                        <p className="font-extrabold text-sm text-white truncate">{quote.clientName}</p>
+                        <p className="font-extrabold text-sm text-zinc-900 dark:text-white truncate">{quote.clientName}</p>
                         <div className="flex flex-wrap items-center gap-2 text-[10px] text-zinc-500">
-                          <span className="font-mono bg-[#111111] text-zinc-400 px-1.5 py-0.5 rounded font-bold">#{quote.quoteNumber}</span>
+                          <span className="font-mono bg-zinc-100 dark:bg-[#111111] text-zinc-600 dark:text-zinc-400 px-1.5 py-0.5 rounded font-bold">#{quote.quoteNumber}</span>
                           {quote.clientVehicleOrService && (
                             <span className="bg-[#FF9F1C]/10 text-[#FF9F1C] px-1.5 py-0.5 rounded font-bold">{quote.clientVehicleOrService}</span>
                           )}
@@ -917,15 +886,15 @@ export default function Dashboard({
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-zinc-800 sm:border-0 pt-3 sm:pt-0 shrink-0">
+                    <div className="flex items-center justify-between sm:justify-end gap-4 border-t border-zinc-200 dark:border-zinc-800 sm:border-0 pt-3 sm:pt-0 shrink-0">
                       <div className="text-left sm:text-right">
-                        <p className="text-base font-bold font-mono text-white">{formatBRL(quote.total)}</p>
+                        <p className="text-base font-bold font-mono text-zinc-900 dark:text-white">{formatBRL(quote.total)}</p>
                         <div className="mt-1">{getStatusBadge(quote.status)}</div>
                       </div>
 
                       <button
                         onClick={() => onSelectQuote(quote.id)}
-                        className="p-2 bg-[#111111] hover:bg-[#2B2B2B] border border-zinc-800 text-zinc-300 hover:text-white rounded-xl transition-all"
+                        className="p-2 bg-zinc-100 hover:bg-zinc-200 dark:bg-[#111111] dark:hover:bg-[#2B2B2B] border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white rounded-xl transition-all"
                       >
                         <ChevronRight className="w-4 h-4" />
                       </button>
@@ -942,8 +911,8 @@ export default function Dashboard({
         <div className="lg:col-span-4 space-y-6">
 
           {/* Pending Alerts cobra */}
-          <div className="bg-[#2B2B2B]/40 border border-zinc-800 rounded-2xl p-5 shadow-sm">
-            <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
+          <div className="bg-white dark:bg-[#2B2B2B]/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm">
+            <h3 className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-4 flex items-center gap-1.5">
               <Bell className="w-4 h-4 text-[#FF9F1C]" />
               Notificar / Cobrar Pendentes ({followUps.length})
             </h3>
@@ -956,9 +925,9 @@ export default function Dashboard({
             ) : (
               <div className="space-y-2.5">
                 {followUps.slice(0, 3).map(q => (
-                  <div key={q.id} className="p-3 bg-[#111111]/40 border border-zinc-800 rounded-xl flex flex-col gap-2.5 text-xs text-zinc-300">
+                  <div key={q.id} className="p-3 bg-zinc-50 dark:bg-[#111111]/40 border border-zinc-200 dark:border-zinc-800 rounded-xl flex flex-col gap-2.5 text-xs text-zinc-700 dark:text-zinc-300">
                     <div>
-                      <p className="font-extrabold text-white truncate">{q.clientName}</p>
+                      <p className="font-extrabold text-zinc-900 dark:text-white truncate">{q.clientName}</p>
                       <p className="text-[10px] text-zinc-500 mt-0.5">#{q.quoteNumber} • {formatBRL(q.total)}</p>
                     </div>
                     <a
@@ -977,43 +946,14 @@ export default function Dashboard({
           </div>
 
           {/* Premium Advice */}
-          <div className="bg-[#2B2B2B]/20 p-5 rounded-2xl border border-zinc-800 text-zinc-300">
+          <div className="bg-white dark:bg-[#2B2B2B]/20 p-5 rounded-2xl border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300">
             <p className="text-[10px] font-bold text-[#FF9F1C] uppercase tracking-widest mb-2 flex items-center gap-1">
               <Zap className="w-3 h-3" />
               Upgrade Comercial
             </p>
-            <p className="text-xs text-zinc-400 leading-relaxed">
-              Propostas qualificadas que apresentam Termos de Garantia, termos de propriedade e detalhes de prazos claros geram menor objeção de venda e aceleram o fechamento em até 3,5x.
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Propostas com escopo, prazos e condições claros ajudam o cliente a decidir com mais segurança.
             </p>
-          </div>
-
-          {/* Google Sheets Integration */}
-          <div className="bg-[#112a1f] p-5 rounded-2xl border border-emerald-900 text-[#c8e6d9]">
-            <h4 className="text-xs font-bold font-sans flex items-center gap-2 mb-2 text-white">
-              <TableIcon className="w-4 h-4 text-emerald-400" />
-              Sincronização Google Sheets
-            </h4>
-            <p className="text-[11px] opacity-80 leading-relaxed mb-4">
-              Consolide todos os dados e histórico de orçamentos diretamente em uma nova planilha online.
-            </p>
-            {sheetUrl ? (
-              <a 
-                href={sheetUrl}
-                target="_blank"
-                referrerPolicy="no-referrer"
-                className="w-full flex items-center justify-center py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-all"
-              >
-                Planilha Pronta para Visualização
-              </a>
-            ) : (
-              <button
-                onClick={handleExportToSheets}
-                disabled={isExporting}
-                className="w-full flex items-center justify-center py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition-all disabled:opacity-40 cursor-pointer"
-              >
-                {isExporting ? 'Sincronizando...' : 'Exportar p/ Google Sheets'}
-              </button>
-            )}
           </div>
 
         </div>

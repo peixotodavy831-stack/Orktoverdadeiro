@@ -1,8 +1,20 @@
-import React, { useState, useMemo, useRef, useEffect } from "react";
+import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import OrktoLogo from "../OrktoLogo";
+
+function detectWebGL2(): boolean {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl2');
+    if (gl) {
+      const ext = gl.getExtension('WEBGL_lose_context');
+      if (ext) ext.loseContext();
+    }
+    return !!gl;
+  } catch { return false; }
+}
 
 export function cn(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -28,9 +40,9 @@ interface ShaderProps {
 
 interface SignInPageProps {
   className?: string;
-  onSignInSuccess: (email?: string, password?: string) => void;
-  onSignUp?: (email: string, password: string) => Promise<void>;
-  onDemoLogin?: () => void;
+  onSignInSuccess: () => void;
+  onSignUp?: (email: string, password: string, name: string) => Promise<void>;
+  onDemoLogin?: () => Promise<void>;
   onAuthenticate?: (email: string, password: string) => Promise<{ error?: string }>;
 }
       
@@ -270,7 +282,7 @@ const AnimatedNavLink = ({ href, children }: { href: string; children: React.Rea
   );
 };
 
-function MiniNavbar() {
+function MiniNavbar({ onStart }: { onStart: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [headerShapeClass, setHeaderShapeClass] = useState('rounded-full');
   const shapeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -299,8 +311,8 @@ function MiniNavbar() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button className="px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-zinc-950 bg-gradient-to-br from-[#FF9F1C] to-[#e88d0e] rounded-full hover:from-[#FF9F1C] hover:to-[#ffa933] transition-all duration-200 whitespace-nowrap">
-            Adquirir Cota
+          <button onClick={onStart} className="px-4 py-2 sm:px-3 text-xs sm:text-sm font-semibold text-zinc-950 bg-gradient-to-br from-[#FF9F1C] to-[#e88d0e] rounded-full hover:from-[#FF9F1C] hover:to-[#ffa933] transition-all duration-200 whitespace-nowrap">
+            Criar conta grátis
           </button>
         </div>
       </div>
@@ -319,10 +331,12 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
   const [authError, setAuthError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signupName, setSignupName] = useState("");
+  const [arrowSliding, setArrowSliding] = useState(false);
+  const [hasWebGL2] = useState(() => detectWebGL2());
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) setStep("password");
+    if (email && !arrowSliding) setArrowSliding(true);
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -342,7 +356,10 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
       }
       setReverseCanvasVisible(true);
       setTimeout(() => { setInitialCanvasVisible(false); }, 50);
-      setTimeout(() => { setStep("success"); }, 1500);
+      setTimeout(() => {
+        setStep("success");
+        onSignInSuccess();
+      }, 700);
     } catch (err: any) {
       setAuthError(err.message || "Erro ao autenticar");
       setReverseCanvasVisible(false);
@@ -390,7 +407,15 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
 
   const handleBypassOrkto = async () => {
     if (onDemoLogin) {
-      onDemoLogin();
+      setIsSubmitting(true);
+      setAuthError('');
+      try {
+        await onDemoLogin();
+      } catch {
+        setAuthError('Erro ao acessar conta demo');
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
     try {
@@ -413,7 +438,7 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
   return (
     <div className={cn("flex w-[100%] flex-col min-h-screen bg-[#111111] relative text-white", className)}>
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ pointerEvents: 'none' }}>
-        {initialCanvasVisible && (
+        {hasWebGL2 && initialCanvasVisible && (
           <div className="absolute inset-0 pointer-events-none" style={{ pointerEvents: 'none' }}>
             <CanvasRevealEffect
               animationSpeed={3}
@@ -424,8 +449,11 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
             />
           </div>
         )}
+        {!hasWebGL2 && initialCanvasVisible && (
+          <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-zinc-900 via-zinc-950 to-black" />
+        )}
         
-        {reverseCanvasVisible && (
+        {hasWebGL2 && reverseCanvasVisible && (
           <div className="absolute inset-0 pointer-events-none" style={{ pointerEvents: 'none' }}>
             <CanvasRevealEffect
               animationSpeed={4}
@@ -442,7 +470,7 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
       </div>
       
       <div className="relative z-10 flex flex-col flex-1">
-        <MiniNavbar />
+        <MiniNavbar onStart={() => { setAuthError(''); setStep('signup'); }} />
 
         <div className="flex flex-1 flex-col lg:flex-row items-center justify-center px-4 w-full h-full pb-10">
           <div className="flex-1 flex flex-col justify-center items-center h-full w-full">
@@ -471,21 +499,19 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                             placeholder="seu@email.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
+                            aria-label="Seu e-mail"
+                            className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 pl-6 pr-16 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
                             required
                           />
                           <button 
                             type="submit"
-                            className="absolute right-2 top-2 text-white w-10 h-10 flex items-center justify-center rounded-full bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 transition-colors group overflow-hidden shadow-lg shadow-[#FF9F1C]/20 cursor-pointer"
+                            aria-label="Continuar com e-mail"
+                            disabled={arrowSliding}
+                            className="absolute right-1.5 top-1/2 -translate-y-1/2 text-zinc-950 w-11 h-11 flex items-center justify-center rounded-full bg-[#FF9F1C] hover:bg-[#FF9F1C]/90 transition-colors overflow-hidden shadow-lg shadow-[#FF9F1C]/20 cursor-pointer"
                           >
-                            <span className="relative w-full h-full block overflow-hidden">
-                              <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 group-hover:translate-x-full">
-                                &rarr;
-                              </span>
-                              <span className="absolute inset-0 flex items-center justify-center transition-transform duration-300 -translate-x-full group-hover:translate-x-0">
-                                &rarr;
-                              </span>
-                            </span>
+                            <motion.span className="flex items-center justify-center" animate={{ x: arrowSliding ? 44 : 0 }} transition={{ duration: 0.22 }} onAnimationComplete={() => { if (arrowSliding) { setStep('password'); setArrowSliding(false); } }}>
+                              <svg aria-hidden="true" viewBox="0 0 32 24" className="w-7 h-6" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 14C9 10 17 15 28 10M20 4C23 7 25 8 28 10C25 13 23 16 20 20" /></svg>
+                            </motion.span>
                           </button>
                         </div>
                       </form>
@@ -500,35 +526,36 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                           <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="currentColor"/>
                           <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="currentColor"/>
                         </svg>
-                        <span>Entrar com Login Demo</span>
+                        <span>Explorar demonstração</span>
                       </button>
 
-                      <button
-                        onClick={async () => {
-                          try {
-                            const { supabase } = await import('../../lib/supabase');
-                            const { error } = await supabase.auth.signInWithOAuth({
-                              provider: 'google',
-                              options: { redirectTo: window.location.origin },
-                            });
-                            if (error) {
-                              setAuthError('Não foi possível entrar com o Google. Tente novamente.');
+                      {/* Login Google configurado no Supabase */}
+                        <button
+                          onClick={async () => {
+                            try {
+                              const { supabase } = await import('../../lib/supabase');
+                              const { error } = await supabase.auth.signInWithOAuth({
+                                provider: 'google',
+                                options: { redirectTo: window.location.origin },
+                              });
+                              if (error) {
+                                setAuthError('Não foi possível entrar com o Google. Tente novamente.');
+                              }
+                            } catch {
+                              setAuthError('Erro ao conectar com Google. Tente novamente.');
                             }
-                          } catch {
-                            setAuthError('Erro ao conectar com Google. Tente novamente.');
-                          }
-                        }}
-                        type="button"
-                        className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
-                      >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                        <span>Entrar com Google</span>
-                      </button>
+                          }}
+                          type="button"
+                          className="backdrop-blur-[2px] w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
+                        >
+                          <svg className="w-5 h-5" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                          </svg>
+                          <span>Entrar com Google</span>
+                        </button>
 
                       <p className="text-[10px] text-zinc-600 pt-2">
                         Precisa de ajuda? <a href="mailto:ola@orkto.co" className="text-zinc-400 hover:text-[#FF9F1C] transition-colors">ola@orkto.co</a>
@@ -647,11 +674,14 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                       setAuthError('');
                       try {
                         if (onSignUp) {
-                          await onSignUp(email, password);
+                          await onSignUp(email, password, signupName);
                         }
                         setReverseCanvasVisible(true);
                         setTimeout(() => { setInitialCanvasVisible(false); }, 50);
-                        setTimeout(() => { setStep("success"); }, 1500);
+                        setTimeout(() => {
+                          setStep("success");
+                          onSignInSuccess();
+                        }, 700);
                       } catch (err: any) {
                         setAuthError(err.message || 'Erro ao criar conta');
                       } finally {
@@ -721,32 +751,33 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                         </div>
                       </div>
 
-                      <button
-                        onClick={async () => {
-                          try {
-                            const { supabase } = await import('../../lib/supabase');
-                            const { error } = await supabase.auth.signInWithOAuth({
-                              provider: 'google',
-                              options: { redirectTo: window.location.origin },
-                            });
-                            if (error) {
-                              setAuthError('Não foi possível cadastrar com o Google. Tente novamente.');
+                      {/* Cadastro Google configurado no Supabase */}
+                        <button
+                          onClick={async () => {
+                            try {
+                              const { supabase } = await import('../../lib/supabase');
+                              const { error } = await supabase.auth.signInWithOAuth({
+                                provider: 'google',
+                                options: { redirectTo: window.location.origin },
+                              });
+                              if (error) {
+                                setAuthError('Não foi possível cadastrar com o Google. Tente novamente.');
+                              }
+                            } catch {
+                              setAuthError('Erro ao conectar com Google. Tente novamente.');
                             }
-                          } catch {
-                            setAuthError('Erro ao conectar com Google. Tente novamente.');
-                          }
-                        }}
-                        type="button"
-                        className="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
-                      >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
-                          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                        </svg>
-                        <span>Cadastrar com Google</span>
-                      </button>
+                          }}
+                          type="button"
+                          className="w-full flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white border border-zinc-700 rounded-full py-3.5 px-4 transition-colors font-medium text-sm cursor-pointer"
+                        >
+                          <svg className="w-5 h-5" viewBox="0 0 24 24">
+                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                          </svg>
+                          <span>Cadastrar com Google</span>
+                        </button>
 
                     <p className="text-[10px] text-zinc-500">
                       Ao criar uma conta, você concorda com nossos <a href="/termos.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Termos</a> e <a href="/privacidade.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Privacidade</a>.
@@ -850,7 +881,7 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: 1 }}
-                      onClick={() => onSignInSuccess(email, password)}
+                      onClick={onSignInSuccess}
                       className="w-full relative z-50 pointer-events-auto rounded-full bg-[#FF9F1C] text-black font-bold py-4 hover:bg-[#e88d0e] transition-colors uppercase tracking-widest text-sm shadow-[0_0_20px_rgba(255,159,28,0.2)]"
                     >
                       Prosseguir ao Painel

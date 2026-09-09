@@ -7,6 +7,10 @@ import apiApp from "./api/server";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  Boolean(process.env.VERCEL) ||
+  process.argv[1]?.endsWith(".cjs");
 
 async function startServer() {
   const app = express();
@@ -15,7 +19,7 @@ async function startServer() {
   // intercepts /api/* and returns index.html instead of JSON responses.
   app.use(apiApp);
 
-  if (!process.env.VERCEL) {
+  if (!isProduction) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -26,7 +30,7 @@ async function startServer() {
   }
 
   app.use('*', (_req, res) => {
-    if (!process.env.VERCEL) {
+    if (!isProduction) {
       res.status(404).send('Dev server: use Vite para o frontend (localhost:5173)');
     } else {
       res.sendFile(path.join(process.cwd(), 'dist', 'index.html'));
@@ -38,7 +42,7 @@ async function startServer() {
   });
 }
 
-if (process.argv[1] && process.argv[1].endsWith('server.ts')) {
+if (process.argv[1] && /server\.(?:ts|js|cjs|mjs)$/.test(process.argv[1])) {
   startServer();
 }
 

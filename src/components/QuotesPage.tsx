@@ -24,8 +24,7 @@ import {
 } from 'lucide-react';
 import { Quote, SavedClient, UserProfile } from '../types';
 import { formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
-import { getAccessToken, googleSignIn } from '../lib/firebaseAuth';
-import { sendQuoteEmailViaGmail } from '../lib/workspaceApi';
+import { supabase } from '../lib/supabase';
 
 interface QuotesPageProps {
   quotes: Quote[];
@@ -52,7 +51,7 @@ export default function QuotesPage({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
 
-  // Gmail states
+  // E-mail states (Resend)
   const [activeEmailQuote, setActiveEmailQuote] = useState<Quote | null>(null);
   const [clientEmailInput, setClientEmailInput] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
@@ -139,7 +138,7 @@ export default function QuotesPage({
     alert('Link interativo copiado com sucesso!');
   };
 
-  const handleGmailButtonClick = (e: React.MouseEvent, quote: Quote) => {
+  const handleEmailButtonClick = (e: React.MouseEvent, quote: Quote) => {
     e.stopPropagation();
     setClientEmailInput(quote.clientEmail || '');
     
@@ -161,27 +160,20 @@ export default function QuotesPage({
     setActiveEmailQuote(quote);
   };
 
-  const handleSendGmailEmail = async () => {
+  const handleSendEmail = async () => {
     if (!activeEmailQuote) return;
     if (!clientEmailInput) {
       alert('Por favor, digite o e-mail do cliente.');
       return;
     }
     
-    const confirmSend = window.confirm(`Deseja realmente enviar esta proposta via Gmail para ${clientEmailInput}?`);
+    const confirmSend = window.confirm(`Deseja realmente enviar esta proposta por e-mail para ${clientEmailInput}?`);
     if (!confirmSend) return;
 
     setIsSendingEmail(true);
     try {
-      let token = await getAccessToken();
-      if (!token) {
-        const loginRes = await googleSignIn();
-        if (loginRes?.accessToken) {
-          token = loginRes.accessToken;
-        } else {
-          throw new Error('Conta Google não está conectada. Por favor, conecte para prosseguir.');
-        }
-      }
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('Sessão expirada. Faça login novamente.');
 
       const viewLink = `${window.location.origin}/q/${activeEmailQuote.id}`;
       // Replace [LINK] if still in message or render safe br tags
@@ -263,12 +255,22 @@ export default function QuotesPage({
         </div>
       `;
 
-      await sendQuoteEmailViaGmail(token, clientEmailInput, emailSubject, htmlBody);
-      alert('E-mail com proposta comercial enviado com sucesso via Gmail!');
+      const response = await fetch(`/api/quotes/${activeEmailQuote.id}/email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          to: clientEmailInput,
+          subject: emailSubject,
+          message: emailMessageText,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Não foi possível enviar o e-mail.');
+      alert('Proposta enviada por e-mail com sucesso!');
       setActiveEmailQuote(null);
     } catch (err: any) {
       console.error(err);
-      alert('Falha ao disparar e-mail via Gmail: ' + (err.message || err));
+      alert('Falha ao enviar e-mail: ' + (err.message || err));
     } finally {
       setIsSendingEmail(false);
     }
@@ -282,6 +284,8 @@ export default function QuotesPage({
 
   return (
     <div className="space-y-8 select-none">
+      <p className="rounded-xl border border-orange-300 p-4 text-sm text-orange-700 dark:text-orange-300">Os orçamentos são excluídos 14 dias após o primeiro envio. Abra cada orçamento para baixar os dados ou prorrogar no Pro e Business.</p>
+      {quotes.some(q => q.retentionExpiresAt && new Date(q.retentionExpiresAt).getTime() - Date.now() < 3 * 86400000) && <p role="alert" className="font-bold text-orange-600">Há orçamentos com exclusão prevista nos próximos 3 dias. Baixe os arquivos para guardá-los.</p>}
       {/* Header section with top stats and new button */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-850/80">
         <div className="space-y-1">
@@ -446,7 +450,7 @@ export default function QuotesPage({
                   
                   <div className="space-y-1 mb-3">
                     <h4 className="text-sm font-bold text-white transition-colors">{quote.clientName}</h4>
-                    <p className="text-[10px] text-zinc-550 font-mono">{formatPhone(quote.clientPhone)}</p>
+                    <p className="text-[10px] text-zinc-400 font-mono">{formatPhone(quote.clientPhone)}</p>
                     <p className="text-xs text-zinc-300 font-medium truncate">
                       {quote.clientVehicleOrService || 'Serviços Personalizados'}
                     </p>
@@ -470,8 +474,8 @@ export default function QuotesPage({
 
                       <button
                         type="button"
-                        onClick={(e) => handleGmailButtonClick(e, quote)}
-                        title="Enviar por Gmail"
+                        onClick={(e) => handleEmailButtonClick(e, quote)}
+                        title="Enviar por e-mail"
                         className="p-2 bg-zinc-900 hover:bg-red-500/15 border border-zinc-800 hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all"
                       >
                         <Mail className="w-3.5 h-3.5" />
@@ -632,11 +636,11 @@ export default function QuotesPage({
                             <Send className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* Quick Gmail Send Email Button */}
+                          {/* Quick Resend email button */}
                           <button
                             type="button"
-                            onClick={(e) => handleGmailButtonClick(e, quote)}
-                            title="Enviar por Gmail"
+                            onClick={(e) => handleEmailButtonClick(e, quote)}
+                            title="Enviar por e-mail"
                             className="p-1.5 bg-zinc-900 hover:bg-red-500/15 border border-zinc-800 hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all"
                           >
                             <Mail className="w-3.5 h-3.5" />
@@ -735,7 +739,7 @@ export default function QuotesPage({
         )}
       </div>
 
-      {/* Gmail Email Composer Dialog Modal Overlay */}
+      {/* Resend email composer dialog */}
       <AnimatePresence>
         {activeEmailQuote && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -752,7 +756,7 @@ export default function QuotesPage({
                     <Mail className="w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-zinc-900 dark:text-white leading-none">Enviar Proposta por Gmail</h3>
+                    <h3 className="font-bold text-sm text-zinc-900 dark:text-white leading-none">Enviar proposta por e-mail</h3>
                     <p className="text-[10px] text-zinc-500 mt-1">Orçamento #{activeEmailQuote.quoteNumber}</p>
                   </div>
                 </div>
@@ -820,7 +824,7 @@ export default function QuotesPage({
                   </button>
                   <button
                     type="button"
-                    onClick={handleSendGmailEmail}
+                    onClick={handleSendEmail}
                     disabled={isSendingEmail}
                     className="px-5 py-2.5 bg-[#FF9F1C] hover:opacity-95 text-black font-extrabold rounded-xl text-xs transition-all flex items-center gap-2 shadow-lg disabled:opacity-45 cursor-pointer"
                   >

@@ -30,9 +30,11 @@ import { formatBRL } from '../utils/format';
 
 interface AnalyticsPageProps {
   quotes: Quote[];
+  plan: 'free' | 'pro' | 'business';
 }
 
-export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
+export default function AnalyticsPage({ quotes, plan }: AnalyticsPageProps) {
+  if (plan === 'free') return <div className="p-8 text-zinc-900 dark:text-white">Analytics disponível no Pro e Business. No Standard, acompanhe seus orçamentos pelo painel.</div>;
   
   // Custom helper to calculate stats
   const calculateMetrics = () => {
@@ -111,10 +113,10 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
     .slice(0, 6);
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 bg-[#111111] text-white min-h-screen">
+    <div className="max-w-6xl mx-auto px-4 py-8 text-zinc-900 dark:text-white min-h-screen">
       
       {/* Top Header */}
-      <header className="mb-10 pb-6 border-b border-[#2B2B2B] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="mb-10 pb-6 border-b border-zinc-200 dark:border-[#2B2B2B] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-[#FF9F1C]/15 text-[#FF9F1C] border border-[#FF9F1C]/20 text-[10px] uppercase font-bold tracking-widest rounded-md mb-2">
             <BarChart3 className="w-3.5 h-3.5" />
@@ -123,12 +125,12 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
           <h1 className="text-2xl font-display font-extrabold tracking-tight">
             Indicadores de Conversão & Performance
           </h1>
-          <p className="text-xs text-zinc-400 mt-1">
+          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
             Análise em tempo real do seu funil comercial e fechamento de propostas premium.
           </p>
         </div>
         
-        <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold bg-[#2B2B2B]/40 px-3 py-2 rounded-xl border border-zinc-800">
+        <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400 font-bold bg-white dark:bg-[#2B2B2B]/40 px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800">
           <Calendar className="w-4 h-4 text-[#FF9F1C]" />
           <span>Últimos 30 dias</span>
         </div>
@@ -138,12 +140,12 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         
         {/* Potencial Acumulado */}
-        <div className="bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-800 flex flex-col justify-between h-36 relative overflow-hidden group">
+        <div className="bg-white dark:bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between h-36 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <DollarSign className="w-16 h-16 text-white" />
+            <DollarSign className="w-16 h-16 text-zinc-900 dark:text-white" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest block mb-1">Receita Potencial</span>
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block mb-1">Receita Potencial</span>
             <span className="text-2xl font-mono font-extrabold tracking-tight block mt-1">
               {formatBRL(metrics.potentialRevenue)}
             </span>
@@ -155,9 +157,9 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
         </div>
 
         {/* Taxa de Aprovação */}
-        <div className="bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-850 flex flex-col justify-between h-36 relative overflow-hidden">
+        <div className="bg-white dark:bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
           <div>
-            <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest block mb-1">Taxa de Aprovação</span>
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block mb-1">Taxa de Aprovação</span>
             <span className="text-3xl font-extrabold tracking-tight block mt-1 text-emerald-400">
               {metrics.approvalRate}%
             </span>
@@ -169,9 +171,9 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
         </div>
 
         {/* Ticket Médio */}
-        <div className="bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-850 flex flex-col justify-between h-36 relative overflow-hidden">
+        <div className="bg-white dark:bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
           <div>
-            <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest block mb-1">Ticket Médio</span>
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block mb-1">Ticket Médio</span>
             <span className="text-2xl font-mono font-extrabold tracking-tight block mt-1">
               {formatBRL(metrics.averageTicket)}
             </span>
@@ -183,9 +185,9 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
         </div>
 
         {/* Tempo de Fechamento */}
-        <div className="bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-850 flex flex-col justify-between h-36 relative overflow-hidden">
+        <div className="bg-white dark:bg-[#2B2B2B] p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm flex flex-col justify-between h-36 relative overflow-hidden">
           <div>
-            <span className="text-[10px] font-bold text-zinc-450 uppercase tracking-widest block mb-1">Tempo Médio de Fechamento</span>
+            <span className="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest block mb-1">Tempo Médio de Fechamento</span>
             <span className="text-2xl font-extrabold tracking-tight block mt-1 text-[#FF9F1C]">
               {metrics.averageClosingTimeHours}
             </span>
@@ -198,13 +200,13 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
 
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
+      {plan === 'business' && <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-10">
         
         {/* Left column graphs */}
         <div className="lg:col-span-8 space-y-6">
           
-          <div className="bg-[#2B2B2B]/40 border border-zinc-800 rounded-3xl p-6">
-            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#2B2B2B]/40 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-sm">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-[#FF9F1C]" />
               Faturamento Distribuído por Verticais (R$)
             </h3>
@@ -238,7 +240,7 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
                 <Zap className="w-3.5 h-3.5" />
                 Dica Orkto
               </span>
-              <p className="text-xs text-zinc-300 leading-relaxed max-w-xl">
+              <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed max-w-xl">
                 {quotes.length > 0 
                   ? `Você já enviou ${quotes.length} proposta${quotes.length > 1 ? 's' : ''}. Continue assim para aumentar suas chances de fechamento.`
                   : 'Envie sua primeira proposta para começar a acompanhar suas métricas de conversão.'}
@@ -251,8 +253,8 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
         {/* Right column conversion card */}
         <div className="lg:col-span-4 space-y-6">
           
-          <div className="bg-[#2B2B2B]/40 border border-[#2B2B2B] rounded-2xl p-6 shadow-sm">
-            <h3 className="text-xs font-bold text-zinc-450 uppercase tracking-widest mb-6 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#2B2B2B]/40 border border-zinc-200 dark:border-[#2B2B2B] rounded-2xl p-6 shadow-sm">
+            <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <PieIcon className="w-4 h-4 text-[#FF9F1C]" />
               Funil de Propostas & Status
             </h3>
@@ -277,28 +279,28 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute text-center">
-                <span className="text-xl font-mono font-extrabold text-white block leading-none">{metrics.totalQuotes}</span>
+                <span className="text-xl font-mono font-extrabold text-zinc-900 dark:text-white block leading-none">{metrics.totalQuotes}</span>
                 <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1 block">Total Enviados</span>
               </div>
             </div>
 
             {/* Legends list */}
-            <div className="space-y-2 mt-4 pt-4 border-t border-zinc-800 text-xs">
-              <div className="flex justify-between items-center text-zinc-300 font-semibold p-1 hover:bg-zinc-800/10 rounded">
+            <div className="space-y-2 mt-4 pt-4 border-t border-zinc-200 dark:border-zinc-800 text-xs">
+              <div className="flex justify-between items-center text-zinc-700 dark:text-zinc-300 font-semibold p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800/10 rounded">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded bg-emerald-500"></span>
                   <span>Aprovados</span>
                 </div>
-                <span className="font-mono font-bold text-zinc-100">{metrics.approvedCount}</span>
+                <span className="font-mono font-bold text-zinc-900 dark:text-zinc-100">{metrics.approvedCount}</span>
               </div>
-              <div className="flex justify-between items-center text-zinc-300 font-semibold p-1 hover:bg-zinc-800/10 rounded">
+              <div className="flex justify-between items-center text-zinc-700 dark:text-zinc-300 font-semibold p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800/10 rounded">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded bg-[#FF9F1C]"></span>
                   <span>Pendentes</span>
                 </div>
                 <span className="font-mono font-bold text-[#FF9F1C]">{metrics.pendingCount}</span>
               </div>
-              <div className="flex justify-between items-center text-zinc-300 font-semibold p-1 hover:bg-zinc-800/10 rounded">
+              <div className="flex justify-between items-center text-zinc-700 dark:text-zinc-300 font-semibold p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800/10 rounded">
                 <div className="flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded bg-red-500"></span>
                   <span>Recusados</span>
@@ -309,13 +311,13 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
           </div>
 
           {/* Quick Stats Funnel percentages */}
-          <div className="bg-[#2B2B2B]/20 border border-zinc-800 rounded-2xl p-6 text-zinc-300 space-y-4">
+          <div className="bg-white dark:bg-[#2B2B2B]/20 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 text-zinc-700 dark:text-zinc-300 space-y-4 shadow-sm">
             <div>
               <div className="flex justify-between text-xs font-bold text-zinc-400 mb-1.5 uppercase">
                 <span>Taxa de Abertura</span>
-                <span className="text-white">{metrics.openRate}%</span>
+                <span className="text-zinc-900 dark:text-white">{metrics.openRate}%</span>
               </div>
-              <div className="w-full bg-[#111111] h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-zinc-200 dark:bg-[#111111] h-1.5 rounded-full overflow-hidden">
                 <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${metrics.openRate}%` }} />
               </div>
               <p className="text-[10px] text-zinc-500 mt-1">Percentual de propostas visualizadas pelo cliente final.</p>
@@ -324,9 +326,9 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
             <div>
               <div className="flex justify-between text-xs font-bold text-zinc-400 mb-1.5 uppercase">
                 <span>Taxa de Conversão Real</span>
-                <span className="text-white">{metrics.approvalRate}%</span>
+                <span className="text-zinc-900 dark:text-white">{metrics.approvalRate}%</span>
               </div>
-              <div className="w-full bg-[#111111] h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-zinc-200 dark:bg-[#111111] h-1.5 rounded-full overflow-hidden">
                 <div className="h-full bg-[#FF9F1C] rounded-full" style={{ width: `${metrics.approvalRate}%` }} />
               </div>
               <p className="text-[10px] text-zinc-500 mt-1">Percentual de propostas fechadas/assinadas digitalmente.</p>
@@ -335,7 +337,7 @@ export default function AnalyticsPage({ quotes }: AnalyticsPageProps) {
 
         </div>
 
-      </div>
+      </div>}
 
     </div>
   );

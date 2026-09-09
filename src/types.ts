@@ -61,10 +61,6 @@ export interface UserProfile {
   planPeriod?: 'monthly' | 'annual';
   trialExpirationDate?: string;
   checklistDismissed?: boolean;
-  /** @deprecated Nao persistir em localStorage */
-  asaasApiKey?: string;
-  /** @deprecated Nao persistir em localStorage */
-  asaasCustomerId?: string;
   isFounder?: boolean;
   founderPrice?: number;
 }
@@ -105,6 +101,7 @@ export interface Quote {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   sentAt?: Timestamp | null;
+  retentionExpiresAt?: string | null;
   viewedAt?: Timestamp | null;
   approvedAt?: Timestamp | null;
   rejectedAt?: Timestamp | null;
@@ -139,9 +136,9 @@ export interface SavedService {
 }
 
 export const PLAN_LIMITS: Record<PlanType, { ai_refinements: number; pdf_premium: boolean; watermark: boolean; history_days: number; share_links: boolean; online_approval: boolean; analytics: 'basic' | 'advanced' | 'none' }> = {
-  free: { ai_refinements: 3, pdf_premium: false, watermark: true, history_days: 7, share_links: false, online_approval: true, analytics: 'basic' },
-  pro: { ai_refinements: 30, pdf_premium: true, watermark: false, history_days: 9999, share_links: true, online_approval: true, analytics: 'basic' },
-  business: { ai_refinements: 999999, pdf_premium: true, watermark: false, history_days: 9999, share_links: true, online_approval: true, analytics: 'advanced' },
+  free: { ai_refinements: 999999, pdf_premium: false, watermark: true, history_days: 14, share_links: true, online_approval: true, analytics: 'none' },
+  pro: { ai_refinements: 999999, pdf_premium: false, watermark: true, history_days: 14, share_links: true, online_approval: true, analytics: 'basic' },
+  business: { ai_refinements: 999999, pdf_premium: true, watermark: false, history_days: 14, share_links: true, online_approval: true, analytics: 'advanced' },
 };
 
 export const AUTO_SERVICE_CATEGORIES = [
