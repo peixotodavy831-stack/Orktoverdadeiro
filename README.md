@@ -39,3 +39,5 @@ Cadastre as variáveis descritas em `.env.example` no painel do provedor. Nunca 
 As migrações oficiais ficam em `supabase/migrations/` e devem ser executadas em ordem cronológica.
 
 Consulte `docs/CHECKLIST-DEPLOY.md` para configuração e validação de produção.
+
+Para conectar um domínio próprio, configurar os buscadores e seguir o plano de divulgação, consulte `docs/DOMINIO-E-SEO.md`.

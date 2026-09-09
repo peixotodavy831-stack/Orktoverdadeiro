@@ -24,5 +24,8 @@ Autônomos, MEIs, oficinas, mecânicos, eletricistas, pintores, designers, advog
 - Início e demonstração: https://orktoverdadeiro-production.up.railway.app/
 - Termos: https://orktoverdadeiro-production.up.railway.app/termos.html
 - Privacidade: https://orktoverdadeiro-production.up.railway.app/privacidade.html
+- Como criar um orçamento online: https://orktoverdadeiro-production.up.railway.app/guias/orcamento-online.html
+- Como enviar orçamento pelo WhatsApp: https://orktoverdadeiro-production.up.railway.app/guias/orcamento-pelo-whatsapp.html
+- Orçamento para MEI e autônomo: https://orktoverdadeiro-production.up.railway.app/guias/orcamento-para-mei.html
 
 Informações de contas, clientes e propostas são privadas e não devem ser indexadas.
