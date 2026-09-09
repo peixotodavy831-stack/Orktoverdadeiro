@@ -4,7 +4,7 @@ Plataforma SaaS para criar, enviar e acompanhar orçamentos profissionais. O fro
 
 ## Requisitos
 
-- Node.js 20 ou superior
+- Node.js 22 ou superior
 - Projeto Supabase configurado
 - Credenciais do Resend para e-mails
 - Credenciais do Asaas para pagamentos (opcional em desenvolvimento)

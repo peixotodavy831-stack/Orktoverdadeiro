@@ -167,7 +167,7 @@ export default function LandingPage({ onStartClick, onDemoClick }: LandingPagePr
             {/* Pill badge */}
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] uppercase font-bold tracking-widest text-emerald-400 mb-6 select-none">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>4 TONS DE COMUNICAÇÃO — SEM IA</span>
+              <span>4 TONS DE COMUNICAÇÃO</span>
             </div>
 
             {/* Hero title — sells consequence, not feature */}
