@@ -1,0 +1,28 @@
+# ORKTO
+
+> Sistema brasileiro de orçamentos online para autônomos, MEIs, prestadores de serviço e pequenas empresas.
+
+Site oficial: https://orktoverdadeiro-production.up.railway.app/
+Idioma: português do Brasil
+Contato: ola@orkto.co
+
+## O que a ORKTO faz
+
+- Cria propostas e orçamentos profissionais pela web.
+- Organiza clientes, serviços, valores e status comerciais.
+- Compartilha orçamentos por link e WhatsApp.
+- Permite visualização e aprovação online pelo cliente.
+- Oferece quatro tons de comunicação com processamento local, sem cobrança por uso de IA externa.
+- Possui planos Standard, Pro e Business.
+
+## Público
+
+Autônomos, MEIs, oficinas, mecânicos, eletricistas, pintores, designers, advogados e outras empresas prestadoras de serviços.
+
+## Páginas públicas
+
+- Início e demonstração: https://orktoverdadeiro-production.up.railway.app/
+- Termos: https://orktoverdadeiro-production.up.railway.app/termos.html
+- Privacidade: https://orktoverdadeiro-production.up.railway.app/privacidade.html
+
+Informações de contas, clientes e propostas são privadas e não devem ser indexadas.
