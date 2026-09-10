@@ -41,3 +41,5 @@ As migrações oficiais ficam em `supabase/migrations/` e devem ser executadas e
 Consulte `docs/CHECKLIST-DEPLOY.md` para configuração e validação de produção.
 
 Para conectar um domínio próprio, configurar os buscadores e seguir o plano de divulgação, consulte `docs/DOMINIO-E-SEO.md`.
+
+O calendário editorial, os roteiros de vídeos sem rosto e as metas para buscar 1.000 cadastros orgânicos estão em `docs/PLANO-ORGANICO-20-SEMANAS.md`.
