@@ -3,6 +3,12 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import apiApp from "./api/server";
+import { registerInboxRoutes } from "./api/orkto-routes";
+import { registerSwarmRoutes } from "./api/swarm-routes";
+
+// Registrar rotas do ORKTO (Onda 0 e Onda 1)
+registerInboxRoutes(apiApp);
+registerSwarmRoutes(apiApp);
 
 dotenv.config();
 

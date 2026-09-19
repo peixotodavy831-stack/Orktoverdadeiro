@@ -27,6 +27,23 @@ const app = express();
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok", service: "orkto" });
 });
+
+app.get("/api/hermes/health", (_req, res) => {
+  const mode = process.env.HERMES_ADAPTER_MODE === 'remote' ? 'remote' : 'mock';
+  const connected = mode === 'remote' && Boolean(process.env.HERMES_API_URL);
+  res.status(200).json({
+    status: connected || mode === 'mock' ? 'ok' : 'degraded',
+    component: 'hermes-adapter',
+    mode,
+    connected,
+    readyForProduction: connected,
+    message: mode === 'mock'
+      ? 'HermesAdapter em homologação; nenhuma ação externa é executada.'
+      : connected
+        ? 'Endpoint remoto configurado.'
+        : 'Defina HERMES_API_URL para habilitar o adaptador remoto.',
+  });
+});
 const PORT = 3000;
 
 // Vercel encaminha o IP original pelos headers de proxy. Confiar apenas no
@@ -998,6 +1015,555 @@ app.post("/api/proposal/:slug/refresh", authenticate, async (req, res) => {
     res.status(500).json({ error: 'Erro ao regenerar proposta.' });
   }
 });
+
+// ============================================================
+// ORKTO Swarm - Onda 0/1: Conversations, Inbox, Approval Tasks
+// ============================================================
+
+// In-memory stores (fallback when Supabase not configured)
+const conversationsMem: Array<{
+  id: string;
+  user_id: string;
+  contact_name: string;
+  contact_phone: string;
+  status: string;
+  source_channel: string;
+  mood_state: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+}> = [];
+
+const messagesMem: Array<{
+  id: string;
+  conversation_id: string;
+  sender_role: string;
+  content: string;
+  message_type: string;
+  sent_at: string;
+  direction: string;
+  read_at?: string;
+}> = [];
+
+const approvalTasksMem: Array<{
+  id: string;
+  conversation_id: string;
+  task_type: string;
+  bot_name: string;
+  proposed_content: string;
+  reason: string;
+  policy_applied: string;
+  status: string;
+  created_at: string;
+  decided_at?: string;
+  decided_by?: string;
+}> = [];
+
+// Helper: suggest response (mock HermesAdapter)
+function suggestResponse(content: string): string {
+  const lower = content.toLowerCase();
+  if (lower.includes('preco') || lower.includes('valor') || lower.includes('quanto')) {
+    return 'Olá! 👋 Analiso sua proposta e retorno com um valor personalizado em minutos. Me informe qual serviço você precisa.';
+  }
+  if (lower.includes('agenda') || lower.includes('horario') || lower.includes('marcar')) {
+    return 'Combino com você! 📅 Tenho disponibilidade na próxima semana. Qual dia e horário funcionam melhor?';
+  }
+  if (lower.includes('obra') || lower.includes('servico') || lower.includes('orcamento')) {
+    return 'Recebi sua solicitação! 🔧 Vou analisar os detalhes e preparo um orçamento personalizado. Pode me enviar mais informações?';
+  }
+  if (lower.includes('oi') || lower.includes('ola') || lower.includes('hello')) {
+    return 'Olá! Bem-vindo ao atendimento. 👋 Como posso ajudar você hoje?';
+  }
+  return 'Recebi sua mensagem! 👍 Vou analisar e retorno o mais rápido possível.';
+}
+
+// GET /api/conversations
+app.get("/api/conversations", authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    let conversations: any[] = [];
+
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('orkto_conversations')
+        .select('*')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false });
+      if (error) throw error;
+      conversations = data || [];
+    } else {
+      conversations = conversationsMem
+        .filter(c => c.user_id === userId)
+        .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+    }
+
+    const enriched = await Promise.all(conversations.map(async (conv) => {
+      let messages: any[] = [];
+      if (supabase) {
+        const { data } = await supabase
+          .from('orkto_messages')
+          .select('*')
+          .eq('conversation_id', conv.id)
+          .order('sent_at', { ascending: true });
+        messages = data || [];
+      } else {
+        messages = messagesMem
+          .filter(m => m.conversation_id === conv.id)
+          .sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
+      }
+
+      const lastMessage = messages[messages.length - 1];
+      const unreadCount = messages.filter(m => m.direction === 'incoming' && !m.read_at).length;
+
+      return {
+        id: conv.id,
+        contact_name: conv.contact_name,
+        contact_phone: conv.contact_phone,
+        status: conv.status,
+        source_channel: conv.source_channel,
+        mood_state: conv.mood_state,
+        last_message: lastMessage?.content?.slice(0, 100) || '',
+        last_message_at: lastMessage?.sent_at || conv.created_at,
+        unread_count: unreadCount,
+        message_count: messages.length,
+        created_at: conv.created_at,
+        updated_at: conv.updated_at,
+      };
+    }));
+
+    res.json(enriched);
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao carregar conversas.' });
+  }
+});
+
+// GET /api/conversations/:id
+app.get("/api/conversations/:conversationId", authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { conversationId } = req.params;
+
+    let conversation: any = null;
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('orkto_conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      conversation = data;
+    } else {
+      conversation = conversationsMem.find(c => c.id === conversationId && c.user_id === userId);
+    }
+
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversa não encontrada' });
+    }
+
+    let messages: any[] = [];
+    if (supabase) {
+      const { data } = await supabase
+        .from('orkto_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('sent_at', { ascending: true });
+      messages = data || [];
+    } else {
+      messages = messagesMem
+        .filter(m => m.conversation_id === conversationId)
+        .sort((a, b) => new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime());
+    }
+
+    let approvalTasks: any[] = [];
+    if (supabase) {
+      const { data } = await supabase
+        .from('orkto_approval_tasks')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      approvalTasks = data || [];
+    } else {
+      approvalTasks = approvalTasksMem.filter(t => t.conversation_id === conversationId);
+    }
+
+    res.json({ ...conversation, messages, approval_tasks: approvalTasks });
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao carregar conversa.' });
+  }
+});
+
+// GET /api/approval-tasks
+app.get("/api/approval-tasks", authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    let tasks: any[] = [];
+
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('orkto_approval_tasks')
+        .select('*, orkto_conversations!inner(id, user_id)')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      tasks = (data || []).filter((t: any) => t.orkto_conversations?.user_id === userId);
+    } else {
+      tasks = approvalTasksMem
+        .filter(t => t.status === 'pending' && conversationsMem.some(c => c.id === t.conversation_id && c.user_id === userId))
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    }
+
+    res.json(tasks);
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao carregar tarefas de aprovação.' });
+  }
+});
+
+// POST /api/whatsapp/webhook - Simulated WhatsApp webhook
+app.post("/api/whatsapp/webhook", async (req, res) => {
+  try {
+    const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      return res.status(503).json({ error: 'Webhook real desabilitado. Configure WHATSAPP_WEBHOOK_SECRET.' });
+    }
+    const suppliedSecret = req.header('x-orkto-webhook-secret');
+    if (!suppliedSecret || suppliedSecret.length !== webhookSecret.length ||
+        !crypto.timingSafeEqual(Buffer.from(suppliedSecret), Buffer.from(webhookSecret))) {
+      return res.status(401).json({ error: 'Assinatura do webhook inválida.' });
+    }
+
+    const body = req.body;
+    const userId = req.user?.id || 'demo-user';
+    const senderNumber = body.sender_number || body.from || '';
+    const content = body.content || body.text || body.message || '';
+
+    if (!senderNumber) {
+      return res.status(400).json({ error: "Número de remetente inválido" });
+    }
+
+    // Find or create conversation
+    let conversation: any = null;
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('orkto_conversations')
+        .select('*')
+        .eq('contact_phone', senderNumber)
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      conversation = data;
+
+      if (!conversation) {
+        const { data: newConv, error: newErr } = await supabase
+          .from('orkto_conversations')
+          .insert({
+            user_id: userId,
+            contact_name: body.contact_name || senderNumber.slice(1) || 'Contato',
+            contact_phone: senderNumber,
+            status: 'active',
+            source_channel: 'whatsapp',
+            mood_state: 'neutral',
+          })
+          .select()
+          .single();
+        if (newErr) throw newErr;
+        conversation = newConv;
+      }
+    } else {
+      conversation = conversationsMem.find(c => c.contact_phone === senderNumber && (!userId || c.user_id === userId));
+      if (!conversation) {
+        conversation = {
+          id: crypto.randomUUID(),
+          user_id: userId,
+          contact_name: body.contact_name || senderNumber.slice(1) || 'Contato',
+          contact_phone: senderNumber,
+          status: 'active',
+          source_channel: 'whatsapp',
+          mood_state: 'neutral',
+          last_message_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        conversationsMem.push(conversation);
+      } else {
+        conversation.updated_at = new Date().toISOString();
+        conversation.last_message_at = new Date().toISOString();
+      }
+    }
+
+    // Create incoming message
+    const messageId = crypto.randomUUID();
+    const message: any = {
+      id: messageId,
+      conversation_id: conversation.id,
+      sender_role: 'contact',
+      content: content,
+      message_type: 'text',
+      sent_at: new Date().toISOString(),
+      direction: 'incoming',
+    };
+
+    if (supabase) {
+      await supabase.from('orkto_messages').insert(message).select().single();
+    } else {
+      messagesMem.push(message);
+    }
+
+    // Create approval task via mock HermesAdapter
+    const botName = 'Hunter';
+    const suggestedResponse = suggestResponse(content);
+
+    const task: any = {
+      id: crypto.randomUUID(),
+      conversation_id: conversation.id,
+      task_type: 'response_suggestion',
+      bot_name: botName,
+      proposed_content: suggestedResponse,
+      reason: 'Primeiro contato - qualificação inicial',
+      policy_applied: 'observacao',
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+
+    if (supabase) {
+      await supabase.from('orkto_approval_tasks').insert(task).select().single();
+    } else {
+      approvalTasksMem.push(task);
+    }
+
+    console.log(`[ORKTO Swarm] Mensagem: ${conversation.id} -> tarefa: ${task.id}`);
+
+    res.json({
+      received: true,
+      message_id: messageId,
+      conversation_id: conversation.id,
+      approval_task_id: task.id,
+      suggested_response: suggestedResponse,
+    });
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao processar webhook.' });
+  }
+});
+
+// POST /api/approval-tasks/:id/approve
+app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { taskId } = req.params;
+    const { reason } = req.body;
+
+    let task: any = null;
+    let conversation: any = null;
+
+    if (supabase) {
+      const { data: tData, error: tErr } = await supabase
+        .from('orkto_approval_tasks')
+        .select('*, orkto_conversations!inner(*)')
+        .eq('id', taskId)
+        .eq('status', 'pending')
+        .maybeSingle();
+      if (tErr) throw tErr;
+      task = tData;
+      conversation = tData?.orkto_conversations;
+
+      if (!task || !conversation || conversation.user_id !== userId) {
+        return res.status(404).json({ error: 'Tarefa ou conversa não encontrada' });
+      }
+
+      await supabase.from('orkto_approval_tasks').update({
+        status: 'approved',
+        decided_at: new Date().toISOString(),
+        decided_by: userId,
+        decision_reason: reason || '',
+      }).eq('id', taskId);
+
+      await supabase.from('orkto_messages').insert({
+        conversation_id: task.conversation_id,
+        sender_role: 'operator',
+        content: task.proposed_content,
+        message_type: 'text',
+        sent_at: new Date().toISOString(),
+        direction: 'outgoing',
+      });
+
+      await supabase.from('orkto_conversations').update({
+        updated_at: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
+      }).eq('id', task.conversation_id);
+    } else {
+      const idx = approvalTasksMem.findIndex(t => t.id === taskId && t.status === 'pending');
+      if (idx === -1) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+      task = approvalTasksMem[idx];
+      conversation = conversationsMem.find(c => c.id === task.conversation_id);
+
+      if (!conversation || conversation.user_id !== userId) {
+        return res.status(404).json({ error: 'Conversa não encontrada' });
+      }
+
+      approvalTasksMem[idx] = {
+        ...task,
+        status: 'approved',
+        decided_at: new Date().toISOString(),
+        decided_by: userId,
+        decision_reason: reason || '',
+      };
+
+      messagesMem.push({
+        id: crypto.randomUUID(),
+        conversation_id: task.conversation_id,
+        sender_role: 'operator',
+        content: task.proposed_content,
+        message_type: 'text',
+        sent_at: new Date().toISOString(),
+        direction: 'outgoing',
+      });
+
+      conversation.updated_at = new Date().toISOString();
+      conversation.last_message_at = new Date().toISOString();
+    }
+
+    res.json({ success: true, task });
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao aprovar tarefa.' });
+  }
+});
+
+// POST /api/approval-tasks/:id/reject
+app.post("/api/approval-tasks/:taskId/reject", authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { taskId } = req.params;
+    const { reason } = req.body;
+
+    let task: any = null;
+    let conversation: any = null;
+
+    if (supabase) {
+      const { data: tData, error: tErr } = await supabase
+        .from('orkto_approval_tasks')
+        .select('*, orkto_conversations!inner(*)')
+        .eq('id', taskId)
+        .eq('status', 'pending')
+        .maybeSingle();
+      if (tErr) throw tErr;
+      task = tData;
+      conversation = tData?.orkto_conversations;
+
+      if (!task || !conversation || conversation.user_id !== userId) {
+        return res.status(404).json({ error: 'Tarefa ou conversa não encontrada' });
+      }
+
+      await supabase.from('orkto_approval_tasks').update({
+        status: 'rejected',
+        decided_at: new Date().toISOString(),
+        decided_by: userId,
+        decision_reason: reason || 'Rejeitado pelo operador',
+      }).eq('id', taskId);
+    } else {
+      const idx = approvalTasksMem.findIndex(t => t.id === taskId && t.status === 'pending');
+      if (idx === -1) return res.status(404).json({ error: 'Tarefa não encontrada' });
+
+      task = approvalTasksMem[idx];
+      conversation = conversationsMem.find(c => c.id === task.conversation_id);
+
+      if (!conversation || conversation.user_id !== userId) {
+        return res.status(404).json({ error: 'Conversa não encontrada' });
+      }
+
+      approvalTasksMem[idx] = {
+        ...task,
+        status: 'rejected',
+        decided_at: new Date().toISOString(),
+        decided_by: userId,
+        decision_reason: reason || 'Rejeitado pelo operador',
+      };
+    }
+
+    res.json({ success: true, task });
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao rejeitar tarefa.' });
+  }
+});
+
+// POST /api/conversations/:id/send
+app.post("/api/conversations/:conversationId/send", authenticate, async (req, res) => {
+  try {
+    const userId = req.user!.id;
+    const { conversationId } = req.params;
+    const { content } = req.body;
+
+    if (!content || typeof content !== 'string') {
+      return res.status(400).json({ error: 'Conteúdo da mensagem é obrigatório' });
+    }
+
+    let conversation: any = null;
+
+    if (supabase) {
+      const { data, error } = await supabase
+        .from('orkto_conversations')
+        .select('*')
+        .eq('id', conversationId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (error) throw error;
+      conversation = data;
+
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversa não encontrada' });
+      }
+
+      const message = {
+        conversation_id: conversationId,
+        sender_role: 'operator',
+        content: content.trim(),
+        message_type: 'text',
+        sent_at: new Date().toISOString(),
+        direction: 'outgoing',
+      };
+
+      await supabase.from('orkto_messages').insert(message);
+      await supabase.from('orkto_conversations').update({
+        updated_at: new Date().toISOString(),
+        last_message_at: new Date().toISOString(),
+      }).eq('id', conversationId);
+    } else {
+      conversation = conversationsMem.find(c => c.id === conversationId && c.user_id === userId);
+
+      if (!conversation) {
+        return res.status(404).json({ error: 'Conversa não encontrada' });
+      }
+
+      messagesMem.push({
+        id: crypto.randomUUID(),
+        conversation_id: conversationId,
+        sender_role: 'operator',
+        content: content.trim(),
+        message_type: 'text',
+        sent_at: new Date().toISOString(),
+        direction: 'outgoing',
+      });
+
+      conversation.updated_at = new Date().toISOString();
+      conversation.last_message_at = new Date().toISOString();
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
+    res.status(500).json({ error: 'Erro ao enviar mensagem.' });
+  }
+});
+
+// ============================================================
+// END ORKTO Swarm API Routes
+// ============================================================
 
 Sentry.setupExpressErrorHandler(app);
 
