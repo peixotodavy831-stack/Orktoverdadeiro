@@ -25,6 +25,7 @@ import {
 import { Quote, SavedClient, UserProfile } from '../types';
 import { formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
 import { supabase } from '../lib/supabase';
+import WiaInline from './wia/WiaInline';
 
 interface QuotesPageProps {
   quotes: Quote[];
@@ -313,6 +314,15 @@ export default function QuotesPage({
           </button>
         </div>
       </header>
+
+      <WiaInline
+        eyebrow="WIA · orçamentos"
+        title={`${quotes.filter(quote => quote.status === 'pending').length} proposta${quotes.filter(quote => quote.status === 'pending').length === 1 ? '' : 's'} esperando decisão`}
+        description="A WIA pode organizar a fila por tempo sem resposta e preparar mensagens de acompanhamento. Nenhum envio acontece sem a regra de autonomia definida."
+        actions={['detectar abandono', 'preparar mensagem', 'respeitar opt-out']}
+        onPrimaryAction={onCreateQuoteClick}
+        primaryLabel="Novo orçamento"
+      />
 
       {/* Strategic Statistics cards in minimalist dark glass style */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

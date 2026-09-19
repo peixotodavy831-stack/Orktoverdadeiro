@@ -23,6 +23,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Quote, SavedClient, UserProfile } from '../types';
 import { formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
 import OrktoLogo from './OrktoLogo';
+import WiaInline from './wia/WiaInline';
 
 interface DashboardProps {
   userProfile: UserProfile | null;
@@ -278,6 +279,15 @@ export default function Dashboard({
           </MagnetizeButton>
         </div>
       </header>
+
+      <div className="mb-6">
+        <WiaInline
+          eyebrow="WIA · atenção de hoje"
+          title={followUps.length ? `${followUps.length} orçamento${followUps.length > 1 ? 's' : ''} aguardando acompanhamento` : 'Operação sob controle'}
+          description={followUps.length ? 'A WIA identificou propostas pendentes que podem esfriar sem uma próxima ação.' : 'Nenhuma exceção comercial urgente foi identificada com os dados disponíveis.'}
+          actions={followUps.length ? ['priorizar por tempo', 'preparar follow-up', 'pedir aprovação'] : ['continuar monitorando']}
+        />
+      </div>
 
       {/* Primary showcase banner: "Seu orçamento virou sua vitrine." */}
       <div className="mb-10 bg-gradient-to-r from-zinc-100 to-white dark:from-zinc-900 dark:to-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xl dark:shadow-2xl transition-colors">

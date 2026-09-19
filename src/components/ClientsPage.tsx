@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { SavedClient, Quote, Timestamp } from '../types';
 import { formatBRL, formatPhone } from '../utils/format';
+import WiaInline from './wia/WiaInline';
 
 interface ClientsPageProps {
   clients: SavedClient[];
@@ -216,6 +217,15 @@ export default function ClientsPage({
           Novo Cliente
         </button>
       </header>
+
+      <div className="mb-6">
+        <WiaInline
+          eyebrow="WIA · memória comercial"
+          title={`${clients.length} cliente${clients.length === 1 ? '' : 's'} com histórico organizado`}
+          description="A WIA usará contexto, recorrência e negociações anteriores para reduzir perguntas repetidas e sugerir a próxima ação adequada."
+          actions={['histórico', 'recorrência', 'valor', 'próxima ação']}
+        />
+      </div>
 
       {/* Grid search filters */}
       <div className="mb-6 relative">
