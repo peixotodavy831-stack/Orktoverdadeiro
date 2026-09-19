@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ORKTO — Arquitetura Onda 0: Componentes e Sequência</title>
+<style>
+  :root {
+    --ink: #111111;
+    --panel: #2B2B2B;
+    --orange: #FF9F1C;
+    --paper: #fafaf9;
+    --muted: #666;
+    --line: rgba(0,0,0,0.12);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+  }
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 1.25rem 1.5rem;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .top-row {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .card {
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .card h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+  }
+  .diagram {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    padding: 0 1.5rem 1.5rem;
+  }
+  @media (max-width: 880px) {
+    .diagram { grid-template-columns: 1fr; }
+  }
+  .diagram svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    background: white;
+    border: 1px solid var(--line);
+  }
+  .legend {
+    padding: 0 1.5rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend i {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+  .gunmed {
+    width: 100%;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    background: var(--panel);
+    color: #f5f3ee;
+    padding: 0.1rem 0.5rem;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 0.78rem;
+    overflow-x: auto;
+  }
+  .small-matter {
+    padding: 0 1.5rem 2rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ORKTO — Arquitetura Onda 0</h1>
+  <p>Componentes, sequência de processamento e contratos de entrada/saída.</p>
+</header>
+
+<section class="top-row">
+  <div class="card">
+    <h2>Resumo do fluxo</h2>
+    <p>O canal entrega o webhook para o <b>Gateway</b>, que valida, detecta replay e normaliza o evento. O <b>Normalizador</b> persiste a conversa/mensagem e emite o evento interno estável. O <b>HermesAdapter</b> classifica a intenção, escolhe o especialista e monta o contexto. O <b>Policy Engine</b> decide se a ação é bloqueada, encaminhada à humana ou enviada ao <b>Action Outbox</b>, que entrega de forma idempotente para WhatsApp, CRM ou contabilidade. Tudo é correlacionado pelo <b>Audit Log</b>.</p>
+  </div>
+
+  <div class="card">
+    <h2>Contratos envolvidos</h2>
+    <ul style="margin:0; padding-left:1.1rem; font-size:0.95rem; line-height:1.5;">
+      <li>ADR 001 — HermesAdapter</li>
+      <li>ADR 002 — Policy Engine</li>
+      <li>ADR 003 — Modelo de dados</li>
+      <li>ADR 004 — Observabilidade</li>
+      <li>ADR 005 — Webhook e eventos</li>
+      <li>ADR 006 — Tenancy, RLS e segredos</li>
+      <li>ADR 007 — Estratégia de testes</li>
+    </ul>
+  </div>
+</section>
+
+<section class="diagram">
+  <!-- Diagrama de Componentes -->
+  <figure>
+    <svg viewBox="0 0 560 560" role="img" aria-label="Diagrama de componentes da Onda 0">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L7,4 L0,8" fill="#111"/>
+        </marker>
+        <marker id="arrO" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L7,4 L0,8" fill="#FF9F1C"/>
+        </marker>
+      </defs>
+
+      <!-- Borda externa -->
+      <rect x="12" y="12" width="536" height="536" rx="16" fill="#fafaf9" stroke="#e3e0da" stroke-width="1"/>
+
+      <!-- Título -->
+      <text x="30" y="42" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#111">ORKTO — Componentes da Onda 0</text>
+      <text x="30" y="58" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#666">Nenhuma tela ou bot chama Hermes diretamente. Toda ação externa passa pelo Policy Engine + Action Outbox.</text>
+
+      <!-- Canal externo -->
+      <g>
+        <rect x="30" y="78" width="130" height="48" rx="10" fill="#fff" stroke="#111" stroke-width="1.4"/>
+        <text x="38" y="97" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">WhatsApp / Evolution API</text>
+        <text x="38" y="112" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">Canal externo (v1)</text>
+      </g>
+
+      <!-- Webhook Gateway -->
+      <g>
+        <rect x="210" y="78" width="130" height="48" rx="10" fill="#FF9F1C" fill-opacity="0.12" stroke="#FF9F1C" stroke-width="1.4"/>
+        <text x="218" y="97" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Webhook Gateway</text>
+        <text x="218" y="112" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">assinatura · idempotência · replay detection</text>
+      </g>
+
+      <!-- seta canal -> gateway -->
+      <line x1="163" y1="102" x2="208" y2="102" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+
+      <!-- Normalizador -->
+      <g>
+        <rect x="378" y="78" width="130" height="48" rx="10" fill="#fff" stroke="#111" stroke-width="1.4"/>
+        <text x="386" y="97" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Normalizador</text>
+        <text x="386" y="112" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">eventos internos estáveis</text>
+      </g>
+      <line x1="343" y1="102" x2="376" y2="102" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+
+      <!-- Fila durável -->
+      <g>
+        <rect x="210" y="150" width="130" height="48" rx="10" fill="#2B2B2B" fill-opacity="0.06" stroke="#2B2B2B" stroke-width="1.4"/>
+        <text x="218" y="169" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Fila durável</text>
+        <text x="218" y="184" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">conversation_events · retry</text>
+      </g>
+      <line x1="275" y1="126" x2="275" y2="148" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+
+      <!-- HermesAdapter -->
+      <g>
+        <rect x="30" y="222" width="160" height="58" rx="10" fill="#fff" stroke="#111" stroke-width="1.4"/>
+        <text x="38" y="241" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">HermesAdapter</text>
+        <text x="38" y="256" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">único ponto com o motor</text>
+        <text x="38" y="270" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">mock em homologação</text>
+      </g>
+      <line x1="275" y1="198" x2="275" y2="220" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+      <line x1="275" y1="251" x2="275" y2="251" stroke="#111" stroke-width="1.4"/>
+
+      <!-- rótulo Hermes -->
+      <text x="38" y="296" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">Orquestração Hermes Agent</text>
+      <text x="38" y="309" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">classifica → especialista → contexto</text>
+
+      <!-- Policy Engine -->
+      <g>
+        <rect x="220" y="222" width="135" height="80" rx="10" fill="#FF9F1C" fill-opacity="0.12" stroke="#FF9F1C" stroke-width="1.6"/>
+        <text x="228" y="241" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Policy Engine</text>
+        <text x="228" y="257" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">janelas · consentimento</text>
+        <text x="228" y="271" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">limite de desconto · risco</text>
+        <text x="228" y="285" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">autonomia por capacidade</text>
+      </g>
+      <!-- porta de entrada do Policy Engine -->
+      <line x1="193" y1="250" x2="218" y2="250" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+
+      <!-- Processamento fila -> Hermes -->
+      <text x="275" y="215" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666" text-anchor="middle">processamento do evento</text>
+      <line x1="275" y1="198" x2="275" y2="220" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+
+      <!-- dois ramos abaixo do Policy Engine -->
+      <g>
+        <!-- esquerda: approval_tasks -->
+        <rect x="30" y="328" width="140" height="54" rx="10" fill="#fff" stroke="#111" stroke-width="1.4"/>
+        <text x="38" y="347" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">approval_tasks</text>
+        <text x="38" y="362" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">fila humana (aprov. / edição)</text>
+        <line x1="220" y1="355" x2="378" y2="355" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+      </g>
+
+      <g>
+        <!-- direita: action_outbox -->
+        <rect x="362" y="328" width="140" height="54" rx="10" fill="#fff" stroke="#111" stroke-width="1.4"/>
+        <text x="370" y="347" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Action Outbox</text>
+        <text x="370" y="362" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">idempotência · retry · dead-letter</text>
+        <line x1="355" y1="355" x2="360" y2="355" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+      </g>
+
+      <!-- humano -->
+      <g>
+        <rect x="30" y="402" width="140" height="48" rx="10" fill="#fafaf9" stroke="#111" stroke-width="1.4"/>
+        <text x="38" y="421" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Humano (operador)</text>
+        <text x="38" y="436" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">aprova · edita · pausa · rollback</text>
+        <line x1="100" y1="382" x2="100" y2="400" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+      </g>
+
+      <!-- destino do outbox -->
+      <g>
+        <rect x="362" y="402" width="140" height="48" rx="10" fill="#fafaf9" stroke="#111" stroke-width="1.4"/>
+        <text x="370" y="421" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">WhatsApp / CRM / Asaas</text>
+        <text x="370" y="436" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">envio único rastreável</text>
+        <line x1="432" y1="382" x2="432" y2="400" stroke="#111" stroke-width="1.4" marker-end="url(#arr)"/>
+      </g>
+
+      <!-- audit log + métricas na base -->
+      <g>
+        <rect x="180" y="470" width="200" height="58" rx="10" fill="#2B2B2B" fill-opacity="0.06" stroke="#2B2B2B" stroke-width="1.4"/>
+        <text x="188" y="489" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700" fill="#111">Audit Log + Métricas</text>
+        <text x="188" y="504" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">correlação · custo · latência · resultado</text>
+        <text x="188" y="517" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">append-only · trace_id sempre</text>
+      </g>
+      <!-- setas da base -->
+      <line x1="100" y1="450" x2="180" y2="470" stroke="#666" stroke-width="1.2" marker-end="url(#arrO)"/>
+      <line x1="432" y1="450" x2="380" y2="470" stroke="#666" stroke-width="1.2" marker-end="url(#arrO)"/>
+      <line x1="290" y1="445" x2="290" y2="468" stroke="#666" stroke-width="1.2" marker-end="url(#arrO)"/>
+
+      <!-- legenda inferior -->
+      <text x="30" y="548" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">Laranja = gate de política / autonomia. Cinza escuro = fila, correlação e persistência de estado.</text>
+    </svg>
+    <figcaption>Diagrama de componentes — Onda 0</figcaption>
+  </figure>
+
+  <!-- Diagrama de Sequência -->
+  <figure>
+    <svg viewBox="0 0 560 560" role="img" aria-label="Diagrama de sequência de evento webhook até ação entregue">
+      <defs>
+        <marker id="sarr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L7,4 L0,8" fill="#111"/>
+        </marker>
+        <marker id="sarrO" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0,0 L7,4 L0,8" fill="#FF9F1C"/>
+        </marker>
+      </defs>
+
+      <rect x="12" y="12" width="536" height="536" rx="16" fill="#fafaf9" stroke="#e3e0da" stroke-width="1"/>
+      <text x="30" y="42" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700" fill="#111">Sequência — do webhook à ação entregue</text>
+      <text x="30" y="58" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" fill="#666">Homologação: Hermes é mock. Produção: Hermes real + canal real, mesmo caminho.</text>
+
+      <!-- lifelines -->
+      <line x1="70" y1="78" x2="70" y2="510" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="165" y1="78" x2="165" y2="510" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="255" y1="78" x2="255" y2="510" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="350" y1="78" x2="350" y2="510" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="445" y1="78" x2="445" y2="510" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="3 3"/>
+
+      <!-- participantes -->
+      <rect x="20" y="74" width="100" height="28" rx="6" fill="#fff" stroke="#111" stroke-width="1.2"/>
+      <text x="24" y="92" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">Canal (WH/EA)</text>
+
+      <rect x="115" y="74" width="100" height="28" rx="6" fill="#fff" stroke="#111" stroke-width="1.2"/>
+      <text x="119" y="92" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">Gateway / Normalizador</text>
+
+      <rect x="205" y="74" width="100" height="28" rx="6" fill="#fff" stroke="#111" stroke-width="1.2"/>
+      <text x="209" y="92" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">HermesAdapter</text>
+
+      <rect x="300" y="74" width="100" height="28" rx="6" fill="#FF9F1C" fill-opacity="0.12" stroke="#FF9F1C" stroke-width="1.4"/>
+      <text x="304" y="92" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">Policy Engine</text>
+
+      <rect x="395" y="74" width="100" height="28" rx="6" fill="#fff" stroke="#111" stroke-width="1.2"/>
+      <text x="399" y="92" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">Action Outbox</text>
+
+      <!-- segunda coluna de participantes -->
+      <rect x="20" y="470" width="100" height="28" rx="6" fill="#fafaf9" stroke="#111" stroke-width="1.2"/>
+      <text x="24" y="488" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">Humano</text>
+
+      <rect x="395" y="470" width="100" height="28" rx="6" fill="#fafaf9" stroke="#111" stroke-width="1.2"/>
+      <text x="399" y="488" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11" font-weight="700" fill="#111">WhatsApp / CRM</text>
+
+      <!-- Mensagem 1 -->
+      <path d="M120,115 L163,115 L163,130 L120,130 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="122" y="125" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">POST /webhook {event_id, message}</text>
+      <line x1="120" y1="115" x2="120" y2="130" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="2 2"/>
+      <line x1="120" y1="130" x2="163" y2="130" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="163" y1="130" x2="163" y2="165" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="100" y1="165" x2="163" y2="165" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M100,180 L163,180 L163,195 L100,195 Z" fill="#FF9F1C" opacity="0.08" stroke="#FF9F1C" stroke-width="1"/>
+      <text x="104" y="190" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">event_id check · replay detectado?</text>
+      <line x1="100" y1="195" x2="100" y2="210" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="2 2"/>
+      <line x1="100" y1="210" x2="163" y2="210" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="163" y1="210" x2="163" y2="225" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="163" y1="225" x2="100" y2="225" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M100,240 L163,240 L163,255 L100,255 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="104" y="250" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">persiste conversa + mensagem · trace_id</text>
+      <line x1="100" y1="255" x2="100" y2="270" stroke="#d8d4cc" stroke-width="1" stroke-dasharray="2 2"/>
+      <line x1="100" y1="270" x2="163" y2="270" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="163" y1="270" x2="163" y2="285" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="163" y1="285" x2="100" y2="285" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M100,300 L163,300 L163,315 L100,315 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="104" y="310" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">emite evento interno (normalizado)</text>
+
+      <!-- Hermes -->
+      <line x1="165" y1="300" x2="255" y2="300" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="255" y1="300" x2="255" y2="345" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="165" y1="345" x2="255" y2="345" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M165,360 L255,360 L255,375 L165,375 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="169" y="370" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">classifica intenção + especialista + contexto</text>
+
+      <!-- Policy Engine -->
+      <line x1="255" y1="360" x2="350" y2="360" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="350" y1="360" x2="350" y2="400" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="255" y1="400" x2="350" y2="400" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M255,415 L350,415 L350,430 L255,430 Z" fill="#FF9F1C" opacity="0.08" stroke="#FF9F1C" stroke-width="1"/>
+      <text x="259" y="425" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">politicas: janela, consentimento, limite, risco</text>
+
+      <!-- decisão do policy -->
+      <line x1="350" y1="415" x2="350" y2="455" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+
+      <!-- ramos: humano ou outbox -->
+      <line x1="255" y1="445" x2="120" y2="445" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="120" y1="445" x2="120" y2="470" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M120,470 L100,470 L100,485 L120,485 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="104" y="480" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">approval_tasks ← decisão: fila humana</text>
+
+      <line x1="350" y1="445" x2="445" y2="445" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="445" y1="445" x2="445" y2="470" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M395,470 L445,470 L445,485 L395,485 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="399" y="480" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">action_outbox ← decisão: executar</text>
+
+      <!-- aprovação do humano (ramo esquerdo) -->
+      <line x1="100" y1="470" x2="100" y2="505" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="100" y1="505" x2="120" y2="505" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M120,515 L70,515 L70,525 L120,525 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="74" y="520" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">aprova/edita/rejeita → action_outbox</text>
+
+      <!-- entrega do outbox (ramo direito) -->
+      <line x1="445" y1="470" x2="445" y2="505" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <line x1="445" y1="505" x2="475" y2="505" stroke="#111" stroke-width="1" marker-end="url(#sarr)"/>
+      <path d="M475,515 L445,515 L445,525 L475,525 Z" fill="#111" opacity="0.08" stroke="#111" stroke-width="1"/>
+      <text x="449" y="520" font-family="ui-sans-serif, system-ui, sans-serif" font-size="9.5" fill="#111">entrega idempotente → external_id / dead-letter</text>
+
+      <!-- correlação -->
+      <text x="20" y="545" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10" fill="#666">Toda etapa correlaciona: workspace_id, conversation_id, agent_run_id, action_id, trace_id.</text>
+    </svg>
+    <figcaption>Diagrama de sequência — evento de canal até ação entregue ou humana</figcaption>
+  </figure>
+</section>
+
+<section class="legend">
+  <span><i style="background:#FF9F1C"></i> Gate de política e autonomia</span>
+  <span><i style="background:#2B2B2B; opacity:0.12"></i> Fila, correlação e persistência</span>
+  <span><i style="background:#fff; border:1px solid #111"></i> Componente ativo</span>
+</section>
+
+<section class="small-matter">
+  <p>Leitura combinada: componentes à esquerda mostram “quem existe”; sequência à direita mostra “o que acontece”. Ambos assumem ADR 001–007 como base; em caso de divergência com o material orgânico, prevalece o contrato escrito aqui.</p>
+</section>
+
+</body>
+</html>
