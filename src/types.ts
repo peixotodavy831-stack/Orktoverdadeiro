@@ -30,6 +30,18 @@ export class Timestamp {
   }
 }
 
+export const AUTO_SERVICE_CATEGORIES = [
+  'Desenvolvimento & Software',
+  'Design & Branding',
+  'Consultoria & Mentoria',
+  'Marketing & Tráfego Pago',
+  'Suporte & Configurações',
+  'Produção & Conteúdo',
+  'Infraestrutura & Cloud',
+  'Integrações & APIs',
+  'Outros Serviços'
+];
+
 export type PlanType = 'free' | 'pro' | 'business';
 
 export type QuoteStatus = 'draft' | 'sent' | 'viewed' | 'pending' | 'approved' | 'rejected' | 'expired';
@@ -135,26 +147,104 @@ export interface SavedService {
   updatedAt: Timestamp;
 }
 
-export const PLAN_LIMITS: Record<PlanType, { ai_refinements: number; pdf_premium: boolean; watermark: boolean; history_days: number; share_links: boolean; online_approval: boolean; analytics: 'basic' | 'advanced' | 'none' }> = {
-  free: { ai_refinements: 999999, pdf_premium: false, watermark: true, history_days: 14, share_links: true, online_approval: true, analytics: 'none' },
-  pro: { ai_refinements: 999999, pdf_premium: false, watermark: true, history_days: 14, share_links: true, online_approval: true, analytics: 'basic' },
-  business: { ai_refinements: 999999, pdf_premium: true, watermark: false, history_days: 14, share_links: true, online_approval: true, analytics: 'advanced' },
-};
+// ORKTO Swarm - Conversation & Inbox types (Onda 0/1)
+export type BotName = 'hunter' | 'farmer' | 'recovery' | 'collection' | 'risk' | 'report' | 'growth' | 'price_auditor' | 'hermes';
+export type TrustLevel = 'observing' | 'suggesting' | 'limited' | 'extended';
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | 'edited' | 'scheduled';
+export type MessageRole = 'contact' | 'operator' | 'bot' | 'system';
+export type MessageType = 'text' | 'image' | 'audio' | 'video' | 'document' | 'location' | 'contact' | 'system';
+export type ConversationStatus = 'open' | 'paused' | 'closed';
+export type SourceChannel = 'whatsapp' | 'manual' | 'instagram' | 'web';
+export type MoodState = 'green' | 'yellow' | 'red' | 'blue' | 'neutral';
 
-export const AUTO_SERVICE_CATEGORIES = [
-  'Desenvolvimento & Software',
-  'Design & Branding',
-  'Consultoria & Mentoria',
-  'Marketing & Tráfego Pago',
-  'Suporte & Configurações',
-  'Produção & Conteúdo',
-  'Infraestrutura & Cloud',
-  'Integrações & APIs',
-  'Outros Serviços'
-];
+export interface Conversation {
+  id: string;
+  userId: string;
+  contactName: string;
+  contactPhone: string;
+  contactAvatar?: string;
+  status: ConversationStatus;
+  sourceChannel: SourceChannel;
+  quoteId?: string;
+  quoteTotal?: number;
+  priorityScore?: number;
+  mood?: MoodState;
+  lastMessageAt?: Timestamp;
+  lastMessagePreview?: string;
+  unreadCount?: number;
+  messageCount?: number;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 
-export const ASAAS_PLAN_IDS: Record<PlanType, string> = {
-  free: '',
-  pro: 'pro_monthly',
-  business: 'business_monthly',
-};
+  // Campos retornados pelo backend ORKTO Swarm (snake_case via API)
+  phone?: string;
+  name?: string | null;
+  contact_name?: string;
+  contact_phone?: string;
+  source_channel?: string;
+  last_message?: string;
+  unread_count?: number;
+  message_count?: number;
+  messages_24h?: number;
+  last_message_at?: string;
+  last_message_by?: string;
+  risk_score?: number | null;
+  priority_score?: number | null;
+  mood_state?: string;
+  mood_confidence?: number;
+  priority_reason?: string | null;
+  recent_messages?: Array<{ content?: string }>;
+  messages?: ConversationMessage[];
+  approval_tasks?: ApprovalTask[];
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversationId: string;
+  senderRole: MessageRole;
+  role?: MessageRole;
+  content: string;
+  messageType: MessageType;
+  senderName?: string;
+  senderAvatar?: string | null;
+  botName?: BotName | null;
+  botActionId?: string | null;
+  approvalTaskId?: string | null;
+  sentAt: Timestamp;
+  timestamp?: Timestamp;
+  direction: 'incoming' | 'outgoing' | 'internal';
+  readAt?: Timestamp;
+  status?: 'sent' | 'delivered' | 'read' | 'failed';
+  metadata?: Record<string, unknown>;
+}
+
+export interface ApprovalTask {
+  id: string;
+  conversationId: string;
+  taskType: 'response_suggestion' | 'action_execution' | 'discount_approval' | 'strategy_change';
+  botName: BotName;
+  botAvatar?: string;
+  proposedContent: string;
+  proposedAction?: string;
+  reason: string;
+  justification?: string;
+  policyApplied: string;
+  signals?: string[];
+  status: ApprovalStatus;
+  trustLevel?: TrustLevel;
+  title?: string;
+  expiresAt?: Timestamp;
+  createdAt: Timestamp;
+  decidedAt?: Timestamp;
+  decidedBy?: string;
+  decisionReason?: string;
+}
+
+export interface ApprovalTaskFormData {
+  taskId: string;
+  action: 'approve' | 'reject' | 'edit';
+  reason?: string;
+  editedContent?: string;
+}
+
+// ==================== TYPES DE CONVERSA / INBOX (SWARM) ====================

@@ -3,7 +3,7 @@ import { Home, Users, Plus, Menu, FileText } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from './dock';
 
 interface TubelightNavbarProps {
-  currentView: 'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing';
+  currentView: 'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation';
   setCurrentView: (view: any) => void;
   setSelectedQuoteId: (id: any) => void;
   onMenuOpen: () => void;

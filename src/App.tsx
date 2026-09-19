@@ -1,15 +1,15 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Timestamp } from './types';
-import { 
-  Zap, 
-  Home, 
-  Users, 
-  Receipt, 
-  Settings as SettingsIcon, 
-  Menu, 
-  X, 
-  Sun, 
-  Moon, 
+import {
+  Zap,
+  Home,
+  Users,
+  Receipt,
+  Settings as SettingsIcon,
+  Menu,
+  X,
+  Sun,
+  Moon,
   LogOut as LogOutIcon,
   CheckCircle,
   Clock,
@@ -24,7 +24,8 @@ import {
   HeartHandshake,
   Plus,
   CreditCard,
-  Coins
+  Coins,
+  MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, SavedClient, SavedService, UserProfile } from './types';
@@ -52,6 +53,8 @@ const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const BillingPage = lazy(() => import('./components/BillingPage'));
 const AnalyticsPage = lazy(() => import('./components/AnalyticsPage'));
 const QuotesPage = lazy(() => import('./components/QuotesPage'));
+const InboxPage = lazy(() => import('./components/inbox/InboxPage'));
+const ConversationView = lazy(() => import('./components/inbox/ConversationView'));
 
 function PageFallback() {
   return (
@@ -106,7 +109,7 @@ export default function App() {
   });
 
   // Navigation & Viewing states
-  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing'>('landing');
+    const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation'>('landing');
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [duplicateQuoteSource, setDuplicateQuoteSource] = useState<Quote | null>(null);
   const [editQuoteSource, setEditQuoteSource] = useState<Quote | null>(null);
@@ -131,7 +134,7 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  
+
   // Listen for Supabase auth state changes on mount
   useEffect(() => {
     supabase.auth.getSession()
@@ -232,45 +235,72 @@ export default function App() {
         }
       };
       const [quotesRes, clientsRes, servicesRes] = await Promise.all([
-        fetchQuotePages(),
-        fetchTablePages('clients'),
-        fetchTablePages('services'),
-      ]);
+              fetchQuotePages(),
+              fetchTablePages('clients'),
+              fetchTablePages('services'),
+            ]);
 
-      const mappedQuotes: Quote[] = quotesRes.map(mapApiQuote);
-      setQuotes(mappedQuotes);
+            const mappedQuotes: Quote[] = quotesRes.map(mapApiQuote);
+            setQuotes(mappedQuotes);
 
-      const mappedClients: SavedClient[] = clientsRes.map((c: any) => ({
-          id: c.id,
-          userId: c.user_id,
-          name: c.name,
-          phone: c.phone,
-          company: c.company || '',
-          vehicleOrService: c.vehicle_or_service || '',
-          notes: c.notes || '',
-          createdAt: c.created_at ? Timestamp.fromDate(new Date(c.created_at)) : Timestamp.now(),
-          updatedAt: c.updated_at ? Timestamp.fromDate(new Date(c.updated_at)) : Timestamp.now(),
-        }));
-      setClients(mappedClients);
+            const mappedClients: SavedClient[] = clientsRes.map((c: any) => ({
+                id: c.id,
+                userId: c.user_id,
+                name: c.name,
+                phone: c.phone,
+                company: c.company || '',
+                vehicleOrService: c.vehicle_or_service || '',
+                notes: c.notes || '',
+                createdAt: c.created_at ? Timestamp.fromDate(new Date(c.created_at)) : Timestamp.now(),
+                updatedAt: c.updated_at ? Timestamp.fromDate(new Date(c.updated_at)) : Timestamp.now(),
+              }));
+            setClients(mappedClients);
 
-      const mappedServices: SavedService[] = servicesRes.map((s: any) => ({
-          id: s.id,
-          userId: s.user_id,
-          name: s.name,
-          description: s.description || '',
-          unitPrice: Number(s.unit_price) || 0,
-          category: s.category || 'Outros Serviços',
-          createdAt: s.created_at ? Timestamp.fromDate(new Date(s.created_at)) : Timestamp.now(),
-          updatedAt: s.updated_at ? Timestamp.fromDate(new Date(s.updated_at)) : Timestamp.now(),
-        }));
-      setServices(mappedServices);
-    } catch (err) {
-      console.error('Error loading user data:', err);
-    }
-  };
-  
+            const mappedServices: SavedService[] = servicesRes.map((s: any) => ({
+                id: s.id,
+                userId: s.user_id,
+                name: s.name,
+                description: s.description || '',
+                unitPrice: Number(s.unit_price) || 0,
+                category: s.category || 'Outros Serviços',
+                createdAt: s.created_at ? Timestamp.fromDate(new Date(s.created_at)) : Timestamp.now(),
+                updatedAt: s.updated_at ? Timestamp.fromDate(new Date(s.updated_at)) : Timestamp.now(),
+              }));
+            setServices(mappedServices);
+
+            // Load conversations for swarm features
+            await loadConversations(uid);
+          } catch (err) {
+            console.error('Error loading user data:', err);
+          }
+        };
+
+        // Load conversations and approval tasks for swarm features
+        const loadConversations = async (uid: string) => {
+          try {
+            const token = (await supabase.auth.getSession()).data.session?.access_token;
+            const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+            // Fetch conversations
+            const convRes = await fetch('/api/conversations', { headers: authHeaders });
+            if (convRes.ok) {
+              const data = await convRes.json();
+              setConversations(data);
+            }
+
+            // Fetch approval tasks
+            const aptRes = await fetch('/api/approval-tasks', { headers: authHeaders });
+            if (aptRes.ok) {
+              const data = await aptRes.json();
+              setApprovalTasks(data);
+            }
+          } catch (err) {
+            console.error('Error loading conversations:', err);
+          }
+        };
+
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  
+
   const [loading, setLoading] = useState(false);
 
   // Persistent in-memory states
@@ -290,7 +320,10 @@ export default function App() {
     }
   }, [userProfile]);
 
-  // Proposal slug route (/p/{slug})
+  // Conversation/Inbox tracking state
+  const [conversations, setConversations] = useState<import('./types').Conversation[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [approvalTasks, setApprovalTasks] = useState<import('./types').ApprovalTask[]>([]);
   const [proposalSlug, setProposalSlug] = useState<string | null>(null);
 
   useEffect(() => {
@@ -433,7 +466,7 @@ export default function App() {
 
     try {
       if (!user?.uid) return;
-      
+
       const profileData = {
         display_name: user.displayName || user.email?.split('@')[0] || 'Usuário',
         email: user.email || '',
@@ -615,7 +648,7 @@ export default function App() {
       <>
       <div className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col justify-between py-10 px-4 sm:px-6 relative overflow-x-hidden font-sans">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(249,115,22,0.06),transparent_45%)] pointer-events-none" />
-        
+
         {/* Banner with estimated reading time */}
         <div className="max-w-2xl w-full mx-auto mb-6 flex items-center justify-between px-4 py-2.5 bg-zinc-900/50 border border-zinc-900 rounded-2xl text-xs text-zinc-400">
           <div className="flex items-center gap-2">
@@ -626,7 +659,7 @@ export default function App() {
         </div>
 
         <div className="max-w-2xl w-full mx-auto bg-white text-zinc-950 border border-zinc-200/80 rounded-[32px] p-6 sm:p-8 shadow-2xl relative border-t-8" style={{ borderColor: publicQuoteUser?.quoteColor || '#FF9F1C' }}>
-          
+
           <header className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8 pb-3 border-b border-zinc-100">
             <div className="space-y-3">
               {publicQuoteUser?.companyLogo && (
@@ -640,7 +673,7 @@ export default function App() {
                 <p className="text-xs text-zinc-500 font-mono font-bold mt-1">Nº da Proposta: #{publicQuote.quoteNumber}</p>
               </div>
             </div>
-            
+
             <div className="text-left sm:text-right">
               {publicQuote.status === 'approved' ? (
                 <span className="px-3.5 py-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-xs font-bold uppercase tracking-wider border border-emerald-250">Aprovado & Assinado</span>
@@ -768,9 +801,9 @@ export default function App() {
               <div>
                 <p className="font-bold leading-tight">Dúvidas sobre o escopo ou condições?</p>
                 <p className="text-[11px] opacity-90 mt-0.5">Negoceie ou fale com nosso especialista em tempo real pelo WhatsApp com toda velocidade.</p>
-                <a 
+                <a
                   href={`https://wa.me/${publicQuoteUser?.whatsappNumber}?text=Olá! Estou vendo a proposta de número ${publicQuote.quoteNumber} e gostaria de tirar algumas dúvidas.`}
-                  target="_blank" 
+                  target="_blank"
                   referrerPolicy="no-referrer"
                   className="inline-block mt-2 font-extrabold underline text-[11px] hover:text-[#FF9F1C]"
                 >
@@ -790,7 +823,7 @@ export default function App() {
                 <CheckCircle className="w-5 h-5 animate-pulse" />
                 Aprovar & Assinar Proposta
               </button>
-              
+
               <button
                 onClick={() => handlePublicStatusChange('rejected')}
                 className="py-4 px-6 bg-zinc-105 hover:bg-zinc-200 text-zinc-700 font-bold text-xs rounded-2xl transition-colors active:scale-95"
@@ -810,7 +843,7 @@ export default function App() {
                 </h4>
                 <button type="button" onClick={() => setAcceptModalOpen(false)} className="text-zinc-400 hover:text-zinc-650 text-xs font-bold">Voltar</button>
               </div>
-              
+
               <div className="space-y-3">
                 <div>
                   <label className="block text-[10px] uppercase tracking-wider font-extrabold text-zinc-400 mb-1">Nome Completo do Aprovador *</label>
@@ -823,7 +856,7 @@ export default function App() {
                     required
                   />
                 </div>
-                
+
                 <label className="flex items-start gap-2.5 text-[11px] text-zinc-650 font-semibold select-none cursor-pointer">
                   <input
                     type="checkbox"
@@ -833,7 +866,7 @@ export default function App() {
                   />
                   <span>Declaro que li e estou de acordo com o escopo técnico, valores e condições estabelecidas na proposta.</span>
                 </label>
-                
+
                 <button
                   type="button"
                   onClick={() => {
@@ -880,7 +913,7 @@ export default function App() {
                 </h4>
                 <span className="text-[8px] uppercase tracking-wider font-extrabold bg-[#FF9F1C]/15 text-[#FF9F1C] px-2 py-0.5 rounded">Seguro Asaas</span>
               </div>
-              
+
               {pixLoading ? (
                 <div className="flex items-center justify-center py-8 text-zinc-400 text-xs gap-2">
                   <div className="w-4 h-4 border-2 border-zinc-600 border-t-[#FF9F1C] rounded-full animate-spin" />
@@ -1005,8 +1038,8 @@ export default function App() {
 
   if (currentView === 'landing' && !user) {
     return (
-      <LandingPage 
-        onStartClick={() => setCurrentView('auth')} 
+      <LandingPage
+        onStartClick={() => setCurrentView('auth')}
         onDemoClick={() => setDemoView('proposal')}
       />
     );
@@ -1039,7 +1072,7 @@ export default function App() {
   return (
     <>
     <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 font-sans selection:bg-orange-100 selection:text-orange-950 relative overflow-hidden transition-all duration-300">
-      
+
       {/* Onboarding Assistant Overlay modal */}
       <AnimatePresence>
         {user && userProfile && !userProfile.onboardingCompleted && (
@@ -1052,7 +1085,7 @@ export default function App() {
               className="relative w-full max-w-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-6 sm:p-8 shadow-2xl overflow-hidden outline-none text-zinc-950 dark:text-white my-8"
             >
               <div className="absolute top-0 left-0 right-0 h-2" style={{ backgroundColor: onboardQuoteColor }} />
-              
+
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white shadow-lg shrink-0" style={{ backgroundColor: onboardQuoteColor }}>
@@ -1092,7 +1125,7 @@ export default function App() {
                         required
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">CNPJ ou CPF (opcional)</label>
                       <input
@@ -1381,8 +1414,8 @@ export default function App() {
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setCurrentView('dashboard'); setSelectedQuoteId(null); }}>
               <OrktoLogo size="sm" showSlogan={false} onlyO={true} />
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setIsSidebarOpen(false)}
               className="lg:hidden p-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
             >
@@ -1391,15 +1424,15 @@ export default function App() {
           </div>
 
           <nav className="space-y-1.5 text-xs sm:text-sm font-bold">
-            <button 
+            <button
               onClick={() => { setCurrentView('dashboard'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'dashboard' && !selectedQuoteId ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-white'}`}
             >
               <Home className="w-5 h-5" />
               <span>Painel</span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => { setCurrentView('quotes'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'quotes' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/30 dark:hover:text-white'}`}
             >
@@ -1407,7 +1440,7 @@ export default function App() {
               <span>Orçamentos</span>
             </button>
 
-            <button 
+            <button
               onClick={() => { setCurrentView('clients'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'clients' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/30 dark:hover:text-white'}`}
             >
@@ -1415,7 +1448,7 @@ export default function App() {
               <span>Clientes</span>
             </button>
 
-            <button 
+            <button
               onClick={() => { setCurrentView('services'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'services' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
             >
@@ -1423,23 +1456,31 @@ export default function App() {
               <span>Catálogo</span>
             </button>
 
-            <button 
-              onClick={() => { setCurrentView('analytics'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'analytics' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
-            >
-              <BarChart3 className="w-5 h-5" />
-              <span>Analytics</span>
-            </button>
+            <button
+                          onClick={() => { setCurrentView('analytics'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'analytics' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
+                        >
+                          <BarChart3 className="w-5 h-5" />
+                          <span>Analytics</span>
+                        </button>
 
-            <button 
-              onClick={() => { setCurrentView('settings'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'settings' ? 'bg-orange-500 text-white shadow-xl' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
-            >
+                        <button
+                          onClick={() => { setCurrentView('conversations'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'conversations' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
+                        >
+                          <MessageSquare className="w-5 h-5" />
+                          <span>Conversas</span>
+                        </button>
+
+                        <button
+                          onClick={() => { setCurrentView('settings'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'settings' ? 'bg-orange-500 text-white shadow-xl' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
+                        >
               <SettingsIcon className="w-5 h-5" />
               <span>Config. da Empresa</span>
             </button>
 
-            <button 
+            <button
               onClick={() => { setCurrentView('billing'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'billing' ? 'bg-[#FF9F1C] text-black shadow-xl font-extrabold' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
             >
@@ -1481,8 +1522,8 @@ export default function App() {
               <p className="text-[9px] text-zinc-500 truncate font-mono">Autenticado</p>
             </div>
           </div>
-          
-          <button 
+
+          <button
               onClick={() => { supabase.auth.signOut(); setUser(null); setUserProfile(null); setCurrentView('landing'); }}
             className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/40 text-red-400 hover:text-red-300 rounded-xl transition-all font-black text-xs flex items-center justify-center gap-2 shadow-sm shadow-red-950/20 active:scale-95 cursor-pointer"
           >
@@ -1499,7 +1540,7 @@ export default function App() {
           <div className="flex items-center gap-2">
             <OrktoLogo size="sm" showSlogan={false} onlyO={true} />
           </div>
-          
+
           <div className="flex items-center gap-2.5">
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -1508,9 +1549,9 @@ export default function App() {
             >
               {darkMode ? <Sun className="w-5 h-5 shrink-0" /> : <Moon className="w-5 h-5 shrink-0" />}
             </button>
-            
+
             {/* Highly visible Logout Button directly on mobile header */}
-            <button 
+            <button
             onClick={() => { supabase.auth.signOut(); setUser(null); setUserProfile(null); setCurrentView('landing'); }}
               className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 text-red-400 rounded-lg transition-all font-extrabold text-[10px] flex items-center gap-1.5 cursor-pointer active:scale-95"
               title="Sair da Conta"
@@ -1519,7 +1560,7 @@ export default function App() {
               Sair
             </button>
 
-            <button 
+            <button
               onClick={() => setIsSidebarOpen(open => !open)}
               aria-expanded={isSidebarOpen}
               aria-label={isSidebarOpen ? 'Fechar menu' : 'Abrir menu'}
@@ -1541,15 +1582,15 @@ export default function App() {
                 exit={{ opacity: 0, y: -5 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <Dashboard 
-                  userProfile={userProfile} 
+                <Dashboard
+                  userProfile={userProfile}
                   darkMode={darkMode}
-                  quotes={quotes} 
-                  clients={clients} 
+                  quotes={quotes}
+                  clients={clients}
                   onSelectQuote={(quoteId) => {
                     setSelectedQuoteId(quoteId);
                     setCurrentView('quote_detail');
-                  }} 
+                  }}
                   onCreateQuoteClick={() => setCurrentView('create_quote')}
                   onLoadMocksClick={handleLoadAppMocks}
                   onNavigateToTab={(view) => {
@@ -1569,7 +1610,7 @@ export default function App() {
                 exit={{ opacity: 0, y: -5 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <QuotesPage 
+                <QuotesPage
                   quotes={quotes}
                   clients={clients}
                   userProfile={userProfile}
@@ -1608,10 +1649,10 @@ export default function App() {
                 exit={{ opacity: 0, y: -5 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <CreateQuote 
-                  userProfile={userProfile} 
-                  savedClients={clients} 
-                  savedServices={services} 
+                <CreateQuote
+                  userProfile={userProfile}
+                  savedClients={clients}
+                  savedServices={services}
                   duplicateQuoteSource={duplicateQuoteSource}
                   editQuoteSource={editQuoteSource}
                     onQuoteCreated={async (q) => {
@@ -1640,8 +1681,8 @@ export default function App() {
                         setCurrentView('quote_detail');
                         return persistedQuote;
                       }
-                  }} 
-                  onCancel={() => { 
+                  }}
+                  onCancel={() => {
                     setDuplicateQuoteSource(null);
                     setEditQuoteSource(null);
                     setCurrentView(editQuoteSource ? 'quote_detail' : 'dashboard');
@@ -1663,8 +1704,8 @@ export default function App() {
                   const q = quotes.find(quote => quote.id === selectedQuoteId);
                   if (!q) return <p className="p-8 text-center text-zinc-400">Carregando...</p>;
                   return (
-                    <QuoteDetail 
-                      quote={q} 
+                    <QuoteDetail
+                      quote={q}
                       userProfile={userProfile}
                       onBack={() => {
                         setSelectedQuoteId(null);
@@ -1706,10 +1747,10 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <ClientsPage 
-                  clients={clients} 
-                  quotes={quotes} 
-                  userId={user.uid} 
+                <ClientsPage
+                  clients={clients}
+                  quotes={quotes}
+                  userId={user.uid}
                    onClientAdded={async (c) => {
                      setClients([c, ...clients]);
                      await supabase.from('clients').upsert({
@@ -1717,7 +1758,7 @@ export default function App() {
                        company: c.company || null, vehicle_or_service: c.vehicleOrService || null,
                        notes: c.notes || null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
                      }, { onConflict: 'id' });
-                   }} 
+                   }}
                    onClientUpdated={async (updatedClient) => {
                      setClients(clients.map(c => c.id === updatedClient.id ? updatedClient : c));
                      await supabase.from('clients').update({
@@ -1746,9 +1787,9 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <ServicesPage 
-                  services={services} 
-                  userId={user.uid} 
+                <ServicesPage
+                  services={services}
+                  userId={user.uid}
                    onServiceAdded={async (newService) => {
                      setServices([newService, ...services]);
                      await supabase.from('services').upsert({
@@ -1756,7 +1797,7 @@ export default function App() {
                        description: newService.description || null, unit_price: newService.unitPrice,
                        category: newService.category, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
                      }, { onConflict: 'id' });
-                   }} 
+                   }}
                    onServiceUpdated={async (updatedService) => {
                      setServices(services.map(i => i.id === updatedService.id ? updatedService : i));
                      await supabase.from('services').update({
@@ -1764,7 +1805,7 @@ export default function App() {
                        unit_price: updatedService.unitPrice, category: updatedService.category,
                        updated_at: new Date().toISOString(),
                      }).eq('id', updatedService.id);
-                   }} 
+                   }}
                    onServiceDeleted={async (deletedId) => {
                      setServices(services.filter(i => i.id !== deletedId));
                      await supabase.from('services').delete().eq('id', deletedId);
@@ -1781,8 +1822,8 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <SettingsPage 
-                   userProfile={userProfile} 
+                <SettingsPage
+                   userProfile={userProfile}
                    onProfileUpdated={async (updatedProfile) => {
                      const session = (await supabase.auth.getSession()).data.session;
                      if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente.');
@@ -1824,8 +1865,8 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <BillingPage 
-                   userProfile={userProfile} 
+                <BillingPage
+                   userProfile={userProfile}
                    onProfileUpdated={(updatedProfile) => {
                      setUserProfile(updatedProfile);
                      // O plano é atualizado pelo webhook autenticado do Asaas.
@@ -1836,21 +1877,79 @@ export default function App() {
             )}
 
             {currentView === 'analytics' && (
-              <motion.div
-                key="anPage"
-                initial={{ opacity: 0, y: 5 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <Suspense fallback={<PageFallback />}>
-                <AnalyticsPage quotes={quotes} plan={userProfile?.activePlan || 'free'} />
-                </Suspense>
-              </motion.div>
-            )}
+                          <motion.div
+                            key="anPage"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                          >
+                            <Suspense fallback={<PageFallback />}>
+                            <AnalyticsPage quotes={quotes} plan={userProfile?.activePlan || 'free'} />
+                            </Suspense>
+                          </motion.div>
+                        )}
+
+                        {currentView === 'conversations' && (
+                          <motion.div
+                            key="convPage"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                          >
+                            <Suspense fallback={<PageFallback />}>
+                            <InboxPage
+                              conversations={conversations}
+                              approvalTasks={approvalTasks}
+                              onSelectConversation={(convId) => {
+                                setSelectedConversationId(convId);
+                                setCurrentView('conversation');
+                              }}
+                              onBack={() => {
+                                setSelectedConversationId(null);
+                                setCurrentView('conversations');
+                              }}
+                              onRefresh={async () => {
+                                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                                const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+                                const convRes = await fetch('/api/conversations', { headers: authHeaders });
+                                if (convRes.ok) setConversations(await convRes.json());
+                                const aptRes = await fetch('/api/approval-tasks', { headers: authHeaders });
+                                if (aptRes.ok) setApprovalTasks(await aptRes.json());
+                              }}
+                            />
+                            </Suspense>
+                          </motion.div>
+                        )}
+
+                        {currentView === 'conversation' && selectedConversationId && (
+                          <motion.div
+                            key="convDetail"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -5 }}
+                          >
+                            <Suspense fallback={<PageFallback />}>
+                            <ConversationView
+                              conversationId={selectedConversationId}
+                              onBack={() => {
+                                setSelectedConversationId(null);
+                                setCurrentView('conversations');
+                              }}
+                              onRefresh={async () => {
+                                const token = (await supabase.auth.getSession()).data.session?.access_token;
+                                const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+                                const convRes = await fetch('/api/conversations', { headers: authHeaders });
+                                if (convRes.ok) setConversations(await convRes.json());
+                                const aptRes = await fetch('/api/approval-tasks', { headers: authHeaders });
+                                if (aptRes.ok) setApprovalTasks(await aptRes.json());
+                              }}
+                            />
+                            </Suspense>
+                          </motion.div>
+                        )}
           </AnimatePresence>
         </div>
-        
+
         {/* Mobile App Bottom Navigation (Tubelight Pill Style) */}
-        <TubelightNavbar 
+        <TubelightNavbar
           currentView={currentView}
           setCurrentView={setCurrentView}
           setSelectedQuoteId={setSelectedQuoteId}
@@ -1866,7 +1965,8 @@ export default function App() {
             { label: 'Clientes', active: currentView === 'clients', onClick: () => { setSelectedQuoteId(null); setCurrentView('clients'); } },
             { label: 'Catálogo', active: currentView === 'services', onClick: () => { setSelectedQuoteId(null); setCurrentView('services'); } },
             { label: 'Analytics', active: currentView === 'analytics', onClick: () => { setSelectedQuoteId(null); setCurrentView('analytics'); } },
-            { label: 'Configurações', active: currentView === 'settings', onClick: () => { setSelectedQuoteId(null); setCurrentView('settings'); } },
+                        { label: 'Conversas', active: currentView === 'conversations', onClick: () => { setSelectedQuoteId(null); setCurrentView('conversations'); } },
+                        { label: 'Configurações', active: currentView === 'settings', onClick: () => { setSelectedQuoteId(null); setCurrentView('settings'); } },
             { label: 'Planos', active: currentView === 'billing', onClick: () => { setSelectedQuoteId(null); setCurrentView('billing'); } },
           ]}
         />
