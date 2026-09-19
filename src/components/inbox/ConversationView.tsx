@@ -630,7 +630,7 @@ export default function ConversationView({
               Nenhuma mensagem ainda
             </h3>
             <p className="text-xs text-zinc-600">
-              A primeira mensagem do contato aparecerá aqui e Hermes gerará uma sugestão para você revisar.
+              A primeira mensagem do contato aparecerá aqui. A inteligência da WIA será conectada ao DeepSeek em uma etapa futura.
             </p>
           </div>
         )}

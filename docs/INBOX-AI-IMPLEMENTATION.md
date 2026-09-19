@@ -14,9 +14,9 @@
 
 ## WIA — papel e limites atuais
 
-A WIA e a interface conversacional da ORKTO. Ela recebe a intencao do usuario e prepara o contexto para o Hermes e os bots; nao e um bot independente e nao contorna o Policy Engine.
+A WIA e a interface de inteligencia artificial da ORKTO. Ela sera conectada ao DeepSeek em uma etapa futura e e independente do Hermes e dos bots operacionais existentes.
 
-Hoje, somente o texto e encaminhado ao endpoint simulado existente. Imagens ficam em pre-visualizacao local, a voz usa a transcricao disponivel no navegador e a escolha de bot/esforco ainda nao e persistida. Esses controles ja definem a UX, mas so poderao comandar o Hermes quando o `PromptEnvelope` e o armazenamento de anexos forem implementados no backend.
+Hoje, a interface aceita texto, pre-visualiza imagens e usa a transcricao disponivel no navegador. A integracao real com DeepSeek, a persistencia do contexto e o armazenamento de anexos ainda nao foram implementados. O endpoint simulado atual nao representa a arquitetura final da WIA.
 
 ## Modos de operação
 

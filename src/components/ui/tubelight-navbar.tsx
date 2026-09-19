@@ -1,33 +1,27 @@
 import React from 'react';
-import { Home, Users, Plus, Menu, FileText } from 'lucide-react';
+import { Bot, Home, Users, Plus, FileText } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from './dock';
 
 interface TubelightNavbarProps {
   currentView: 'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation';
   setCurrentView: (view: any) => void;
   setSelectedQuoteId: (id: any) => void;
-  onMenuOpen: () => void;
 }
 
 export default function TubelightNavbar({
   currentView,
   setCurrentView,
   setSelectedQuoteId,
-  onMenuOpen,
 }: TubelightNavbarProps) {
   const navItems = [
     { id: 'dashboard', label: 'Painel', icon: Home, view: 'dashboard' as const },
     { id: 'quotes', label: 'Orçamentos', icon: FileText, view: 'quotes' as const },
     { id: 'create_quote', label: 'Novo', icon: Plus, view: 'create_quote' as const, isSpecial: true },
     { id: 'clients', label: 'Clientes', icon: Users, view: 'clients' as const },
-    { id: 'menu', label: 'Menu', icon: Menu, view: null, opensMenu: true },
+    { id: 'conversations', label: 'WIA', icon: Bot, view: 'conversations' as const },
   ];
 
   const handleTabClick = (item: typeof navItems[0]) => {
-    if (item.opensMenu) {
-      onMenuOpen();
-      return;
-    }
     setSelectedQuoteId(null);
     if (item.view) setCurrentView(item.view);
   };

@@ -131,7 +131,7 @@ Nenhuma das duas permite que quem chama inicie diretamente uma cobrança, descon
 
 #### Entrada WIA: contrato evolutivo
 
-A WIA nunca deve chamar o Hermes diretamente. No contrato alvo, a interface envia um envelope para a API ORKTO, que autentica o operador, normaliza anexos, registra o evento e so entao chama o HermesAdapter.
+A WIA e independente do Hermes. No contrato alvo, a interface envia um envelope para a API ORKTO, que autentica o operador, normaliza anexos e registra o evento antes de chamar um adaptador proprio do DeepSeek. Essa integracao sera implementada futuramente e suas credenciais nunca ficam no navegador.
 
 ```json
 {
@@ -144,7 +144,7 @@ A WIA nunca deve chamar o Hermes diretamente. No contrato alvo, a interface envi
 }
 ```
 
-`agent_hint` e `effort` sao preferencias, nao autorizacoes. O Policy Engine continua decidindo se a resposta vira rascunho, tarefa de aprovacao ou acao executavel. Na implementacao atual, apenas `content` e enviado; os demais campos constituem o contrato alvo.
+`agent_hint` e `effort` sao preferencias, nao autorizacoes. Na implementacao atual, a WIA e apenas uma experiencia de interface; o contrato definitivo com DeepSeek, limites de custo e regras de aprovacao ainda serao definidos.
 
 ### 4.3 Saída: sugestões e ações humanas
 

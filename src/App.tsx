@@ -25,7 +25,7 @@ import {
   Plus,
   CreditCard,
   Coins,
-  MessageSquare
+  Bot
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, SavedClient, SavedService, UserProfile } from './types';
@@ -1468,8 +1468,8 @@ export default function App() {
                           onClick={() => { setCurrentView('conversations'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'conversations' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
                         >
-                          <MessageSquare className="w-5 h-5" />
-                          <span>Conversas</span>
+                          <Bot className="w-5 h-5" />
+                          <span>WIA</span>
                         </button>
 
                         <button
@@ -1953,7 +1953,6 @@ export default function App() {
           currentView={currentView}
           setCurrentView={setCurrentView}
           setSelectedQuoteId={setSelectedQuoteId}
-          onMenuOpen={() => setIsSidebarOpen(true)}
         />
         <LiquidMorphFloatingMenu
           isOpen={isSidebarOpen}
@@ -1965,7 +1964,7 @@ export default function App() {
             { label: 'Clientes', active: currentView === 'clients', onClick: () => { setSelectedQuoteId(null); setCurrentView('clients'); } },
             { label: 'Catálogo', active: currentView === 'services', onClick: () => { setSelectedQuoteId(null); setCurrentView('services'); } },
             { label: 'Analytics', active: currentView === 'analytics', onClick: () => { setSelectedQuoteId(null); setCurrentView('analytics'); } },
-                        { label: 'Conversas', active: currentView === 'conversations', onClick: () => { setSelectedQuoteId(null); setCurrentView('conversations'); } },
+                        { label: 'WIA', active: currentView === 'conversations', onClick: () => { setSelectedQuoteId(null); setCurrentView('conversations'); } },
                         { label: 'Configurações', active: currentView === 'settings', onClick: () => { setSelectedQuoteId(null); setCurrentView('settings'); } },
             { label: 'Planos', active: currentView === 'billing', onClick: () => { setSelectedQuoteId(null); setCurrentView('billing'); } },
           ]}

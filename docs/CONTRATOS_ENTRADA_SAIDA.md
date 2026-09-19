@@ -95,7 +95,7 @@ Efeito atual: cria IDs efêmeros, executa o `HermesAdapter` mockado e devolve su
 }
 ```
 
-No estado atual, os endpoints aceitam apenas o texto. Anexos devem ser enviados antes para armazenamento privado e referenciados por ID; binarios, caminhos locais e URLs arbitrarias nao entram no envelope. A API valida workspace, MIME, tamanho, permissao e ownership. A escolha da WIA nunca ignora HermesAdapter, Policy Engine ou aprovacao exigida.
+No estado atual, este e apenas um contrato alvo. A WIA sera ligada ao DeepSeek futuramente por um adaptador proprio, sem dependencia do Hermes. Anexos deverao ser enviados antes para armazenamento privado e referenciados por ID; binarios, caminhos locais e URLs arbitrarias nao entram no envelope.
 
 Essas validações descrevem o comportamento alvo; ainda não estão implementadas no endpoint mockado.
 

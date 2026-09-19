@@ -315,10 +315,10 @@ export default function InboxPage(props: InboxPageProps) {
               <span className="text-black font-bold text-lg">O</span>
             </div>
             <div>
-              <h1 className="text-base font-bold text-white">ORKTO Inbox</h1>
+              <h1 className="text-base font-bold text-white">WIA</h1>
               <p className="text-xs text-zinc-500 flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
-                Hermes Online
+                IA em preparação
               </p>
             </div>
           </div>
@@ -420,7 +420,7 @@ export default function InboxPage(props: InboxPageProps) {
           </div>
         )}
 
-        {/* Status do Hermes */}
+        {/* Status do ambiente de demonstração da WIA */}
         <div className="p-3 border-t border-zinc-800 mt-auto">
           <div className="flex items-center gap-2 text-xs text-zinc-500">
             <Shield size={12} className="text-green-500/50" />
@@ -428,7 +428,7 @@ export default function InboxPage(props: InboxPageProps) {
           </div>
           <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
             <Bot size={12} className="text-[#FF9F1C]/50" />
-            <span>HermesAdapter: Mock v1.0.0</span>
+            <span>DeepSeek: conexão futura</span>
           </div>
         </div>
       </div>
@@ -573,7 +573,7 @@ export default function InboxPage(props: InboxPageProps) {
                       </p>
                     )}
                     <p className="text-[10px] text-zinc-600 mt-2 text-center">
-                      Modo sandbox: as mensagens são processadas pelo ORKTO (HermesAdapter mock + Policy Engine) sem envio real via WhatsApp.
+                      Modo sandbox: nenhuma mensagem real é enviada. A conexão da WIA com o DeepSeek será adicionada em uma etapa futura.
                     </p>
                   </div>
                 </>

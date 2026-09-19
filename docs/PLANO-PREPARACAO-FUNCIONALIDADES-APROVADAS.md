@@ -219,7 +219,7 @@ Cada card deve responder: **o que aconteceu, por que importa, o que o bot recome
 
 #### B.1 WIA e entrada inteligente
 
-A **WIA** e a camada conversacional da ORKTO dentro do compositor. Ela organiza a intencao do operador e encaminha o pedido ao fluxo correto; nao substitui o Hermes, o Policy Engine nem as aprovacoes humanas.
+A **WIA** e a inteligencia artificial conversacional da ORKTO. Ela sera conectada ao DeepSeek em uma fase futura, com contrato, custos e limites proprios, e nao depende do Hermes.
 
 - entrada expansivel para texto, voz transcrita e imagens;
 - escolha entre atuacao humana e bots especialistas (`Hunter`, `Orca`, `Recupera` e `Cobra`);
@@ -228,9 +228,9 @@ A **WIA** e a camada conversacional da ORKTO dentro do compositor. Ela organiza 
 - estado visivel de gravacao, envio, sucesso e erro;
 - `Enter` envia e `Shift+Enter` cria nova linha.
 
-Fluxo obrigatorio: `WIA -> API ORKTO -> HermesAdapter -> Policy Engine -> sugestao/aprovacao -> outbox`. Escolher um bot ou nivel de esforco nao concede autonomia e nunca permite envio direto ao WhatsApp.
+Fluxo alvo: `WIA -> API ORKTO -> DeepSeekAdapter -> regras da WIA -> resposta/acao aprovada`. A chave do provedor fica somente no servidor; limites de custo, auditoria e aprovacoes serao definidos antes da ativacao.
 
-Estado atual: o componente visual e o envio de texto estao integrados a Inbox. Voz, imagens e metadados de bot/esforco ainda precisam do contrato de backend, armazenamento seguro, validacao de MIME/tamanho e auditoria antes de producao.
+Estado atual: o componente visual esta integrado a Inbox. A conexao real com DeepSeek, voz persistida, imagens e metadados ainda precisam do contrato de backend, armazenamento seguro, validacao de MIME/tamanho e auditoria antes de producao.
 
 **Criterios de aceite:** navegacao por teclado, foco visivel, permissao explicita de microfone, encerramento do stream ao parar/sair, limite de anexos, validacao de arquivo, feedback de falha e preservacao do rascunho quando o backend rejeitar o envio.
 
