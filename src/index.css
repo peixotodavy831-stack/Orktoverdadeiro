@@ -1,21 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Plus Jakarta Sans", "Space Grotesk", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-brand-orange: #FF9F1C;
-  --color-brand-dark: #111111;
-  --color-brand-gray: #2B2B2B;
+  --color-brand-orange: #FF8A00;
+  --color-brand-dark: #0B0B0D;
+  --color-brand-gray: #1A1A1A;
 }
 
 @layer base {
   body {
-    @apply font-sans text-zinc-900 dark:text-zinc-50 antialiased bg-zinc-50 dark:bg-zinc-950 transition-colors duration-300;
+    @apply font-sans text-zinc-900 dark:text-zinc-50 antialiased bg-zinc-50 dark:bg-[#0B0B0D] transition-colors duration-300;
   }
 
   /* Custom Scrollbar */

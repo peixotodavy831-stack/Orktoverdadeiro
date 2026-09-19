@@ -3,13 +3,20 @@
 ## Implementado localmente
 
 - Inbox e detalhe de conversa em React.
-- API autenticada de conversas, mensagens e tarefas de aprovação.
+- Rotas mockadas de conversas, mensagens e tarefas de aprovação; autenticação e persistência real ainda não estão ligadas a essas rotas.
 - HermesAdapter mockado como contrato único no backend.
 - Policy Engine mockado para homologação.
 - Sandbox de webhook separado do endpoint real.
 - Health checks de ORKTO, Swarm e HermesAdapter.
-- Migração canônica com RLS por usuário para conversas, mensagens, aprovações e auditoria.
+- Migração local `20260918_orkto_conversations_and_messages.sql` com RLS por usuário para conversas, mensagens, aprovações e auditoria; ainda não aplicada remotamente.
+- Compositor inteligente WIA nas duas experiencias de conversa, com texto expansivel, selecao de operador/bot, nivel de esforco, imagens locais e captura de voz no navegador.
 - Build, typecheck, teste do adaptador e smoke test multiplataforma.
+
+## WIA — papel e limites atuais
+
+A WIA e a interface conversacional da ORKTO. Ela recebe a intencao do usuario e prepara o contexto para o Hermes e os bots; nao e um bot independente e nao contorna o Policy Engine.
+
+Hoje, somente o texto e encaminhado ao endpoint simulado existente. Imagens ficam em pre-visualizacao local, a voz usa a transcricao disponivel no navegador e a escolha de bot/esforco ainda nao e persistida. Esses controles ja definem a UX, mas so poderao comandar o Hermes quando o `PromptEnvelope` e o armazenamento de anexos forem implementados no backend.
 
 ## Modos de operação
 
@@ -25,6 +32,8 @@ O endpoint real de WhatsApp permanece fechado sem `WHATSAPP_WEBHOOK_SECRET`. A s
 - Aplicação da migração no projeto Supabase remoto.
 - Teste E2E com autenticação e banco reais.
 - Deploy das mudanças deste workspace.
+- Upload e envio de anexos, persistencia da transcricao e roteamento real por bot/esforco da WIA.
+- Autenticação/autorização das rotas Express da Inbox e persistência das operações no Supabase.
 
 ## Verificação local
 

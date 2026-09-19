@@ -61,15 +61,13 @@ export default function OrktoLogo({
         {/* The signature orange "O" squircle */}
         <div 
           className={`${oStyles[size]} border-brand-orange shrink-0`}
-          style={{ borderColor: '#FF9F1C' }}
+          style={{ borderColor: '#FF8A00' }}
         />
       </div>
 
       {showSlogan && !onlyO && (
         <div className={`${sloganClasses[size]} font-bold uppercase transition-all duration-300 text-center`}>
-          <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>O orçamento </span>
-          <span className="text-brand-orange" style={{ color: '#FF9F1C' }}>antes </span>
-          <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>da concorrência.</span>
+          <span className={darkMode ? "text-zinc-400" : "text-zinc-500"}>Operação com inteligência</span>
         </div>
       )}
     </div>

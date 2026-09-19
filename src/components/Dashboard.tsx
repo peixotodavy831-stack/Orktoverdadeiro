@@ -215,7 +215,7 @@ export default function Dashboard({
   const followUps = getFollowUpQuotes();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 bg-transparent text-zinc-900 dark:text-zinc-50 min-h-screen">
+    <div className="orkto-dashboard max-w-6xl mx-auto px-4 py-8 bg-transparent text-zinc-900 dark:text-zinc-50 min-h-screen">
       
       {/* Top action header */}
       <header className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-200 dark:border-zinc-800">
@@ -225,7 +225,7 @@ export default function Dashboard({
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-bold text-zinc-900 dark:text-white tracking-tight leading-none">
-                Painel Geral • <span className="text-zinc-500 dark:text-zinc-400 font-medium">{userProfile?.companyName || 'Meu Negócio'}</span>
+                Olá, {userProfile?.displayName?.split(' ')[0] || 'gestor'} <span className="text-zinc-500 dark:text-zinc-400 font-medium">— {userProfile?.companyName || 'Meu Negócio'}</span>
               </h1>
               {userProfile?.activePlan === 'pro' && (
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-sky-500/10 border border-sky-400/30 text-sky-400 text-[10px] font-extrabold uppercase rounded-full animate-pulse tracking-wide shadow-sm shadow-sky-500/10">
@@ -250,7 +250,7 @@ export default function Dashboard({
               )}
             </div>
             <p className="text-xs text-zinc-500 font-medium mt-1.5">
-              Reforçando sua velocidade comercial com estilo premium.
+              Aqui está o resumo da sua operação hoje.
             </p>
           </div>
         </div>

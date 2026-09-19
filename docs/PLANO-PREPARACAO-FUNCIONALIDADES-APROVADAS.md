@@ -217,6 +217,23 @@ Cada card deve responder: **o que aconteceu, por que importa, o que o bot recome
 - barra de Sussurro acima do compositor;
 - alternancia `Humano`, `Copiloto` e `Bot ativo`.
 
+#### B.1 WIA e entrada inteligente
+
+A **WIA** e a camada conversacional da ORKTO dentro do compositor. Ela organiza a intencao do operador e encaminha o pedido ao fluxo correto; nao substitui o Hermes, o Policy Engine nem as aprovacoes humanas.
+
+- entrada expansivel para texto, voz transcrita e imagens;
+- escolha entre atuacao humana e bots especialistas (`Hunter`, `Orca`, `Recupera` e `Cobra`);
+- nivel de esforco `Rapido`, `Equilibrado` ou `Profundo` como dica de processamento;
+- visualizacao e remocao de anexos antes do envio;
+- estado visivel de gravacao, envio, sucesso e erro;
+- `Enter` envia e `Shift+Enter` cria nova linha.
+
+Fluxo obrigatorio: `WIA -> API ORKTO -> HermesAdapter -> Policy Engine -> sugestao/aprovacao -> outbox`. Escolher um bot ou nivel de esforco nao concede autonomia e nunca permite envio direto ao WhatsApp.
+
+Estado atual: o componente visual e o envio de texto estao integrados a Inbox. Voz, imagens e metadados de bot/esforco ainda precisam do contrato de backend, armazenamento seguro, validacao de MIME/tamanho e auditoria antes de producao.
+
+**Criterios de aceite:** navegacao por teclado, foco visivel, permissao explicita de microfone, encerramento do stream ao parar/sair, limite de anexos, validacao de arquivo, feedback de falha e preservacao do rascunho quando o backend rejeitar o envio.
+
 #### C. Central de bots
 
 - cards por bot com estado: ativo, pausado, observando ou com erro;

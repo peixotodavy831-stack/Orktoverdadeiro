@@ -32,6 +32,7 @@ import {
 import { useInboxConversations, useConversation, useApprovals } from '../../hooks/useInbox';
 import { supabase } from '../../lib/supabase';
 import { Timestamp, type Conversation, type ApprovalTask, type ConversationMessage } from '../../types';
+import { PromptInput, type WiaPromptMeta } from '../ui/ai-chat-input';
 
 // ===== Sandbox Simulator =====
 // Interface separada para simular recebimento de mensagens do WhatsApp (sem WhatsApp real)
@@ -157,6 +158,7 @@ export default function InboxPage(props: InboxPageProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [replyContent, setReplyContent] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+  const [replyError, setReplyError] = useState<string | null>(null);
   const [sendingSim, setSendingSim] = useState(false);
   const [activeView, setActiveView] = useState<'inbox' | 'approvals'>('inbox');
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent' | 'riscos'>('all');
@@ -213,7 +215,7 @@ export default function InboxPage(props: InboxPageProps) {
     refetchConversation();
   };
 
-  const handleMessageReceived = useCallback(async (phone: string, content: string) => {
+  const handleMessageReceived = useCallback(async (phone: string, content: string, wia?: WiaPromptMeta) => {
     setSendingSim(true);
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
@@ -228,6 +230,13 @@ export default function InboxPage(props: InboxPageProps) {
           contactPhone: phone,
           contactName: phone,
           message: content,
+          senderType: wia ? 'human' : 'customer',
+          wia: wia ? {
+            agent: wia.agent,
+            effort: wia.effort,
+            inputMode: wia.inputMode,
+            attachmentCount: wia.attachments.length,
+          } : undefined,
         }),
       });
       if (!response.ok) throw new Error(`Falha na simulação: HTTP ${response.status}`);
@@ -256,13 +265,28 @@ export default function InboxPage(props: InboxPageProps) {
     }
   };
 
-  const handleSendReply = async () => {
-    if (!selectedConversation?.contactPhone || !replyContent.trim()) return;
+  const handleSendReply = async (contentOverride?: string, wia?: WiaPromptMeta): Promise<boolean> => {
+    const content = (contentOverride ?? replyContent).trim();
+    if (!selectedConversation?.contactPhone || !content || sendingReply) return false;
     setSendingReply(true);
-    await handleMessageReceived(selectedConversation.contactPhone, replyContent.trim());
-    setReplyContent('');
-    setSendingReply(false);
+    setReplyError(null);
+    try {
+      await handleMessageReceived(selectedConversation.contactPhone, content, wia);
+      setReplyContent('');
+      return true;
+    } catch (error) {
+      console.error('[InboxPage] reply send error:', error);
+      setReplyError('Não foi possível enviar. Sua mensagem foi preservada para tentar novamente.');
+      return false;
+    } finally {
+      setSendingReply(false);
+    }
   };
+
+  useEffect(() => {
+    setReplyContent('');
+    setReplyError(null);
+  }, [selectedConversationId]);
 
   // Auto-scroll para novas mensagens
   useEffect(() => {
@@ -534,28 +558,20 @@ export default function InboxPage(props: InboxPageProps) {
 
                   {/* Input */}
                   <div className="p-4 border-t border-zinc-800 bg-zinc-900/50">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={replyContent}
-                        onChange={e => setReplyContent(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            handleSendReply();
-                          }
-                        }}
-                        placeholder="Digite uma mensagem ou use o Sandbox para simular..."
-                        className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-[#FF9F1C] focus:ring-1 focus:ring-[#FF9F1C]/50"
-                      />
-                      <button
-                        onClick={handleSendReply}
-                        disabled={!replyContent.trim() || sendingReply}
-                        className="p-2.5 bg-[#FF9F1C] hover:bg-[#e68f1a] disabled:bg-zinc-700 disabled:text-zinc-500 text-black rounded-lg transition-colors"
-                      >
-                        {sendingReply ? <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Send size={16} />}
-                      </button>
-                    </div>
+                    <PromptInput
+                      value={replyContent}
+                      onChange={setReplyContent}
+                      onSubmit={(message, meta) => handleSendReply(message, meta)}
+                      disabled={sendingReply}
+                      status={sendingReply ? 'sending' : 'idle'}
+                      placeholder="Mensagem ou instrução para a WIA..."
+                      className="mx-auto max-w-2xl"
+                    />
+                    {replyError && (
+                      <p className="mt-2 text-center text-xs text-rose-400" role="alert">
+                        {replyError}
+                      </p>
+                    )}
                     <p className="text-[10px] text-zinc-600 mt-2 text-center">
                       Modo sandbox: as mensagens são processadas pelo ORKTO (HermesAdapter mock + Policy Engine) sem envio real via WhatsApp.
                     </p>

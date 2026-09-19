@@ -1,20 +1,20 @@
-# Arquitetura Onda 0 — Fundação e Contratos (Executável)
+# Arquitetura Onda 0 — Fundação e Contratos (Alvo)
 
 **Data:** 18/09/2026  
 **Autor:** @merces (arquiteto de software, integrações, dados e segurança)  
-**Status:** Rascunho para revisão — baseado no material orgânico já aprovado  
+**Status:** Arquitetura alvo em revisão; mocks locais cobrem apenas parte do fluxo
 **Leitores:** @gueguel, @kaka, @xoto, @hermes  
 
 ---
 
 ## 1. O que esta entrega não é
 
-- Não é o frontend da Inbox (isso é tarefa de @xoto quando a base estiver pronta).
+- Não é a descrição do frontend da Inbox, que já possui uma implementação local com WIA e dados simulados.
 - Não é a integração real com WhatsApp/Evolution API (estratégia: mockável primeiro, canal real depois).
 - Não é deploy no Supabase com credenciais (os arquivos de migração já existem como `.sql`; a execução depende de @xoto + credenciais).
 - Não é promover qualquer um dos quatro perfis locais atuais para produção (isso é decisão pendente, ver § Riscos).
 
-Esta entrega é: **o contrato que o resto do sistema pode depender já, mesmo sem a implementação pronta.**
+Esta entrega é: **o contrato alvo que orienta a implementação.** Apenas interfaces e mocks explicitamente identificados podem ser usados hoje; fila, outbox, persistência e integrações reais ainda não estão disponíveis ponta a ponta.
 
 ---
 
@@ -122,12 +122,29 @@ O evento interno tem sempre: `event_id`, `workspace_id`, `conversation_id`, `tra
 ### 4.2 Entrada: ações internas da ORKTO
 
 Rota de ingestão simulada para homologação:
-- `POST /api/orkto/whatsapp/webhook-sim` — recebe evento simulado, persiste, gera sugestão.
+- `POST /api/orkto/whatsapp/webhook-sim` — recebe evento simulado e gera uma sugestão mockada, sem persistência.
 
 Rota de ingestão real (quando o canal estiver configurado):
 - `POST /api/orkto/whatsapp/webhook` — mesma lógica, mas com assinatura e produção.
 
 Nenhuma das duas permite que quem chama inicie diretamente uma cobrança, desconto ou envio. A entrada só cria evento e conversa/mensagem. O efeito executa depois pelo caminho Hermes + Policy Engine.
+
+#### Entrada WIA: contrato evolutivo
+
+A WIA nunca deve chamar o Hermes diretamente. No contrato alvo, a interface envia um envelope para a API ORKTO, que autentica o operador, normaliza anexos, registra o evento e so entao chama o HermesAdapter.
+
+```json
+{
+  "conversation_id": "uuid",
+  "content": "texto ou transcricao",
+  "input_mode": "text | voice | mixed",
+  "agent_hint": "human | hunter | farmer | recovery | collection",
+  "effort": "fast | balanced | deep",
+  "attachment_refs": ["uuid-do-anexo"]
+}
+```
+
+`agent_hint` e `effort` sao preferencias, nao autorizacoes. O Policy Engine continua decidindo se a resposta vira rascunho, tarefa de aprovacao ou acao executavel. Na implementacao atual, apenas `content` e enviado; os demais campos constituem o contrato alvo.
 
 ### 4.3 Saída: sugestões e ações humanas
 
@@ -173,14 +190,9 @@ Contra-exemplo proibido: um bot envia direto para WhatsApp sem passar pelo outbo
 
 A partir do que já está escrito, a escolha é: **qual migração é a verdade?**
 
-O material orgânico tem três migrações relacionadas:
-1. `supabase/migrations/20260918_orkto_conversations_and_messages.sql`
-2. `supabase/migrations/20260918_orkto_agents_and_actions.sql`
-3. `supabase/migrations/20260918_orkto_swarm_foundation/001_conversations_agents_policies.sql`
+O repositório possui hoje uma migração relacionada: `supabase/migrations/20260918_orkto_conversations_and_messages.sql`. Ela cria conversas, mensagens, tarefas de aprovação e auditoria com RLS por `user_id`. Não há, no estado atual, migrações versionadas para o modelo completo de workspace, agentes, ações, outbox e dead letter descrito abaixo.
 
-O arquivo 3 é o mais completo: 18 tabelas, RLS, views, funções, triggers, includes workspaces, channel_accounts, conversations, messages, agent_definitions, agent_configs, agent_runs, agent_actions, approval_tasks, action_outbox, conversation_signals, priority_scores, mood_states, risk_scores, audit_log, feature_flags, dead_letter_events.
-
-**Decisão executável:** adotar o conjunto do arquivo 3 como esqueleto da Onda 0 e reconciliar os dois outros dele. Não manter três migrações soltas. A migração única e estendida será nomeada `20260918_01_orkto_swarm_foundation.sql` e incorporará só o que o arquivo 3 não tem e o negócio aprovou.
+**Decisão pendente:** evoluir essa migração de forma compatível ou criar uma nova migração incremental depois de fechar tenancy e ownership. Nomes de arquivos futuros não constituem entrega.
 
 O que a Onda 0 precisa na prática, já ordenado por dependência:
 - `workspaces`, `channel_accounts`
@@ -294,17 +306,17 @@ Decisões que não podem ser deixadas múm para a Fase 1:
 
 ---
 
-## 10. O que a Onda 0 entrega como contrato ja losure
+## 10. O que a Onda 0 define como contrato alvo
 
 - **Contratos de entrada:** webhook com idempotência, normalizador de eventos internos, rota simulada.
 - **Contratos de saída:** sugestão com policy_decision, tarefa de aprovação, ação no outbox, entrega com idempotency_key.
 - **Contratos internos:** HermesAdapter versionado, Policy Engine com políticas mínimas, outbox com retenção e dead-letter, audit log com correlação.
-- **Modelo de dados:** esqueleto de 18 tabelas pronto, RLS ativo, funções helper e views de inbox e aprovações.
+- **Modelo de dados:** esquema alvo descrito; localmente, apenas quatro tabelas da migração canônica estão materializadas e ainda não foram aplicadas ao Supabase remoto.
 - **Segurança:** isolamento por workspace, gate de políticas antes de efeito externo, segredos no servidor.
 - **Observabilidade:** correlação obrigatória por workspace/conversa/run/action/trace, métricas mínimas de custo/latência/resultado.
 - **Testes:** contrato mockável já, casos obrigatórios listados.
 
-Se o time aprova esse conjunto, a Onda 0 está fechada como fundação e os contratos da primeira fatia vertical estão prontos para quem implementa — @xoto code, @hermes Hermes, @gueguel regras, @kaka e o resto quando chegar.
+Se o time aprovar esse conjunto, a Onda 0 fica fechada no nível de arquitetura. A implementação continuará pendente para persistência, outbox, autenticação das rotas, Hermes remoto e canal real.
 
 ---
 

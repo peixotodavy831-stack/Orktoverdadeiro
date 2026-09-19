@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, 
-  Send, 
   CheckCircle, 
   XCircle, 
   Clock, 
@@ -34,6 +33,7 @@ import {
 } from '../../types';
 import { formatPhone, formatBRL } from '../../utils/format';
 import OrktoLogo from '../OrktoLogo';
+import { PromptInput, type WiaPromptMeta } from '../ui/ai-chat-input';
 
 // Helper function to format timestamps
 function formatTimestamp(ts: unknown): string {
@@ -136,9 +136,9 @@ export default function ConversationView({
   }, [loadConversation]);
 
   // Enviar mensagem
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || sendStatus !== 'idle') return;
+  const handleSend = async (contentOverride?: string, wia?: WiaPromptMeta): Promise<boolean> => {
+    const content = (contentOverride ?? newMessage).trim();
+    if (!content || sendStatus !== 'idle') return false;
 
     setSendStatus('sending');
     const token = (await import('../../lib/supabase').then(m => m.supabase.auth.getSession()).then(s => s.data.session?.access_token).catch(() => null)) || null;
@@ -151,22 +151,33 @@ export default function ConversationView({
       const res = await fetch(`/api/conversations/${conversationId}/send`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ content: newMessage.trim() }),
+        body: JSON.stringify({
+          content,
+          wia: wia ? {
+            agent: wia.agent,
+            effort: wia.effort,
+            inputMode: wia.inputMode,
+            attachmentCount: wia.attachments.length,
+          } : undefined,
+        }),
       });
 
       if (res.ok) {
         setSendStatus('sent');
         setNewMessage('');
         await loadConversation(); // refresh
+        return true;
       } else {
         setSendStatus('error');
+        return false;
       }
     } catch {
       setSendStatus('error');
+      return false;
+    } finally {
+      // Reset status after 3s
+      setTimeout(() => setSendStatus('idle'), 3000);
     }
-
-    // Reset status after 3s
-    setTimeout(() => setSendStatus('idle'), 3000);
   };
 
   // Aprovar / rejeitar tarefa
@@ -627,41 +638,15 @@ export default function ConversationView({
 
       {/* Barra de composição */}
       <footer className="border-t border-zinc-800/60 bg-zinc-900/50 px-4 lg:px-6 py-3 flex-shrink-0">
-        <form onSubmit={handleSend} className="flex items-center gap-3 max-w-lg">
-          {/* Indicador de quem está atuando */}
-          <div className="flex items-center gap-2 text-[10px] text-zinc-500 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />
-            <span className="font-bold uppercase tracking-wider">Humano</span>
-          </div>
-
-          <div className="flex-1 relative">
-            <textarea
-              value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
-              onFocus={() => {}}
-              placeholder="Digite sua mensagem..."
-              rows={1}
-              className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl px-4 py-2.5 pr-12 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-amber-500/50 resize-none max-h-32"
-            />
-            {sendStatus === 'sending' && (
-              <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-amber-500 animate-spin" />
-            )}
-            {sendStatus === 'sent' && (
-              <CheckCircle className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-emerald-500" />
-            )}
-            {sendStatus === 'error' && (
-              <XCircle className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-rose-500" />
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={!newMessage.trim() || sendStatus !== 'idle'}
-            className="p-2.5 bg-amber-500 hover:bg-amber-600 disabled:bg-zinc-700 disabled:text-zinc-500 text-zinc-900 rounded-xl transition-colors"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </form>
+        <PromptInput
+          value={newMessage}
+          onChange={setNewMessage}
+          onSubmit={(message, meta) => handleSend(message, meta)}
+          disabled={sendStatus === 'sending'}
+          status={sendStatus}
+          placeholder="Mensagem ou instrução para a WIA..."
+          className="mx-auto max-w-2xl"
+        />
       </footer>
     </div>
   );

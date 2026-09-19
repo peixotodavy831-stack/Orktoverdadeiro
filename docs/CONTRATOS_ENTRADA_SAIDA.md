@@ -2,7 +2,7 @@
 
 **Autor:** @merces  
 **Data:** 18/09/2026  
-**Status:** Executável — baseado em ADRs 001–007 e material orgânico
+**Status:** Contrato alvo para implementação — baseado em ADRs 001–007 e material orgânico
 
 Esta seção formaliza o que o sistema aceita, o que emite, e o que nunca faz.
 
@@ -22,7 +22,7 @@ Esta seção formaliza o que o sistema aceita, o que emite, e o que nunca faz.
 ### 1.1 Webhook de canal (simulado ou real)
 
 **Caminho:** `POST /api/orkto/whatsapp/webhook`  
-**Modo homologação:** `POST /api/orkto/whatsapp/webhook-sim`
+**Modo homologação atual:** `POST /api/orkto/whatsapp/webhook-sim` (mock, sem persistência)
 
 **Contrato recebido pelo gateway:**
 
@@ -79,10 +79,27 @@ A entrada só persiste evento e conversa/mensagem. O efeito entra depois pelo He
 ### 2.1 Ingestão de simulação
 
 `POST /api/orkto/whatsapp/webhook-sim`  
-Corpo: mensagem simulada com workspace, contato, phone e texto.  
-Efeito: persiste conversa e mensagem, gera sugestão em modo observação.
+Corpo atual: `workspaceId`, `contactName`, `contactPhone`, `message` e `senderType` opcional.
+Efeito atual: cria IDs efêmeros, executa o `HermesAdapter` mockado e devolve sugestão e tarefa de aprovação simuladas. Não persiste conversa, mensagem ou aprovação.
 
-### 2.2 Aprovação de sugestão
+### 2.2 Comando da WIA (contrato alvo)
+
+```json
+{
+  "conversation_id": "uuid",
+  "content": "mensagem ou transcricao",
+  "input_mode": "text | voice | mixed",
+  "agent_hint": "human | hunter | farmer | recovery | collection",
+  "effort": "fast | balanced | deep",
+  "attachment_refs": []
+}
+```
+
+No estado atual, os endpoints aceitam apenas o texto. Anexos devem ser enviados antes para armazenamento privado e referenciados por ID; binarios, caminhos locais e URLs arbitrarias nao entram no envelope. A API valida workspace, MIME, tamanho, permissao e ownership. A escolha da WIA nunca ignora HermesAdapter, Policy Engine ou aprovacao exigida.
+
+Essas validações descrevem o comportamento alvo; ainda não estão implementadas no endpoint mockado.
+
+### 2.3 Aprovação de sugestão
 
 ```
 POST /api/orkto/approvals/:id/approve
@@ -106,7 +123,9 @@ POST /api/orkto/approvals/:id/edit
 - se aprovado, move a ação para `action_outbox`
 - nunca envia direto do handler de aprovação
 
-### 2.3 Controle de bot
+No estado atual, essas rotas operam sobre respostas simuladas e não gravam no Supabase nem enfileiram uma ação externa.
+
+### 2.4 Controle de bot
 
 ```
 GET /api/orkto/bots

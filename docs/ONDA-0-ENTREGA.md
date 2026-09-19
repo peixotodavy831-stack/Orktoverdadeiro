@@ -2,7 +2,7 @@
 
 **Data:** 18/09/2026  
 **Worker:** gueguel  
-**Status:** Entregue
+**Status:** Entrega local parcial para homologação
 
 ## Resumo
 
@@ -23,8 +23,7 @@ Esta entrega executa o prompt mestre do swarm ORKTO, entregando a Onda 0 (funda�
    - ADR 003: Modelo de Dados para Conversas, Mensagens e Eventos
 
 3. **Migrações Supabase (supabase/migrations/)**
-   - `20260918_orkto_conversations_and_messages.sql` - Tabelas de conversas, mensagens, contatos, participantes
-   - `20260918_orkto_agents_and_actions.sql` - Tabelas de bots, execuções, ações, aprovações, auditoria
+   - `20260918_orkto_conversations_and_messages.sql` - Conversas, mensagens, aprovações e auditoria com RLS por usuário
 
 4. **Harness de testes e mocks**
    - `api/orkto-core/hermes-adapter.ts` - Mock do HermesAdapter com traces
@@ -40,7 +39,7 @@ Esta entrega executa o prompt mestre do swarm ORKTO, entregando a Onda 0 (funda�
    - GET /api/orkto/suggestions/:id - Sugestões pendentes
 
 2. **Ingestão simulada de WhatsApp**
-   - POST /api/orkto/whatsapp/webhook-sim - Recebe evento simulado, persiste, gera sugestão
+   - POST /api/orkto/whatsapp/webhook-sim - Recebe evento simulado e gera sugestão efêmera; não persiste
 
 3. **Sugestões de resposta com aprovação humana**
    - POST /api/orkto/approvals/:id/approve - Aprova sugestão
@@ -54,6 +53,12 @@ Esta entrega executa o prompt mestre do swarm ORKTO, entregando a Onda 0 (funda�
 
 5. **Painel Hoje (Command Center)**
    - GET /api/orkto/dashboard - Resumo operacional do dia
+
+6. **Frontend da Inbox e WIA**
+   - Inbox e detalhe de conversa implementados em React
+   - compositor expansivel para texto, voz, imagens, agente e nivel de esforco
+   - envio de texto conectado aos endpoints existentes
+   - voz, anexos e roteamento por agente ainda em modo de interface, sem persistencia no backend
 
 ## Como testar
 
@@ -81,10 +86,11 @@ curl http://localhost:3000/api/orkto/conversations/conv-001
 
 ## Entregas não incluídas nesta fatia
 
-- Frontend da Inbox (componentes React)
 - Ingestão bidirecional real com WhatsApp/Evolution API
 - Persistência no Supabase (requer credenciais)
 - Bots reais com conectores do Hermes
+- Autenticação/autorização das rotas Express da Inbox
+- Persistência de conversas, aprovações, estados de bots e outbox
 
 ## Riscos e decisões pendentes
 
@@ -98,7 +104,7 @@ curl http://localhost:3000/api/orkto/conversations/conv-001
 
 1. Executar migrações no Supabase
 2. Configurar credenciais e variáveis de ambiente
-3. Implementar frontend da Inbox com os componentes existentes
+3. Implementar o `PromptEnvelope` da WIA e o armazenamento seguro de anexos
 4. Conectar integração real com WhatsApp (Evolution API ou Cloud API)
 5. Configurar Hermes Adapter com gateway real
 6. Adicionar testes de contrato e E2E
@@ -113,7 +119,6 @@ docs/adrs/
 
 supabase/migrations/
   20260918_orkto_conversations_and_messages.sql  # Tabelas de conversas/mensagens
-  20260918_orkto_agents_and_actions.sql          # Tabelas de bots/ações/auditoria
 
 api/orkto-core/
   hermes-adapter.ts    # Mock HermesAdapter com traces
