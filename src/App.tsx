@@ -24,8 +24,7 @@ import {
   HeartHandshake,
   Plus,
   CreditCard,
-  Coins,
-  Bot
+  Coins
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, SavedClient, SavedService, UserProfile } from './types';
@@ -37,6 +36,7 @@ import LandingPage from './components/LandingPage';
 import OrktoLogo from './components/OrktoLogo';
 import TubelightNavbar from './components/ui/tubelight-navbar';
 import LiquidMorphFloatingMenu from './components/ui/liquid-morph-floating-menu';
+import WiaMark from './components/wia/WiaMark';
 
 // Client proposal view (public, no auth)
 import ClientProposalView from './components/ClientProposalView';
@@ -53,7 +53,7 @@ const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const BillingPage = lazy(() => import('./components/BillingPage'));
 const AnalyticsPage = lazy(() => import('./components/AnalyticsPage'));
 const QuotesPage = lazy(() => import('./components/QuotesPage'));
-const InboxPage = lazy(() => import('./components/inbox/InboxPage'));
+const WiaContactPage = lazy(() => import('./components/wia/WiaContactPage'));
 const ConversationView = lazy(() => import('./components/inbox/ConversationView'));
 
 function PageFallback() {
@@ -1468,7 +1468,7 @@ export default function App() {
                           onClick={() => { setCurrentView('conversations'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'conversations' ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
                         >
-                          <Bot className="w-5 h-5" />
+                          <WiaMark size={24} className="h-6 w-6 rounded-md" />
                           <span>WIA</span>
                         </button>
 
@@ -1895,26 +1895,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0 }}
                           >
                             <Suspense fallback={<PageFallback />}>
-                            <InboxPage
-                              conversations={conversations}
-                              approvalTasks={approvalTasks}
-                              onSelectConversation={(convId) => {
-                                setSelectedConversationId(convId);
-                                setCurrentView('conversation');
-                              }}
-                              onBack={() => {
-                                setSelectedConversationId(null);
-                                setCurrentView('conversations');
-                              }}
-                              onRefresh={async () => {
-                                const token = (await supabase.auth.getSession()).data.session?.access_token;
-                                const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
-                                const convRes = await fetch('/api/conversations', { headers: authHeaders });
-                                if (convRes.ok) setConversations(await convRes.json());
-                                const aptRes = await fetch('/api/approval-tasks', { headers: authHeaders });
-                                if (aptRes.ok) setApprovalTasks(await aptRes.json());
-                              }}
-                            />
+                            <WiaContactPage quotes={quotes} clients={clients} userProfile={userProfile} />
                             </Suspense>
                           </motion.div>
                         )}

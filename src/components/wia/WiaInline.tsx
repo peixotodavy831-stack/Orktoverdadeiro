@@ -1,4 +1,5 @@
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import WiaMark from './WiaMark';
 
 interface WiaInlineProps {
   eyebrow?: string;
@@ -21,7 +22,7 @@ export default function WiaInline({
     <section className="relative overflow-hidden rounded-2xl border border-[#FF8A00]/20 bg-[#111214] p-4 text-zinc-100 shadow-sm sm:p-5" aria-label="Recomendação da WIA">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF8A00]/10 text-[#FF8A00]"><Sparkles className="h-4 w-4" /></div>
+          <WiaMark size={40} className="h-10 w-10" />
           <div className="min-w-0">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#FF8A00]">{eyebrow}</p>
             <h2 className="mt-1 text-sm font-bold text-white">{title}</h2>
