@@ -1,17 +1,16 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-  ArrowUp,
   BarChart3,
   CheckCircle2,
   Clock3,
   MessageSquareText,
-  Paperclip,
   ShieldCheck,
   Sparkles,
   Target,
 } from 'lucide-react';
 import type { Quote, SavedClient, UserProfile } from '../../types';
 import { formatBRL } from '../../utils/format';
+import { PromptInput, type WiaPromptMeta } from '../ui/ai-chat-input';
 import WiaMark from './WiaMark';
 
 interface WiaContactPageProps {
@@ -37,7 +36,6 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const pendingQuotes = useMemo(() => quotes.filter(quote => quote.status === 'pending'), [quotes]);
   const pendingValue = useMemo(
@@ -46,7 +44,7 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
   );
   const firstName = userProfile?.displayName?.split(' ')[0] || userProfile?.companyName || 'você';
 
-  const sendMessage = (content = message) => {
+  const sendMessage = (content = message, _meta?: WiaPromptMeta) => {
     const cleanMessage = content.trim();
     if (!cleanMessage || sending) return;
 
@@ -148,28 +146,17 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
                   </button>
                 ))}
               </div>
-              <div className="flex items-end gap-2 rounded-2xl border border-zinc-700 bg-[#151618] p-2 shadow-lg focus-within:border-[#FF8A00]/60">
-                <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-zinc-500 transition-colors hover:bg-white/5 hover:text-white" aria-label="Anexar arquivo">
-                  <Paperclip className="h-4 w-4" />
-                </button>
-                <textarea
-                  ref={inputRef}
-                  value={message}
-                  onChange={event => setMessage(event.target.value)}
-                  onKeyDown={event => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                      event.preventDefault();
-                      sendMessage();
-                    }
-                  }}
-                  rows={1}
-                  placeholder="Pergunte sobre a operação ou peça uma ação..."
-                  className="min-h-10 flex-1 resize-none bg-transparent px-1 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600"
-                />
-                <button type="button" onClick={() => sendMessage()} disabled={!message.trim() || sending} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF8A00] text-black transition-all hover:bg-[#ff9d2e] disabled:cursor-not-allowed disabled:opacity-35" aria-label="Enviar mensagem">
-                  <ArrowUp className="h-5 w-5" />
-                </button>
-              </div>
+              <PromptInput
+                value={message}
+                onChange={setMessage}
+                onSubmit={(value, meta) => sendMessage(value, meta)}
+                disabled={sending}
+                status={sending ? 'sending' : 'idle'}
+                placeholder="Pergunte sobre a operação ou peça uma ação..."
+                agents={['WIA', 'Vendas', 'Recuperação', 'Cobrança']}
+                efforts={['Rápido', 'Equilibrado', 'Profundo']}
+                className="max-w-none"
+              />
               <p className="mt-2 text-center text-[10px] text-zinc-600">A WIA prepara recomendações. Ações sensíveis continuam sob seu controle.</p>
             </div>
           </div>

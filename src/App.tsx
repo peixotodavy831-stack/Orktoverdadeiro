@@ -24,7 +24,9 @@ import {
   HeartHandshake,
   Plus,
   CreditCard,
-  Coins
+  Coins,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Quote, SavedClient, SavedService, UserProfile } from './types';
@@ -357,6 +359,7 @@ export default function App() {
 
   // Sidebar controls
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Onboarding controls
   const [onboardBusinessName, setOnboardBusinessName] = useState('');
@@ -1403,27 +1406,31 @@ export default function App() {
 
       {/* Primary Sidebar Rail (desktop only) */}
       <aside className={`
-        hidden lg:static lg:flex inset-y-0 left-0 w-68 bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white flex-col z-50 lg:z-10 border-r border-zinc-200 dark:border-zinc-900/80
+        hidden lg:static lg:flex inset-y-0 left-0 ${isSidebarCollapsed ? 'w-20' : 'w-68'} bg-white dark:bg-zinc-950 text-zinc-900 dark:text-white flex-col z-50 lg:z-10 border-r border-zinc-200 dark:border-zinc-900/80 transition-[width] duration-200
       `}>
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-5">
           <div className="absolute -top-24 -left-24 w-60 h-60 bg-orange-500 rounded-full blur-[100px]" />
         </div>
 
-        <div className="p-6 relative z-10 shrink-0">
-          <div className="flex items-center justify-between mb-8">
+        <div className={`${isSidebarCollapsed ? 'p-4' : 'p-6'} relative z-10 shrink-0 transition-[padding] duration-200`}>
+          <div className={`flex items-center mb-8 ${isSidebarCollapsed ? 'flex-col gap-3' : 'justify-between'}`}>
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setCurrentView('dashboard'); setSelectedQuoteId(null); }}>
               <OrktoLogo size="sm" showSlogan={false} onlyO={true} />
             </div>
 
             <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-2 text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              type="button"
+              onClick={() => setIsSidebarCollapsed(value => !value)}
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-white"
+              aria-label={isSidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
+              title={isSidebarCollapsed ? 'Expandir menu' : 'Recolher menu'}
             >
-              <X className="w-6 h-6" />
+              {isSidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
             </button>
           </div>
 
-          <nav className="space-y-1.5 text-xs sm:text-sm font-bold">
+          <nav className={`space-y-1.5 text-xs sm:text-sm font-bold ${isSidebarCollapsed ? '[&_button]:justify-center [&_button]:px-0 [&_button>span:last-child]:hidden' : ''}`}>
+            {!isSidebarCollapsed && <p className="px-4 pb-2 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600">Operação</p>}
             <button
               onClick={() => { setCurrentView('dashboard'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'dashboard' && !selectedQuoteId ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/10' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-white'}`}
@@ -1472,6 +1479,8 @@ export default function App() {
                           <span>WIA</span>
                         </button>
 
+                        {!isSidebarCollapsed && <p className="px-4 pb-2 pt-4 text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-600">Ferramentas</p>}
+
                         <button
                           onClick={() => { setCurrentView('settings'); setSelectedQuoteId(null); setIsSidebarOpen(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === 'settings' ? 'bg-orange-500 text-white shadow-xl' : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900/40 dark:hover:text-white'}`}
@@ -1491,15 +1500,15 @@ export default function App() {
         </div>
 
         {/* User identification settings bottom bar */}
-        <div className="p-5 mt-auto relative z-10 shrink-0 border-t border-zinc-200 dark:border-zinc-900">
+        <div className={`${isSidebarCollapsed ? 'p-3' : 'p-5'} mt-auto relative z-10 shrink-0 border-t border-zinc-200 dark:border-zinc-900`}>
           {/* Custom Theme Switcher Card */}
-          <div className="mb-4 px-3 py-2.5 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-900 rounded-2xl flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Aparência</span>
+          <div className={`mb-4 bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-900 rounded-2xl flex items-center ${isSidebarCollapsed ? 'justify-center p-1.5' : 'justify-between px-3 py-2.5'}`}>
+            {!isSidebarCollapsed && <span className="text-[10px] font-extrabold text-zinc-400 uppercase tracking-wider">Aparência</span>}
             <div className="flex bg-white dark:bg-zinc-950 p-1 rounded-xl border border-zinc-200 dark:border-zinc-900">
               <button
                 type="button"
                 onClick={() => setDarkMode(false)}
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${!darkMode ? 'bg-orange-500 text-zinc-950 shadow-md scale-105' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${isSidebarCollapsed && !darkMode ? 'hidden' : ''} ${!darkMode ? 'bg-orange-500 text-zinc-950 shadow-md scale-105' : 'text-zinc-500 hover:text-zinc-300'}`}
                 title="Modo Claro"
               >
                 <Sun className="w-3.5 h-3.5" />
@@ -1507,7 +1516,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setDarkMode(true)}
-                className={`p-1.5 rounded-lg transition-all cursor-pointer ${darkMode ? 'bg-orange-500 text-zinc-950 shadow-md scale-105' : 'text-zinc-500 hover:text-zinc-300'}`}
+                className={`p-1.5 rounded-lg transition-all cursor-pointer ${isSidebarCollapsed && darkMode ? 'hidden' : ''} ${darkMode ? 'bg-orange-500 text-zinc-950 shadow-md scale-105' : 'text-zinc-500 hover:text-zinc-300'}`}
                 title="Modo Escuro"
               >
                 <Moon className="w-3.5 h-3.5" />
@@ -1515,12 +1524,12 @@ export default function App() {
             </div>
           </div>
 
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl flex items-center gap-2.5 mb-4 border border-zinc-200 dark:border-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-800 transition-all duration-300">
+          <div className={`${isSidebarCollapsed ? 'p-2 justify-center' : 'p-3'} bg-zinc-50 dark:bg-zinc-900/50 rounded-2xl flex items-center gap-2.5 mb-4 border border-zinc-200 dark:border-zinc-900/50 hover:border-zinc-300 dark:hover:border-zinc-800 transition-all duration-300`}>
             <div className="w-8 h-8 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-xs font-bold text-orange-400 font-mono">OK</div>
-            <div className="flex-1 min-w-0">
+            {!isSidebarCollapsed && <div className="flex-1 min-w-0">
               <p className="text-xs font-bold text-zinc-900 dark:text-white truncate">{userProfile?.companyName || 'Dono do Negócio'}</p>
               <p className="text-[9px] text-zinc-500 truncate font-mono">Autenticado</p>
-            </div>
+            </div>}
           </div>
 
           <button
@@ -1528,7 +1537,7 @@ export default function App() {
             className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 hover:border-red-500/40 text-red-400 hover:text-red-300 rounded-xl transition-all font-black text-xs flex items-center justify-center gap-2 shadow-sm shadow-red-950/20 active:scale-95 cursor-pointer"
           >
             <LogOutIcon className="w-4 h-4" />
-            Sair da Conta (Logout)
+            {!isSidebarCollapsed && 'Sair da Conta (Logout)'}
           </button>
         </div>
       </aside>
