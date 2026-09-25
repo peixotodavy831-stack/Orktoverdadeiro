@@ -11,6 +11,7 @@
     "build": "vite build && node scripts/render-public-url.mjs && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "test:adapter": "tsx test-adapter-simple.ts",
     "test:wiaos": "tsx --test tests/wiaos.test.ts",
+    "test:t0": "tsx --test tests/t0-tools.test.ts",
     "test:app-factory": "tsx --test tests/app-factory.test.ts",
     "test:tenancy": "tsx --test tests/tenant-context.test.ts",
     "test:smoke": "npm run build && node scripts/smoke.mjs",

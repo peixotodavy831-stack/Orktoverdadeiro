@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { ToolExecution } from './core-contracts.js';
 
 export const wiaActionSchema = z.enum([
   'answer',
@@ -40,6 +41,11 @@ export interface ModelDecisionResult {
   decision: WiaDecision;
   usage: ModelUsage;
   mode: 'live' | 'simulated';
+}
+
+export interface WiaServiceResult extends ModelDecisionResult {
+  path: 't0' | 'model';
+  toolExecutions: ToolExecution[];
 }
 
 export interface ModelProvider {

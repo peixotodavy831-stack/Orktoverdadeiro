@@ -11,6 +11,7 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import { decideWithWia } from './wiaos/wia-service.js';
+import { createT0ToolRegistry, SupabaseT0DataSource } from './wiaos/t0-tools.js';
 import {
   createOwnerTenantContext,
   requireTenantContext,
@@ -100,6 +101,7 @@ declare global {
 
 const supabase = supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null;
 const supabaseClient = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
+const wiaToolRegistry = supabase ? createT0ToolRegistry(new SupabaseT0DataSource(supabase)) : null;
 
 async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -170,20 +172,24 @@ app.post('/api/wia/decide', authenticate, async (req, res) => {
         companyName,
       },
       sourceIds,
+      ...(wiaToolRegistry ? { toolRuntime: { registry: wiaToolRegistry, context: { tenant: tenantContext, traceId } } } : {}),
     });
 
     if (supabase) {
-      await Promise.allSettled([
-        supabase.from('orkto_audit_log').insert({
+      const auditRows = [{
           user_id: userId, event_type: 'wia.decision.proposed', actor_type: 'bot', actor_id: 'wia', trace_id: traceId,
-          event_data: { action: result.decision.action, reason_code: result.decision.reasonCode, requires_approval: result.decision.requiresApproval, mode: result.mode },
-        }),
-        supabase.from('orkto_model_usage').insert({
+          event_data: { action: result.decision.action, reason_code: result.decision.reasonCode, requires_approval: result.decision.requiresApproval, mode: result.mode, path: result.path },
+        }, ...result.toolExecutions.map(execution => ({
+          user_id: userId, event_type: 'wia.tool.executed', actor_type: 'bot', actor_id: 'wia', trace_id: traceId,
+          event_data: { tool: execution.toolName, status: execution.status, duration_ms: execution.durationMs, source_ids: execution.sourceIds, error: execution.error },
+        }))];
+      const writes: Array<PromiseLike<unknown>> = [supabase.from('orkto_audit_log').insert(auditRows)];
+      if (result.path === 'model') writes.push(supabase.from('orkto_model_usage').insert({
           user_id: userId, trace_id: traceId, provider: result.usage.provider, model: result.usage.model,
           prompt_tokens: result.usage.promptTokens, completion_tokens: result.usage.completionTokens,
           total_tokens: result.usage.totalTokens, latency_ms: result.usage.latencyMs, mode: result.mode,
-        }),
-      ]);
+        }));
+      await Promise.allSettled(writes);
     }
 
     return res.json({ success: true, traceId, ...result });
