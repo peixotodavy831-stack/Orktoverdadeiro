@@ -21,6 +21,14 @@ async function request(path, init) {
   return { response, body };
 }
 
+async function expectStatus(path, expectedStatus, init) {
+  const response = await fetch(`${baseUrl}${path}`, init);
+  if (response.status !== expectedStatus) {
+    const body = await response.text();
+    throw new Error(`${path}: esperado HTTP ${expectedStatus}, recebido ${response.status} ${body}`);
+  }
+}
+
 async function waitUntilReady() {
   for (let attempt = 0; attempt < 120; attempt += 1) {
     if (serverExitCode !== null) throw new Error(`Servidor encerrou com código ${serverExitCode}. ${stderr}`);
@@ -38,9 +46,10 @@ try {
   await waitUntilReady();
   const health = await request('/api/health');
   const hermes = await request('/api/hermes/health');
-  const swarm = await request('/api/swarm/health');
-  const inbox = await request('/api/orkto/inbox');
-  const simulated = await request('/api/orkto/whatsapp/webhook-sim', {
+
+  await expectStatus('/api/swarm/health', 404);
+  await expectStatus('/api/orkto/inbox', 404);
+  await expectStatus('/api/orkto/whatsapp/webhook-sim', 404, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -51,16 +60,10 @@ try {
     }),
   });
 
-  if (hermes.body.mode !== 'mock') throw new Error('Smoke test deve executar em modo mock.');
-  if (!Array.isArray(inbox.body.conversations)) throw new Error('Inbox não retornou conversations[].');
-  if (simulated.body.simulated !== true) throw new Error('Webhook de homologação não marcou simulated=true.');
-
   console.log(JSON.stringify({
     health: health.body,
     hermes: hermes.body,
-    swarm: swarm.body,
-    inboxCount: inbox.body.conversations.length,
-    simulated: simulated.body.simulated,
+    mockRoutes: 'disabled',
   }, null, 2));
 } finally {
   server.kill('SIGTERM');

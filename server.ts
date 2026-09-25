@@ -2,13 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import apiApp from "./api/server";
-import { registerInboxRoutes } from "./api/orkto-routes";
-import { registerSwarmRoutes } from "./api/swarm-routes";
-
-// Registrar rotas do ORKTO (Onda 0 e Onda 1)
-registerInboxRoutes(apiApp);
-registerSwarmRoutes(apiApp);
+import { createApiApp } from "./api/app-factory";
 
 dotenv.config();
 
@@ -20,10 +14,14 @@ const isProduction =
 
 async function startServer() {
   const app = express();
+  const apiApp = createApiApp();
 
   // API routes MUST be before Vite middleware, otherwise Vite's SPA fallback
   // intercepts /api/* and returns index.html instead of JSON responses.
   app.use(apiApp);
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'Rota de API não encontrada.' });
+  });
 
   if (!isProduction) {
     const vite = await createViteServer({
