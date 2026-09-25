@@ -12,10 +12,10 @@ const DEMO_REVENUE = [
 ];
 
 const COPY = {
-  Formal: 'Apresentamos nossa proposta para revisão preventiva, com inspeção dos componentes, troca de filtros e testes de funcionamento.',
-  Técnico: 'Escopo da revisão preventiva: inspeção dos componentes, substituição de filtros e testes funcionais. Valor total: R$ 450,00.',
-  Criativo: 'Um novo fôlego para seu veículo: vamos conferir os componentes, renovar os filtros e testar tudo com cuidado.',
-  Comercial: 'Mantenha seu veículo em boas condições com uma revisão completa: inspeção, troca de filtros e testes, por R$ 450,00.',
+  Formal: 'Apresentamos nossa proposta para o projeto solicitado, com diagnóstico, execução e acompanhamento da entrega.',
+  Técnico: 'Escopo do projeto: diagnóstico inicial, execução do serviço e validação da entrega. Valor total: R$ 450,00.',
+  Criativo: 'Uma solução feita para o seu momento: vamos entender a necessidade, organizar as etapas e acompanhar tudo com cuidado.',
+  Comercial: 'Conte com uma entrega completa: diagnóstico, execução e acompanhamento, com condições apresentadas de forma clara.',
 };
 
 export default function DemoExperience({ initialView, onClose, onStart }: {
@@ -59,13 +59,13 @@ export default function DemoExperience({ initialView, onClose, onStart }: {
           <p className="text-xs text-zinc-500 mt-3">Dados ilustrativos. O Analytics completo está disponível nos planos Pro e Business.</p>
         </section>
         <button onClick={() => setView('proposal')} className="w-full text-left p-5 rounded-2xl bg-zinc-900 border border-zinc-700 hover:border-orange-500 flex items-center gap-4">
-          <FileText className="text-orange-400 shrink-0" /><span><strong className="block">Marina — cliente fictícia</strong><span className="text-sm text-zinc-400">Revisão preventiva · Abrir proposta →</span></span>
+          <FileText className="text-orange-400 shrink-0" /><span><strong className="block">Marina — cliente fictícia</strong><span className="text-sm text-zinc-400">Projeto comercial · Abrir proposta →</span></span>
         </button>
       </> : <article className="rounded-2xl border border-zinc-700 bg-zinc-900 p-5 sm:p-8 space-y-6">
-        <div><p className="text-orange-400 text-sm font-bold">OFICINA MODELO · #DEMO-001</p><h2 className="text-2xl font-bold mt-2">Revisão preventiva</h2><p className="text-zinc-400 mt-1">Para Marina — cliente fictícia</p></div>
+        <div><p className="text-orange-400 text-sm font-bold">EMPRESA MODELO · #DEMO-001</p><h2 className="text-2xl font-bold mt-2">Projeto comercial</h2><p className="text-zinc-400 mt-1">Para Marina — cliente fictícia</p></div>
         <fieldset><legend className="text-sm text-zinc-400 mb-3">Experimente os tons de comunicação — sem IA</legend><div className="flex flex-wrap gap-2">{(Object.keys(COPY) as (keyof typeof COPY)[]).map(item => <button key={item} aria-pressed={tone === item} onClick={() => setTone(item)} className={`min-h-11 px-3 rounded-xl text-sm ${tone === item ? 'bg-orange-400 text-zinc-950' : 'bg-zinc-800 text-zinc-200'}`}>{item}</button>)}</div></fieldset>
         <p aria-live="polite" className="leading-relaxed text-zinc-200">{COPY[tone]}</p>
-        <dl className="space-y-3 border-y border-zinc-700 py-4"><div className="flex justify-between gap-4"><dt>Inspeção e testes</dt><dd>R$ 250,00</dd></div><div className="flex justify-between gap-4"><dt>Troca de filtros</dt><dd>R$ 200,00</dd></div><div className="flex justify-between gap-4 text-xl font-bold"><dt>Total</dt><dd>R$ 450,00</dd></div></dl>
+        <dl className="space-y-3 border-y border-zinc-700 py-4"><div className="flex justify-between gap-4"><dt>Diagnóstico e planejamento</dt><dd>R$ 250,00</dd></div><div className="flex justify-between gap-4"><dt>Execução e acompanhamento</dt><dd>R$ 200,00</dd></div><div className="flex justify-between gap-4 text-xl font-bold"><dt>Total</dt><dd>R$ 450,00</dd></div></dl>
         <p className="text-sm text-zinc-400">Condições ilustrativas: pagamento na conclusão. Prazo: 1 dia útil. Validade: 7 dias.</p>
         <button onClick={() => setApproved(value => !value)} className="w-full min-h-12 px-4 py-3 rounded-xl bg-emerald-500 text-zinc-950 font-bold">{approved ? 'Desfazer simulação' : 'Simular aprovação'}</button>
         {approved && <p role="status" className="flex items-center gap-2 text-emerald-400"><CheckCircle2 size={20} /> Aprovação simulada. Nenhuma proposta real foi alterada.</p>}

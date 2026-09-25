@@ -10,6 +10,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
+import { decideWithWia } from './wiaos/wia-service.js';
 
 dotenv.config();
 
@@ -124,6 +125,61 @@ const profileSchema = z.object({
   profession: z.string().max(100).optional(),
   brand_name: z.string().max(160).optional(),
   brand_tone: z.enum(['formal', 'técnico', 'comercial', 'criativo']).optional(),
+});
+
+const wiaRequestSchema = z.object({
+  message: z.string().trim().min(1).max(4000),
+});
+
+app.post('/api/wia/decide', authenticate, async (req, res) => {
+  const parsed = wiaRequestSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Mensagem inválida.' });
+
+  const userId = req.user!.id;
+  const traceId = crypto.randomUUID();
+  try {
+    let quotes: Array<{ id: string; total: number | string | null }> = [];
+    let companyName: string | undefined;
+    if (supabase) {
+      const [quotesResult, profileResult] = await Promise.all([
+        supabase.from('quotes').select('id,total').eq('user_id', userId).in('status', ['pending', 'sent', 'viewed']).limit(30),
+        supabase.from('profiles').select('company_name').eq('id', userId).maybeSingle(),
+      ]);
+      if (!quotesResult.error) quotes = quotesResult.data || [];
+      companyName = profileResult.data?.company_name || undefined;
+    }
+
+    const sourceIds = quotes.map(quote => `quote:${quote.id}`);
+    const result = await decideWithWia({
+      message: parsed.data.message,
+      context: {
+        openQuotes: quotes.length,
+        pendingValue: quotes.reduce((sum, quote) => sum + Number(quote.total || 0), 0),
+        clients: 0,
+        companyName,
+      },
+      sourceIds,
+    });
+
+    if (supabase) {
+      await Promise.allSettled([
+        supabase.from('orkto_audit_log').insert({
+          user_id: userId, event_type: 'wia.decision.proposed', actor_type: 'bot', actor_id: 'wia', trace_id: traceId,
+          event_data: { action: result.decision.action, reason_code: result.decision.reasonCode, requires_approval: result.decision.requiresApproval, mode: result.mode },
+        }),
+        supabase.from('orkto_model_usage').insert({
+          user_id: userId, trace_id: traceId, provider: result.usage.provider, model: result.usage.model,
+          prompt_tokens: result.usage.promptTokens, completion_tokens: result.usage.completionTokens,
+          total_tokens: result.usage.totalTokens, latency_ms: result.usage.latencyMs, mode: result.mode,
+        }),
+      ]);
+    }
+
+    return res.json({ success: true, traceId, ...result });
+  } catch (error) {
+    console.error('[WiaOS] falha ao decidir:', error instanceof Error ? error.message : 'erro desconhecido');
+    return res.status(503).json({ error: 'A WIA não conseguiu preparar uma resposta agora. Nenhuma ação foi executada.', traceId });
+  }
 });
 
 app.put('/api/profile', authenticate, async (req, res) => {

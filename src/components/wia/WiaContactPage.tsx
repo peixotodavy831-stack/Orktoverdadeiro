@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import type { Quote, SavedClient, UserProfile } from '../../types';
 import { formatBRL } from '../../utils/format';
+import { supabase } from '../../lib/supabase';
 import { PromptInput, type WiaPromptMeta } from '../ui/ai-chat-input';
 import WiaMark from './WiaMark';
 
@@ -23,6 +24,22 @@ interface ChatMessage {
   id: number;
   role: 'wia' | 'user';
   content: string;
+  mode?: 'live' | 'simulated';
+  requiresApproval?: boolean;
+  sourceCount?: number;
+  reasonCode?: string;
+}
+
+interface WiaApiResponse {
+  success: boolean;
+  mode: 'live' | 'simulated';
+  decision: {
+    messageDraft: string;
+    sourceIds: string[];
+    requiresApproval: boolean;
+    reasonCode: string;
+  };
+  error?: string;
 }
 
 const suggestions = [
@@ -44,7 +61,7 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
   );
   const firstName = userProfile?.displayName?.split(' ')[0] || userProfile?.companyName || 'você';
 
-  const sendMessage = (content = message, _meta?: WiaPromptMeta) => {
+  const sendMessage = async (content = message, _meta?: WiaPromptMeta) => {
     const cleanMessage = content.trim();
     if (!cleanMessage || sending) return;
 
@@ -52,19 +69,42 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
     setMessage('');
     setSending(true);
 
-    window.setTimeout(() => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente para falar com a WIA.');
+      const response = await fetch('/api/wia/decide', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: cleanMessage }),
+      });
+      const payload = await response.json() as WiaApiResponse;
+      if (!response.ok || !payload.success) throw new Error(payload.error || 'A WIA não conseguiu responder agora.');
       setMessages(current => [
         ...current,
         {
           id: Date.now() + 1,
           role: 'wia',
-          content: pendingQuotes.length
-            ? `Encontrei ${pendingQuotes.length} orçamento${pendingQuotes.length === 1 ? '' : 's'} aguardando decisão, somando ${formatBRL(pendingValue)}. Posso organizar a prioridade e preparar os próximos contatos para sua revisão.`
-            : 'A operação está sem orçamentos pendentes nos dados disponíveis. Posso ajudar a revisar clientes, oportunidades ou preparar uma próxima ação.',
+          content: payload.decision.messageDraft,
+          mode: payload.mode,
+          requiresApproval: payload.decision.requiresApproval,
+          sourceCount: payload.decision.sourceIds.length,
+          reasonCode: payload.decision.reasonCode,
         },
       ]);
+    } catch (error) {
+      setMessages(current => [...current, {
+        id: Date.now() + 1,
+        role: 'wia',
+        content: error instanceof Error ? error.message : 'A WIA não conseguiu responder agora. Nenhuma ação foi executada.',
+        mode: 'simulated',
+        reasonCode: 'request_failed',
+      }]);
+    } finally {
       setSending(false);
-    }, 650);
+    }
   };
 
   return (
@@ -121,7 +161,18 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
                 <div key={chatMessage.id} className={`flex items-start gap-3 ${chatMessage.role === 'user' ? 'justify-end' : ''}`}>
                   {chatMessage.role === 'wia' && <WiaMark size={38} className="h-9 w-9" />}
                   <div className={`max-w-2xl rounded-2xl px-4 py-3 text-sm leading-6 ${chatMessage.role === 'user' ? 'rounded-tr-md bg-zinc-800 text-white' : 'rounded-tl-md border border-zinc-800 bg-[#141517] text-zinc-200'}`}>
-                    {chatMessage.content}
+                    <p>{chatMessage.content}</p>
+                    {chatMessage.role === 'wia' && chatMessage.mode && (
+                      <div className="mt-3 flex flex-wrap gap-2 border-t border-zinc-800 pt-3 text-[10px] leading-none">
+                        <span className={`rounded-full border px-2 py-1 ${chatMessage.mode === 'live' ? 'border-emerald-500/25 text-emerald-400' : 'border-zinc-700 text-zinc-500'}`}>
+                          {chatMessage.mode === 'live' ? 'DeepSeek ativo' : 'Modo seguro simulado'}
+                        </span>
+                        <span className="rounded-full border border-zinc-700 px-2 py-1 text-zinc-500">
+                          {chatMessage.sourceCount || 0} fonte{chatMessage.sourceCount === 1 ? '' : 's'} verificada{chatMessage.sourceCount === 1 ? '' : 's'}
+                        </span>
+                        {chatMessage.requiresApproval && <span className="rounded-full border border-[#FF8A00]/25 px-2 py-1 text-[#FF8A00]">Requer aprovação</span>}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -153,8 +204,8 @@ export default function WiaContactPage({ quotes, clients, userProfile }: WiaCont
                 disabled={sending}
                 status={sending ? 'sending' : 'idle'}
                 placeholder="Pergunte sobre a operação ou peça uma ação..."
-                agents={['WIA', 'Vendas', 'Recuperação', 'Cobrança']}
-                efforts={['Rápido', 'Equilibrado', 'Profundo']}
+                agents={['WIA']}
+                efforts={['Equilibrado']}
                 className="max-w-none"
               />
               <p className="mt-2 text-center text-[10px] text-zinc-600">A WIA prepara recomendações. Ações sensíveis continuam sob seu controle.</p>
