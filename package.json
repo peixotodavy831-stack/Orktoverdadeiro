@@ -12,6 +12,7 @@
     "test:adapter": "tsx test-adapter-simple.ts",
     "test:wiaos": "tsx --test tests/wiaos.test.ts",
     "test:app-factory": "tsx --test tests/app-factory.test.ts",
+    "test:tenancy": "tsx --test tests/tenant-context.test.ts",
     "test:smoke": "npm run build && node scripts/smoke.mjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist",

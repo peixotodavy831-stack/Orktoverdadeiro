@@ -11,6 +11,12 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import crypto from "crypto";
 import { decideWithWia } from './wiaos/wia-service.js';
+import {
+  createOwnerTenantContext,
+  requireTenantContext,
+  resolveWebhookTenantContext,
+  type TenantContext,
+} from './tenancy/tenant-context.js';
 
 dotenv.config();
 
@@ -85,7 +91,10 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 // Tipos auxiliares para corrigir lint estrito
 declare global {
   namespace Express {
-    interface Request { user?: { id: string; email?: string } }
+    interface Request {
+      user?: { id: string; email?: string };
+      tenantContext?: TenantContext;
+    }
   }
 }
 
@@ -106,6 +115,7 @@ async function authenticate(req, res, next) {
     return res.status(401).json({ error: 'Sessão expirada. Faça login novamente.' });
   }
   req.user = user;
+  req.tenantContext = createOwnerTenantContext(user.id);
   next();
 }
 
@@ -135,14 +145,15 @@ app.post('/api/wia/decide', authenticate, async (req, res) => {
   const parsed = wiaRequestSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'Mensagem inválida.' });
 
-  const userId = req.user!.id;
+  const tenantContext = requireTenantContext(req);
+  const userId = tenantContext.tenantId;
   const traceId = crypto.randomUUID();
   try {
     let quotes: Array<{ id: string; total: number | string | null }> = [];
     let companyName: string | undefined;
     if (supabase) {
       const [quotesResult, profileResult] = await Promise.all([
-        supabase.from('quotes').select('id,total').eq('user_id', userId).in('status', ['pending', 'sent', 'viewed']).limit(30),
+        supabase.from('quotes').select('id,total').eq('user_id', tenantContext.tenantId).in('status', ['pending', 'sent', 'viewed']).limit(30),
         supabase.from('profiles').select('company_name').eq('id', userId).maybeSingle(),
       ]);
       if (!quotesResult.error) quotes = quotesResult.data || [];
@@ -191,7 +202,7 @@ app.put('/api/profile', authenticate, async (req, res) => {
   try {
     const payload = Object.fromEntries(Object.entries(parsed.data).filter(([, value]) => value !== undefined));
     const { data, error } = await supabase.from('profiles').upsert({
-      id: req.user!.id,
+      id: requireTenantContext(req).tenantId,
       ...payload,
     }, { onConflict: 'id' }).select('id').single();
     if (error) throw error;
@@ -281,7 +292,8 @@ if (supabase && supabaseClient) {
     try {
       const offset = Math.max(0, Number.parseInt(String(req.query.offset || '0'), 10) || 0);
       const limit = Math.min(500, Math.max(1, Number.parseInt(String(req.query.limit || '250'), 10) || 250));
-      const { data, error } = await supabase.from('quotes').select().eq('user_id', req.user.id).or(`retention_expires_at.is.null,retention_expires_at.gt.${new Date().toISOString()}`).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+      const tenantContext = requireTenantContext(req);
+      const { data, error } = await supabase.from('quotes').select().eq('user_id', tenantContext.tenantId).or(`retention_expires_at.is.null,retention_expires_at.gt.${new Date().toISOString()}`).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
       if (error) throw error;
       res.json(data);
     } catch (error) {
@@ -293,7 +305,7 @@ if (supabase && supabaseClient) {
   app.post("/api/quotes", authenticate, async (req, res) => {
     try {
       const body = req.body;
-      const userId = req.user.id;
+      const userId = requireTenantContext(req).tenantId;
 
       // Verificar limite do plano (Starter: 5 propostas ativas)
       const { data: profile } = await supabase.from('profiles').select('active_plan').eq('id', userId).maybeSingle();
@@ -340,7 +352,8 @@ if (supabase && supabaseClient) {
   app.get("/api/quotes/detail/:quoteId", authenticate, async (req, res) => {
     try {
       const { quoteId } = req.params;
-      const { data, error } = await supabase.from('quotes').select().eq('id', quoteId).eq('user_id', req.user.id).maybeSingle();
+      const tenantContext = requireTenantContext(req);
+      const { data, error } = await supabase.from('quotes').select().eq('id', quoteId).eq('user_id', tenantContext.tenantId).maybeSingle();
       if (error || !data) return res.status(404).json({ error: 'Orçamento não encontrado' });
       if (data.retention_expires_at && new Date(data.retention_expires_at).getTime() <= Date.now()) return res.status(410).json({ error: 'Orçamento expirado e indisponível.' });
       res.json(data);
@@ -353,7 +366,8 @@ if (supabase && supabaseClient) {
   app.put("/api/quotes/:quoteId", authenticate, async (req, res) => {
     try {
       const { quoteId } = req.params;
-      const { data: existing } = await supabase.from('quotes').select('user_id, items, taxes').eq('id', quoteId).eq('user_id', req.user.id).maybeSingle();
+      const tenantContext = requireTenantContext(req);
+      const { data: existing } = await supabase.from('quotes').select('user_id, items, taxes').eq('id', quoteId).eq('user_id', tenantContext.tenantId).maybeSingle();
       if (!existing) return res.status(404).json({ error: 'Orçamento não encontrado' });
       const updates: Record<string, any> = {};
       const body = req.body;
@@ -370,7 +384,7 @@ if (supabase && supabaseClient) {
       }
       if (Object.keys(updates).length === 0) return res.status(400).json({ error: 'Nenhum campo válido para atualização' });
       updates.updated_at = new Date().toISOString();
-      const { data, error } = await supabase.from('quotes').update(updates).eq('id', quoteId).eq('user_id', req.user.id).select();
+      const { data, error } = await supabase.from('quotes').update(updates).eq('id', quoteId).eq('user_id', tenantContext.tenantId).select();
       if (error) throw error;
       res.json(data?.[0]);
     } catch (error) {
@@ -382,9 +396,10 @@ if (supabase && supabaseClient) {
   app.delete("/api/quotes/:quoteId", authenticate, async (req, res) => {
     try {
       const { quoteId } = req.params;
-      const { data: existing } = await supabase.from('quotes').select('user_id').eq('id', quoteId).eq('user_id', req.user.id).maybeSingle();
+      const tenantContext = requireTenantContext(req);
+      const { data: existing } = await supabase.from('quotes').select('user_id').eq('id', quoteId).eq('user_id', tenantContext.tenantId).maybeSingle();
       if (!existing) return res.status(404).json({ error: 'Orçamento não encontrado' });
-      const { error } = await supabase.from('quotes').delete().eq('id', quoteId).eq('user_id', req.user.id);
+      const { error } = await supabase.from('quotes').delete().eq('id', quoteId).eq('user_id', tenantContext.tenantId);
       if (error) throw error;
       res.json({ success: true });
     } catch (error) {
@@ -672,7 +687,7 @@ function publicAppUrl(req) {
 
 app.post("/api/asaas/checkout", authenticate, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = requireTenantContext(req).tenantId;
     const { plan } = req.body;
     if (!['pro', 'business'].includes(plan)) return res.status(400).json({ error: "Plano inválido" });
     const apiKey = getAsaasApiKey();
@@ -859,21 +874,21 @@ function generateSlug(): string {
 app.post('/api/quotes/:quoteId/extend', authenticate, async (req, res) => {
   if (!supabase) return res.status(503).json({ error: 'Banco indisponível' });
   if (!z.string().datetime({ offset: true }).safeParse(req.body.expectedExpiry).success) return res.status(400).json({ error: 'Atualize o orçamento antes de prorrogar.' });
-  const { data, error } = await supabase.rpc('extend_quote_retention', { p_quote_id: req.params.quoteId, p_user_id: req.user.id, p_expected_expiry: req.body.expectedExpiry });
+  const { data, error } = await supabase.rpc('extend_quote_retention', { p_quote_id: req.params.quoteId, p_user_id: requireTenantContext(req).tenantId, p_expected_expiry: req.body.expectedExpiry });
   if (error) return res.status(400).json({ error: error.message });
   res.json({ expiresAt: data });
 });
 
 app.post("/api/proposal/generate", authenticate, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const tenantContext = requireTenantContext(req);
+    const userId = tenantContext.tenantId;
     const { quoteId } = req.body;
     if (!quoteId) return res.status(400).json({ error: "quoteId required" });
     if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
 
-    const { data: quote, error: qErr } = await supabase.from('quotes').select('id, user_id').eq('id', quoteId).single();
+    const { data: quote, error: qErr } = await supabase.from('quotes').select('id, user_id').eq('id', quoteId).eq('user_id', tenantContext.tenantId).maybeSingle();
     if (qErr || !quote) return res.status(404).json({ error: "Orçamento não encontrado" });
-    if (quote.user_id !== userId) return res.status(403).json({ error: "Acesso negado" });
 
     await supabase.from('proposals').update({ is_active: false }).eq('quote_id', quoteId).eq('user_id', userId);
 
@@ -894,7 +909,7 @@ app.post("/api/proposal/generate", authenticate, async (req, res) => {
 
     if (pErr) throw pErr;
 
-    await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', quoteId);
+    await supabase.from('quotes').update({ status: 'sent', sent_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', quoteId).eq('user_id', userId);
 
     const requestOrigin = `${req.protocol}://${req.get('host')}`;
     const baseUrl = process.env.VERCEL_ENV === 'production'
@@ -927,20 +942,21 @@ app.post("/api/quotes/:quoteId/email", authenticate, async (req, res) => {
 
   try {
     const { quoteId, to, subject, message } = parsed.data;
+    const tenantContext = requireTenantContext(req);
     const { data: quote, error: quoteError } = await supabase.from('quotes')
       .select('id, retention_expires_at, quote_number, client_name, client_vehicle_or_service, items, subtotal, discount_total, total, profiles!inner(company_name, company_logo, email, quote_color)')
       .eq('id', quoteId)
-      .eq('user_id', req.user.id)
+      .eq('user_id', tenantContext.tenantId)
       .maybeSingle();
     if (quoteError || !quote) return res.status(404).json({ error: 'Orçamento não encontrado.' });
 
-    await supabase.from('proposals').update({ is_active: false }).eq('quote_id', quoteId).eq('user_id', req.user.id);
+    await supabase.from('proposals').update({ is_active: false }).eq('quote_id', quoteId).eq('user_id', tenantContext.tenantId);
     const slug = generateSlug();
     const expiresAt = quote.retention_expires_at || new Date(Date.now() + 14 * 86400000).toISOString();
     const { error: proposalError } = await supabase.from('proposals').insert([{
       slug,
       quote_id: quoteId,
-      user_id: req.user.id,
+      user_id: tenantContext.tenantId,
       expires_at: expiresAt,
       is_active: true,
     }]);
@@ -950,7 +966,7 @@ app.post("/api/quotes/:quoteId/email", authenticate, async (req, res) => {
       status: 'sent',
       sent_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-    }).eq('id', quoteId).eq('user_id', req.user.id);
+    }).eq('id', quoteId).eq('user_id', tenantContext.tenantId);
 
     const requestOrigin = `${req.protocol}://${req.get('host')}`;
     const baseUrl = process.env.VERCEL_ENV === 'production' ? (process.env.APP_URL || requestOrigin) : requestOrigin;
@@ -1034,17 +1050,16 @@ app.post("/api/proposal/:slug/viewed", async (req, res) => {
 
 app.post("/api/proposal/:slug/refresh", authenticate, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = requireTenantContext(req).tenantId;
     const { slug } = req.params;
     if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
 
     const { data: proposal } = await supabase.from('proposals')
-      .select('id, user_id, quote_id').eq('slug', slug).maybeSingle();
+      .select('id, user_id, quote_id').eq('slug', slug).eq('user_id', userId).maybeSingle();
     if (!proposal) return res.status(404).json({ error: "Proposta não encontrada" });
-    if (proposal.user_id !== userId) return res.status(403).json({ error: "Acesso negado" });
 
     // Invalidar antiga
-    await supabase.from('proposals').update({ is_active: false }).eq('id', proposal.id);
+    await supabase.from('proposals').update({ is_active: false }).eq('id', proposal.id).eq('user_id', userId);
 
     // Gerar novo slug
     let newSlug = generateSlug();
@@ -1136,7 +1151,7 @@ function suggestResponse(content: string): string {
 // GET /api/conversations
 app.get("/api/conversations", authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = requireTenantContext(req).tenantId;
     let conversations: any[] = [];
 
     if (supabase) {
@@ -1197,7 +1212,7 @@ app.get("/api/conversations", authenticate, async (req, res) => {
 // GET /api/conversations/:id
 app.get("/api/conversations/:conversationId", authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = requireTenantContext(req).tenantId;
     const { conversationId } = req.params;
 
     let conversation: any = null;
@@ -1254,7 +1269,7 @@ app.get("/api/conversations/:conversationId", authenticate, async (req, res) => 
 // GET /api/approval-tasks
 app.get("/api/approval-tasks", authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = requireTenantContext(req).tenantId;
     let tasks: any[] = [];
 
     if (supabase) {
@@ -1262,9 +1277,10 @@ app.get("/api/approval-tasks", authenticate, async (req, res) => {
         .from('orkto_approval_tasks')
         .select('*, orkto_conversations!inner(id, user_id)')
         .eq('status', 'pending')
+        .eq('orkto_conversations.user_id', userId)
         .order('created_at', { ascending: true });
       if (error) throw error;
-      tasks = (data || []).filter((t: any) => t.orkto_conversations?.user_id === userId);
+      tasks = data || [];
     } else {
       tasks = approvalTasksMem
         .filter(t => t.status === 'pending' && conversationsMem.some(c => c.id === t.conversation_id && c.user_id === userId))
@@ -1291,8 +1307,13 @@ app.post("/api/whatsapp/webhook", async (req, res) => {
       return res.status(401).json({ error: 'Assinatura do webhook inválida.' });
     }
 
+    const tenantContext = resolveWebhookTenantContext(process.env);
+    if (!tenantContext) {
+      return res.status(503).json({ error: 'Webhook sem tenant configurado. Defina WHATSAPP_TENANT_ID.' });
+    }
+
     const body = req.body;
-    const userId = req.user?.id || 'demo-user';
+    const userId = tenantContext.tenantId;
     const senderNumber = body.sender_number || body.from || '';
     const content = body.content || body.text || body.message || '';
 
@@ -1408,7 +1429,8 @@ app.post("/api/whatsapp/webhook", async (req, res) => {
 // POST /api/approval-tasks/:id/approve
 app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const tenantContext = requireTenantContext(req);
+    const userId = tenantContext.tenantId;
     const { taskId } = req.params;
     const { reason } = req.body;
 
@@ -1421,6 +1443,7 @@ app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) =
         .select('*, orkto_conversations!inner(*)')
         .eq('id', taskId)
         .eq('status', 'pending')
+        .eq('orkto_conversations.user_id', userId)
         .maybeSingle();
       if (tErr) throw tErr;
       task = tData;
@@ -1433,9 +1456,9 @@ app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) =
       await supabase.from('orkto_approval_tasks').update({
         status: 'approved',
         decided_at: new Date().toISOString(),
-        decided_by: userId,
+        decided_by: tenantContext.userId,
         decision_reason: reason || '',
-      }).eq('id', taskId);
+      }).eq('id', taskId).eq('conversation_id', conversation.id);
 
       await supabase.from('orkto_messages').insert({
         conversation_id: task.conversation_id,
@@ -1449,7 +1472,7 @@ app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) =
       await supabase.from('orkto_conversations').update({
         updated_at: new Date().toISOString(),
         last_message_at: new Date().toISOString(),
-      }).eq('id', task.conversation_id);
+      }).eq('id', task.conversation_id).eq('user_id', userId);
     } else {
       const idx = approvalTasksMem.findIndex(t => t.id === taskId && t.status === 'pending');
       if (idx === -1) return res.status(404).json({ error: 'Tarefa não encontrada' });
@@ -1493,7 +1516,8 @@ app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) =
 // POST /api/approval-tasks/:id/reject
 app.post("/api/approval-tasks/:taskId/reject", authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const tenantContext = requireTenantContext(req);
+    const userId = tenantContext.tenantId;
     const { taskId } = req.params;
     const { reason } = req.body;
 
@@ -1506,6 +1530,7 @@ app.post("/api/approval-tasks/:taskId/reject", authenticate, async (req, res) =>
         .select('*, orkto_conversations!inner(*)')
         .eq('id', taskId)
         .eq('status', 'pending')
+        .eq('orkto_conversations.user_id', userId)
         .maybeSingle();
       if (tErr) throw tErr;
       task = tData;
@@ -1518,9 +1543,9 @@ app.post("/api/approval-tasks/:taskId/reject", authenticate, async (req, res) =>
       await supabase.from('orkto_approval_tasks').update({
         status: 'rejected',
         decided_at: new Date().toISOString(),
-        decided_by: userId,
+        decided_by: tenantContext.userId,
         decision_reason: reason || 'Rejeitado pelo operador',
-      }).eq('id', taskId);
+      }).eq('id', taskId).eq('conversation_id', conversation.id);
     } else {
       const idx = approvalTasksMem.findIndex(t => t.id === taskId && t.status === 'pending');
       if (idx === -1) return res.status(404).json({ error: 'Tarefa não encontrada' });
@@ -1551,7 +1576,7 @@ app.post("/api/approval-tasks/:taskId/reject", authenticate, async (req, res) =>
 // POST /api/conversations/:id/send
 app.post("/api/conversations/:conversationId/send", authenticate, async (req, res) => {
   try {
-    const userId = req.user!.id;
+    const userId = requireTenantContext(req).tenantId;
     const { conversationId } = req.params;
     const { content } = req.body;
 
@@ -1588,7 +1613,7 @@ app.post("/api/conversations/:conversationId/send", authenticate, async (req, re
       await supabase.from('orkto_conversations').update({
         updated_at: new Date().toISOString(),
         last_message_at: new Date().toISOString(),
-      }).eq('id', conversationId);
+      }).eq('id', conversationId).eq('user_id', userId);
     } else {
       conversation = conversationsMem.find(c => c.id === conversationId && c.user_id === userId);
 
