@@ -6,13 +6,13 @@ interface WiaMarkProps {
 export default function WiaMark({ className = '', size = 28 }: WiaMarkProps) {
   return (
     <span
-      className={`inline-flex shrink-0 overflow-hidden rounded-md bg-black ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-black/20 ${className}`}
       style={{ width: size, height: size }}
     >
       <img
-        src="/wia-symbol.jpg"
-        alt="Símbolo da WIA"
-        className="h-full w-full scale-[1.62] object-cover brightness-[3] contrast-110"
+        src="/wia-monogram.png"
+        alt="Monograma WIA"
+        className="h-full w-full scale-[1.72] object-contain brightness-[4.25] contrast-125"
       />
     </span>
   );
