@@ -1543,7 +1543,7 @@ export default function App() {
       </aside>
 
       {/* Main Content Workspace viewport */}
-      <main className="flex-1 overflow-y-auto relative w-full">
+      <main className="relative flex-1 min-w-0 overflow-x-hidden overflow-y-auto w-full">
         {/* Mobile top structural Navigation */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-30 text-zinc-900 dark:text-white">
           <div className="flex items-center gap-2">
@@ -1581,7 +1581,7 @@ export default function App() {
         </div>
 
         {/* Router Render with beautiful transitions */}
-        <div className="w-full relative pb-28 lg:pb-0">
+        <div className="relative w-full min-w-0 pb-28 lg:pb-0">
           <AnimatePresence mode="wait">
             {currentView === 'dashboard' && !selectedQuoteId && (
               <motion.div
@@ -1904,7 +1904,7 @@ export default function App() {
                             animate={{ opacity: 1, y: 0 }}
                           >
                             <Suspense fallback={<PageFallback />}>
-                            <WiaContactPage quotes={quotes} clients={clients} userProfile={userProfile} />
+                            <WiaContactPage userProfile={userProfile} />
                             </Suspense>
                           </motion.div>
                         )}

@@ -254,7 +254,7 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(fu
             </button>
           ) : (
             <>
-              <div className="flex items-center gap-2 px-4 pt-3 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-500">
+              <div className="flex flex-wrap items-center gap-2 px-4 pt-3 text-[9px] font-bold uppercase tracking-[0.18em] text-zinc-500">
                 <Sparkles className="h-3.5 w-3.5 text-[#FF8A00]" />
                 <span>WIA ativa</span>
                 <span className="h-1 w-1 rounded-full bg-emerald-400" />
@@ -271,16 +271,16 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(fu
                 placeholder={placeholder}
                 disabled={disabled || recording}
                 rows={1}
-                className="block min-h-16 w-full resize-none bg-transparent px-4 pb-12 pt-2 text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-600 disabled:opacity-60"
+                className="block min-h-20 w-full resize-none bg-transparent px-4 pb-16 pt-2 text-sm leading-6 text-zinc-100 outline-none placeholder:text-zinc-500 disabled:opacity-60"
                 aria-label="Mensagem para a WIA"
               />
             </>
           )}
 
           {expanded && (
-            <div className="absolute bottom-2 left-2 right-2 flex h-8 items-center gap-1">
+            <div className="absolute bottom-2 left-2 right-2 flex h-11 items-center gap-1">
               <div className="relative">
-                <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => setAgentMenuOpen(open => !open)} className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-white">
+                <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => setAgentMenuOpen(open => !open)} className="flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-white">
                   <Bot className="h-3.5 w-3.5 text-[#FF8A00]" /> <MorphingText text={agent} />
                 </button>
                 {agentMenuOpen && (
@@ -294,18 +294,18 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(fu
                 )}
               </div>
 
-              <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => setEffortIndex(index => (index + 1) % efforts.length)} className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium text-zinc-500 transition-colors hover:bg-white/5 hover:text-white">
+              <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => setEffortIndex(index => (index + 1) % efforts.length)} className="flex min-h-11 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-zinc-400 transition-colors hover:bg-white/5 hover:text-white">
                 <Gauge className="h-3.5 w-3.5" /> <MorphingText text={efforts[effortIndex]} />
               </button>
 
-              <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => fileInputRef.current?.click()} disabled={attachments.length >= maxAttachments} className="ml-auto flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30" aria-label="Adicionar imagem">
+              <button type="button" onMouseDown={event => event.preventDefault()} onClick={() => fileInputRef.current?.click()} disabled={attachments.length >= maxAttachments} className="ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30" aria-label="Adicionar imagem">
                 <Paperclip className="h-4 w-4" />
               </button>
             </div>
           )}
 
           {recording && (
-            <div className="absolute bottom-3 right-12 flex h-6 items-center gap-1" aria-label="Gravando áudio">
+            <div className="absolute bottom-4 right-14 flex h-6 items-center gap-1" aria-label="Gravando áudio">
               {audioBars.map((bar, index) => <span key={index} className="w-1 rounded-full bg-[#FF8A00] transition-[height]" style={{ height: `${Math.max(4, bar * 22)}px` }} />)}
             </div>
           )}
@@ -314,7 +314,7 @@ export const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(fu
             type="button"
             onClick={() => recording ? stopRecording() : hasContent ? void submit() : void startRecording()}
             disabled={disabled || status === 'sending'}
-            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#FF8A00] text-black transition-colors hover:bg-[#ff9d2e] disabled:bg-zinc-700 disabled:text-zinc-500"
+            className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-[#FF8A00] text-black transition-colors hover:bg-[#ff9d2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FF8A00] disabled:bg-zinc-700 disabled:text-zinc-500"
             aria-label={recording ? 'Parar gravação' : hasContent ? 'Enviar mensagem' : 'Usar voz'}
           >
             {status === 'sending' ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-zinc-500 border-t-black" /> : status === 'sent' ? <CheckCircle2 className="h-4 w-4" /> : status === 'error' ? <AlertCircle className="h-4 w-4" /> : recording ? <Square className="h-3 w-3 fill-current" /> : hasContent ? <ArrowUp className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
