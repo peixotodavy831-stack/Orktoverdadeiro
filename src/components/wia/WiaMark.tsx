@@ -12,7 +12,7 @@ export default function WiaMark({ className = '', size = 28 }: WiaMarkProps) {
       <img
         src="/wia-monogram.png"
         alt="Monograma WIA"
-        className="h-full w-full scale-[1.72] object-contain brightness-[4.25] contrast-125"
+        className="h-full w-full scale-[1.72] object-contain brightness-0 invert"
       />
     </span>
   );
