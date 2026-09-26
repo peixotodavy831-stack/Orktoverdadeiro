@@ -96,11 +96,82 @@ export class DeepSeekModelProvider implements ModelProvider {
   }
 }
 
-export function getModelProvider(): ModelProvider {
-  const apiKey = process.env.DEEPSEEK_API_KEY?.trim();
-  return apiKey
-    ? new DeepSeekModelProvider(apiKey, process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-flash')
-    : new MockModelProvider();
+const GEMINI_DECISION_SCHEMA = {
+  type: 'object',
+  properties: {
+    action: { type: 'string', enum: ['answer', 'ask_clarification', 'create_draft', 'request_approval', 'handoff_to_human', 'record_optout'] },
+    messageDraft: { type: 'string' },
+    sourceIds: { type: 'array', items: { type: 'string' } },
+    confidenceSignal: { type: 'string', enum: ['low', 'medium', 'high'] },
+    requiresApproval: { type: 'boolean' },
+    reasonCode: { type: 'string' },
+  },
+  required: ['action', 'messageDraft', 'sourceIds', 'confidenceSignal', 'requiresApproval', 'reasonCode'],
+} as const;
+
+export class GeminiModelProvider implements ModelProvider {
+  readonly name = 'gemini';
+  constructor(private readonly apiKey: string, private readonly model = 'gemini-3.8-flash') {}
+
+  async decide({ message, context, sourceIds }: { message: string; context: WiaOperationalContext; sourceIds: string[] }): Promise<ModelDecisionResult> {
+    const startedAt = performance.now();
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.model)}:generateContent`, {
+      method: 'POST',
+      headers: { 'x-goog-api-key': this.apiKey, 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(20_000),
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+        contents: [{
+          role: 'user',
+          parts: [{ text: JSON.stringify({ request: message, operationalContext: context, allowedSourceIds: sourceIds }) }],
+        }],
+        generationConfig: {
+          temperature: 0.2,
+          maxOutputTokens: 700,
+          responseMimeType: 'application/json',
+          responseSchema: GEMINI_DECISION_SCHEMA,
+        },
+      }),
+    });
+    if (!response.ok) throw new Error(`Gemini respondeu com status ${response.status}`);
+    const payload = await response.json() as {
+      modelVersion?: string;
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+      usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number };
+    };
+    const content = payload.candidates?.[0]?.content?.parts?.map(part => part.text || '').join('').trim();
+    if (!content) throw new Error('Gemini retornou uma resposta vazia');
+    const parsed = wiaDecisionSchema.parse(JSON.parse(content));
+    parsed.sourceIds = parsed.sourceIds.filter(id => sourceIds.includes(id));
+    return {
+      decision: parsed,
+      usage: {
+        provider: 'gemini', model: payload.modelVersion || this.model,
+        promptTokens: payload.usageMetadata?.promptTokenCount || 0,
+        completionTokens: payload.usageMetadata?.candidatesTokenCount || 0,
+        totalTokens: payload.usageMetadata?.totalTokenCount || 0,
+        latencyMs: Math.round(performance.now() - startedAt),
+      },
+      mode: 'live',
+    };
+  }
+}
+
+export function getModelProvider(env: NodeJS.ProcessEnv = process.env): ModelProvider {
+  const requested = env.WIA_MODEL_PROVIDER?.trim().toLowerCase();
+  const geminiKey = env.GEMINI_API_KEY?.trim();
+  const deepSeekKey = env.DEEPSEEK_API_KEY?.trim();
+  const selected = requested && requested !== 'auto'
+    ? requested
+    : geminiKey ? 'gemini' : deepSeekKey ? 'deepseek' : 'mock';
+
+  if (selected === 'gemini' && geminiKey) {
+    return new GeminiModelProvider(geminiKey, env.GEMINI_MODEL?.trim() || 'gemini-3.8-flash');
+  }
+  if (selected === 'deepseek' && deepSeekKey) {
+    return new DeepSeekModelProvider(deepSeekKey, env.DEEPSEEK_MODEL?.trim() || 'deepseek-flash');
+  }
+  return new MockModelProvider();
 }
 
 export function enforceServerGuardrails(message: string, result: ModelDecisionResult, allowedSourceIds: string[]): ModelDecisionResult {
