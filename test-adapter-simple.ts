@@ -1,5 +1,5 @@
 // Teste simples do hermes-adapter
-import { getHermesAdapter, type ConversationContext } from './api/orkto-core/hermes-adapter.js';
+import { getHermesAdapter, type ConversationContext } from './backend/orkto-core/hermes-adapter.js';
 import crypto from 'crypto';
 
 const adapter = getHermesAdapter();

@@ -1,6 +1,6 @@
-import { createApiApp } from './app-factory.js';
+import { createApiApp } from '../backend/app-factory.js';
 
 const app = createApiApp();
 
-export { createApiApp } from './app-factory.js';
+export { createApiApp } from '../backend/app-factory.js';
 export default app;

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createT0ToolRegistry, type ApprovalRow, type CustomerRow, type QuoteRow, type SaleRow, type T0DataSource } from '../api/wiaos/t0-tools.js';
-import { decideWithWia, routeT0Request } from '../api/wiaos/wia-service.js';
+import { createT0ToolRegistry, type ApprovalRow, type CustomerRow, type QuoteRow, type SaleRow, type T0DataSource } from '../backend/wiaos/t0-tools.js';
+import { decideWithWia, routeT0Request } from '../backend/wiaos/wia-service.js';
 
 const tenantId = '11111111-1111-4111-8111-111111111111';
 const otherTenantId = '22222222-2222-4222-8222-222222222222';

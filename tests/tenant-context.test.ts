@@ -3,14 +3,14 @@ import { createServer } from 'node:http';
 import { afterEach, test } from 'node:test';
 import type { AddressInfo } from 'node:net';
 import type { Express } from 'express';
-import { createApiApp } from '../api/app-factory.js';
+import { createApiApp } from '../backend/app-factory.js';
 import {
   TenantContextError,
   createOwnerTenantContext,
   requireTenantContext,
   resolveWebhookTenantContext,
   scopeQueryToTenant,
-} from '../api/tenancy/tenant-context.js';
+} from '../backend/tenancy/tenant-context.js';
 
 type Row = { id: string; user_id: string; value: string };
 

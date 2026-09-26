@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 import { afterEach, test } from 'node:test';
 import type { AddressInfo } from 'node:net';
 import type { Express } from 'express';
-import { createApiApp, shouldEnableMockRoutes } from '../api/app-factory.js';
+import { createApiApp, shouldEnableMockRoutes } from '../backend/app-factory.js';
 
 const servers = new Set<ReturnType<typeof createServer>>();
 

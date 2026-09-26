@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { enforceServerGuardrails, MockModelProvider } from '../api/wiaos/model-provider.js';
+import { enforceServerGuardrails, MockModelProvider } from '../backend/wiaos/model-provider.js';
 
 const context = { openQuotes: 1, pendingValue: 1200, clients: 3 };
 
