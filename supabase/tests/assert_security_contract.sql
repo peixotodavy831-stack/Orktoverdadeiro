@@ -61,11 +61,12 @@ begin
   end if;
 end $$;
 
-do $$ declare f record; expected_browser boolean; begin
+do $$ declare f record; expected_browser boolean; function_count integer := 0; begin
   for f in select p.oid,p.proname,pg_get_userbyid(p.proowner) owner
     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-    where n.nspname='public' and p.proname like 'orkto\_%' escape '\'
+    where n.nspname='public'
   loop
+    function_count := function_count+1;
     expected_browser := f.proname=any(array['orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches']);
     if f.owner<>'postgres' or has_function_privilege('anon',f.oid,'EXECUTE')
        or has_function_privilege('authenticated',f.oid,'EXECUTE')<>expected_browser
@@ -73,6 +74,7 @@ do $$ declare f record; expected_browser boolean; begin
       raise exception 'Function privilege mismatch: %',f.oid::regprocedure;
     end if;
   end loop;
+  if function_count<>17 then raise exception 'Expected 17 public ORKTO functions, found %',function_count; end if;
   if has_function_privilege('authenticated','public.orkto_consume_plan_usage(uuid,date,text,numeric,numeric)','EXECUTE') then
     raise exception 'Browser can consume quota directly';
   end if;

@@ -67,12 +67,14 @@ do $$ declare sequence_name text; begin
   end loop;
 end $$;
 
--- Re-assert the existing ORKTO RPC allowlist after inherited function ACLs.
-do $$ declare f record; begin
+-- Public-schema functions created by ORKTO include legacy non-orkto names.
+-- Trigger functions should not retain inherited browser EXECUTE grants either.
+do $$ declare f record; function_count integer := 0; begin
   for f in select p.oid::regprocedure as signature,p.proname,pg_get_userbyid(p.proowner) as owner
     from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-    where n.nspname='public' and p.proname like 'orkto\_%' escape '\'
+    where n.nspname='public'
   loop
+    function_count := function_count+1;
     if f.owner<>'postgres' then raise exception 'Unexpected owner % for function %',f.owner,f.signature; end if;
     execute format('revoke all privileges on function %s from PUBLIC, anon, authenticated',f.signature);
     execute format('grant execute on function %s to service_role',f.signature);
@@ -80,6 +82,7 @@ do $$ declare f record; begin
       execute format('grant execute on function %s to authenticated',f.signature);
     end if;
   end loop;
+  if function_count<>17 then raise exception 'Expected 17 ORKTO public functions, found %',function_count; end if;
 end $$;
 
 -- Remote baseline is NOT NULL; vanilla CI target was nullable. There are no
