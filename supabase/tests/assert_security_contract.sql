@@ -21,6 +21,12 @@ declare
     'orkto_workspaces','orkto_wrapped'
   ];
 begin
+  if not has_schema_privilege('authenticated','public','USAGE')
+    or not has_schema_privilege('service_role','public','USAGE')
+    or has_schema_privilege('anon','public','CREATE')
+    or has_schema_privilege('authenticated','public','CREATE') then
+    raise exception 'Public schema privilege contract failed';
+  end if;
   for t in
     select c.oid,c.relname,c.relrowsecurity,pg_get_userbyid(c.relowner) owner
     from pg_class c join pg_namespace n on n.oid=c.relnamespace
@@ -102,6 +108,21 @@ do $$ begin
 end $$;
 reset role;
 
+insert into auth.users(id,email) values
+  ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','no-membership@example.test')
+  on conflict(id) do nothing;
+set role authenticated;
+select set_config('request.jwt.claim.sub','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',false);
+do $$ begin
+  if exists(select 1 from public.clients) or exists(select 1 from public.quotes)
+    or exists(select 1 from public.orkto_workspaces)
+    or public.orkto_is_workspace_member('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa')
+    or public.orkto_is_workspace_admin('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') then
+    raise exception 'User without membership accessed tenant data or privileged RPC';
+  end if;
+end $$;
+reset role;
+
 set role authenticated;
 select set_config('request.jwt.claim.sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
 do $$ declare a_count integer; b_count integer; begin
@@ -110,6 +131,10 @@ do $$ declare a_count integer; b_count integer; begin
   if a_count<1 or b_count<>0 then raise exception 'Workspace A SELECT isolation failed: A %, B %',a_count,b_count; end if;
   if public.orkto_is_workspace_member('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb') then
     raise exception 'Arbitrary tenant RPC returned membership';
+  end if;
+  if public.orkto_is_workspace_admin('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')
+    or public.orkto_legacy_owner_matches('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb') then
+    raise exception 'Privileged RPC accepted another tenant';
   end if;
   begin
     update public.clients set name='cross-tenant' where workspace_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
