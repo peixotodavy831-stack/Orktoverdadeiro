@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
   [string]$EvidenceDirectory,
-  [ValidateRange(1, 100)][int]$ExpectedMigrationCount = 17
+  [ValidateRange(1, 100)][int]$ExpectedMigrationCount = 18
 )
 
 $ErrorActionPreference = 'Stop'

@@ -57,7 +57,7 @@ begin
         and x.grantee in (0,'anon'::regrole::oid,'authenticated'::regrole::oid)
     ) then raise exception 'Browser/PUBLIC column grant remains on public.%',t.relname; end if;
   end loop;
-  if table_count<>57 then raise exception 'Expected 57 tables, found %',table_count; end if;
+  if table_count<>61 then raise exception 'Expected 61 tables, found %',table_count; end if;
   if (select count(*) from public.proposals where is_active is null or created_at is null)>0 then
     raise exception 'Proposals contain NULL in required columns';
   end if;
