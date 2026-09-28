@@ -46,7 +46,7 @@ concurrency:
 
 jobs:
   replay:
-    name: Legacy fixture + 16 migrations + assertions
+    name: Legacy fixture + 17 migrations + assertions
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
@@ -65,7 +65,7 @@ jobs:
           --health-retries 24
     env:
       ORKTO_MIGRATION_TARGET: ci
-      ORKTO_EXPECTED_MIGRATION_COUNT: '16'
+      ORKTO_EXPECTED_MIGRATION_COUNT: '17'
       ORKTO_MIGRATION_EVIDENCE_DIR: ${{ github.workspace }}/.tmp/orkto-migration-evidence
       PGHOST: 127.0.0.1
       PGPORT: '5432'
@@ -102,7 +102,7 @@ jobs:
 
       - name: Replay fixture and migrations
         shell: bash
-        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 16
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 17 --security-assertion supabase/tests/assert_security_contract.sql
 
       - name: Capture PostgreSQL service log
         if: always()
@@ -121,7 +121,7 @@ jobs:
           retention-days: 14
 
   security-candidate:
-    name: Supabase-like baseline + 9 pending + candidate 17 + security assertions
+    name: Supabase-like baseline + 10 pending + security assertions
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
@@ -162,15 +162,14 @@ jobs:
           psql --version
       - name: Render sanitized Supabase-like baseline
         run: node scripts/render-remote-schema-fixture.mjs "$RUNNER_TEMP/orkto-supabase-like.sql"
-      - name: Replay pending migrations and candidate
+      - name: Replay pending migrations including official migration 17
         shell: bash
         run: |
           node scripts/validate-migrations.mjs \
             --target ci \
-            --expected-count 16 \
+            --expected-count 17 \
             --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
             --start-after 20260923225648 \
-            --candidate scripts/readiness/drafts/migration17-security-reconciliation.sql \
             --pre-assertion supabase/tests/assert_remote_upgrade.sql \
             --security-assertion supabase/tests/assert_security_contract.sql \
             --evidence-dir "$RUNNER_TEMP/orkto-security-evidence"
@@ -178,7 +177,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: orkto-security-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          name: orkto-security-replay-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/orkto-security-evidence/
           if-no-files-found: warn
           retention-days: 14

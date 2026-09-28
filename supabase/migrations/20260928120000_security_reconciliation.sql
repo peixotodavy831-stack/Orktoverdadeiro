@@ -1,5 +1,5 @@
--- CANDIDATE ONLY. Never apply to production or move into supabase/migrations
--- until Supabase-like baseline, negative security tests, and remote diff pass.
+-- ORKTO migration 17. Validated against a disposable Supabase-like baseline.
+-- Do not apply remotely until the separate staging/production change gate.
 -- Forward-only: normalizes privileges on exactly the 57 ORKTO-owned public tables.
 -- Does not change Supabase default ACLs or auth/storage/platform objects.
 -- PostgreSQL transaction is supplied by the replay runner.

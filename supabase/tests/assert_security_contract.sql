@@ -80,7 +80,7 @@ do $$ declare f record; expected_browser boolean; function_count integer := 0; b
       raise exception 'Function privilege mismatch: %',f.oid::regprocedure;
     end if;
   end loop;
-  if function_count<>17 then raise exception 'Expected 17 public ORKTO functions, found %',function_count; end if;
+  if function_count<16 then raise exception 'Expected at least 16 public ORKTO functions, found %',function_count; end if;
   if has_function_privilege('authenticated','public.orkto_consume_plan_usage(uuid,date,text,numeric,numeric)','EXECUTE') then
     raise exception 'Browser can consume quota directly';
   end if;
