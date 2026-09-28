@@ -2,6 +2,21 @@ name: Validate migrations (PostgreSQL 17)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - production-readiness/migration-replay-20260928
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'scripts/lib/**'
+      - 'scripts/tests/**'
+      - 'scripts/validate-migrations.mjs'
+      - 'scripts/validate-migrations-local.ps1'
+      - 'scripts/export-remote-readiness.mjs'
+      - 'scripts/compare-readiness-inventories.mjs'
+      - 'scripts/lib/postgres-cli.mjs'
+      - 'package.json'
+      - '.github/workflows/validate-migrations-postgres17.yml'
   pull_request:
     paths:
       - 'supabase/migrations/**'
