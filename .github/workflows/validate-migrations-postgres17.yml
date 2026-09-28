@@ -11,6 +11,9 @@ on:
       - 'scripts/lib/**'
       - 'scripts/tests/**'
       - 'scripts/validate-migrations.mjs'
+      - 'scripts/render-remote-schema-fixture.mjs'
+      - 'scripts/readiness/drafts/**'
+      - 'supabase/reconciled-legacy/remote-schema-2026-09-27.json'
       - 'scripts/validate-migrations-local.ps1'
       - 'scripts/export-remote-readiness.mjs'
       - 'scripts/compare-readiness-inventories.mjs'
@@ -24,6 +27,9 @@ on:
       - 'scripts/lib/**'
       - 'scripts/tests/**'
       - 'scripts/validate-migrations.mjs'
+      - 'scripts/render-remote-schema-fixture.mjs'
+      - 'scripts/readiness/drafts/**'
+      - 'supabase/reconciled-legacy/remote-schema-2026-09-27.json'
       - 'scripts/validate-migrations-local.ps1'
       - 'scripts/export-remote-readiness.mjs'
       - 'scripts/compare-readiness-inventories.mjs'
@@ -111,5 +117,68 @@ jobs:
         with:
           name: orkto-migration-replay-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ github.workspace }}/.tmp/orkto-migration-evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
+  security-candidate:
+    name: Supabase-like baseline + 9 pending + candidate 17 + security assertions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: orkto-ci-ephemeral-only
+          POSTGRES_DB: orkto_security_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d orkto_security_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 24
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: orkto_security_ci
+      PGPASSWORD: orkto-ci-ephemeral-only
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.x'
+          package-manager-cache: false
+      - name: Ensure PostgreSQL client exists
+        shell: bash
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes postgresql-client
+          fi
+          psql --version
+      - name: Render sanitized Supabase-like baseline
+        run: node scripts/render-remote-schema-fixture.mjs "$RUNNER_TEMP/orkto-supabase-like.sql"
+      - name: Replay pending migrations and candidate
+        shell: bash
+        run: |
+          node scripts/validate-migrations.mjs \
+            --target ci \
+            --expected-count 16 \
+            --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
+            --start-after 20260923225648 \
+            --candidate scripts/readiness/drafts/migration17-security-reconciliation.sql \
+            --pre-assertion supabase/tests/assert_remote_upgrade.sql \
+            --security-assertion supabase/tests/assert_security_contract.sql \
+            --evidence-dir "$RUNNER_TEMP/orkto-security-evidence"
+      - name: Upload security evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: orkto-security-candidate-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/orkto-security-evidence/
           if-no-files-found: warn
           retention-days: 14

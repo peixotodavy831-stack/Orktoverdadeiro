@@ -17,12 +17,18 @@ function parseArguments(argv) {
     target: process.env.ORKTO_MIGRATION_TARGET || '',
     evidenceDirectory: process.env.ORKTO_MIGRATION_EVIDENCE_DIR || '',
     expectedCount: Number(process.env.ORKTO_EXPECTED_MIGRATION_COUNT || 16),
+    fixturePath: '', startAfter: '', candidatePath: '', preAssertionPath: '', securityAssertionPath: '',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--target') result.target = argv[++index] || '';
     else if (argument === '--evidence-dir') result.evidenceDirectory = argv[++index] || '';
     else if (argument === '--expected-count') result.expectedCount = Number(argv[++index]);
+    else if (argument === '--fixture') result.fixturePath = argv[++index] || '';
+    else if (argument === '--start-after') result.startAfter = argv[++index] || '';
+    else if (argument === '--candidate') result.candidatePath = argv[++index] || '';
+    else if (argument === '--pre-assertion') result.preAssertionPath = argv[++index] || '';
+    else if (argument === '--security-assertion') result.securityAssertionPath = argv[++index] || '';
     else if (argument === '--help' || argument === '-h') result.help = true;
     else throw new Error(`Unknown argument: ${argument}`);
   }
@@ -116,6 +122,7 @@ export async function validateMigrations({
   target,
   evidenceDirectory,
   expectedCount = 16,
+  fixturePath = '', startAfter = '', candidatePath = '', preAssertionPath = '', securityAssertionPath = '',
 } = {}) {
   const runId = `migration-replay-${new Date().toISOString().replaceAll(/[-:.]/g, '').replace('Z', 'Z')}-${Math.random().toString(16).slice(2, 10)}`;
   const evidencePath = path.resolve(evidenceDirectory || path.join(os.tmpdir(), 'orkto-production-readiness', runId));
@@ -142,6 +149,8 @@ export async function validateMigrations({
   let serverVersion = null;
   let connectionSummary = null;
   let migrationsApplied = 0;
+  let candidateStatus = candidatePath ? 'NOT_RUN' : 'NOT_APPLICABLE';
+  let securityStatus = securityAssertionPath ? 'NOT_RUN' : 'NOT_APPLICABLE';
 
   const log = (message) => {
     const line = `[${now()}] ${message}`;
@@ -172,6 +181,7 @@ export async function validateMigrations({
       expectedMigrationCount: expectedCount,
       discoveredMigrationCount: migrations.length,
       appliedMigrationCount: migrationsApplied,
+      startAfter, candidateStatus, securityStatus,
       migrations: migrations.map(({ path: _path, ...entry }) => entry),
       assertions,
       inventory: status === 'PASS' ? path.basename(inventoryPath) : null,
@@ -219,8 +229,11 @@ export async function validateMigrations({
       throw new Error('Set --target to ci, local, or staging.');
     }
     const migrationList = await readMigrations(expectedCount);
-    migrations.push(...migrationList);
-    log(`Repository migration preflight passed: ${migrations.length}/${expectedCount} timestamped files.`);
+    if (startAfter && !migrationList.some((migration) => migration.version === startAfter)) {
+      throw new Error(`Unknown --start-after migration version: ${startAfter}`);
+    }
+    migrations.push(...migrationList.filter((migration) => !startAfter || migration.version > startAfter));
+    log(`Repository migration preflight passed: ${migrationList.length}/${expectedCount} timestamped files; ${migrations.length} selected.`);
 
     phase = 'POSTGRES_PREFLIGHT';
     const connection = getPostgresConnection();
@@ -274,7 +287,7 @@ export async function validateMigrations({
     log('Target safety preflight passed: PostgreSQL 17, vanilla and empty; no migration SQL has run yet.');
 
     phase = 'LOAD_LEGACY_FIXTURE';
-    const fixturePath = path.join(repositoryRoot, 'supabase', 'tests', 'fixtures', 'legacy_schema.sql');
+    fixturePath = fixturePath ? path.resolve(fixturePath) : path.join(repositoryRoot, 'supabase', 'tests', 'fixtures', 'legacy_schema.sql');
     invokePsqlAndLog({
       args: ['--single-transaction', '--file', fixturePath],
       connection,
@@ -306,6 +319,23 @@ export async function validateMigrations({
       }
     }
 
+    if (candidatePath) {
+      phase = 'SECURITY_CANDIDATE';
+      invokePsqlAndLog({
+        args: ['--single-transaction', '--file', path.resolve(candidatePath)],
+        connection, label: 'Security candidate (draft)', cwd: repositoryRoot,
+      });
+      candidateStatus = 'PASS';
+    }
+
+    if (preAssertionPath) {
+      phase = 'BASELINE_COMPENSATION_ASSERTION';
+      invokePsqlAndLog({
+        args: ['--single-transaction', '--file', path.resolve(preAssertionPath)],
+        connection, label: 'Baseline-specific assertion/compensation', cwd: repositoryRoot,
+      });
+    }
+
     phase = 'SQL_ASSERTIONS';
     const assertionFiles = [
       ['assert_local_migrations.sql', assertions.slice(0, 5), true],
@@ -322,6 +352,15 @@ export async function validateMigrations({
       log(`PASS SQL assertions ${filename}.`);
     }
 
+    if (securityAssertionPath) {
+      phase = 'SECURITY_ASSERTIONS';
+      invokePsqlAndLog({
+        args: ['--single-transaction', '--file', path.resolve(securityAssertionPath)],
+        connection, label: 'Security contract and negative assertions', cwd: repositoryRoot,
+      });
+      securityStatus = 'PASS';
+    }
+
     phase = 'TARGET_SCHEMA_INVENTORY';
     const inventoryOutput = invokePsql({
       args: ['--quiet', '--tuples-only', '--no-align', '--file', path.join(repositoryRoot, 'supabase', 'tests', 'schema_inventory.sql')],
@@ -333,7 +372,7 @@ export async function validateMigrations({
     assertInventory(inventory);
     await writeFile(inventoryPath, `${JSON.stringify(inventory, null, 2)}\n`, 'utf8');
     status = 'PASS';
-    log(`PASS: ${migrationsApplied}/${expectedCount} migrations and all SQL assertions; target inventory exported without row data.`);
+    log(`PASS: ${migrationsApplied}/${migrations.length} selected migrations and all SQL assertions; target inventory exported without row data.`);
   } catch (error) {
     failure = error.message;
     status = phase === 'POSTGRES_PREFLIGHT' ? 'BLOCKED_ENVIRONMENT' : 'FAIL';
