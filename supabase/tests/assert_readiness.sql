@@ -86,7 +86,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> 13 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end then
+  if definer_count <> (13 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;
