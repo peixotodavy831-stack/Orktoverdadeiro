@@ -38,7 +38,5 @@ DROP POLICY IF EXISTS quote_extensions_owner_select ON public.quote_extensions;
 CREATE POLICY quote_extensions_owner_select ON public.quote_extensions
 FOR SELECT TO authenticated USING (user_id = (SELECT auth.uid()));
 
--- These legacy columns are unused. Keeping provider credentials in a browser-readable
--- profile row would unnecessarily expose them to the account owner session.
-ALTER TABLE public.profiles DROP COLUMN IF EXISTS asaas_api_key;
-ALTER TABLE public.profiles DROP COLUMN IF EXISTS asaas_customer_id;
+-- Provider credentials are removed by the immediately preceding migration only
+-- after it verifies that the legacy fields are empty.

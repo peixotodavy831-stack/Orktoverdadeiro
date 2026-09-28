@@ -1,0 +1,100 @@
+name: Validate migrations (PostgreSQL 17)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - 'scripts/lib/**'
+      - 'scripts/tests/**'
+      - 'scripts/validate-migrations.mjs'
+      - 'scripts/validate-migrations-local.ps1'
+      - 'scripts/export-remote-readiness.mjs'
+      - 'scripts/compare-readiness-inventories.mjs'
+      - 'scripts/lib/postgres-cli.mjs'
+      - 'package.json'
+      - '.github/workflows/validate-migrations-postgres17.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: orkto-migration-replay-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  replay:
+    name: Legacy fixture + 16 migrations + assertions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: orkto-ci-ephemeral-only
+          POSTGRES_DB: orkto_migration_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d orkto_migration_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 24
+    env:
+      ORKTO_MIGRATION_TARGET: ci
+      ORKTO_EXPECTED_MIGRATION_COUNT: '16'
+      ORKTO_MIGRATION_EVIDENCE_DIR: ${{ runner.temp }}/orkto-migration-evidence
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: orkto_migration_ci
+      PGPASSWORD: orkto-ci-ephemeral-only
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.x'
+          package-manager-cache: false
+
+      - name: Test readiness diff tooling
+        run: node --test scripts/tests/compare-readiness-inventories.test.mjs
+
+      - name: Ensure PostgreSQL client exists
+        shell: bash
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes postgresql-client
+          fi
+          psql --version
+
+      - name: Verify PostgreSQL 17 service
+        shell: bash
+        run: |
+          psql --no-psqlrc --tuples-only --no-align --command "select version()"
+
+      - name: Replay fixture and migrations
+        shell: bash
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 16
+
+      - name: Capture PostgreSQL service log
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p "$ORKTO_MIGRATION_EVIDENCE_DIR"
+          docker logs "${{ job.services.postgres.id }}" > "$ORKTO_MIGRATION_EVIDENCE_DIR/postgres-server.log" 2>&1 || true
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: orkto-migration-replay-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/orkto-migration-evidence/
+          if-no-files-found: warn
+          retention-days: 14

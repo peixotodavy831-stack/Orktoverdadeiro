@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS pg_cron;
+DROP POLICY IF EXISTS quotes_retention_visibility ON public.quotes;
 CREATE POLICY quotes_retention_visibility ON public.quotes AS RESTRICTIVE FOR SELECT TO authenticated USING (retention_expires_at IS NULL OR retention_expires_at>now());
 CREATE OR REPLACE FUNCTION public.purge_expired_quotes() RETURNS integer LANGUAGE plpgsql SET search_path=public AS $$
 DECLARE removed integer;
@@ -9,4 +9,4 @@ BEGIN
  RETURN removed;
 END $$;
 REVOKE ALL ON FUNCTION public.purge_expired_quotes() FROM PUBLIC,anon,authenticated;
-SELECT cron.schedule('orkto-purge-expired-quotes','*/5 * * * *','SELECT public.purge_expired_quotes()');
+GRANT EXECUTE ON FUNCTION public.purge_expired_quotes() TO service_role;
