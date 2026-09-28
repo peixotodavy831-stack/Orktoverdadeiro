@@ -45,7 +45,7 @@ jobs:
     env:
       ORKTO_MIGRATION_TARGET: ci
       ORKTO_EXPECTED_MIGRATION_COUNT: '16'
-      ORKTO_MIGRATION_EVIDENCE_DIR: ${{ runner.temp }}/orkto-migration-evidence
+      ORKTO_MIGRATION_EVIDENCE_DIR: ${{ github.workspace }}/.tmp/orkto-migration-evidence
       PGHOST: 127.0.0.1
       PGPORT: '5432'
       PGUSER: postgres
@@ -95,6 +95,6 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: orkto-migration-replay-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/orkto-migration-evidence/
+          path: ${{ github.workspace }}/.tmp/orkto-migration-evidence/
           if-no-files-found: warn
           retention-days: 14
