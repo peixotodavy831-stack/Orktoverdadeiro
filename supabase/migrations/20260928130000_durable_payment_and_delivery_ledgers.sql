@@ -1,6 +1,10 @@
 -- ORKTO convergence: durable payment idempotency, webhook replay protection,
 -- and truthful channel delivery states. Additive only; no provider is enabled.
 
+-- New proposal bearer links use 192 bits of entropy (48 lowercase hex chars).
+-- Existing 8-character links remain valid only until their existing expiry.
+alter table public.proposals alter column slug type varchar(64);
+
 alter table public.asaas_webhook_events
   add column if not exists request_fingerprint text,
   add column if not exists status text not null default 'processed',
@@ -140,14 +144,21 @@ create or replace function public.orkto_claim_payment_intent(
   p_workspace_id uuid,p_quote_id uuid,p_provider text,p_idempotency_key text,p_request_fingerprint text,
   p_amount_cents bigint,p_currency text default 'BRL'
 ) returns table(decision text,intent_id uuid,intent_status text,claim_token uuid,attempt_count integer,provider_reference text)
-language plpgsql security definer set search_path=public as $$
-declare v public.orkto_payment_intents%rowtype; inserted_count integer;
+language plpgsql security definer set search_path='' as $$
+declare v public.orkto_payment_intents%rowtype; inserted_count integer; quote_amount_cents bigint;
 begin
   if p_workspace_id is null or p_provider is null or nullif(trim(p_provider),'') is null or length(p_provider)>80
     or p_idempotency_key is null or length(trim(p_idempotency_key))<8 or length(p_idempotency_key)>200
     or p_request_fingerprint is null or p_request_fingerprint !~ '^[a-f0-9]{64}$'
     or p_amount_cents is null or p_amount_cents<=0 or p_currency is null or p_currency !~ '^[A-Z]{3}$' then
     raise exception 'invalid payment intent request' using errcode='22023';
+  end if;
+  if p_quote_id is not null then
+    select round(q.total*100)::bigint into quote_amount_cents from public.quotes q
+      where q.id=p_quote_id and q.workspace_id=p_workspace_id and q.archived_at is null;
+    if quote_amount_cents is null or quote_amount_cents<>p_amount_cents then
+      raise exception 'payment intent amount must match the active workspace quote' using errcode='22023';
+    end if;
   end if;
   insert into public.orkto_payment_intents(workspace_id,quote_id,provider,idempotency_key,request_fingerprint,amount_cents,currency)
   values(p_workspace_id,p_quote_id,p_provider,trim(p_idempotency_key),p_request_fingerprint,p_amount_cents,p_currency)
@@ -179,7 +190,7 @@ end $$;
 create or replace function public.orkto_finish_payment_intent(
   p_intent_id uuid,p_claim_token uuid,p_target_status text,p_provider_reference text default null,
   p_provider_status text default null,p_error_category text default null
-) returns boolean language plpgsql security definer set search_path=public as $$
+) returns boolean language plpgsql security definer set search_path='' as $$
 declare v public.orkto_payment_intents%rowtype;
 begin
   if p_target_status is null or p_target_status not in ('request_accepted','reconciliation_required','succeeded','failed') then
@@ -202,10 +213,65 @@ begin
   return true;
 end $$;
 
+-- Reconcile authenticated provider events against the durable intent instead of
+-- trusting externalReference as the source of workspace/quote ownership.
+create or replace function public.orkto_apply_payment_intent_provider_event(
+  p_provider text,p_provider_reference text,p_provider_event_id text,p_request_fingerprint text,p_claim_token uuid,
+  p_occurred_at timestamptz,p_target_status text,p_provider_status text,p_amount_cents bigint,p_currency text
+) returns table(decision text,intent_id uuid,workspace_id uuid,quote_id uuid,intent_status text)
+language plpgsql security definer set search_path='' as $$
+declare v public.orkto_payment_intents%rowtype; ev public.orkto_payment_webhook_events%rowtype;
+begin
+  if p_provider is null or nullif(trim(p_provider),'') is null or length(p_provider)>80
+    or p_provider_reference is null or nullif(trim(p_provider_reference),'') is null or length(p_provider_reference)>240
+    or p_provider_event_id is null or nullif(trim(p_provider_event_id),'') is null or length(p_provider_event_id)>240
+    or p_request_fingerprint is null or p_request_fingerprint !~ '^[a-f0-9]{64}$' or p_claim_token is null
+    or p_occurred_at is null or p_target_status is null or p_target_status not in ('succeeded','failed','observed')
+    or p_provider_status is null or nullif(trim(p_provider_status),'') is null or length(p_provider_status)>120
+    or p_amount_cents is null or p_amount_cents<=0 or p_currency is null or p_currency !~ '^[A-Z]{3}$' then
+    raise exception 'invalid payment provider event' using errcode='22023';
+  end if;
+  select e.* into ev from public.orkto_payment_webhook_events e
+    where e.provider=trim(p_provider) and e.provider_event_id=trim(p_provider_event_id) for update;
+  if ev.id is null or ev.request_fingerprint<>p_request_fingerprint or ev.status<>'processing'
+    or ev.processing_claim_token is distinct from p_claim_token then
+    return query select 'EVENT_NOT_CLAIMED'::text,null::uuid,null::uuid,null::uuid,null::text; return;
+  end if;
+  select i.* into v from public.orkto_payment_intents i
+    where i.provider=trim(p_provider) and i.provider_reference=trim(p_provider_reference) for update;
+  if v.id is null then return query select 'NOT_FOUND'::text,null::uuid,null::uuid,null::uuid,null::text; return; end if;
+  if v.amount_cents<>p_amount_cents or v.currency<>p_currency then
+    return query select 'AMOUNT_OR_CURRENCY_MISMATCH'::text,v.id,v.workspace_id,v.quote_id,v.status; return;
+  end if;
+  if v.last_provider_event_at is not null and p_occurred_at<v.last_provider_event_at then
+    return query select 'STALE'::text,v.id,v.workspace_id,v.quote_id,v.status; return;
+  end if;
+  if v.status in ('succeeded','failed','cancelled') then
+    if (v.status='succeeded' and p_target_status='succeeded') or (v.status='failed' and p_target_status='failed') then
+      return query select 'ALREADY_TERMINAL'::text,v.id,v.workspace_id,v.quote_id,v.status; return;
+    end if;
+    return query select 'TERMINAL_CONFLICT'::text,v.id,v.workspace_id,v.quote_id,v.status; return;
+  end if;
+  if v.status not in ('request_accepted','reconciliation_required') then
+    return query select 'NOT_READY'::text,v.id,v.workspace_id,v.quote_id,v.status; return;
+  end if;
+  if p_target_status='observed' then
+    update public.orkto_payment_intents i set provider_status=left(trim(p_provider_status),120),
+      last_provider_event_at=p_occurred_at,last_provider_event_id=trim(p_provider_event_id),updated_at=now()
+      where i.id=v.id;
+    return query select 'OBSERVED'::text,v.id,v.workspace_id,v.quote_id,v.status; return;
+  end if;
+  update public.orkto_payment_intents i set status=p_target_status,
+    provider_status=left(trim(p_provider_status),120),last_provider_event_at=p_occurred_at,
+    last_provider_event_id=trim(p_provider_event_id),terminal_at=now(),updated_at=now()
+    where i.id=v.id;
+  return query select 'APPLIED'::text,v.id,v.workspace_id,v.quote_id,p_target_status;
+end $$;
+
 create or replace function public.orkto_claim_payment_webhook_event(
   p_provider text,p_provider_event_id text,p_event_type text,p_request_fingerprint text,p_occurred_at timestamptz default null
 ) returns table(decision text,event_record_id uuid,attempt_count integer,claim_token uuid)
-language plpgsql security definer set search_path=public as $$
+language plpgsql security definer set search_path='' as $$
 declare v public.orkto_payment_webhook_events%rowtype; inserted_count integer;
 begin
   if p_provider is null or nullif(trim(p_provider),'') is null or length(p_provider)>80 or p_provider_event_id is null or nullif(trim(p_provider_event_id),'') is null
@@ -234,7 +300,7 @@ end $$;
 
 create or replace function public.orkto_finish_payment_webhook_event(
   p_provider text,p_provider_event_id text,p_request_fingerprint text,p_claim_token uuid,p_target_status text,p_error_category text default null
-) returns boolean language plpgsql security definer set search_path=public as $$
+) returns boolean language plpgsql security definer set search_path='' as $$
 begin
   if p_provider is null or p_provider_event_id is null or p_request_fingerprint is null or p_claim_token is null
     or p_target_status is null or p_target_status not in ('processed','failed','ignored_stale') then
@@ -251,7 +317,7 @@ end $$;
 create or replace function public.orkto_reserve_channel_send(
   p_workspace_id uuid,p_conversation_id uuid,p_channel text,p_provider text,p_idempotency_key text,p_request_fingerprint text
 ) returns table(decision text,send_request_id uuid,send_status text,provider_message_id text)
-language plpgsql security definer set search_path=public as $$
+language plpgsql security definer set search_path='' as $$
 declare v public.orkto_channel_send_requests%rowtype; inserted_count integer;
 begin
   if p_workspace_id is null or p_conversation_id is null or p_channel is null or p_provider is null
@@ -277,7 +343,7 @@ end $$;
 create or replace function public.orkto_mark_channel_send(
   p_workspace_id uuid,p_send_request_id uuid,p_target_status text,p_provider_message_id text default null,
   p_failure_category text default null,p_occurred_at timestamptz default now()
-) returns text language plpgsql security definer set search_path=public as $$
+) returns text language plpgsql security definer set search_path='' as $$
 declare v public.orkto_channel_send_requests%rowtype;
 begin
   if p_target_status is null or p_target_status not in ('QUEUED','REQUEST_ACCEPTED','PROVIDER_ACKNOWLEDGED','DELIVERED','FAILED','UNKNOWN') then
@@ -307,7 +373,7 @@ end $$;
 create or replace function public.orkto_record_channel_delivery_event(
   p_workspace_id uuid,p_send_request_id uuid,p_provider text,p_provider_event_id text,p_payload_fingerprint text,
   p_provider_message_id text,p_status text,p_occurred_at timestamptz,p_failure_category text default null
-) returns text language plpgsql security definer set search_path=public as $$
+) returns text language plpgsql security definer set search_path='' as $$
 declare v public.orkto_channel_send_requests%rowtype; ev public.orkto_channel_delivery_events%rowtype; inserted_count integer;
 begin
   if p_status is null or p_status not in ('PROVIDER_ACKNOWLEDGED','DELIVERED','FAILED','UNKNOWN') or p_workspace_id is null or p_send_request_id is null
@@ -343,6 +409,8 @@ revoke all on function public.orkto_claim_payment_intent(uuid,uuid,text,text,tex
 grant execute on function public.orkto_claim_payment_intent(uuid,uuid,text,text,text,bigint,text) to service_role;
 revoke all on function public.orkto_finish_payment_intent(uuid,uuid,text,text,text,text) from PUBLIC,anon,authenticated;
 grant execute on function public.orkto_finish_payment_intent(uuid,uuid,text,text,text,text) to service_role;
+revoke all on function public.orkto_apply_payment_intent_provider_event(text,text,text,text,uuid,timestamptz,text,text,bigint,text) from PUBLIC,anon,authenticated;
+grant execute on function public.orkto_apply_payment_intent_provider_event(text,text,text,text,uuid,timestamptz,text,text,bigint,text) to service_role;
 revoke all on function public.orkto_claim_payment_webhook_event(text,text,text,text,timestamptz) from PUBLIC,anon,authenticated;
 grant execute on function public.orkto_claim_payment_webhook_event(text,text,text,text,timestamptz) to service_role;
 revoke all on function public.orkto_finish_payment_webhook_event(text,text,text,uuid,text,text) from PUBLIC,anon,authenticated;
@@ -353,3 +421,18 @@ revoke all on function public.orkto_mark_channel_send(uuid,uuid,text,text,text,t
 grant execute on function public.orkto_mark_channel_send(uuid,uuid,text,text,text,timestamptz) to service_role;
 revoke all on function public.orkto_record_channel_delivery_event(uuid,uuid,text,text,text,text,text,timestamptz,text) from PUBLIC,anon,authenticated;
 grant execute on function public.orkto_record_channel_delivery_event(uuid,uuid,text,text,text,text,text,timestamptz,text) to service_role;
+
+-- Harden pre-existing public SECURITY DEFINER routines without rewriting their
+-- applied migration history. Application relations/functions are schema-
+-- qualified; an empty path prevents public-object shadowing at execution time.
+do $$
+declare f record;
+begin
+  for f in
+    select format('%I.%I(%s)',n.nspname,p.proname,pg_get_function_identity_arguments(p.oid)) as signature
+    from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='public' and p.prosecdef
+  loop
+    execute format('alter function %s set search_path = %L',f.signature,'');
+  end loop;
+end $$;

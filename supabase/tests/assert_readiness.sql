@@ -1,4 +1,11 @@
 -- Transactional regression checks. Changes are rolled back by this file.
+do $$ begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema='public' and table_name='proposals' and column_name='slug'
+      and (character_maximum_length is null or character_maximum_length >= 48)
+  ) then raise exception 'proposal bearer token column cannot hold 192-bit tokens'; end if;
+end $$;
 begin;
 do $$ declare counter integer; begin
   -- A versioned Scale subscription must not inherit the old profile free cap=5.
@@ -63,14 +70,14 @@ begin
     if f.proname not in (
       'orkto_is_workspace_member','orkto_is_workspace_admin','orkto_provision_workspace_for_profile',
       'orkto_legacy_owner_matches','orkto_create_default_workspace_trial','orkto_consume_plan_usage',
-      'orkto_claim_payment_intent','orkto_finish_payment_intent','orkto_claim_payment_webhook_event',
+      'orkto_claim_payment_intent','orkto_finish_payment_intent','orkto_apply_payment_intent_provider_event','orkto_claim_payment_webhook_event',
       'orkto_finish_payment_webhook_event','orkto_reserve_channel_send','orkto_mark_channel_send',
       'orkto_record_channel_delivery_event','tony_search_context'
     ) then
       raise exception 'Unexpected SECURITY DEFINER routine in public: %', f.proname;
     end if;
-    if not coalesce(f.proconfig, array[]::text[]) @> array['search_path=public'] then
-      raise exception 'SECURITY DEFINER routine % has no fixed search_path', f.proname;
+    if not coalesce(f.proconfig, array[]::text[]) @> array['search_path=""'] then
+      raise exception 'SECURITY DEFINER routine % does not use an empty fixed search_path', f.proname;
     end if;
     if has_function_privilege('anon', f.oid, 'EXECUTE') then
       raise exception 'SECURITY DEFINER routine % is executable by anon', f.proname;
@@ -86,7 +93,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> (13 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
+  if definer_count <> (14 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;
@@ -118,11 +125,65 @@ begin
   if decision<>'IN_PROGRESS' then raise exception 'Concurrent duplicate payment request was not rejected as IN_PROGRESS'; end if;
   select c.decision into decision from public.orkto_claim_payment_intent('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',quote_id,'test','readiness-payment-01',repeat('b',64),10000,'BRL') c;
   if decision<>'IDEMPOTENCY_CONFLICT' then raise exception 'Same payment key with changed payload was not rejected'; end if;
+  begin
+    perform 1 from public.orkto_claim_payment_intent('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',quote_id,'test','readiness-payment-wrong-amount',repeat('c',64),9999,'BRL');
+    raise exception 'Payment intent accepted an amount different from its quote';
+  exception when invalid_parameter_value then null; end;
   select public.orkto_finish_payment_intent(intent_id,claim_token,'succeeded','provider-test-001','paid',null) into finish_ok;
   if not finish_ok then raise exception 'Payment success transition rejected the active claim'; end if;
   select c.decision,c.provider_reference into decision,provider_reference
     from public.orkto_claim_payment_intent('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',quote_id,'test','readiness-payment-01',repeat('a',64),10000,'BRL') c;
   if decision<>'REPLAY_SUCCEEDED' or provider_reference<>'provider-test-001' then raise exception 'Completed payment retry did not replay safely'; end if;
+
+  -- A confirmed webhook must reconcile the existing intent by provider
+  -- reference, fingerprint and amount; it may not trust a caller-supplied quote.
+  select c.decision,c.intent_id,c.claim_token into decision,intent_id,claim_token
+  from public.orkto_claim_payment_intent('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',quote_id,'test','readiness-payment-event-01',repeat('2',64),10000,'BRL') c;
+  if decision<>'RESERVED' then raise exception 'Second payment intent was not reserved'; end if;
+  select public.orkto_finish_payment_intent(intent_id,claim_token,'request_accepted','provider-event-001','pending',null) into finish_ok;
+  if not finish_ok then raise exception 'Second payment intent could not enter accepted state'; end if;
+  select c.decision,c.claim_token into decision,claim_token from public.orkto_claim_payment_webhook_event('test','readiness-event-paid-01','PAYMENT_RECEIVED',repeat('3',64),now()) c;
+  if decision<>'CLAIMED' then raise exception 'Paid webhook was not claimed before payment-intent reconciliation'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','readiness-event-paid-01',repeat('3',64),gen_random_uuid(),now(),'succeeded','PAYMENT_RECEIVED',10000,'BRL') c;
+  if decision<>'EVENT_NOT_CLAIMED' then raise exception 'Stale or forged webhook claim token changed a payment intent'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','readiness-event-paid-01',repeat('3',64),claim_token,now(),'succeeded','PAYMENT_RECEIVED',9999,'BRL') c;
+  if decision<>'AMOUNT_OR_CURRENCY_MISMATCH' then raise exception 'Provider amount mismatch was not rejected'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','readiness-event-paid-01',repeat('3',64),claim_token,now(),'succeeded','PAYMENT_RECEIVED',10000,'BRL') c;
+  if decision<>'APPLIED' then raise exception 'Paid webhook did not reconcile the durable payment intent'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','readiness-event-paid-01',repeat('3',64),claim_token,now(),'succeeded','PAYMENT_RECEIVED',10000,'BRL') c;
+  if decision<>'ALREADY_TERMINAL' then raise exception 'Duplicate paid event changed terminal payment state'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','readiness-event-paid-01',repeat('3',64),claim_token,now()+interval '1 day','failed','PAYMENT_DELETED',10000,'BRL') c;
+  if decision<>'TERMINAL_CONFLICT' then raise exception 'Later failure event downgraded a succeeded payment'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','unclaimed-event',repeat('4',64),gen_random_uuid(),now()+interval '2 days','failed','PAYMENT_DELETED',10000,'BRL') c;
+  if decision<>'EVENT_NOT_CLAIMED' then raise exception 'Unclaimed provider event changed payment intent'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-001','readiness-event-paid-01',repeat('3',64),claim_token,now()+interval '3 days','failed','PAYMENT_DELETED',10000,'BRL') c;
+  if decision<>'ALREADY_TERMINAL' and decision<>'TERMINAL_CONFLICT' then raise exception 'Duplicate or out-of-order terminal webhook was not fenced'; end if;
+
+  select c.decision,c.intent_id,c.claim_token into decision,intent_id,claim_token
+  from public.orkto_claim_payment_intent('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',quote_id,'test','readiness-payment-event-02',repeat('7',64),10000,'BRL') c;
+  if decision<>'RESERVED' then raise exception 'Out-of-order test intent was not reserved'; end if;
+  select public.orkto_finish_payment_intent(intent_id,claim_token,'request_accepted','provider-event-002','pending',null) into finish_ok;
+  if not finish_ok then raise exception 'Out-of-order test intent could not enter accepted state'; end if;
+  select c.decision,c.claim_token into decision,claim_token from public.orkto_claim_payment_webhook_event('test','readiness-event-overdue-02','PAYMENT_OVERDUE',repeat('8',64),now()+interval '2 days') c;
+  if decision<>'CLAIMED' then raise exception 'Overdue webhook was not claimed'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-002','readiness-event-overdue-02',repeat('8',64),claim_token,now()+interval '2 days','observed','PAYMENT_OVERDUE',10000,'BRL') c;
+  if decision<>'OBSERVED' then raise exception 'Non-terminal provider status was not recorded'; end if;
+  select c.decision,c.claim_token into decision,claim_token from public.orkto_claim_payment_webhook_event('test','readiness-event-old-paid-02','PAYMENT_RECEIVED',repeat('9',64),now()+interval '1 day') c;
+  if decision<>'CLAIMED' then raise exception 'Older paid webhook was not claimed'; end if;
+  select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
+    'test','provider-event-002','readiness-event-old-paid-02',repeat('9',64),claim_token,now()+interval '1 day','succeeded','PAYMENT_RECEIVED',10000,'BRL') c;
+  if decision<>'STALE' then raise exception 'Out-of-order payment event was not ignored'; end if;
+  if (select status from public.orkto_payment_intents where provider_reference='provider-event-002')<>'request_accepted' then
+    raise exception 'Stale payment event changed the durable intent';
+  end if;
 
   select c.decision,c.event_record_id,c.claim_token,c.attempt_count into decision,claim_id,claim_token,attempt_count
   from public.orkto_claim_payment_webhook_event('test','readiness-event-01','PAYMENT_RECEIVED',repeat('c',64),now()) c;
@@ -155,6 +216,17 @@ begin
   select public.orkto_record_channel_delivery_event('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',send_id,'test-channel','delivery-event-old',repeat('1',64),'provider-message-1','FAILED',now()-interval '1 day','provider_transient') into receipt_result;
   if receipt_result<>'STALE_IGNORED' then raise exception 'Out-of-order delivery receipt was not ignored'; end if;
   if (select status from public.orkto_channel_send_requests where id=send_id)<>'DELIVERED' then raise exception 'Out-of-order provider receipt downgraded DELIVERED'; end if;
+
+  begin
+    perform 1 from public.orkto_claim_payment_intent('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      (select id from public.quotes where quote_number='B-LEGACY'),'test','cross-tenant-payment-01',repeat('5',64),10000,'BRL');
+    raise exception 'Cross-tenant quote was accepted by payment intent';
+  exception when invalid_parameter_value or foreign_key_violation then null; end;
+  begin
+    perform 1 from public.orkto_reserve_channel_send('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+      (select id from public.orkto_conversations where contact_name='Contato B'),'manual','test-channel','cross-tenant-send-01',repeat('6',64));
+    raise exception 'Cross-tenant conversation was accepted by channel send';
+  exception when foreign_key_violation then null; end;
 end $$;
 
 rollback;
