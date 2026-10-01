@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 import {
   PRODUCTION_DEPLOY_TARGET,
   STAGING_DEPLOY_TARGET,
@@ -74,4 +77,10 @@ test('rejects deploy flags and permits guard-only without invoking Vercel', () =
     'UNSUPPORTED_DEPLOY_ARGUMENT');
   assert.equal(validateStagingDeployBoundary({ projectLink, env, args: ['--guard-only'] }).allowed,
     true);
+});
+
+test('Vercel Git integration disables automatic deployments for every readiness branch', () => {
+  const configPath = fileURLToPath(new URL('../../vercel.json', import.meta.url));
+  const config = JSON.parse(readFileSync(path.resolve(configPath), 'utf8'));
+  assert.equal(config.git?.deploymentEnabled?.['production-readiness/*'], false);
 });

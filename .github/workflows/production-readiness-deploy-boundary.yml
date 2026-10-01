@@ -7,11 +7,13 @@ on:
     paths:
       - 'scripts/readiness/deploy-staging.mjs'
       - 'scripts/tests/deploy-staging.test.mjs'
+      - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
   pull_request:
     paths:
       - 'scripts/readiness/deploy-staging.mjs'
       - 'scripts/tests/deploy-staging.test.mjs'
+      - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
   workflow_dispatch:
 
