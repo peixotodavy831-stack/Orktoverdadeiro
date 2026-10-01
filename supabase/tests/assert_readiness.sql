@@ -181,7 +181,7 @@ begin
   select c.decision into decision from public.orkto_apply_payment_intent_provider_event(
     'test','provider-event-002','readiness-event-old-paid-02',repeat('9',64),claim_token,now()+interval '1 day','succeeded','PAYMENT_RECEIVED',10000,'BRL') c;
   if decision<>'STALE' then raise exception 'Out-of-order payment event was not ignored'; end if;
-  if (select status from public.orkto_payment_intents where provider_reference='provider-event-002')<>'request_accepted' then
+  if (select intent.status from public.orkto_payment_intents as intent where intent.provider_reference='provider-event-002')<>'request_accepted' then
     raise exception 'Stale payment event changed the durable intent';
   end if;
 
