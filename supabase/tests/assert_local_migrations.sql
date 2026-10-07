@@ -23,6 +23,50 @@ begin
 end;
 $$;
 
+-- Core command boundary: browser table/RPC writes stay revoked after migrations 19-28.
+do $$
+declare signature text;
+begin
+  if has_table_privilege('authenticated','public.clients','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.services','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.orkto_deals','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.orkto_wia_actions','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.orkto_tasks','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.quotes','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.profiles','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.orkto_conversations','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.orkto_messages','INSERT,UPDATE,DELETE')
+     or has_table_privilege('authenticated','public.orkto_wia_events','INSERT,UPDATE,DELETE') then
+    raise exception 'authenticated can bypass the core mutation gateway';
+  end if;
+  foreach signature in array array[
+    'public.orkto_create_client_command(uuid,uuid,text,uuid,text,text,text,text,text,text)',
+    'public.orkto_update_client_command(uuid,uuid,uuid,text,uuid,text,jsonb)',
+    'public.orkto_archive_client_command(uuid,uuid,uuid,text,uuid,text)',
+    'public.orkto_catalog_item_command(uuid,uuid,text,uuid,text,uuid,text,jsonb)',
+    'public.orkto_deal_command(uuid,uuid,text,uuid,text,uuid,text,jsonb)',
+    'public.orkto_wia_decide_command(uuid,uuid,uuid,text,uuid,text)',
+    'public.orkto_create_quote_command(uuid,uuid,text,uuid,text,jsonb,integer)',
+    'public.orkto_set_conversation_priority_command(uuid,uuid,uuid,text,text,uuid,text)',
+    'public.orkto_complete_onboarding_command(uuid,uuid,text,uuid,text,jsonb)',
+    'public.orkto_inbox_state_command(uuid,uuid,text,uuid,text,text,uuid,text)'
+  ] loop
+    if to_regprocedure(signature) is null then raise exception 'client command missing: %',signature; end if;
+    if has_function_privilege('anon',signature,'EXECUTE') or has_function_privilege('authenticated',signature,'EXECUTE') then
+      raise exception 'browser can call privileged client command: %',signature;
+    end if;
+    if not has_function_privilege('service_role',signature,'EXECUTE') then
+      raise exception 'Edge service role cannot call client command: %',signature;
+    end if;
+  end loop;
+  if not exists (select 1 from pg_indexes where schemaname='public' and tablename='orkto_wia_events'
+                 and indexdef ilike '%UNIQUE%' and indexdef ilike '%workspace_id%'
+                 and indexdef ilike '%idempotency_key%') then
+    raise exception 'client command idempotency uniqueness missing';
+  end if;
+end;
+$$;
+
 insert into public.proposals(slug,quote_id,user_id,workspace_id,expires_at)
 select 'FIXA0001',q.id,q.user_id,q.workspace_id,now()+interval '2 days' from public.quotes q where q.quote_number='A-LEGACY';
 insert into public.proposals(slug,quote_id,user_id,workspace_id,expires_at)

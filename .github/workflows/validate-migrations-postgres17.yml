@@ -102,7 +102,7 @@ jobs:
 
       - name: Replay fixture and migrations
         shell: bash
-        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 18 --security-assertion supabase/tests/assert_security_contract.sql
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 28 --security-assertion supabase/tests/assert_security_contract.sql
 
       - name: Capture PostgreSQL service log
         if: always()
@@ -121,7 +121,7 @@ jobs:
           retention-days: 14
 
   security-candidate:
-    name: Supabase-like baseline + 11 pending + security assertions
+    name: Supabase-like baseline + pending migrations + security assertions
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     services:
@@ -162,12 +162,12 @@ jobs:
           psql --version
       - name: Render sanitized Supabase-like baseline
         run: node scripts/render-remote-schema-fixture.mjs "$RUNNER_TEMP/orkto-supabase-like.sql"
-      - name: Replay pending migrations including official migration 18
+      - name: Replay pending migrations including current command boundary
         shell: bash
         run: |
           node scripts/validate-migrations.mjs \
             --target ci \
-            --expected-count 18 \
+            --expected-count 28 \
             --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
             --start-after 20260923225648 \
             --pre-assertion supabase/tests/assert_remote_upgrade.sql \

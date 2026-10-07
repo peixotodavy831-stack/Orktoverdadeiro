@@ -1,4 +1,4 @@
--- Run after candidate 17 on a disposable PostgreSQL 17 database only.
+-- Run after candidate 18 on a disposable PostgreSQL 17 database only.
 -- The caller supplies --single-transaction so fixture writes are rolled back.
 do $$
 declare
