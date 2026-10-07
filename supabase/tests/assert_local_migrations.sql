@@ -23,7 +23,7 @@ begin
 end;
 $$;
 
--- Core command boundary: browser table/RPC writes stay revoked after migrations 19-30.
+-- Core command boundary: browser table/RPC writes stay revoked after migrations 19-31.
 do $$
 declare signature text;
 begin
@@ -345,6 +345,8 @@ begin
   insert into public.quotes(user_id,workspace_id,quote_number,client_name,client_phone,status)
     values(v_actor,v_workspace,'CI-UPDATE-TEST','Synthetic CI Quote','+550000000002','pending')
     returning * into v_quote;
+  insert into public.proposals(slug,quote_id,user_id,workspace_id,expires_at,is_active)
+    values('UPD10001',v_quote.id,v_actor,v_workspace,now()+interval '1 day',true);
   insert into public.orkto_live_quotes(workspace_id,quote_ref,public_token_hash,version,snapshot,current_price_cents,status)
     values(v_workspace,v_quote.id::text,repeat('e',64),1,'{}'::jsonb,0,'active') returning id into v_link;
   insert into public.orkto_automation_jobs(workspace_id,entity_type,entity_ref,step_key,due_at,status,idempotency_key)
@@ -373,6 +375,7 @@ begin
     v_fields,'ci-update-once',v_request,v_fingerprint);
   if v_result->>'result' <> 'REPLAY' then raise exception 'quote update replay failed'; end if;
   if not exists(select 1 from public.quotes q where q.id=v_quote.id and q.notes='Changed in CI' and q.total=47)
+     or exists(select 1 from public.proposals where quote_id=v_quote.id and is_active)
      or exists(select 1 from public.orkto_live_quotes where id=v_link and status<>'revoked')
      or exists(select 1 from public.orkto_automation_jobs where entity_ref=v_quote.id::text and status<>'cancelled')
      or exists(select 1 from public.orkto_wia_actions where payload->>'quoteId'=v_quote.id::text and status<>'cancelled')

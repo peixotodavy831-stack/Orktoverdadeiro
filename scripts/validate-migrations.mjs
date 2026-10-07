@@ -16,7 +16,7 @@ function parseArguments(argv) {
   const result = {
     target: process.env.ORKTO_MIGRATION_TARGET || '',
     evidenceDirectory: process.env.ORKTO_MIGRATION_EVIDENCE_DIR || '',
-    expectedCount: Number(process.env.ORKTO_EXPECTED_MIGRATION_COUNT || 30),
+    expectedCount: Number(process.env.ORKTO_EXPECTED_MIGRATION_COUNT || 31),
     fixturePath: '', startAfter: '', candidatePath: '', preAssertionPath: '', securityAssertionPath: '',
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -121,7 +121,7 @@ function parseJsonOutput(output, label) {
 export async function validateMigrations({
   target,
   evidenceDirectory,
-  expectedCount = 30,
+  expectedCount = 31,
   fixturePath = '', startAfter = '', candidatePath = '', preAssertionPath = '', securityAssertionPath = '',
 } = {}) {
   const runId = `migration-replay-${new Date().toISOString().replaceAll(/[-:.]/g, '').replace('Z', 'Z')}-${Math.random().toString(16).slice(2, 10)}`;
@@ -386,7 +386,7 @@ export async function validateMigrations({
 
 function showHelp() {
   process.stdout.write([
-    'Usage: node scripts/validate-migrations.mjs --target <ci|local|staging> [--evidence-dir PATH] [--expected-count 30]',
+    'Usage: node scripts/validate-migrations.mjs --target <ci|local|staging> [--evidence-dir PATH] [--expected-count 31]',
     'Requires a disposable, empty PostgreSQL 17 database. The shared runner loads the legacy fixture, replays migrations, runs assertions, and exports catalog-only inventory.',
     'For staging, additionally require an explicit disposable-database acknowledgment and exact expected host. Never point this command at production.',
   ].join('\n') + '\n');

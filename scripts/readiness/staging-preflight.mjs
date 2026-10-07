@@ -6,7 +6,7 @@ export const STAGING_TARGET = Object.freeze({
   vercelProjectId: 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc',
   supabaseRef: 'ghrjongiodziasupakrk',
   supabaseUrl: 'https://ghrjongiodziasupakrk.supabase.co',
-  migrationCount: 30,
+  migrationCount: 31,
 });
 
 export function evaluateStagingPreflight(env, migrationGate) {
