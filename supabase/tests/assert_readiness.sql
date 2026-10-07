@@ -72,7 +72,11 @@ begin
       'orkto_legacy_owner_matches','orkto_create_default_workspace_trial','orkto_consume_plan_usage',
       'orkto_claim_payment_intent','orkto_finish_payment_intent','orkto_apply_payment_intent_provider_event','orkto_claim_payment_webhook_event',
       'orkto_finish_payment_webhook_event','orkto_reserve_channel_send','orkto_mark_channel_send',
-      'orkto_record_channel_delivery_event','tony_search_context'
+      'orkto_record_channel_delivery_event','tony_search_context',
+      'orkto_create_client_command','orkto_update_client_command','orkto_archive_client_command',
+      'orkto_catalog_item_command','orkto_deal_command','orkto_wia_decide_command',
+      'orkto_create_quote_command','orkto_set_conversation_priority_command',
+      'orkto_complete_onboarding_command','orkto_inbox_state_command'
     ) then
       raise exception 'Unexpected SECURITY DEFINER routine in public: %', f.proname;
     end if;
@@ -93,7 +97,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> (14 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
+  if definer_count <> (24 - case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 1 else 0 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;
