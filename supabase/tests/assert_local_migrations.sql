@@ -272,3 +272,58 @@ begin
   if not exists(select 1 from pg_constraint where conname='orkto_finance_transactions_workspace_id_fkey' and convalidated) then raise exception 'finance workspace FK missing or unvalidated'; end if;
 end;
 $$;
+
+-- Quote archive must commit its dependent state atomically and replay once.
+-- This fixture runs only inside the disposable PostgreSQL 17 replay.
+do $$
+declare
+  v_quote uuid;
+  v_link uuid;
+  v_result jsonb;
+  v_workspace uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_actor uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_request uuid := '11111111-1111-4111-8111-111111111111';
+  v_fingerprint text := repeat('a',64);
+  v_error text;
+begin
+  insert into public.quotes(user_id,workspace_id,quote_number,client_name,client_phone,status)
+    values(v_actor,v_workspace,'CI-ARCHIVE-TEST','Synthetic CI Quote','+550000000001','pending')
+    returning id into v_quote;
+  insert into public.proposals(slug,quote_id,user_id,workspace_id,expires_at,is_active)
+    values('ARC10001',v_quote,v_actor,v_workspace,now()+interval '1 day',true);
+  insert into public.orkto_live_quotes(workspace_id,quote_ref,public_token_hash,version,snapshot,current_price_cents,status)
+    values(v_workspace,v_quote::text,repeat('b',64),1,'{}'::jsonb,0,'active') returning id into v_link;
+  insert into public.orkto_automation_jobs(workspace_id,entity_type,entity_ref,step_key,due_at,status,idempotency_key)
+    values(v_workspace,'quote',v_quote::text,'D+1',now()+interval '1 day','scheduled','ci-archive-job');
+  insert into public.orkto_wia_actions(workspace_id,action_type,payload,idempotency_key)
+    values(v_workspace,'send_proposal_followup',jsonb_build_object('quoteId',v_quote::text),'ci-archive-action');
+
+  begin
+    perform public.orkto_archive_quote_command('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,
+      v_workspace,v_quote,'ci-archive-denied',v_request,v_fingerprint);
+    raise exception 'foreign actor archived a quote';
+  exception when raise_exception then
+    get stacked diagnostics v_error=message_text;
+    if v_error <> 'ORKTO_WORKSPACE_ACCESS_DENIED' then raise; end if;
+  end;
+
+  v_result := public.orkto_archive_quote_command(v_actor,v_workspace,v_quote,
+    'ci-archive-once',v_request,v_fingerprint);
+  if v_result->>'result' <> 'ARCHIVED' or (v_result->>'revoked_links')::integer <> 1
+     or (v_result->>'cancelled_jobs')::integer <> 1
+     or (v_result->>'cancelled_actions')::integer <> 1 then
+    raise exception 'quote archive did not report all dependent effects';
+  end if;
+  v_result := public.orkto_archive_quote_command(v_actor,v_workspace,v_quote,
+    'ci-archive-once',v_request,v_fingerprint);
+  if v_result->>'result' <> 'REPLAY' then raise exception 'quote archive replay failed'; end if;
+  if not exists(select 1 from public.quotes where id=v_quote and archived_at is not null)
+     or exists(select 1 from public.proposals where quote_id=v_quote and is_active)
+     or exists(select 1 from public.orkto_live_quotes where id=v_link and status<>'revoked')
+     or exists(select 1 from public.orkto_automation_jobs where entity_ref=v_quote::text and status<>'cancelled')
+     or exists(select 1 from public.orkto_wia_actions where payload->>'quoteId'=v_quote::text and status<>'cancelled')
+     or (select count(*) from public.orkto_wia_events where event_type='quote.archived' and entity_ref=v_quote::text)<>1 then
+    raise exception 'quote archive left a dependent effect active or duplicated audit';
+  end if;
+end;
+$$;
