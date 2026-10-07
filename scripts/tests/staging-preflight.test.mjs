@@ -12,11 +12,11 @@ const validEnv = {
 };
 
 test('staging preflight is read-only and passes only for the pinned staging environment and current schema', () => {
-  const passing = evaluateStagingPreflight(validEnv, { status: 'PASS', code: 'STAGING_SCHEMA_CURRENT', expected: 28, actual: 28 });
+  const passing = evaluateStagingPreflight(validEnv, { status: 'PASS', code: 'STAGING_SCHEMA_CURRENT', expected: 29, actual: 29 });
   assert.equal(passing.status, 'PASS');
   assert.deepEqual(passing.actionsPerformed, []);
 
-  const outdated = evaluateStagingPreflight(validEnv, { status: 'STAGING_SCHEMA_OUTDATED', code: 'STAGING_SCHEMA_OUTDATED', expected: 28, actual: 17 });
+  const outdated = evaluateStagingPreflight(validEnv, { status: 'STAGING_SCHEMA_OUTDATED', code: 'STAGING_SCHEMA_OUTDATED', expected: 29, actual: 17 });
   assert.equal(outdated.status, 'BLOCKED');
   assert.equal(outdated.code, 'STAGING_SCHEMA_OUTDATED');
   assert.ok(outdated.failures.includes('migrationCurrent'));
@@ -30,7 +30,7 @@ test('staging preflight fails closed on production refs, project IDs, missing le
     COLLECTIVE_MEMORY_CROSS_WORKSPACE: undefined,
     PUBLIC_CASE_PUBLICATION: 'ON',
     ORKTO_ENABLE_MOCK_ROUTES: 'true',
-  }, { status: 'PASS', expected: 28, actual: 28 });
+  }, { status: 'PASS', expected: 29, actual: 29 });
   assert.equal(result.status, 'BLOCKED');
   assert.ok(result.failures.includes('vercelProject'));
   assert.ok(result.failures.includes('supabaseProject'));
@@ -39,7 +39,7 @@ test('staging preflight fails closed on production refs, project IDs, missing le
 });
 
 test('staging preflight rejects elevated credentials in Preview', () => {
-  const gate = { status: 'PASS', expected: 28, actual: 28 };
+  const gate = { status: 'PASS', expected: 29, actual: 29 };
   for (const elevated of [
     { SUPABASE_SERVICE_ROLE_KEY: 'synthetic-elevated-key' },
     { STAGING_SERVICE_ROLE_KEY_SHA256: 'a'.repeat(64) },

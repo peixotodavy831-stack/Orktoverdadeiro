@@ -23,7 +23,7 @@ begin
 end;
 $$;
 
--- Core command boundary: browser table/RPC writes stay revoked after migrations 19-28.
+-- Core command boundary: browser table/RPC writes stay revoked after migrations 19-29.
 do $$
 declare signature text;
 begin
@@ -49,7 +49,8 @@ begin
     'public.orkto_create_quote_command(uuid,uuid,text,uuid,text,jsonb,integer)',
     'public.orkto_set_conversation_priority_command(uuid,uuid,uuid,text,text,uuid,text)',
     'public.orkto_complete_onboarding_command(uuid,uuid,text,uuid,text,jsonb)',
-    'public.orkto_inbox_state_command(uuid,uuid,text,uuid,text,text,uuid,text)'
+    'public.orkto_inbox_state_command(uuid,uuid,text,uuid,text,text,uuid,text)',
+    'public.orkto_archive_quote_command(uuid,uuid,uuid,text,uuid,text)'
   ] loop
     if to_regprocedure(signature) is null then raise exception 'client command missing: %',signature; end if;
     if has_function_privilege('anon',signature,'EXECUTE') or has_function_privilege('authenticated',signature,'EXECUTE') then
