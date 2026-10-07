@@ -23,7 +23,7 @@ begin
 end;
 $$;
 
--- Core command boundary: browser table/RPC writes stay revoked after migrations 19-29.
+-- Core command boundary: browser table/RPC writes stay revoked after migrations 19-30.
 do $$
 declare signature text;
 begin
@@ -50,7 +50,8 @@ begin
     'public.orkto_set_conversation_priority_command(uuid,uuid,uuid,text,text,uuid,text)',
     'public.orkto_complete_onboarding_command(uuid,uuid,text,uuid,text,jsonb)',
     'public.orkto_inbox_state_command(uuid,uuid,text,uuid,text,text,uuid,text)',
-    'public.orkto_archive_quote_command(uuid,uuid,uuid,text,uuid,text)'
+    'public.orkto_archive_quote_command(uuid,uuid,uuid,text,uuid,text)',
+    'public.orkto_update_quote_command(uuid,uuid,uuid,timestamptz,jsonb,text,uuid,text)'
   ] loop
     if to_regprocedure(signature) is null then raise exception 'client command missing: %',signature; end if;
     if has_function_privilege('anon',signature,'EXECUTE') or has_function_privilege('authenticated',signature,'EXECUTE') then
@@ -325,5 +326,66 @@ begin
      or (select count(*) from public.orkto_wia_events where event_type='quote.archived' and entity_ref=v_quote::text)<>1 then
     raise exception 'quote archive left a dependent effect active or duplicated audit';
   end if;
+end;
+$$;
+
+-- Quote terms: server-priced fields, dependent cancellation, concurrency and replay.
+do $$
+declare
+  v_quote public.quotes%rowtype;
+  v_link uuid;
+  v_result jsonb;
+  v_fields jsonb;
+  v_workspace uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_actor uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_request uuid := '22222222-2222-4222-8222-222222222222';
+  v_fingerprint text := repeat('d',64);
+  v_error text;
+begin
+  insert into public.quotes(user_id,workspace_id,quote_number,client_name,client_phone,status)
+    values(v_actor,v_workspace,'CI-UPDATE-TEST','Synthetic CI Quote','+550000000002','pending')
+    returning * into v_quote;
+  insert into public.orkto_live_quotes(workspace_id,quote_ref,public_token_hash,version,snapshot,current_price_cents,status)
+    values(v_workspace,v_quote.id::text,repeat('e',64),1,'{}'::jsonb,0,'active') returning id into v_link;
+  insert into public.orkto_automation_jobs(workspace_id,entity_type,entity_ref,step_key,due_at,status,idempotency_key)
+    values(v_workspace,'quote',v_quote.id::text,'D+1',now()+interval '1 day','scheduled','ci-update-job');
+  insert into public.orkto_wia_actions(workspace_id,action_type,payload,idempotency_key)
+    values(v_workspace,'send_proposal_followup',jsonb_build_object('quoteId',v_quote.id::text),'ci-update-action');
+  v_fields := jsonb_build_object('notes','Changed in CI','items',jsonb_build_array(
+    jsonb_build_object('name','Synthetic line','description','','quantity',2,'unitPrice',25,'discount',10)),
+    'subtotal',50,'discount_total',5,'taxes',2,'total',47);
+  begin
+    perform public.orkto_update_quote_command('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,
+      v_workspace,v_quote.id,v_quote.updated_at,v_fields,'ci-update-denied',v_request,v_fingerprint);
+    raise exception 'foreign actor updated a quote';
+  exception when raise_exception then
+    get stacked diagnostics v_error=message_text;
+    if v_error <> 'ORKTO_WORKSPACE_ACCESS_DENIED' then raise; end if;
+  end;
+  v_result := public.orkto_update_quote_command(v_actor,v_workspace,v_quote.id,v_quote.updated_at,
+    v_fields,'ci-update-once',v_request,v_fingerprint);
+  if v_result->>'result' <> 'UPDATED' or (v_result->>'revoked_links')::integer <> 1
+     or (v_result->>'cancelled_jobs')::integer <> 1
+     or (v_result->>'cancelled_actions')::integer <> 1 then
+    raise exception 'quote update did not report dependent effects';
+  end if;
+  v_result := public.orkto_update_quote_command(v_actor,v_workspace,v_quote.id,v_quote.updated_at,
+    v_fields,'ci-update-once',v_request,v_fingerprint);
+  if v_result->>'result' <> 'REPLAY' then raise exception 'quote update replay failed'; end if;
+  if not exists(select 1 from public.quotes q where q.id=v_quote.id and q.notes='Changed in CI' and q.total=47)
+     or exists(select 1 from public.orkto_live_quotes where id=v_link and status<>'revoked')
+     or exists(select 1 from public.orkto_automation_jobs where entity_ref=v_quote.id::text and status<>'cancelled')
+     or exists(select 1 from public.orkto_wia_actions where payload->>'quoteId'=v_quote.id::text and status<>'cancelled')
+     or (select count(*) from public.orkto_wia_events where event_type='quote.updated' and entity_ref=v_quote.id::text)<>1 then
+    raise exception 'quote update did not commit one complete state change';
+  end if;
+  begin
+    perform public.orkto_update_quote_command(v_actor,v_workspace,v_quote.id,v_quote.updated_at,
+      v_fields,'ci-update-stale',v_request,repeat('f',64));
+    raise exception 'stale quote version was accepted';
+  exception when raise_exception then
+    get stacked diagnostics v_error=message_text;
+    if v_error <> 'ORKTO_CONFLICT' then raise; end if;
+  end;
 end;
 $$;

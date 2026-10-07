@@ -102,7 +102,7 @@ jobs:
 
       - name: Replay fixture and migrations
         shell: bash
-        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 29 --security-assertion supabase/tests/assert_security_contract.sql
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 30 --security-assertion supabase/tests/assert_security_contract.sql
 
       - name: Capture PostgreSQL service log
         if: always()
@@ -167,7 +167,7 @@ jobs:
         run: |
           node scripts/validate-migrations.mjs \
             --target ci \
-            --expected-count 29 \
+            --expected-count 30 \
             --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
             --start-after 20260923225648 \
             --pre-assertion supabase/tests/assert_remote_upgrade.sql \
