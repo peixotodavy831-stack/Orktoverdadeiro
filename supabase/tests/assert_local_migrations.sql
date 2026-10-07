@@ -387,5 +387,7 @@ begin
     get stacked diagnostics v_error=message_text;
     if v_error <> 'ORKTO_CONFLICT' then raise; end if;
   end;
+  -- Keep the disposable fixture from consuming a plan slot in later assertions.
+  update public.quotes set archived_at=now() where id=v_quote.id;
 end;
 $$;
