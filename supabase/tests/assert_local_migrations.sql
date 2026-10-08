@@ -51,7 +51,8 @@ begin
     'public.orkto_complete_onboarding_command(uuid,uuid,text,uuid,text,jsonb)',
     'public.orkto_inbox_state_command(uuid,uuid,text,uuid,text,text,uuid,text)',
     'public.orkto_archive_quote_command(uuid,uuid,uuid,text,uuid,text)',
-    'public.orkto_update_quote_command(uuid,uuid,uuid,timestamptz,jsonb,text,uuid,text)'
+    'public.orkto_update_quote_command(uuid,uuid,uuid,timestamptz,jsonb,text,uuid,text)',
+    'public.orkto_transition_deal_command(uuid,uuid,uuid,text,text,text,uuid,text)'
   ] loop
     if to_regprocedure(signature) is null then raise exception 'client command missing: %',signature; end if;
     if has_function_privilege('anon',signature,'EXECUTE') or has_function_privilege('authenticated',signature,'EXECUTE') then
@@ -392,5 +393,57 @@ begin
   end;
   -- Keep the disposable fixture from consuming a plan slot in later assertions.
   update public.quotes set archived_at=now() where id=v_quote.id;
+end;
+$$;
+
+-- Terminal deal transitions: authorization, atomic outcome, replay and audit.
+do $$
+declare
+  v_deal uuid;
+  v_result jsonb;
+  v_workspace uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_actor uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_request uuid := '33333333-3333-4333-8333-333333333333';
+  v_fingerprint text := repeat('1',64);
+  v_error text;
+begin
+  select id into strict v_deal from public.orkto_deals
+    where workspace_id=v_workspace and title='Negócio fixture';
+  begin
+    perform public.orkto_transition_deal_command(
+      'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,v_workspace,v_deal,'won',null,
+      'ci-deal-denied',v_request,v_fingerprint);
+    raise exception 'foreign actor transitioned a deal';
+  exception when raise_exception then
+    get stacked diagnostics v_error=message_text;
+    if v_error <> 'ORKTO_WORKSPACE_ACCESS_DENIED' then raise; end if;
+  end;
+  v_result := public.orkto_transition_deal_command(
+    v_actor,v_workspace,v_deal,'won',null,'ci-deal-won-once',v_request,v_fingerprint);
+  if v_result->>'result' <> 'UPDATED'
+     or not exists(select 1 from public.orkto_deals where id=v_deal and stage='won' and status='won')
+     or (select count(*) from public.orkto_wia_events
+         where event_type='deal.stage_changed' and entity_ref=v_deal::text)<>1 then
+    raise exception 'deal outcome was not committed with one audit event';
+  end if;
+  v_result := public.orkto_transition_deal_command(
+    v_actor,v_workspace,v_deal,'won',null,'ci-deal-won-once',v_request,v_fingerprint);
+  if v_result->>'result' <> 'REPLAY' then raise exception 'deal outcome replay failed'; end if;
+  begin
+    perform public.orkto_transition_deal_command(
+      v_actor,v_workspace,v_deal,'lost','late conflict','ci-deal-invalid',v_request,repeat('2',64));
+    raise exception 'terminal deal accepted a second outcome';
+  exception when raise_exception then
+    get stacked diagnostics v_error=message_text;
+    if v_error <> 'ORKTO_CONFLICT' then raise; end if;
+  end;
+  v_result := public.orkto_transition_deal_command(
+    v_actor,v_workspace,v_deal,'archived',null,'ci-deal-archive-once',v_request,repeat('3',64));
+  if v_result->>'result' <> 'UPDATED'
+     or not exists(select 1 from public.orkto_deals where id=v_deal and stage='won' and status='archived')
+     or (select count(*) from public.orkto_wia_events
+         where event_type='deal.archived' and entity_ref=v_deal::text)<>1 then
+    raise exception 'deal archive did not preserve outcome or audit exactly once';
+  end if;
 end;
 $$;
