@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import type { Request, Response } from 'express';
 import { CoreMutationClient, resolveCoreMutationEndpoint } from '../backend/core-mutation-client.js';
@@ -51,4 +52,14 @@ test('unconfigured gateway returns CONFIGURATION_REQUIRED without attempting a d
   assert.equal(fetchCalls, 0);
   assert.equal(sentStatus, 503);
   assert.deepEqual(sentBody, { error: 'Mutation Gateway indisponível.', category: 'CONFIGURATION_REQUIRED' });
+});
+
+test('web runtime has one publishable JWT path and cannot regain service-role or staging-only writes', async () => {
+  const source = await readFile(new URL('../backend/core-app.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|supabaseServiceKey/);
+  assert.doesNotMatch(source, /stagingRequestDb|APP_ENV\s*===\s*['"]staging['"]\s*\?\s*req\.authenticatedSupabase/);
+  assert.match(source, /const requestDb = supabaseClient \? createRequestScopedClient\(supabaseClient\) : null/);
+  assert.match(source, /const membershipDb = req\.authenticatedSupabase/);
+  assert.match(source, /ORKTO_EXTERNAL_MESSAGING_ENABLED !== ['"]true['"]/);
+  assert.match(source, /AUDIT_MESSAGE_CONFIGURATION_REQUIRED/);
 });

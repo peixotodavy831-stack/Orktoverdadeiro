@@ -163,7 +163,6 @@ app.use(express.json({ limit: '10mb' }));
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // Tipos auxiliares para corrigir lint estrito
 declare global {
@@ -178,12 +177,14 @@ declare global {
 }
 
 const supabaseClient = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
-const stagingRequestDb = process.env.APP_ENV === 'staging' && supabaseClient
-  ? createRequestScopedClient(supabaseClient) : null;
-const supabase = stagingRequestDb?.client
-  || (supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null);
-if (stagingRequestDb) {
-  app.use((_req, _res, next) => stagingRequestDb.run(next));
+// The web runtime never receives or consumes service-role credentials. Every
+// environment uses the same request-scoped publishable client and the caller's
+// JWT, so legacy direct writes stay constrained by grants/RLS and fail closed.
+// Privileged core mutations cross CoreMutationClient -> Edge command RPC.
+const requestDb = supabaseClient ? createRequestScopedClient(supabaseClient) : null;
+const supabase = requestDb?.client || null;
+if (requestDb) {
+  app.use((_req, _res, next) => requestDb.run(next));
 }
 const wiaToolRegistry = supabase ? createT0ToolRegistry(new SupabaseT0DataSource(supabase)) : null;
 
@@ -243,7 +244,7 @@ async function authenticate(req, res, next) {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  stagingRequestDb?.useAuthenticatedClient(req.authenticatedSupabase);
+  requestDb?.useAuthenticatedClient(req.authenticatedSupabase);
   // Invitation acceptance is the only authenticated path available before a
   // user belongs to any workspace. Its high-entropy token, verified session
   // email, and compare-and-set invite claim establish the target workspace.
@@ -252,7 +253,7 @@ async function authenticate(req, res, next) {
     return next();
   }
   const requestedWorkspace = typeof req.headers['x-orkto-workspace'] === 'string' ? req.headers['x-orkto-workspace'].trim() : undefined;
-  const membershipDb = process.env.APP_ENV === 'staging' ? req.authenticatedSupabase : supabase;
+  const membershipDb = req.authenticatedSupabase;
   if (!membershipDb) {
     if (requestedWorkspace) return res.status(503).json({ error: 'A seleção de workspace exige a camada de persistência.', category: 'configuration_error' });
     req.tenantContext = createOwnerTenantContext(user.id);
@@ -834,7 +835,7 @@ app.post('/api/wia/decide', authenticate, async (req, res) => {
 app.get('/api/wia/chat-history', authenticate, async (req,res) => {
   const parsed = z.object({ sessionId: z.string().uuid() }).safeParse(req.query);
   if (!parsed.success) return res.status(400).json({ error:'Identificador de conversa inválido.' });
-  const historyDb = process.env.APP_ENV === 'staging' ? req.authenticatedSupabase : supabase;
+  const historyDb = req.authenticatedSupabase;
   if (!historyDb) return res.status(503).json({ error:'Histórico da WIA indisponível.', category:'configuration_error' });
   const tenantContext = requireTenantContext(req);
   try {
@@ -879,7 +880,7 @@ app.get('/api/wia/history', authenticate, async (req, res) => {
   if (!parsed.success) return res.status(400).json({ error: 'Parâmetros do histórico inválidos.', category: 'validation_failed' });
   const cursor = decodeWiaHistoryCursor(parsed.data.cursor);
   if (cursor === null) return res.status(400).json({ error: 'Cursor do histórico inválido.', category: 'validation_failed' });
-  const historyDb = process.env.APP_ENV === 'staging' ? req.authenticatedSupabase : supabase;
+  const historyDb = req.authenticatedSupabase;
   if (!historyDb) return res.status(503).json({ error: 'Histórico da WIA indisponível.', category: 'configuration_required' });
 
   const tenantContext = requireTenantContext(req);
@@ -2444,7 +2445,9 @@ app.post("/api/conversations/:conversationId/send", authenticate, async (req, re
     const { data: conversation, error } = await supabase.from('orkto_conversations').select('id,source_channel').eq('id',conversationId).eq('workspace_id',workspaceId).maybeSingle();
     if (error) throw error;
     if (!conversation) return res.status(404).json({ error: 'Conversa não encontrada.' });
-    if (process.env.APP_ENV === 'staging') {
+    if (process.env.ORKTO_EXTERNAL_MESSAGING_ENABLED !== 'true') {
+      const audit = await invokeCoreMutation(req, res, { id: workspaceId }, 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED', { conversationId });
+      if (!audit) return;
       return res.status(503).json({ error:'Canal de saída não configurado. A mensagem não foi enviada.',
         status:'CONFIGURATION_REQUIRED',category:'channel_not_configured' });
     }

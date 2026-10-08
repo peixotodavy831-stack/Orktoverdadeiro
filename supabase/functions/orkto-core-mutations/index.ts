@@ -275,6 +275,17 @@ Deno.serve(async (req: Request) => {
       eventType = command === 'MARK_CONVERSATION_READ' ? 'conversation.read' : 'conversation.status_changed';
       argumentsForCommand = { p_command:command,p_conversation_id:holder.conversationId,
         p_status:command === 'SET_CONVERSATION_STATUS' ? holder.status : null };
+    } else if (command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
+      const holder = suppliedPayload as { conversationId?: unknown } | null;
+      if (!holder || typeof holder !== 'object' || Array.isArray(holder)
+          || Object.keys(holder).some(key => key !== 'conversationId')
+          || typeof holder.conversationId !== 'string' || !UUID.test(holder.conversationId)) {
+        return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      }
+      canonical = { conversationId:holder.conversationId };
+      functionName = '';
+      eventType = 'channel.send.configuration_required';
+      argumentsForCommand = {};
     } else {
       return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
     }
@@ -288,6 +299,20 @@ Deno.serve(async (req: Request) => {
     if (membershipError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
     if (!membership || membership.status !== 'active') return response(403, 'WORKSPACE_ACCESS_DENIED', requestId, undefined, origin);
     if (!['owner','admin','manager','member'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
+      const conversationId = String(canonical.conversationId);
+      const { data:conversation,error:conversationError } = await admin.from('orkto_conversations')
+        .select('id').eq('workspace_id',membership.workspace_id).eq('id',conversationId).maybeSingle();
+      if (conversationError) return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if (!conversation) return response(404,'NOT_FOUND',requestId,undefined,origin);
+      const { error:auditError } = await admin.from('orkto_audit_log').insert({
+        user_id:user.id,workspace_id:membership.workspace_id,conversation_id:conversationId,
+        event_type:'channel.send.configuration_required',actor_type:'human',actor_id:user.id,
+        event_data:{ status:'CONFIGURATION_REQUIRED',idempotency_key:idempotencyKey,request_id:requestId },
+      });
+      if (auditError) return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'AUDITED'},origin);
+    }
     if ((command === 'ARCHIVE_CLIENT' || command === 'ARCHIVE_CATALOG_ITEM' || command === 'ARCHIVE_QUOTE' || command === 'ARCHIVE_DEAL') && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if (command === 'COMPLETE_ONBOARDING' && membership.role !== 'owner') return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if ((command === 'APPROVE_WIA_ACTION' || command === 'REJECT_WIA_ACTION') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);

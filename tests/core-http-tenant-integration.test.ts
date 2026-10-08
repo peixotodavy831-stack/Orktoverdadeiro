@@ -365,6 +365,16 @@ before(async () => {
         id: randomUUID(), workspace_id: workspaceId, actor_user_id: user.id, event_type: eventType,
         entity_type: entityType, entity_ref: entityRef, request_id: headers.get('x-request-id'),
       });
+      if (request.command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
+        const conversation = denyForeign('orkto_conversations',payload.conversationId);
+        if (!conversation) return Response.json({code:'NOT_FOUND'},{status:404});
+        database.rows('orkto_audit_log').push({
+          id:randomUUID(),workspace_id:workspaceId,user_id:user.id,conversation_id:conversation.id,
+          event_type:'channel.send.configuration_required',actor_type:'human',actor_id:user.id,
+          event_data:{status:'CONFIGURATION_REQUIRED'},
+        });
+        return ok({result:'AUDITED'});
+      }
       if (request.command === 'CREATE_CLIENT') {
         const row = { id:randomUUID(),workspace_id:workspaceId,user_id:user.id,name:payload.name,phone:payload.phone,
           company:payload.company ?? null,vehicle_or_service:payload.vehicleOrService ?? null,notes:payload.notes ?? null,
