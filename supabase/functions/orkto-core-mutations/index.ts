@@ -86,6 +86,20 @@ async function fingerprint(value: unknown) {
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
+async function sha256Hex(value: string) {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function deterministicPublicToken(secret: string, workspaceId: string, quoteId: string, idempotencyKey: string) {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('HMAC', key,
+    new TextEncoder().encode(`live-quote:${workspaceId}:${quoteId}:${idempotencyKey}`));
+  return btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');
+}
+
 Deno.serve(async (req: Request) => {
   const suppliedId = req.headers.get('x-request-id') || '';
   const requestId = UUID.test(suppliedId) ? suppliedId : crypto.randomUUID();
@@ -291,6 +305,17 @@ Deno.serve(async (req: Request) => {
       functionName = 'orkto_update_quote_command';
       eventType = 'quote.updated';
       argumentsForCommand = { p_quote_id:holder.quoteId };
+    } else if (command === 'PUBLISH_LIVE_QUOTE') {
+      const holder = suppliedPayload as { quoteId?: unknown } | null;
+      if (!holder || typeof holder !== 'object' || Array.isArray(holder)
+          || Object.keys(holder).some(key => key !== 'quoteId')
+          || typeof holder.quoteId !== 'string' || !UUID.test(holder.quoteId)) {
+        return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      }
+      canonical = { quoteId:holder.quoteId };
+      functionName = 'orkto_publish_live_quote_command';
+      eventType = 'live_quote.published';
+      argumentsForCommand = { p_quote_id:holder.quoteId };
     } else if (command === 'ARCHIVE_QUOTE') {
       const holder = suppliedPayload as { quoteId?: unknown } | null;
       if (!holder || typeof holder !== 'object' || Array.isArray(holder)
@@ -396,8 +421,13 @@ Deno.serve(async (req: Request) => {
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       argumentsForCommand={...argumentsForCommand,p_monthly_limit:limit};
     }
-    if (command === 'CREATE_QUOTE' || command === 'UPDATE_QUOTE' || command === 'ARCHIVE_QUOTE') {
+    if (command === 'CREATE_QUOTE' || command === 'UPDATE_QUOTE' || command === 'ARCHIVE_QUOTE' || command === 'PUBLISH_LIVE_QUOTE') {
       if (!hasPlanFeature(plan,'proposals')) return response(423, 'CONFIGURATION_REQUIRED', requestId, undefined, origin);
+    }
+    let publicToken: string | null = null;
+    if (command === 'PUBLISH_LIVE_QUOTE') {
+      publicToken = await deterministicPublicToken(serviceKey,membership.workspace_id,String(canonical.quoteId),idempotencyKey);
+      argumentsForCommand={...argumentsForCommand,p_public_token_hash:await sha256Hex(publicToken)};
     }
     if (command === 'UPDATE_QUOTE') {
       const holder=suppliedPayload as {quoteId:string;changes:unknown;status?:string};
@@ -547,7 +577,8 @@ Deno.serve(async (req: Request) => {
       const mapped = known[error.message];
       return response(mapped?.[0] || 503, mapped?.[1] || 'INTERNAL_ERROR', requestId, undefined, origin);
     }
-    return response((command === 'CREATE_CLIENT' || command === 'CREATE_CATALOG_ITEM' || command === 'CREATE_DEAL' || command === 'CREATE_QUOTE') && data?.result !== 'REPLAY' ? 201 : 200, 'OK', requestId, data, origin);
+    const resultData = publicToken && data ? { ...data, token:publicToken, publicPath:`/proposta-viva/${publicToken}` } : data;
+    return response((command === 'CREATE_CLIENT' || command === 'CREATE_CATALOG_ITEM' || command === 'CREATE_DEAL' || command === 'CREATE_QUOTE' || command === 'PUBLISH_LIVE_QUOTE') && data?.result !== 'REPLAY' ? 201 : 200, 'OK', requestId, resultData, origin);
   } catch {
     return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
   }

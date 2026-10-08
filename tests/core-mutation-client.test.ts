@@ -76,3 +76,20 @@ test('WIA preparation uses the explicit mutation lifecycle without a direct pers
   assert.doesNotMatch(route, /\.from\(['"]orkto_wia_(runs|events|actions|tool_calls)['"]\)/);
   assert.doesNotMatch(route, /orkto_consume_plan_usage/);
 });
+
+test('proposal publication and public decisions use explicit gateways without a direct persistence fallback', async () => {
+  const core = await readFile(resolve(process.cwd(), 'backend/core-app.ts'), 'utf8');
+  const operational = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');
+  const publicClient = await readFile(resolve(process.cwd(), 'backend/public-proposal-client.ts'), 'utf8');
+  const publication = core.slice(core.indexOf('app.post("/api/proposal/generate"'), core.indexOf('const sendQuoteEmailSchema'));
+  const live = operational.slice(operational.indexOf("app.post('/api/live-quotes/from-quote"));
+  assert.match(publication, /'PUBLISH_LIVE_QUOTE'/);
+  assert.doesNotMatch(publication, /\.from\(['"](?:proposals|quotes|orkto_live_quotes)['"]\)/);
+  assert.match(live, /'PUBLISH_LIVE_QUOTE'/);
+  assert.match(live, /invokePublicProposal/);
+  assert.doesNotMatch(live, /\.from\(['"](?:proposals|quotes|orkto_live_quotes|orkto_live_quote_events)['"]\)\.(?:insert|update|upsert|delete)/);
+  assert.match(publicClient, /resolveCoreMutationEndpoint/);
+  assert.doesNotMatch(publicClient, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(core, /LEGACY_LINK_DISABLED/);
+  assert.match(core, /Envio externo de proposta está desativado/);
+});

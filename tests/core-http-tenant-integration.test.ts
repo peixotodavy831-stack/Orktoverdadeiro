@@ -527,6 +527,25 @@ before(async () => {
         database.rows('quotes').push(row); audit('quote.created','quote',row.id);
         return ok({result:'CREATED',quote:row});
       }
+      if (request.command === 'PUBLISH_LIVE_QUOTE') {
+        const quote=denyForeign('quotes',payload.quoteId);
+        if(!quote||quote.archived_at) return Response.json({code:'NOT_FOUND'},{status:404});
+        if(!['draft','pending','sent','viewed'].includes(quote.status)) return Response.json({code:'CONFLICT'},{status:409});
+        const validUntil=quote.valid_value_days?new Date(new Date(quote.created_at).getTime()+Number(quote.valid_value_days)*86_400_000).toISOString():null;
+        if(validUntil&&new Date(validUntil).getTime()<=Date.now()) return Response.json({code:'CONFLICT'},{status:409});
+        if(database.rows('orkto_live_quotes').some(row=>row.workspace_id===workspaceId&&row.quote_ref===quote.id&&row.status==='accepted'))
+          return Response.json({code:'CONFLICT'},{status:409});
+        for(const link of database.rows('orkto_live_quotes').filter(row=>row.workspace_id===workspaceId&&row.quote_ref===quote.id&&['active','viewed'].includes(row.status))) link.status='revoked';
+        const version=Math.max(0,...database.rows('orkto_live_quotes').filter(row=>row.workspace_id===workspaceId&&row.quote_ref===quote.id).map(row=>Number(row.version||0)))+1;
+        const operationKey=headers.get('x-idempotency-key')||randomUUID();
+        const token=Buffer.from(operationKey).toString('base64url').slice(0,43).padEnd(43,'A');
+        const snapshot={clientName:quote.client_name,company:quote.client_company,request:quote.client_vehicle_or_service,
+          items:structuredClone(quote.items),subtotal:quote.subtotal,discountTotal:quote.discount_total,taxes:quote.taxes,total:quote.total,
+          notes:quote.notes,paymentInstructions:quote.payment_instructions,validUntil};
+        const row={id:randomUUID(),workspace_id:workspaceId,quote_ref:quote.id,version,snapshot,current_price_cents:Math.round(Number(quote.total)*100),status:'active',valid_until:validUntil,created_by:user.id,_test_token:token};
+        database.rows('orkto_live_quotes').push(row);quote.status='sent';audit('live_quote.published','quote',quote.id);
+        return ok({result:'CREATED',live_quote:row,token,publicPath:`/proposta-viva/${token}`});
+      }
       if (request.command === 'SET_CONVERSATION_PRIORITY') {
         const row = denyForeign('orkto_conversations',payload.conversationId);
         if (!row) return Response.json({code:'NOT_FOUND'},{status:404});
@@ -625,6 +644,33 @@ before(async () => {
       profile.whatsapp_number = request.payload.whatsappNumber;
       profile.onboarding_completed = true;
       return Response.json({ data:{ result:'UPDATED', profile:{id:USER_A} } });
+    }
+    if (['https://ghrjongiodziasupakrk.supabase.co', SUPABASE_URL].includes(url.origin)
+      && url.pathname === '/functions/v1/orkto-public-proposals') {
+      const request=typeof init?.body==='string'?JSON.parse(init.body):{};
+      const link=database.rows('orkto_live_quotes').find(row=>row._test_token===request.token);
+      if(!link||['revoked','expired'].includes(link.status)) return Response.json({code:'NOT_FOUND'},{status:404});
+      const quote=database.rows('quotes').find(row=>row.workspace_id===link.workspace_id&&row.id===link.quote_ref&&!row.archived_at);
+      const stale=!quote||Math.round(Number(quote.total)*100)!==Number(link.current_price_cents)
+        ||JSON.stringify(quote.items)!==JSON.stringify(link.snapshot.items);
+      if(stale&&!['accepted','rejected'].includes(link.status)){link.status='revoked';return Response.json({code:'STALE'},{status:409});}
+      if(request.command==='READ'||request.command==='VIEW'){
+        if(link.status==='active') link.status='viewed';
+        return Response.json({data:{result:'OK',proposal:{id:link.id,version:link.version,snapshot:link.snapshot,status:link.status,validUntil:link.valid_until}}});
+      }
+      if(request.command==='ACCEPT'){
+        if(link.status==='accepted') return Response.json({data:{result:'REPLAY',status:'accepted'}});
+        if(link.status==='rejected'||['approved','accepted','rejected'].includes(quote.status)) return Response.json({code:'CONFLICT'},{status:409});
+        quote.status='approved';link.status='accepted';link.accepted_by_name=request.customerName;
+      }else if(request.command==='REJECT'){
+        if(link.status==='rejected') return Response.json({data:{result:'REPLAY',status:'rejected'}});
+        if(link.status==='accepted'||['approved','accepted'].includes(quote.status)) return Response.json({code:'CONFLICT'},{status:409});
+        quote.status='rejected';link.status='rejected';
+      }else return Response.json({code:'VALIDATION_FAILED'},{status:400});
+      for(const job of database.rows('orkto_automation_jobs').filter(row=>row.workspace_id===link.workspace_id&&row.entity_ref===link.quote_ref&&['scheduled','processing'].includes(row.status))) job.status='cancelled';
+      for(const action of database.rows('orkto_wia_actions').filter(row=>row.workspace_id===link.workspace_id&&row.payload?.quoteId===link.quote_ref&&['prepared','awaiting_approval','executing'].includes(row.status))) action.status='cancelled';
+      database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:link.workspace_id,user_id:link.created_by,event_type:`live_quote.${link.status}`,actor_type:'system',actor_id:'public_link'});
+      return Response.json({data:{result:'UPDATED',status:link.status}});
     }
     if (url.origin === 'https://generativelanguage.googleapis.com') {
       if (failGeminiRequests) return Response.json({ error: { message: 'test provider quota failure' } }, { status: 429 });
@@ -1002,36 +1048,30 @@ test('core HTTP flow persists client, deal, catalog-priced proposal, inbox, WIA 
     ...json({ quoteId: quote.id }),
     headers: { host: 'attacker.example', 'x-forwarded-host': 'attacker.example' },
   });
-  assert.equal(generated.status, 200);
+  assert.equal(generated.status, 201);
   const proposal = await generated.json() as Row;
   assert.equal(new URL(proposal.link).origin, 'https://orkto-staging.test', 'forged Host/Forwarded headers cannot alter public proposal links');
   assert.equal(proposal.version, 1);
-  assert.match(proposal.slug, /^[a-f0-9]{48}$/, 'new share links use 192 bits of entropy');
+  const proposalToken=new URL(proposal.link).pathname.split('/').at(-1)!;
+  assert.match(proposalToken, /^[A-Za-z0-9_-]{43}$/, 'new share links use 256 bits of entropy');
   const revised = await api(base, CLIENT_TOKEN_A, '/api/proposal/generate', json({ quoteId: quote.id }));
   const revisedProposal = await revised.json() as Row;
   assert.equal(revisedProposal.version, 2);
-  const preview = await api(base, CLIENT_TOKEN_A, `/api/proposal/${revisedProposal.slug}`);
-  assert.equal(preview.status, 200);
+  const revisedToken=new URL(revisedProposal.link).pathname.split('/').at(-1)!;
+  assert.ok(database.rows('orkto_live_quotes').some(row=>row._test_token===revisedToken&&row.status==='active'),
+    JSON.stringify(database.rows('orkto_live_quotes').map(row=>({token:row._test_token,status:row.status}))));
+  const preview = await api(base, '', `/api/public/live-quotes/${revisedToken}`);
+  assert.equal(preview.status, 200,await preview.clone().text());
   assert.equal(preview.headers.get('cache-control'), 'no-store');
   const publicProposal = await preview.json() as Row;
-  assert.equal(publicProposal.quote.quote_number, quote.quote_number);
-  assert.equal(publicProposal.quote.id, undefined);
-  assert.equal(publicProposal.quote.workspace_id, undefined);
-  assert.equal(publicProposal.quote.client_email, undefined);
-  assert.equal(publicProposal.quote.client_phone, undefined);
-  assert.equal(publicProposal.proposal.id, undefined);
-  assert.equal(publicProposal.proposal.slug, undefined);
-  assert.equal((await api(base, CLIENT_TOKEN_A, '/api/proposal/not-a-valid-bearer-token')).status, 404);
-
-  const legacyProposal = database.rows('proposals').find(row => row.quote_id === quote.id && row.is_active);
-  assert.ok(legacyProposal);
-  const legacyRow = { ...legacyProposal, id: randomUUID(), slug: 'Legacy01', expires_at: new Date(Date.now() + 60_000).toISOString() };
-  database.rows('proposals').push(legacyRow);
-  assert.equal((await api(base, CLIENT_TOKEN_A, '/api/proposal/Legacy01')).status, 200, 'existing 8-character share links remain usable until expiry');
-  database.rows('proposals').splice(database.rows('proposals').indexOf(legacyRow), 1);
-  assert.equal(database.rows('proposals').filter(row => row.quote_id === quote.id && row.is_active).length, 1);
+  assert.equal(publicProposal.snapshot.total, quote.total);
+  assert.equal(publicProposal.workspace_id, undefined);
+  assert.equal(publicProposal.quote_ref, undefined);
+  assert.equal((await api(base, '', '/api/public/live-quotes/not-a-valid-bearer-token')).status, 404);
+  assert.equal((await api(base, CLIENT_TOKEN_A, '/api/proposal/Legacy01')).status, 410, 'legacy links fail closed and cannot mutate proposal state');
+  assert.equal(database.rows('proposals').filter(row => row.quote_id === quote.id).length, 0);
   assert.equal((await api(base, CLIENT_TOKEN_B, '/api/proposal/generate', json({ quoteId: quote.id }))).status, 404);
-  assert.equal(database.rows('proposals').filter(row => row.quote_id === quote.id && row.workspace_id === WORKSPACE_A).length, 2, 'tenant B must not add or alter proposal versions');
+  assert.equal(database.rows('orkto_live_quotes').filter(row => row.quote_ref === quote.id && row.workspace_id === WORKSPACE_A).length, 2, 'tenant B must not add or alter proposal versions');
 
   database.rows('orkto_automation_jobs').push(
     { id:randomUUID(),workspace_id:WORKSPACE_A,entity_type:'quote',entity_ref:quote.id,step_key:'D+4',status:'scheduled',idempotency_key:`reply-stop:${quote.id}` },
@@ -1829,18 +1869,16 @@ test('live quote versions keep accepted snapshots immutable and revoke obsolete 
   const secondLink = await secondLinkResponse.json() as {data:Row;token:string};
   assert.equal(secondLink.data.version,2);
   assert.equal(secondLink.data.snapshot.notes,'Condição atualizada');
-  database.beforePatch = (table, body) => {
-    if (table !== 'quotes' || body.status !== 'approved') return;
-    database.beforePatch = undefined;
-    const source = database.rows('quotes').find(row=>row.id===quote.id)!;
-    source.notes = 'Edited concurrently while the customer accepted';
-    source.updated_at = '2026-09-28T23:59:59.999Z';
-  };
+  const changedSource = database.rows('quotes').find(row=>row.id===quote.id)!;
+  changedSource.items=structuredClone(changedSource.items);
+  changedSource.items[0].quantity=2;
+  changedSource.subtotal=250;changedSource.total=250;
+  changedSource.updated_at='2026-09-28T23:59:59.999Z';
   const accept = () => api(base,'',`/api/public/live-quotes/${secondLink.token}/accept`,json({customerName:'Cliente'}));
   const concurrentAccept = await accept();
-  assert.equal(concurrentAccept.status,409,'acceptance loses its compare-and-set when proposal terms change concurrently');
+  assert.equal(concurrentAccept.status,409,await concurrentAccept.clone().text());
   assert.equal(database.rows('orkto_live_quotes').find(row=>row.id===secondLink.data.id)?.status,'revoked');
-  assert.equal(database.rows('quotes').find(row=>row.id===quote.id)?.status,'pending','the stale acceptance cannot approve newly edited terms');
+  assert.equal(database.rows('quotes').find(row=>row.id===quote.id)?.status,'sent','the stale acceptance cannot approve newly edited terms');
 
   const thirdLinkResponse = await api(base,CLIENT_TOKEN_A,`/api/live-quotes/from-quote/${quote.id}`,json({}));
   assert.equal(thirdLinkResponse.status,201);

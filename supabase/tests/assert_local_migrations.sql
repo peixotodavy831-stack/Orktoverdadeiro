@@ -54,7 +54,9 @@ begin
     'public.orkto_update_quote_command(uuid,uuid,uuid,timestamptz,jsonb,text,uuid,text)',
     'public.orkto_transition_deal_command(uuid,uuid,uuid,text,text,text,uuid,text)',
     'public.orkto_wia_start_command(uuid,uuid,uuid,text,uuid,numeric)',
-    'public.orkto_wia_complete_command(uuid,uuid,uuid,text,text,jsonb,uuid)'
+    'public.orkto_wia_complete_command(uuid,uuid,uuid,text,text,jsonb,uuid)',
+    'public.orkto_publish_live_quote_command(uuid,uuid,uuid,text,text,uuid,text)',
+    'public.orkto_public_live_quote_command(text,text,text,text,uuid)'
   ] loop
     if to_regprocedure(signature) is null then raise exception 'client command missing: %',signature; end if;
     if has_function_privilege('anon',signature,'EXECUTE') or has_function_privilege('authenticated',signature,'EXECUTE') then

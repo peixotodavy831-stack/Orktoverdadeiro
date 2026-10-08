@@ -11,7 +11,7 @@ export type CoreMutationCommand =
   | 'COMPLETE_ONBOARDING' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'ARCHIVE_CLIENT'
   | 'CREATE_CATALOG_ITEM' | 'UPDATE_CATALOG_ITEM' | 'ARCHIVE_CATALOG_ITEM'
   | 'CREATE_DEAL' | 'UPDATE_DEAL' | 'CLOSE_DEAL' | 'ARCHIVE_DEAL' | 'APPROVE_WIA_ACTION' | 'REJECT_WIA_ACTION'
-  | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE'
+  | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN';
 
@@ -32,6 +32,9 @@ export type CoreMutationResult = {
   messages_marked_read?: number;
   wia_run_id?: string;
   action_id?: string | null;
+  live_quote?: { id: string; quote_ref: string; version: number; status: string; valid_until?: string; created_at?: string };
+  token?: string;
+  publicPath?: string;
 };
 
 type Environment = Record<string, string | undefined>;

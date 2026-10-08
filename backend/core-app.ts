@@ -1160,13 +1160,6 @@ async function cancelQuoteRecovery(workspaceId, quoteId, userId, reason) {
   return { cancelledJobs,cancelledActions };
 }
 
-async function nextProposalVersion(quoteId, workspaceId) {
-  const { data, error } = await supabase.from('proposals').select('version').eq('workspace_id', workspaceId)
-    .eq('quote_id', quoteId).order('version', { ascending: false }).limit(1).maybeSingle();
-  if (error) throw error;
-  return Number(data?.version || 0) + 1;
-}
-
 function makeQuoteNumber() {
   const now = new Date();
   const date = now.toISOString().slice(2, 10).replace(/-/g, '');
@@ -1293,22 +1286,6 @@ app.get("/api/quote/public/:id", (_req, res) => {
   res.status(410).json({ error: 'Link antigo desativado. Solicite um novo link seguro da proposta.' });
 });
 
-async function getActiveProposal(slug) {
-  if (!supabase) return null;
-  if (!isProposalSlug(String(slug || ''))) return null;
-  const { data } = await supabase.from('proposals')
-    .select('id, quote_id, user_id, workspace_id, is_active, expires_at')
-    .eq('slug', slug).maybeSingle();
-  if (!data || !data.is_active || new Date(data.expires_at).getTime() <= Date.now()) return null;
-  return data;
-}
-
-// Eight-character links remain accepted for proposals already issued. New
-// links use 192 bits of entropy and a strict lowercase-hex representation.
-function isProposalSlug(value: string): boolean {
-  return /^[A-Za-z0-9]{8}$/.test(value) || /^[a-f0-9]{48}$/.test(value);
-}
-
 function safeRouteErrorCode(error: unknown): string {
   const code = error && typeof error === 'object' && 'code' in error
     ? String((error as { code?: unknown }).code || '')
@@ -1316,103 +1293,12 @@ function safeRouteErrorCode(error: unknown): string {
   return /^[a-z0-9_-]{1,64}$/i.test(code) ? code : 'internal_error';
 }
 
-async function validateQuoteStatusTransition(id, workspaceId, newStatus, allowedFrom) {
-  if (!supabase) return "Supabase not configured";
-  const { data } = await supabase.from('quotes').select('status').eq('id', id).eq('workspace_id', workspaceId).is('archived_at', null).single();
-  if (!data) return "Orçamento não encontrado";
-  if (!allowedFrom.includes(data.status)) return `Orçamento já está como "${data.status}". Não é possível alterar para "${newStatus}".`;
-  return null;
-}
-
-app.post("/api/proposal/:slug/approve", async (req, res) => {
-  if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
-  try {
-    const proposal = await getActiveProposal(req.params.slug);
-    if (!proposal) return res.status(410).json({ error: 'Proposta inválida ou expirada.' });
-    const id = proposal.quote_id;
-    const { clientName } = req.body || {};
-    const validationError = await validateQuoteStatusTransition(id, proposal.workspace_id, 'approved', ['sent', 'viewed', 'pending', 'draft']);
-    if (validationError) return res.status(400).json({ error: validationError });
-
-    // Buscar dados do quote + perfil para envio de email
-    const { data: quote } = await supabase.from('quotes')
-      .select('id, quote_number, client_name, client_email, total, workspace_id, profiles!inner(company_name, email)')
-      .eq('id', id).eq('workspace_id', proposal.workspace_id).is('archived_at', null).single();
-    if (!quote) return res.status(404).json({ error: 'Orçamento não encontrado.' });
-
-    const approvedAt = new Date().toISOString();
-    const { data: transitioned, error } = await supabase.from('quotes').update({ status: 'approved', approved_at: approvedAt, updated_at: approvedAt }).eq('id', id).eq('workspace_id', proposal.workspace_id).in('status', ['sent', 'viewed', 'pending', 'draft']).select('id');
-    if (error) throw error;
-    if (!transitioned?.length) return res.status(409).json({ error: 'A proposta já foi atualizada.' });
-    const { error: proposalUpdateError } = await supabase.from('proposals').update({ approved_at: approvedAt }).eq('id', proposal.id).eq('workspace_id', proposal.workspace_id);
-    if (proposalUpdateError) throw proposalUpdateError;
-    await cancelQuoteRecovery(proposal.workspace_id,id,null,'proposal_accepted');
-    await recordCoreEvent(proposal.workspace_id, null, 'proposal.approved', 'proposal', proposal.id, { quote_id: id, approved_at: approvedAt }, 'system');
-
-    // Email de confirmação ao CLIENTE
-    const quoteProfile = Array.isArray(quote?.profiles) ? quote.profiles[0] : quote?.profiles;
-    if (resend && quote?.client_email) {
-      const companyName = quoteProfile?.company_name || 'o profissional';
-      resend?.emails.send({
-        from: process.env.RESEND_FROM || 'ORKTO <onboarding@resend.dev>',
-        to: [quote.client_email],
-        subject: `Proposta #${quote.quote_number} aprovada com sucesso!`,
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#111;color:#fff;border-radius:16px">
-          <h2 style="color:#25D366;margin:0 0 12px">Proposta Aprovada!</h2>
-          <p style="color:#aaa;font-size:14px;margin:0 0 8px">Sua proposta <strong style="color:#fff">#${escapeHtml(quote.quote_number)}</strong> foi aprovada com sucesso.</p>
-          <p style="color:#aaa;font-size:14px;margin:0 0 16px">Profissional: <strong style="color:#fff">${escapeHtml(companyName)}</strong></p>
-          <div style="background:#1a1a1a;border-radius:12px;padding:16px;margin:0 0 16px">
-            <p style="color:#888;font-size:12px;margin:0 0 4px">Valor total</p>
-            <p style="color:#FF9F1C;font-size:24px;font-weight:bold;margin:0">R$ ${Number(quote.total).toFixed(2).replace('.', ',')}</p>
-          </div>
-          <p style="color:#666;font-size:12px;margin:0">O profissional entrará em contato para prosseguir com o pagamento.</p>
-          <p style="color:#555;font-size:11px;margin-top:20px">ORKTO — Sistema operacional de vendas</p>
-        </div>`,
-      }).catch(() => logStructured('error', 'proposal_approval.customer_email_failed', { requestId: req.requestId, proposalId: proposal.id }));
-    }
-
-    // Notificar o DONO da proposta
-    if (resend && quoteProfile?.email) {
-      resend?.emails.send({
-        from: process.env.RESEND_FROM || 'ORKTO <onboarding@resend.dev>',
-        to: [quoteProfile.email],
-        subject: `Orçamento aprovado por ${escapeHtml(clientName || quote?.client_name || 'cliente')}!`,
-        html: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#111;color:#fff;border-radius:16px">
-          <h2 style="color:#FF9F1C;margin:0 0 8px">Orçamento Aprovado!</h2>
-          <p style="color:#aaa;font-size:14px;margin:0 0 16px"><strong style="color:#fff">${escapeHtml(clientName || quote?.client_name || 'Cliente')}</strong> acabou de aprovar o orçamento <strong style="color:#fff">#${escapeHtml(quote?.quote_number)}</strong>.</p>
-          <p style="color:#555;font-size:11px;margin-top:20px">ORKTO — Sistema operacional de vendas</p>
-        </div>`,
-      }).catch(() => logStructured('error', 'proposal_approval.owner_email_failed', { requestId: req.requestId, proposalId: proposal.id }));
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    logStructured('error', 'public_proposal.approval_failed', { requestId: req.requestId, errorCode: safeRouteErrorCode(error) });
-    res.status(500).json({ error: 'Erro interno do servidor. Tente novamente.' });
-  }
+app.post("/api/proposal/:slug/approve", (_req, res) => {
+  return res.status(410).json({ error:'Link legado desativado. Solicite uma versão atualizada da proposta.', category:'LEGACY_LINK_DISABLED' });
 });
 
-app.post("/api/proposal/:slug/reject", async (req, res) => {
-  if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
-  try {
-    const proposal = await getActiveProposal(req.params.slug);
-    if (!proposal) return res.status(410).json({ error: 'Proposta inválida ou expirada.' });
-    const id = proposal.quote_id;
-    const validationError = await validateQuoteStatusTransition(id, proposal.workspace_id, 'rejected', ['sent', 'viewed', 'pending', 'draft']);
-    if (validationError) return res.status(400).json({ error: validationError });
-    const rejectedAt = new Date().toISOString();
-    const { data: transitioned, error } = await supabase.from('quotes').update({ status: 'rejected', rejected_at: rejectedAt, updated_at: rejectedAt }).eq('id', id).eq('workspace_id', proposal.workspace_id).in('status', ['sent', 'viewed', 'pending', 'draft']).select('id');
-    if (error) throw error;
-    if (!transitioned?.length) return res.status(409).json({ error: 'A proposta já foi atualizada.' });
-    const { error: proposalUpdateError } = await supabase.from('proposals').update({ is_active: false }).eq('id', proposal.id).eq('workspace_id', proposal.workspace_id);
-    if (proposalUpdateError) throw proposalUpdateError;
-    await cancelQuoteRecovery(proposal.workspace_id,id,null,'proposal_rejected');
-    await recordCoreEvent(proposal.workspace_id, null, 'proposal.rejected', 'proposal', proposal.id, { quote_id: id, rejected_at: rejectedAt }, 'system');
-    res.json({ success: true });
-  } catch (error) {
-    logStructured('error', 'public_proposal.rejection_failed', { requestId: req.requestId, errorCode: safeRouteErrorCode(error) });
-    res.status(500).json({ error: 'Erro interno do servidor. Tente novamente.' });
-  }
+app.post("/api/proposal/:slug/reject", (_req, res) => {
+  return res.status(410).json({ error:'Link legado desativado. Solicite uma versão atualizada da proposta.', category:'LEGACY_LINK_DISABLED' });
 });
 
 app.post("/api/auth/demo-login", async (req, res) => {
@@ -1798,11 +1684,6 @@ app.post("/api/proposal/:slug/pix", (_req, res) => {
   return res.status(503).json({ error: 'PIX temporariamente indisponível. A criação segura de cobrança ainda não está configurada.', category: 'payment_idempotency_required' });
 });
 
-// ===== Propostas (links compartilháveis) =====
-function generateSlug(): string {
-  return crypto.randomBytes(24).toString('hex');
-}
-
 app.post('/api/quotes/:quoteId/extend', authenticate, async (req, res) => {
   if (!supabase) return res.status(503).json({ error: 'Banco indisponível' });
   if (!z.string().datetime({ offset: true }).safeParse(req.body.expectedExpiry).success) return res.status(400).json({ error: 'Atualize o orçamento antes de prorrogar.' });
@@ -1814,256 +1695,31 @@ app.post('/api/quotes/:quoteId/extend', authenticate, async (req, res) => {
 });
 
 app.post("/api/proposal/generate", authenticate, async (req, res) => {
-  try {
-    const tenantContext = requireTenantContext(req);
-    if (!await requireWritablePlan(req,res,'proposals')) return;
-    const workspaceId = tenantContext.workspaceId;
-    const userId = await workspaceOwnerUserId(workspaceId);
-    const baseUrl = resolvePublicAppBaseUrl();
-    const { quoteId } = req.body;
-    if (!quoteId) return res.status(400).json({ error: "quoteId required" });
-    if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
-
-    const { data: quote, error: qErr } = await supabase.from('quotes').select('id, user_id, workspace_id, archived_at').eq('id', quoteId).eq('workspace_id', workspaceId).is('archived_at', null).maybeSingle();
-    if (qErr || !quote) return res.status(404).json({ error: "Orçamento não encontrado" });
-
-    const { error: deactivateError } = await supabase.from('proposals').update({ is_active: false }).eq('quote_id', quoteId).eq('workspace_id', workspaceId).eq('is_active', true);
-    if (deactivateError) throw deactivateError;
-    const version = await nextProposalVersion(quoteId, workspaceId);
-
-    let slug = generateSlug();
-    let attempts = 0;
-    while (attempts < 10) {
-      const { data: existing } = await supabase.from('proposals').select('id').eq('slug', slug).maybeSingle();
-      if (!existing) break;
-      slug = generateSlug();
-      attempts++;
-    }
-
-    const { data: proposal, error: pErr } = await supabase.from('proposals').insert([{
-      slug, quote_id: quoteId, user_id: userId, workspace_id: workspaceId, version, created_by: tenantContext.userId,
-      expires_at: new Date(Date.now() + 14 * 86400000).toISOString(),
-      is_active: true,
-    }]).select().single();
-
-    if (pErr) throw pErr;
-
-    const sentAt = new Date().toISOString();
-    const { error: quoteUpdateError } = await supabase.from('quotes').update({ status: 'sent', sent_at: sentAt, updated_at: sentAt }).eq('id', quoteId).eq('workspace_id', workspaceId).is('archived_at', null);
-    if (quoteUpdateError) throw quoteUpdateError;
-    await recordCoreEvent(workspaceId, tenantContext.userId, 'proposal.generated', 'proposal', proposal.id, { quote_id: quoteId, version });
-
-    const link = new URL(`/p/${encodeURIComponent(slug)}`, baseUrl).toString();
-
-    res.json({ success: true, slug, link, expiresAt: proposal.expires_at, proposalId: proposal.id, version });
-  } catch (error) {
-    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
-    res.status(500).json({ error: 'Erro ao gerar proposta. Tente novamente.' });
-  }
+  const parsed=z.object({quoteId:z.string().uuid()}).strict().safeParse(req.body);
+  if(!parsed.success) return res.status(400).json({error:'quoteId inválido.',category:'VALIDATION_FAILED'});
+  const tenantContext=requireTenantContext(req);
+  const result=await invokeCoreMutation(req,res,{id:tenantContext.workspaceId},'PUBLISH_LIVE_QUOTE',parsed.data);
+  if(!result) return;
+  const baseUrl=resolvePublicAppBaseUrl();
+  const link=new URL(result.publicPath!,baseUrl).toString();
+  res.status(result.result==='REPLAY'?200:201).json({success:true,link,expiresAt:result.live_quote?.valid_until,
+    proposalId:result.live_quote?.id,version:result.live_quote?.version,idempotentReplay:result.result==='REPLAY'});
 });
 
-const sendQuoteEmailSchema = z.object({
-  quoteId: z.string().uuid(),
-  to: z.string().email().max(320),
-  subject: z.string().trim().min(1).max(180),
-  message: z.string().trim().min(1).max(5000),
+app.post("/api/quotes/:quoteId/email", authenticate, async (_req, res) => {
+  return res.status(503).json({ error:'Envio externo de proposta está desativado até configuração e aprovação do canal.', category:'CONFIGURATION_REQUIRED' });
 });
 
-app.post("/api/quotes/:quoteId/email", authenticate, async (req, res) => {
-  if (!resend) {
-    return res.status(503).json({ error: 'Envio de e-mail ainda não configurado.' });
-  }
-  if (!supabase) return res.status(500).json({ error: 'Supabase não configurado.' });
-
-  const parsed = sendQuoteEmailSchema.safeParse({ ...req.body, quoteId: req.params.quoteId });
-  if (!parsed.success) return res.status(400).json({ error: 'Revise o destinatário, assunto e mensagem.' });
-
-  try {
-    const { quoteId, to, subject, message } = parsed.data;
-    const tenantContext = requireTenantContext(req);
-    const workspaceId = tenantContext.workspaceId;
-    const ownerId = await workspaceOwnerUserId(workspaceId);
-    const baseUrl = resolvePublicAppBaseUrl();
-    const { data: quote, error: quoteError } = await supabase.from('quotes')
-      .select('id, retention_expires_at, quote_number, client_name, client_email, client_vehicle_or_service, items, subtotal, discount_total, total, profiles!inner(company_name, company_logo, email, quote_color)')
-      .eq('id', quoteId)
-      .eq('workspace_id', workspaceId)
-      .is('archived_at', null)
-      .maybeSingle();
-    if (quoteError || !quote) return res.status(404).json({ error: 'Orçamento não encontrado.' });
-    if (!isQuoteEmailRecipientAuthorized(to, quote.client_email)) {
-      return res.status(403).json({ error: 'O destinatário precisa ser o e-mail do cliente registrado nesta proposta.', category: 'recipient_not_authorized' });
-    }
-
-    const { error: deactivateError } = await supabase.from('proposals').update({ is_active: false }).eq('quote_id', quoteId).eq('workspace_id', workspaceId).eq('is_active', true);
-    if (deactivateError) throw deactivateError;
-    const slug = generateSlug();
-    const expiresAt = quote.retention_expires_at || new Date(Date.now() + 14 * 86400000).toISOString();
-    const version = await nextProposalVersion(quoteId, workspaceId);
-    const { error: proposalError } = await supabase.from('proposals').insert([{
-      slug,
-      quote_id: quoteId,
-      user_id: ownerId,
-      workspace_id: workspaceId,
-      version,
-      created_by: tenantContext.userId,
-      expires_at: expiresAt,
-      is_active: true,
-    }]);
-    if (proposalError) throw proposalError;
-
-    const { error: quoteUpdateError } = await supabase.from('quotes').update({
-      status: 'sent',
-      sent_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }).eq('id', quoteId).eq('workspace_id', workspaceId).is('archived_at', null);
-    if (quoteUpdateError) throw quoteUpdateError;
-    await recordCoreEvent(workspaceId, tenantContext.userId, 'proposal.email_prepared', 'proposal', quoteId, { version, delivery: 'email' });
-
-    const proposalLink = new URL(`/p/${encodeURIComponent(slug)}`, baseUrl).toString();
-    const profile = Array.isArray(quote.profiles) ? quote.profiles[0] : quote.profiles;
-    const color = /^#[0-9A-Fa-f]{6}$/.test(profile?.quote_color || '') ? profile.quote_color : '#FF9F1C';
-    const items = Array.isArray(quote.items) ? quote.items : [];
-    const itemRows = items.map(item => {
-      const quantity = Number(item?.quantity || 0);
-      const unitPrice = Number(item?.unitPrice || 0);
-      const discount = Number(item?.discount || 0);
-      const itemTotal = quantity * unitPrice * (1 - discount / 100);
-      return `<tr><td style="padding:10px 6px;border-bottom:1px solid #eee"><strong>${escapeHtml(item?.name)}</strong></td><td style="padding:10px 6px;border-bottom:1px solid #eee;text-align:center">${quantity}</td><td style="padding:10px 6px;border-bottom:1px solid #eee;text-align:right">${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(itemTotal)}</td></tr>`;
-    }).join('');
-
-    const { data, error } = await resend.emails.send({
-      from: process.env.RESEND_FROM || 'ORKTO <onboarding@resend.dev>',
-      to: [to],
-      replyTo: profile?.email || undefined,
-      subject,
-      html: `<div style="font-family:Arial,sans-serif;background:#f5f5f5;padding:28px 12px;color:#18181b"><div style="max-width:600px;margin:auto;background:#fff;border:1px solid #e4e4e7;border-radius:16px;overflow:hidden"><div style="height:6px;background:${color}"></div><div style="padding:28px"><h1 style="font-size:20px;margin:0 0 6px">${escapeHtml(profile?.company_name || 'ORKTO')}</h1><p style="color:#71717a;margin:0 0 24px">Proposta #${escapeHtml(quote.quote_number)}</p><div style="white-space:pre-line;line-height:1.6;background:#fafafa;border-left:3px solid ${color};padding:16px;margin-bottom:24px">${escapeHtml(message)}</div><table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr><th style="text-align:left;padding:8px 6px">Item</th><th style="text-align:center;padding:8px 6px">Qtd.</th><th style="text-align:right;padding:8px 6px">Total</th></tr></thead><tbody>${itemRows}</tbody></table><p style="font-size:20px;font-weight:bold;text-align:right;margin:22px 0">Total: ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(quote.total))}</p><p style="text-align:center;margin:28px 0"><a href="${proposalLink}" style="display:inline-block;background:#10b981;color:white;text-decoration:none;padding:14px 22px;border-radius:10px;font-weight:bold">Visualizar e aprovar proposta</a></p><p style="font-size:11px;color:#a1a1aa;text-align:center">Enviado com segurança pela ORKTO.</p></div></div></div>`,
-    });
-    if (error) throw new Error(error.message);
-    res.json({ success: true, id: data?.id, proposalLink, expiresAt });
-  } catch (error) {
-    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
-    res.status(502).json({ error: 'Não foi possível enviar o e-mail agora.' });
-  }
+app.get("/api/proposal/:slug", (_req, res) => {
+  return res.status(410).json({ error:'Link legado desativado. Solicite uma versão atualizada da proposta.', expired:true, category:'LEGACY_LINK_DISABLED' });
 });
 
-app.get("/api/proposal/:slug", async (req, res) => {
-  res.setHeader('Cache-Control', 'no-store');
-  try {
-    const { slug } = req.params;
-    if (!isProposalSlug(slug)) return res.status(404).json({ error: 'Proposta não encontrada.' });
-    if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
-
-    const { data: proposal, error: pErr } = await supabase.from('proposals')
-      .select('id, slug, quote_id, workspace_id, version, is_active, expires_at, viewed_at, approved_at, created_at')
-      .eq('slug', slug).maybeSingle();
-
-    if (pErr || !proposal) return res.status(404).json({ error: "Proposta não encontrada" });
-    if (!proposal.is_active || new Date(proposal.expires_at) < new Date()) {
-      return res.status(410).json({ error: "Proposta expirada", expired: true });
-    }
-
-    // Buscar dados do orçamento + perfil do profissional
-    const { data: quote, error: qErr } = await supabase.from('quotes')
-      .select('id, quote_number, client_name, client_phone, client_email, client_vehicle_or_service, notes, items, subtotal, discount_total, taxes, total, valid_value_days, payment_instructions, status, profiles!inner(company_name, company_logo, address, whatsapp_number, quote_color, brand_name)')
-      .eq('id', proposal.quote_id).eq('workspace_id',proposal.workspace_id).is('archived_at', null).single();
-
-    if (qErr || !quote) return res.status(404).json({ error: "Orçamento não encontrado" });
-
-    // This is a bearer-token public route. Return only fields rendered by the
-    // page; never expose tenant IDs, internal proposal/quote IDs, or customer
-    // contact details through the share link.
-    res.json({
-      proposal: { expires_at: proposal.expires_at },
-      quote: {
-        quote_number: quote.quote_number,
-        client_vehicle_or_service: quote.client_vehicle_or_service,
-        notes: quote.notes,
-        items: quote.items,
-        subtotal: quote.subtotal,
-        discount_total: quote.discount_total,
-        taxes: quote.taxes,
-        total: quote.total,
-        valid_value_days: quote.valid_value_days,
-        payment_instructions: quote.payment_instructions,
-        status: quote.status,
-        profiles: quote.profiles,
-      },
-    });
-  } catch (error) {
-    logStructured('error', 'public_proposal.read_failed', { requestId: req.requestId, errorCode: safeRouteErrorCode(error) });
-    res.status(500).json({ error: 'Erro ao buscar proposta.' });
-  }
+app.post("/api/proposal/:slug/viewed", (_req, res) => {
+  return res.status(410).json({ error:'Link legado desativado.', category:'LEGACY_LINK_DISABLED' });
 });
 
-app.post("/api/proposal/:slug/viewed", async (req, res) => {
-  try {
-    const { slug } = req.params;
-    if (!isProposalSlug(slug)) return res.status(404).json({ error: 'Proposta não encontrada.' });
-    if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
-
-    const { data: proposal } = await supabase.from('proposals').select('id, quote_id, workspace_id, viewed_at, is_active, expires_at').eq('slug', slug).maybeSingle();
-    if (!proposal) return res.status(404).json({ error: "Proposta não encontrada" });
-    if (!proposal.is_active || new Date(proposal.expires_at).getTime() <= Date.now()) return res.status(410).json({ error: 'Proposta expirada' });
-
-    if (!proposal.viewed_at) {
-      const viewedAt = new Date().toISOString();
-      const { error: proposalError } = await supabase.from('proposals').update({ viewed_at: viewedAt }).eq('id', proposal.id).eq('workspace_id', proposal.workspace_id);
-      if (proposalError) throw proposalError;
-      const { error: quoteError } = await supabase.from('quotes').update({ status: 'viewed', viewed_at: viewedAt, updated_at: viewedAt })
-        .eq('id', proposal.quote_id).eq('workspace_id',proposal.workspace_id).eq('status', 'sent').is('archived_at', null);
-      if (quoteError) throw quoteError;
-      await recordCoreEvent(proposal.workspace_id, null, 'proposal.viewed', 'proposal', proposal.id, { quote_id: proposal.quote_id, viewed_at: viewedAt }, 'system');
-    }
-
-    res.json({ success: true });
-  } catch (error) {
-    logStructured('error', 'public_proposal.view_tracking_failed', { requestId: req.requestId, errorCode: safeRouteErrorCode(error) });
-    res.status(500).json({ error: 'Erro interno.' });
-  }
-});
-
-app.post("/api/proposal/:slug/refresh", authenticate, async (req, res) => {
-  try {
-    const tenantContext = requireTenantContext(req);
-    const workspaceId = tenantContext.workspaceId;
-    const { slug } = req.params;
-    if (!supabase) return res.status(500).json({ error: "Supabase not configured" });
-    const ownerId = await workspaceOwnerUserId(workspaceId);
-    const baseUrl = resolvePublicAppBaseUrl();
-
-    const { data: proposal } = await supabase.from('proposals')
-      .select('id, user_id, quote_id, version').eq('slug', slug).eq('workspace_id', workspaceId).maybeSingle();
-    if (!proposal) return res.status(404).json({ error: "Proposta não encontrada" });
-
-    // Invalidar antiga
-    const { error: deactivateError } = await supabase.from('proposals').update({ is_active: false }).eq('id', proposal.id).eq('workspace_id', workspaceId).eq('is_active', true);
-    if (deactivateError) throw deactivateError;
-
-    // Gerar novo slug
-    let newSlug = generateSlug();
-    let attempts = 0;
-    while (attempts < 10) {
-      const { data: existing } = await supabase.from('proposals').select('id').eq('slug', newSlug).maybeSingle();
-      if (!existing) break;
-      newSlug = generateSlug();
-      attempts++;
-    }
-
-    const { data: newProposal, error: pErr } = await supabase.from('proposals').insert([{
-      slug: newSlug, quote_id: proposal.quote_id, user_id: ownerId, workspace_id: workspaceId, version: await nextProposalVersion(proposal.quote_id, workspaceId), created_by: tenantContext.userId,
-      expires_at: new Date(Date.now() + 14 * 86400000).toISOString(),
-      is_active: true,
-    }]).select().single();
-
-    if (pErr) throw pErr;
-    await recordCoreEvent(workspaceId, tenantContext.userId, 'proposal.version_refreshed', 'proposal', newProposal.id, { previous_proposal_id: proposal.id, quote_id: proposal.quote_id, version: newProposal.version });
-
-    res.json({ success: true, slug: newSlug, link: new URL(`/p/${encodeURIComponent(newSlug)}`, baseUrl).toString(), expiresAt: newProposal.expires_at });
-  } catch (error) {
-    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
-    res.status(500).json({ error: 'Erro ao regenerar proposta.' });
-  }
+app.post("/api/proposal/:slug/refresh", authenticate, (_req, res) => {
+  return res.status(410).json({ error:'Versionamento legado desativado. Publique a proposta atual novamente.', category:'LEGACY_LINK_DISABLED' });
 });
 
 // ============================================================

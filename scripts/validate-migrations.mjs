@@ -386,7 +386,7 @@ export async function validateMigrations({
 
 function showHelp() {
   process.stdout.write([
-    'Usage: node scripts/validate-migrations.mjs --target <ci|local|staging> [--evidence-dir PATH] [--expected-count 33]',
+    'Usage: node scripts/validate-migrations.mjs --target <ci|local|staging> [--evidence-dir PATH] [--expected-count 34]',
     'Requires a disposable, empty PostgreSQL 17 database. The shared runner loads the legacy fixture, replays migrations, runs assertions, and exports catalog-only inventory.',
     'For staging, additionally require an explicit disposable-database acknowledgment and exact expected host. Never point this command at production.',
   ].join('\n') + '\n');

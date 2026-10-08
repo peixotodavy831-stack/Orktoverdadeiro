@@ -18,6 +18,7 @@ import type { TenantContext } from './tenancy/tenant-context.js';
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './billing/plan-access.js';
 import { accountingAdapterRegistry, type AccountingSaleExport } from './accounting/accounting-adapter.js';
 import { invokeCoreMutation } from './core-mutation-client.js';
+import { invokePublicProposal } from './public-proposal-client.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -2096,240 +2097,34 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
 
   app.post('/api/live-quotes/from-quote/:quoteId', authenticate, requireDb, async (req, res) => {
     const context = await workspaceContext(req, res, db); if (!context) return;
-    try {
-      const { data: quote, error: quoteError } = await db.from('quotes').select('id,user_id,client_name,client_company,client_vehicle_or_service,items,subtotal,discount_total,taxes,total,notes,payment_instructions,valid_value_days,status,created_at').eq('id',req.params.quoteId).eq('workspace_id',context.id).maybeSingle();
-      if (quoteError) throw quoteError; if (!quote) return res.status(404).json({ error: 'Proposta não encontrada.' });
-      if (!['draft','pending','sent','viewed'].includes(quote.status)) return res.status(409).json({ error: 'A proposta precisa estar aberta para gerar um Orçamento Vivo.' });
-      const items = Array.isArray(quote.items) ? quote.items : [];
-      const itemSubtotal = items.reduce((sum: number,item: any) => sum + Number(item.quantity || 0) * Number(item.unitPrice || 0),0);
-      const itemDiscount = items.reduce((sum: number,item: any) => sum + Number(item.quantity || 0) * Number(item.unitPrice || 0) * Number(item.discount || 0) / 100,0);
-      const calculatedTotal = Math.round((itemSubtotal-itemDiscount+Number(quote.taxes || 0))*100);
-      if (!items.length || items.some((item: any) => !String(item.name || '').trim() || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 || !Number.isFinite(Number(item.unitPrice)) || Number(item.unitPrice) < 0 || Number(item.discount || 0) < 0 || Number(item.discount || 0) > 100) || Math.abs(calculatedTotal-Math.round(Number(quote.total || 0)*100)) > 2) {
-        await addAuditOrThrow(db,context.id,req.user?.id,'price_audit.blocked','quote',quote.id,{ reason: 'invalid_or_inconsistent_quote_math' });
-        return res.status(409).json({ error: 'A auditoria bloqueou a publicação: itens, desconto e total precisam estar consistentes.', category: 'policy_error' });
-      }
-      const catalogIds = [...new Set(items.map((item:any)=>String(item.catalogItemId || item.serviceId || item.catalog_item_id || '')).filter(Boolean))];
-      if (catalogIds.length !== items.length) {
-        await addAuditOrThrow(db,context.id,req.user?.id,'price_audit.blocked','quote',quote.id,{ reason:'uncatalogued_line_item', line_item_count:items.length, catalogued_count:catalogIds.length });
-        return res.status(409).json({ error:'A publicação exige que todos os itens tenham vínculo com o Catálogo do workspace. Cadastre ou vincule os itens antes de compartilhar.', category:'policy_error' });
-      }
-      const { data: catalog, error: catalogError } = await db.from('services').select('id,name,unit_price,archived_at').eq('workspace_id',context.id).in('id',catalogIds);
-      if (catalogError) throw catalogError;
-      const catalogById = new Map((catalog || []).map((item:any)=>[String(item.id),item]));
-      const staleItems = items.flatMap((item:any,index:number)=>{
-        const id = String(item.catalogItemId || item.serviceId || item.catalog_item_id || '');
-        const current = catalogById.get(id) as any;
-        if (!current || current.archived_at || Math.round(Number(current.unit_price)*100) !== Math.round(Number(item.unitPrice)*100)) return [{ index:index+1, catalogItemId:id, reason:!current ? 'not_found_in_workspace' : current.archived_at ? 'archived' : 'catalog_price_changed' }];
-        return [];
-      });
-      if (staleItems.length) {
-        await addAuditOrThrow(db,context.id,req.user?.id,'price_audit.blocked','quote',quote.id,{ reason:'catalog_price_or_ownership_mismatch', items:staleItems });
-        return res.status(409).json({ error:'O preço de um ou mais itens não corresponde ao Catálogo vigente. Atualize e revise a proposta antes de compartilhar.', category:'policy_error', items:staleItems });
-      }
-      const discountedItems = items.filter((item:any)=>Number(item.discount || 0)>0);
-      let pricePolicyVersion: number | null = null;
-      if (discountedItems.length) {
-        const { data: pricePolicy, error: pricePolicyError } = await db.from('orkto_feature_configs').select('status,config,version').eq('workspace_id',context.id).eq('feature_key','price_audit').maybeSingle();
-        if (pricePolicyError) throw pricePolicyError;
-        const policy = (pricePolicy?.config || {}) as Record<string,unknown>;
-        const maximum = Number(policy.maxDiscountPercent);
-        const authorizedRoles = Array.isArray(policy.authorizedRoles) ? policy.authorizedRoles.map(String) : ['owner','admin'];
-        if (String(pricePolicy?.status || '').toUpperCase() !== 'ACTIVE' || !Number.isFinite(maximum) || maximum < 0 || maximum > 100) {
-          await addAuditOrThrow(db,context.id,req.user?.id,'price_audit.blocked','quote',quote.id,{ reason:'discount_policy_not_configured', discounts:discountedItems.map((item:any)=>Number(item.discount || 0)) });
-          return res.status(409).json({ error:'Há desconto, mas o limite e a autorização ainda não foram configurados. Nenhum link foi publicado.', category:'configuration_required' });
-        }
-        for (const item of discountedItems) {
-          const id = String(item.catalogItemId || item.serviceId || item.catalog_item_id || '');
-          const catalogItem = catalogById.get(id) as any;
-          const audited = auditProposalPrice({ catalogPriceCents:Math.round(Number(catalogItem.unit_price)*100), proposedPriceCents:Math.round(Number(catalogItem.unit_price)*(1-Number(item.discount)/100)*100), maxDiscountPercent:maximum, authorizedDiscountPercent:authorizedRoles.includes(context.role) ? maximum : 0, approverPresent:authorizedRoles.includes(context.role) });
-          if (!audited.allowed) {
-            await addAuditOrThrow(db,context.id,req.user?.id,'price_audit.blocked','quote',quote.id,{ reason:'discount_outside_authority', item_id:id, discount_percent:audited.discountPercent, reasons:audited.reasons, policy_version:pricePolicy.version });
-            return res.status(409).json({ error:'A regra comercial bloqueou o desconto ou o usuário não tem autorização para publicá-lo.', category:'policy_error', reasons:audited.reasons });
-          }
-        }
-        pricePolicyVersion = Number(pricePolicy.version);
-      }
-      const { data: workspace } = await db.from('orkto_workspaces').select('plan_key').eq('id',context.id).maybeSingle();
-      const { data: signaturePolicy, error: signatureError } = await db.from('orkto_feature_configs').select('status,config').eq('workspace_id',context.id).eq('feature_key','artifact_signature').maybeSingle();
-      if (signatureError) throw signatureError;
-      const signatureConfig = (signaturePolicy?.config || {}) as Record<string,unknown>;
-      const artifactTypes = Array.isArray(signatureConfig.artifactTypes) ? signatureConfig.artifactTypes.map(String) : ['live_quote'];
-      const planKeys = Array.isArray(signatureConfig.planKeys) ? signatureConfig.planKeys.map(String) : [];
-      const signatureEnabled = String(signaturePolicy?.status || 'active').toUpperCase() !== 'DISABLED' && signatureConfig.enabled !== false && artifactTypes.includes('live_quote') && (!planKeys.length || planKeys.includes(String(workspace?.plan_key || 'starter')));
-      const token = crypto.randomBytes(32).toString('base64url'); const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-      const validUntil = quote.valid_value_days ? new Date(new Date(quote.created_at).getTime() + Number(quote.valid_value_days) * 86_400_000).toISOString() : null;
-      if (validUntil && new Date(validUntil).getTime() <= Date.now()) {
-        await addAuditOrThrow(db,context.id,req.user?.id,'live_quote.creation_blocked','quote',quote.id,{reason:'proposal_validity_elapsed',valid_until:validUntil});
-        return res.status(409).json({error:'A validade da proposta já terminou. Atualize a validade e revise as condições antes de criar um link.',category:'policy_error'});
-      }
-      const snapshot = { clientName: quote.client_name, company: quote.client_company, request: quote.client_vehicle_or_service, items, subtotal: quote.subtotal, discountTotal: quote.discount_total, taxes: quote.taxes, total: quote.total, notes: quote.notes, paymentInstructions: quote.payment_instructions, validUntil, priceAudit: { arithmetic: 'passed', catalogPriceVerification: 'passed', catalogVersionCheckedAt:new Date().toISOString(), discountPolicyVersion:pricePolicyVersion, humanAuthoredQuote: true }, signature: signatureEnabled ? { label: 'Powered by ORKTO', brand: 'ORKTO' } : null };
-      const { data: versions, error: versionError } = await db.from('orkto_live_quotes').select('id,version,status').eq('workspace_id',context.id).eq('quote_ref',quote.id).order('version',{ascending:false}).limit(100);
-      if (versionError) throw versionError;
-      if ((versions || []).some((version:any)=>version.status === 'accepted')) return res.status(409).json({ error:'Esta proposta já foi aceita. Para negociar outra condição, crie uma nova proposta.',category:'policy_error' });
-      const { data, error } = await db.from('orkto_live_quotes').insert({ workspace_id: context.id, quote_ref: quote.id, public_token_hash: tokenHash, version: Number(versions?.[0]?.version || 0) + 1, snapshot, current_price_cents: Math.round(Number(quote.total || 0) * 100), status: 'active', valid_until: validUntil, created_by: req.user?.id || null }).select('id,quote_ref,version,status,valid_until,created_at').single();
-      if (error) throw error;
-      const supersededIds = (versions || []).filter((version:any)=>['active','viewed'].includes(version.status)).map((version:any)=>version.id);
-      if (supersededIds.length) {
-        const { error: revokeError } = await db.from('orkto_live_quotes').update({status:'revoked',updated_at:new Date().toISOString()}).eq('workspace_id',context.id).in('id',supersededIds);
-        if (revokeError) {
-          await db.from('orkto_live_quotes').update({status:'revoked',updated_at:new Date().toISOString()}).eq('workspace_id',context.id).eq('id',data.id);
-          throw revokeError;
-        }
-        const { error: revokeEventError } = await db.from('orkto_live_quote_events').upsert(supersededIds.map((id:string)=>({workspace_id:context.id,live_quote_id:id,event_type:'revoked',idempotency_key:`revoked:${id}`})),{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-        if (revokeEventError) throw revokeEventError;
-        await addAuditOrThrow(db,context.id,req.user?.id,'live_quote.superseded','quote',quote.id,{revoked_live_quote_ids:supersededIds,new_version:data.version});
-      }
-      const { error: eventError } = await db.from('orkto_live_quote_events').insert({ workspace_id: context.id, live_quote_id: data.id, event_type: 'created', idempotency_key: `created:${data.id}` });
-      if (eventError) throw eventError;
-      await addAuditOrThrow(db,context.id,req.user?.id,'live_quote.created','live_quote',data.id,{ quote_ref:quote.id, version:data.version, current_price_cents:Math.round(Number(quote.total || 0)*100), price_policy_version:pricePolicyVersion });
-      res.status(201).json({ data, token, publicPath: `/proposta-viva/${token}` });
-    } catch (error) { failure(res, error, 'Não foi possível criar o link de proposta viva.'); }
+    const result = await invokeCoreMutation(req,res,context,'PUBLISH_LIVE_QUOTE',{quoteId:req.params.quoteId});
+    if (!result) return;
+    res.status(result.result === 'REPLAY' ? 200 : 201).json({
+      data:result.live_quote, token:result.token, publicPath:result.publicPath,
+      idempotentReplay:result.result === 'REPLAY',
+    });
   });
 
   app.get('/api/public/live-quotes/:token', async (req, res) => {
-    if (!db) return res.status(503).json({ error: 'Serviço de propostas indisponível.' });
-    const tokenHash = crypto.createHash('sha256').update(String(req.params.token || '')).digest('hex');
-    try {
-      const { data, error } = await db.from('orkto_live_quotes').select('id,workspace_id,quote_ref,version,snapshot,current_price_cents,status,valid_until').eq('public_token_hash',tokenHash).maybeSingle();
-      if (error) throw error;
-      if (!data || ['revoked','expired','rejected'].includes(data.status)) return res.status(404).json({ error: 'Esta proposta não está mais disponível.' });
-      if (data.status === 'accepted') return res.json({ id:data.id,version:data.version,snapshot:data.snapshot,status:'accepted',validUntil:data.valid_until });
-      if (data.valid_until && new Date(data.valid_until).getTime() <= Date.now()) {
-        const { error: expireError } = await db.from('orkto_live_quotes').update({status:'expired',updated_at:new Date().toISOString()}).eq('workspace_id',data.workspace_id).eq('id',data.id).in('status',['active','viewed']);
-        if (expireError) throw expireError;
-        const { error: expireEventError } = await db.from('orkto_live_quote_events').upsert({workspace_id:data.workspace_id,live_quote_id:data.id,event_type:'expired',idempotency_key:`expired:${data.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-        if (expireEventError) throw expireEventError;
-        await addAuditOrThrow(db,data.workspace_id,undefined,'live_quote.expired','quote',data.quote_ref,{live_quote_id:data.id,reason:'validity_window_elapsed'});
-        return res.status(404).json({ error:'Esta proposta expirou e não está mais disponível.' });
-      }
-      const { data: quote, error: quoteError } = await db.from('quotes').select('id,status,total,items,archived_at').eq('workspace_id',data.workspace_id).eq('id',data.quote_ref).maybeSingle();
-      if (quoteError) throw quoteError;
-      const sourceNoLongerActive = !quote || quote.archived_at || !['draft','pending','sent','viewed','approved','accepted'].includes(String(quote.status || '').toLowerCase());
-      const priceChanged = quote && Math.round(Number(quote.total || 0)*100) !== Number(data.current_price_cents);
-      const itemsChanged = quote && JSON.stringify(quote.items || []) !== JSON.stringify(data.snapshot?.items || []);
-      if (sourceNoLongerActive || priceChanged || itemsChanged) {
-        const invalidationStatus = sourceNoLongerActive || priceChanged || itemsChanged ? 'revoked' : 'expired';
-        const { error: revokeError } = await db.from('orkto_live_quotes').update({status:invalidationStatus,updated_at:new Date().toISOString()}).eq('workspace_id',data.workspace_id).eq('id',data.id).in('status',['active','viewed']);
-        if (revokeError) throw revokeError;
-        const { error: eventError } = await db.from('orkto_live_quote_events').upsert({workspace_id:data.workspace_id,live_quote_id:data.id,event_type:invalidationStatus,idempotency_key:`invalidated:${data.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-        if (eventError) throw eventError;
-        await addAuditOrThrow(db,data.workspace_id,undefined,'live_quote.invalidated','quote',data.quote_ref,{live_quote_id:data.id,reason:sourceNoLongerActive ? 'source_quote_closed' : 'source_quote_changed'});
-        return res.status(409).json({error:'A proposta foi alterada ou encerrada. Solicite a versão atualizada.',category:'stale_version'});
-      }
-      if (data.status === 'active') {
-        const { error: updateError } = await db.from('orkto_live_quotes').update({ status: 'viewed', updated_at: new Date().toISOString() }).eq('id',data.id).eq('status','active');
-        if (updateError) throw updateError;
-      }
-      await db.from('orkto_live_quote_events').upsert({ workspace_id: data.workspace_id, live_quote_id: data.id, event_type: 'viewed', idempotency_key: `view:${data.id}:${new Date().toISOString().slice(0,13)}` }, { onConflict: 'workspace_id,idempotency_key', ignoreDuplicates: true });
-      res.json({ id: data.id, version: data.version, snapshot: data.snapshot, status: data.status === 'active' ? 'viewed' : data.status, validUntil: data.valid_until });
-    } catch (error) { failure(res, error, 'Não foi possível carregar a proposta.'); }
+    res.setHeader('Cache-Control','no-store');
+    const result = await invokePublicProposal(req,res,'READ',String(req.params.token || ''));
+    if (res.headersSent) return;
+    res.json(result.proposal);
   });
 
   app.post('/api/public/live-quotes/:token/accept', async (req, res) => {
-    if (!db) return res.status(503).json({ error: 'Serviço de propostas indisponível.' });
-    const tokenHash = crypto.createHash('sha256').update(String(req.params.token || '')).digest('hex');
-    const acceptedBy = z.object({ customerName: z.string().trim().min(1).max(180) }).safeParse(req.body);
-    if (!acceptedBy.success) return res.status(400).json({ error: 'Informe o nome para registrar o aceite.' });
-    try {
-      const { data: current, error: readError } = await db.from('orkto_live_quotes').select('id,workspace_id,quote_ref,snapshot,current_price_cents,status,valid_until').eq('public_token_hash',tokenHash).maybeSingle();
-      if (readError) throw readError; if (!current || ['revoked','expired','rejected'].includes(current.status)) return res.status(404).json({ error: 'Esta proposta não pode mais ser aceita.' });
-      if (current.status === 'accepted') {
-        await cancelQuoteRecovery(db,current.workspace_id,String(current.quote_ref),undefined,'proposal_accepted');
-        return res.json({ success: true, alreadyAccepted: true });
-      }
-      if (current.valid_until && new Date(current.valid_until).getTime() <= Date.now()) {
-        const {error:expireError}=await db.from('orkto_live_quotes').update({status:'expired',updated_at:new Date().toISOString()}).eq('workspace_id',current.workspace_id).eq('id',current.id).in('status',['active','viewed']);
-        if(expireError) throw expireError;
-        const {error:expireEventError}=await db.from('orkto_live_quote_events').upsert({workspace_id:current.workspace_id,live_quote_id:current.id,event_type:'expired',idempotency_key:`expired:${current.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-        if(expireEventError) throw expireEventError;
-        await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.expired','quote',current.quote_ref,{live_quote_id:current.id,reason:'validity_window_elapsed'});
-        return res.status(404).json({ error: 'Esta proposta expirou e não pode mais ser aceita.' });
-      }
-      const { data: sourceQuote, error: sourceQuoteError } = await db.from('quotes').select('id,status,total,items,archived_at,updated_at,approved_at').eq('workspace_id',current.workspace_id).eq('id',current.quote_ref).maybeSingle();
-      if (sourceQuoteError) throw sourceQuoteError;
-      const stale = !sourceQuote || sourceQuote.archived_at || !['draft','pending','sent','viewed'].includes(String(sourceQuote.status || '').toLowerCase())
-        || Math.round(Number(sourceQuote.total || 0)*100) !== Number(current.current_price_cents)
-        || JSON.stringify(sourceQuote.items || []) !== JSON.stringify(current.snapshot?.items || []);
-      if (stale) {
-        await db.from('orkto_live_quotes').update({status:'revoked',updated_at:new Date().toISOString()}).eq('workspace_id',current.workspace_id).eq('id',current.id).in('status',['active','viewed']);
-        await db.from('orkto_live_quote_events').upsert({workspace_id:current.workspace_id,live_quote_id:current.id,event_type:'revoked',idempotency_key:`stale:${current.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-        await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.acceptance_blocked','quote',current.quote_ref,{live_quote_id:current.id,reason:'source_quote_changed_or_closed'});
-        return res.status(409).json({error:'As condições desta proposta foram alteradas ou encerradas. O aceite foi bloqueado; solicite a versão atualizada.',category:'stale_version'});
-      }
-      const acceptedAt = new Date().toISOString();
-      // Claim the exact quote version first. This serializes against proposal edits,
-      // which are rejected once the source quote reaches approved.
-      const { data: quoteClaim, error: quoteClaimError } = await db.from('quotes').update({ status:'approved',approved_at:acceptedAt,updated_at:acceptedAt })
-        .eq('workspace_id',current.workspace_id).eq('id',current.quote_ref).eq('updated_at',sourceQuote.updated_at)
-        .in('status',['draft','pending','sent','viewed']).select('id').maybeSingle();
-      if (quoteClaimError) throw quoteClaimError;
-      if (!quoteClaim) {
-        await db.from('orkto_live_quotes').update({status:'revoked',updated_at:new Date().toISOString()}).eq('workspace_id',current.workspace_id).eq('id',current.id).in('status',['active','viewed']);
-        await db.from('orkto_live_quote_events').upsert({workspace_id:current.workspace_id,live_quote_id:current.id,event_type:'revoked',idempotency_key:`stale:${current.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-        await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.acceptance_blocked','quote',current.quote_ref,{live_quote_id:current.id,reason:'source_quote_changed_during_acceptance'});
-        return res.status(409).json({error:'As condições desta proposta mudaram durante o aceite. Solicite a versão atualizada.',category:'stale_version'});
-      }
-      const { data, error } = await db.from('orkto_live_quotes').update({ status: 'accepted', accepted_at: acceptedAt, accepted_by_name: acceptedBy.data.customerName, updated_at: acceptedAt }).eq('workspace_id',current.workspace_id).eq('id',current.id).in('status',['active','viewed']).select('id').maybeSingle();
-      if (error || !data) {
-        const {data:restored,error:restoreError}=await db.from('quotes').update({status:sourceQuote.status,approved_at:sourceQuote.approved_at || null,updated_at:new Date().toISOString()})
-          .eq('workspace_id',current.workspace_id).eq('id',current.quote_ref).eq('status','approved').eq('updated_at',acceptedAt).select('id').maybeSingle();
-        if(restoreError || !restored) logStructured('error','live_quote.acceptance_compensation_failed',{workspaceId:current.workspace_id,liveQuoteId:current.id,quoteId:current.quote_ref,errorCode:restoreError?.code || 'state_changed'});
-        if (error) throw error;
-        return res.status(409).json({ error: 'A proposta mudou de estado durante o aceite; nenhum aceite foi registrado.',category:'concurrent_update' });
-      }
-       const { error: eventError } = await db.from('orkto_live_quote_events').upsert({ workspace_id: current.workspace_id, live_quote_id: current.id, event_type: 'accepted', idempotency_key: `accepted:${current.id}` },{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-       if (eventError) throw eventError;
-       await cancelQuoteRecovery(db,current.workspace_id,String(current.quote_ref),undefined,'proposal_accepted');
-       await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.accepted','quote',current.quote_ref,{ customer_name: acceptedBy.data.customerName });
-       res.json({ success: true, status: 'accepted' });
-     } catch (error) { failure(res, error, 'Não foi possível registrar o aceite.'); }
-   });
+    const parsed=z.object({customerName:z.string().trim().min(1).max(180)}).strict().safeParse(req.body);
+    if(!parsed.success) return res.status(400).json({error:'Informe o nome para registrar o aceite.'});
+    const result=await invokePublicProposal(req,res,'ACCEPT',String(req.params.token||''),parsed.data);
+    if(res.headersSent) return;
+    res.json({success:true,status:result.status,idempotentReplay:result.result==='REPLAY'});
+  });
 
-   app.post('/api/public/live-quotes/:token/reject', async (req,res) => {
-     if (!db) return res.status(503).json({ error:'Serviço de propostas indisponível.' });
-     const parsed = z.object({ reason:z.string().trim().max(500).default('') }).strict().safeParse(req.body || {});
-     if (!parsed.success) return res.status(400).json({ error:'Motivo de recusa inválido.' });
-     const tokenHash = crypto.createHash('sha256').update(String(req.params.token || '')).digest('hex');
-     try {
-      const { data: current, error: readError } = await db.from('orkto_live_quotes').select('id,workspace_id,quote_ref,snapshot,current_price_cents,status,valid_until').eq('public_token_hash',tokenHash).maybeSingle();
-      if (readError) throw readError;
-       if (!current || ['revoked','expired'].includes(current.status)) return res.status(404).json({ error:'Esta proposta não está mais disponível.' });
-       if (current.status === 'rejected') {
-         await cancelQuoteRecovery(db,current.workspace_id,String(current.quote_ref),undefined,'proposal_rejected');
-         return res.json({ success:true, status:'rejected', alreadyRejected:true });
-       }
-       if (current.valid_until && new Date(current.valid_until).getTime() <= Date.now()) {
-         const {error:expireError}=await db.from('orkto_live_quotes').update({status:'expired',updated_at:new Date().toISOString()}).eq('workspace_id',current.workspace_id).eq('id',current.id).in('status',['active','viewed']);
-         if(expireError) throw expireError;
-         const {error:expireEventError}=await db.from('orkto_live_quote_events').upsert({workspace_id:current.workspace_id,live_quote_id:current.id,event_type:'expired',idempotency_key:`expired:${current.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-         if(expireEventError) throw expireEventError;
-         await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.expired','quote',current.quote_ref,{live_quote_id:current.id,reason:'validity_window_elapsed'});
-         return res.status(404).json({error:'Esta proposta expirou.'});
-       }
-       if (current.status === 'accepted') return res.status(409).json({ error:'Uma proposta aceita não pode ser recusada depois pelo mesmo link.', category:'policy_error' });
-       const { data: sourceQuote, error: sourceQuoteError } = await db.from('quotes').select('id,status,total,items,archived_at').eq('workspace_id',current.workspace_id).eq('id',current.quote_ref).maybeSingle();
-       if (sourceQuoteError) throw sourceQuoteError;
-       const stale = !sourceQuote || sourceQuote.archived_at || !['draft','pending','sent','viewed'].includes(String(sourceQuote.status || '').toLowerCase())
-         || Math.round(Number(sourceQuote.total || 0)*100) !== Number(current.current_price_cents)
-         || JSON.stringify(sourceQuote.items || []) !== JSON.stringify(current.snapshot?.items || []);
-       if (stale) {
-         const {error:revokeError}=await db.from('orkto_live_quotes').update({status:'revoked',updated_at:new Date().toISOString()}).eq('workspace_id',current.workspace_id).eq('id',current.id).in('status',['active','viewed']);
-         if(revokeError) throw revokeError;
-         const {error:eventError}=await db.from('orkto_live_quote_events').upsert({workspace_id:current.workspace_id,live_quote_id:current.id,event_type:'revoked',idempotency_key:`stale:${current.id}`},{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-         if(eventError) throw eventError;
-         await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.rejection_blocked','quote',current.quote_ref,{live_quote_id:current.id,reason:'source_quote_changed_or_closed'});
-         return res.status(409).json({error:'Esta versão não corresponde mais à proposta atual.',category:'stale_version'});
-       }
-       const rejectedAt = new Date().toISOString();
-       const { data, error } = await db.from('orkto_live_quotes').update({ status:'rejected', updated_at:rejectedAt }).eq('id',current.id).in('status',['active','viewed']).select('id').maybeSingle();
-       if (error) throw error; if (!data) return res.status(409).json({ error:'A proposta mudou de estado; atualize e tente novamente.' });
-       const { error: quoteUpdateError } = await db.from('quotes').update({ status:'rejected', updated_at:rejectedAt }).eq('id',current.quote_ref).eq('workspace_id',current.workspace_id).in('status',['draft','pending','sent','viewed']);
-       if (quoteUpdateError) throw quoteUpdateError;
-       const { error: eventError } = await db.from('orkto_live_quote_events').upsert({ workspace_id:current.workspace_id,live_quote_id:current.id,event_type:'rejected',idempotency_key:`rejected:${current.id}` },{onConflict:'workspace_id,idempotency_key',ignoreDuplicates:true});
-       if (eventError) throw eventError;
-       await cancelQuoteRecovery(db,current.workspace_id,String(current.quote_ref),undefined,'proposal_rejected');
-       await addAuditOrThrow(db,current.workspace_id,undefined,'live_quote.rejected','quote',current.quote_ref,{ source:'public_link', reason:parsed.data.reason || null });
-       res.json({ success:true,status:'rejected' });
-     } catch (error) { failure(res,error,'Não foi possível registrar a recusa da proposta.'); }
-   });
- }
+  app.post('/api/public/live-quotes/:token/reject', async (req, res) => {
+    const parsed=z.object({reason:z.string().trim().max(500).default('')}).strict().safeParse(req.body||{});
+    if(!parsed.success) return res.status(400).json({error:'Motivo de recusa inválido.'});
+    const result=await invokePublicProposal(req,res,'REJECT',String(req.params.token||''),parsed.data);
+    if(res.headersSent) return;
+    res.json({success:true,status:result.status,idempotentReplay:result.result==='REPLAY'});
+  });
+}
