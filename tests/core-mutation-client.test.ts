@@ -81,7 +81,10 @@ test('proposal publication and public decisions use explicit gateways without a 
   const core = await readFile(resolve(process.cwd(), 'backend/core-app.ts'), 'utf8');
   const operational = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');
   const publicClient = await readFile(resolve(process.cwd(), 'backend/public-proposal-client.ts'), 'utf8');
-  const publication = core.slice(core.indexOf('app.post("/api/proposal/generate"'), core.indexOf('const sendQuoteEmailSchema'));
+  const publicationStart = core.indexOf('app.post("/api/proposal/generate"');
+  const publicationEnd = core.indexOf('app.post("/api/quotes/:quoteId/email"', publicationStart);
+  assert.ok(publicationStart >= 0 && publicationEnd > publicationStart);
+  const publication = core.slice(publicationStart, publicationEnd);
   const live = operational.slice(operational.indexOf("app.post('/api/live-quotes/from-quote"));
   assert.match(publication, /'PUBLISH_LIVE_QUOTE'/);
   assert.doesNotMatch(publication, /\.from\(['"](?:proposals|quotes|orkto_live_quotes)['"]\)/);
