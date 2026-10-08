@@ -20,21 +20,41 @@ export const wiaDecisionSchema = z.object({
 });
 
 export type WiaDecision = z.infer<typeof wiaDecisionSchema>;
+export type WiaAgentId = 'qualification_agent' | 'sales_agent' | 'objection_agent' | 'followup_agent' | 'recovery_agent' | 'collection_agent' | 'risk_agent' | 'reporting_agent' | 'customer_success_agent';
 
 export interface WiaOperationalContext {
-  openQuotes: number;
-  pendingValue: number;
-  clients: number;
+  openQuotes?: number;
+  pendingValue?: number;
+  clients?: number;
   companyName?: string;
+  reportMetrics?: Record<string, unknown>;
+  reportType?: string;
+  reportPeriod?: { start: string; end: string };
+  relevantMemories?: Array<{ id: string; memoryType: string; entityType: string; entityRef: string; content: Record<string, unknown>; confidence: number | null; provenance: Record<string, unknown> }>;
+}
+
+export interface WiaChatTurn {
+  role: 'user' | 'assistant';
+  content: string;
 }
 
 export interface ModelUsage {
   provider: string;
+  modelFamily: string;
+  gateway: string;
   model: string;
+  requestedModel: string;
+  selectedModel: string;
+  actualModel: string;
+  taskType: 'fast' | 'standard' | 'deep';
+  fallbackUsed: boolean;
+  fallbackReason?: string;
   promptTokens: number;
+  cachedInputTokens: number;
   completionTokens: number;
   totalTokens: number;
   latencyMs: number;
+  status: 'succeeded';
 }
 
 export interface ModelDecisionResult {
@@ -44,6 +64,8 @@ export interface ModelDecisionResult {
 }
 
 export interface WiaServiceResult extends ModelDecisionResult {
+  runId: string;
+  agent: WiaAgentId;
   path: 't0' | 'model';
   toolExecutions: ToolExecution[];
 }
@@ -54,5 +76,7 @@ export interface ModelProvider {
     message: string;
     context: WiaOperationalContext;
     sourceIds: string[];
+    history?: WiaChatTurn[];
+    agent?: WiaAgentId;
   }): Promise<ModelDecisionResult>;
 }

@@ -1,5 +1,7 @@
 # ORKTO
 
+> Direção do produto e instruções para agentes: [`docs/ORKTO_MASTER.md`](docs/ORKTO_MASTER.md), [`AGENTS.md`](AGENTS.md) e [`docs/00_GOVERNANCE/SOURCE_OF_TRUTH.md`](docs/00_GOVERNANCE/SOURCE_OF_TRUTH.md). O estado comprovado e as lacunas atuais estão em [`docs/05_ENGINEERING/ORKTO_CURRENT_STATE.md`](docs/05_ENGINEERING/ORKTO_CURRENT_STATE.md) e [`docs/05_ENGINEERING/ORKTO_IMPLEMENTATION_GAP.md`](docs/05_ENGINEERING/ORKTO_IMPLEMENTATION_GAP.md).
+
 A **ORKTO** é uma plataforma AI-native de **operação comercial conversacional**.
 
 O produto parte de conversas e contexto comercial para ajudar empresas a organizar informações, entender situações, preparar decisões e transformar essas decisões em ações dentro da operação.

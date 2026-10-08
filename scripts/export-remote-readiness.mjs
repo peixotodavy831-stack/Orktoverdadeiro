@@ -8,14 +8,24 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(scriptDirectory, '..');
 
 function parseArguments(argv) {
-  const result = { outputDirectory: '', confirmReadOnlyTarget: false };
+  const result = { outputDirectory: '', confirmReadOnlyTarget: false, expectedProjectRef: '' };
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--output-dir') result.outputDirectory = argv[++index] || '';
     else if (argv[index] === '--confirm-read-only-target') result.confirmReadOnlyTarget = true;
+    else if (argv[index] === '--expected-project-ref') result.expectedProjectRef = argv[++index] || '';
     else if (argv[index] === '--help' || argv[index] === '-h') result.help = true;
     else throw new Error(`Unknown argument: ${argv[index]}`);
   }
   return result;
+}
+
+function inferSupabaseProjectRef(connection) {
+  const candidates = new Set();
+  const directHost = connection.host.match(/(?:^|\.)db\.([a-z0-9]{20})\.supabase\.co$/i)?.[1];
+  const poolerUser = connection.user.match(/(?:^|\.)([a-z0-9]{20})$/i)?.[1];
+  if (directHost) candidates.add(directHost.toLowerCase());
+  if (poolerUser) candidates.add(poolerUser.toLowerCase());
+  return candidates.size === 1 ? [...candidates][0] : null;
 }
 
 function parseJsonOutput(output, label) {
@@ -38,8 +48,15 @@ function validateInventory(inventory) {
   }
 }
 
-export async function exportRemoteReadiness({ outputDirectory, confirmReadOnlyTarget = false } = {}) {
+export async function exportRemoteReadiness({ outputDirectory, confirmReadOnlyTarget = false, expectedProjectRef = '' } = {}) {
   const connection = getPostgresConnection();
+  const projectRef = inferSupabaseProjectRef(connection);
+  if (expectedProjectRef && projectRef !== expectedProjectRef.toLowerCase()) {
+    throw new Error('Remote target project ref could not be proven from the PostgreSQL host/user or did not match the expected project.');
+  }
+  if (projectRef === 'qneqljlphgkptebsaonb') {
+    throw new Error('Production project is prohibited for this readiness workflow.');
+  }
   if (!isLoopbackHost(connection.host) && !confirmReadOnlyTarget) {
     throw new Error('External PostgreSQL export is read-only but still requires --confirm-read-only-target after verifying the exact project in the database dashboard.');
   }
@@ -67,7 +84,7 @@ export async function exportRemoteReadiness({ outputDirectory, confirmReadOnlyTa
 
   const capture = {
     capturedAt: new Date().toISOString(),
-    source: { host: connection.host, database: connection.database },
+    source: { host: connection.host, database: connection.database, projectRef },
     server: {
       version: inventory.server_version,
       versionNumber: inventory.server_version_num,
@@ -105,7 +122,7 @@ if (isDirectExecution) {
   try {
     const options = parseArguments(process.argv.slice(2));
     if (options.help) {
-      process.stdout.write('Usage: node scripts/export-remote-readiness.mjs --confirm-read-only-target --output-dir <directory>\nUses catalog-only SELECTs inside read-only transactions; requires PG* or ORKTO_DATABASE_URL/DATABASE_URL.\n');
+      process.stdout.write('Usage: node scripts/export-remote-readiness.mjs --confirm-read-only-target --expected-project-ref <ref> --output-dir <directory>\nUses catalog-only SELECTs inside read-only transactions; requires PG* or ORKTO_DATABASE_URL/DATABASE_URL.\n');
     } else {
       const result = await exportRemoteReadiness(options);
       process.stdout.write(`Read-only capture written to ${result.outputDirectory}; ${result.migrationCount} migration ledger rows; PostgreSQL ${result.serverVersion}.\n`);

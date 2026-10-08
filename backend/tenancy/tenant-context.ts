@@ -1,7 +1,8 @@
-export type TenantRole = 'owner' | 'manager' | 'operator' | 'channel';
+export type TenantRole = 'owner' | 'admin' | 'manager' | 'member' | 'operator' | 'channel';
 
 export type TenantContext = Readonly<{
   userId: string;
+  workspaceId: string;
   tenantId: string;
   role: TenantRole;
 }>;
@@ -23,9 +24,15 @@ export function createOwnerTenantContext(userId: string): TenantContext {
   const normalizedUserId = userId.trim();
   if (!UUID_PATTERN.test(normalizedUserId)) throw new TenantContextError();
 
-  // The current data model is owner-scoped. Keeping tenantId explicit allows
-  // memberships to be introduced later without implicit authorization rules.
-  return Object.freeze({ userId: normalizedUserId, tenantId: normalizedUserId, role: 'owner' });
+  return createWorkspaceTenantContext(normalizedUserId, normalizedUserId, 'owner');
+}
+
+export function createWorkspaceTenantContext(userId: string, workspaceId: string, role: TenantRole): TenantContext {
+  const normalizedUserId = userId.trim();
+  const normalizedWorkspaceId = workspaceId.trim();
+  if (!UUID_PATTERN.test(normalizedUserId) || !UUID_PATTERN.test(normalizedWorkspaceId)) throw new TenantContextError();
+  if (!['owner','admin','manager','member'].includes(role)) throw new TenantContextError('Papel de workspace inválido.');
+  return Object.freeze({ userId: normalizedUserId, workspaceId: normalizedWorkspaceId, tenantId: normalizedWorkspaceId, role });
 }
 
 export function requireTenantContext(request: { tenantContext?: TenantContext }): TenantContext {
@@ -47,5 +54,5 @@ export function scopeQueryToTenant<TQuery extends TenantScopedQuery<TQuery>>(
 export function resolveWebhookTenantContext(env: NodeJS.ProcessEnv): TenantContext | null {
   const tenantId = env.WHATSAPP_TENANT_ID?.trim();
   if (!tenantId || !UUID_PATTERN.test(tenantId)) return null;
-  return Object.freeze({ userId: tenantId, tenantId, role: 'channel' });
+  return Object.freeze({ userId: tenantId, workspaceId: tenantId, tenantId, role: 'channel' });
 }

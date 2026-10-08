@@ -6,6 +6,7 @@ interface OrktoLogoProps {
   showSlogan?: boolean;
   darkMode?: boolean;
   onlyO?: boolean;
+  accentColor?: string;
 }
 
 export default function OrktoLogo({ 
@@ -13,7 +14,8 @@ export default function OrktoLogo({
   size = 'md', 
   showSlogan = false, 
   darkMode = true,
-  onlyO = false
+  onlyO = false,
+  accentColor = '#FF8A00'
 }: OrktoLogoProps) {
   
   // Custom font configurations mimicking the clean technical uppercase style
@@ -61,7 +63,7 @@ export default function OrktoLogo({
         {/* The signature orange "O" squircle */}
         <div 
           className={`${oStyles[size]} border-brand-orange shrink-0`}
-          style={{ borderColor: '#FF8A00' }}
+          style={{ borderColor: accentColor }}
         />
       </div>
 

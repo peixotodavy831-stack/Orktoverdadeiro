@@ -22,18 +22,36 @@ const customerRowSchema = z.object({
 const approvalRowSchema = z.object({
   id: z.string(), task_type: z.string(), bot_name: z.string(), proposed_content: z.string(),
   reason: z.string(), policy_applied: z.string(), expires_at: z.string().nullable().optional(), created_at: z.string(),
-  orkto_conversations: z.object({ id: z.string(), user_id: z.string(), contact_name: z.string() }),
+  orkto_conversations: z.object({ id: z.string(), user_id: z.string(), workspace_id: z.string(), contact_name: z.string() }),
+});
+const riskAssessmentSchema = z.object({
+  id: z.string(), score: money, confidence: z.coerce.number().min(0).max(1),
+  reasons: z.array(z.unknown()).default([]), signals: z.array(z.unknown()).default([]),
+  recommended_action: z.string(), assessed_at: z.string(),
+});
+const memoryRowSchema = z.object({
+  id: z.string(), memory_type: z.enum(['raw_event','fact','summary','preference','commercial_pattern','inference']),
+  content: z.record(z.string(), z.unknown()), provenance: z.record(z.string(), z.unknown()),
+  confidence: z.coerce.number().min(0).max(1).nullable().optional(), expires_at: z.string().nullable().optional(), created_at: z.string(),
 });
 
 export type SaleRow = z.infer<typeof saleRowSchema>;
 export type QuoteRow = z.infer<typeof quoteRowSchema>;
 export type CustomerRow = z.infer<typeof customerRowSchema>;
 export type ApprovalRow = z.infer<typeof approvalRowSchema>;
+export type RiskAssessmentRow = z.infer<typeof riskAssessmentSchema>;
+export type CustomerMemoryRow = z.infer<typeof memoryRowSchema>;
+export type CustomerOperationalContext = {
+  customer: CustomerRow;
+  risk: RiskAssessmentRow | null;
+  memories: CustomerMemoryRow[];
+};
 
 export interface T0DataSource {
   getSalesToday(tenantId: string, start: string, end: string): Promise<SaleRow[]>;
   getOpenQuotes(tenantId: string, limit: number): Promise<QuoteRow[]>;
   getCustomer(tenantId: string, lookup: { customerId?: string; phone?: string }): Promise<CustomerRow | null>;
+  getCustomerOperationalContext(tenantId: string, lookup: { customerId?: string; phone?: string }): Promise<CustomerOperationalContext | null>;
   getPendingApprovals(tenantId: string, limit: number): Promise<ApprovalRow[]>;
 }
 
@@ -42,13 +60,23 @@ function unwrap<T>(result: { data: unknown; error: { message: string } | null },
   return schema.parse(result.data);
 }
 
+function exactPhoneCandidates(phone: string): string[] {
+  const digits = phone.replace(/\D/g, '');
+  const local = digits.startsWith('55') ? digits.slice(2) : digits;
+  const area = local.length >= 10 ? local.slice(0, 2) : '';
+  const subscriber = area ? local.slice(2) : local;
+  const formattedLocal = area ? `(${area}) ${subscriber.length === 9 ? `${subscriber.slice(0, 5)}-${subscriber.slice(5)}` : `${subscriber.slice(0, 4)}-${subscriber.slice(4)}`}` : '';
+  const formattedWithCountry = area ? `+55 ${formattedLocal}` : '';
+  return [...new Set([phone, digits, `+${digits}`, local, area ? `${area}${subscriber}` : '', formattedLocal, formattedWithCountry].filter(Boolean))];
+}
+
 export class SupabaseT0DataSource implements T0DataSource {
   constructor(private readonly client: SupabaseClient) {}
 
   async getSalesToday(tenantId: string, start: string, end: string): Promise<SaleRow[]> {
     const result = await this.client.from('quotes')
       .select('id,quote_number,client_name,total,approved_at')
-      .eq('user_id', tenantId).eq('status', 'approved')
+      .eq('workspace_id', tenantId).eq('status', 'approved')
       .gte('approved_at', start).lt('approved_at', end)
       .order('approved_at', { ascending: false }).limit(100);
     return unwrap(result, z.array(saleRowSchema));
@@ -57,7 +85,7 @@ export class SupabaseT0DataSource implements T0DataSource {
   async getOpenQuotes(tenantId: string, limit: number): Promise<QuoteRow[]> {
     const result = await this.client.from('quotes')
       .select('id,quote_number,client_name,total,status,updated_at')
-      .eq('user_id', tenantId).in('status', ['pending', 'sent', 'viewed'])
+      .eq('workspace_id', tenantId).in('status', ['pending', 'sent', 'viewed'])
       .order('updated_at', { ascending: false }).limit(limit);
     return unwrap(result, z.array(quoteRowSchema));
   }
@@ -65,16 +93,36 @@ export class SupabaseT0DataSource implements T0DataSource {
   async getCustomer(tenantId: string, lookup: { customerId?: string; phone?: string }): Promise<CustomerRow | null> {
     let query = this.client.from('clients')
       .select('id,name,phone,company,vehicle_or_service,notes,quote_count,total_revenue,last_contact_date')
-      .eq('user_id', tenantId);
-    query = lookup.customerId ? query.eq('id', lookup.customerId) : query.eq('phone', lookup.phone!);
+      .eq('workspace_id', tenantId);
+    query = lookup.customerId ? query.eq('id', lookup.customerId) : query.in('phone', exactPhoneCandidates(lookup.phone!));
     const result = await query.maybeSingle();
     return unwrap(result, customerRowSchema.nullable());
   }
 
+  async getCustomerOperationalContext(tenantId: string, lookup: { customerId?: string; phone?: string }): Promise<CustomerOperationalContext | null> {
+    const customer = await this.getCustomer(tenantId, lookup);
+    if (!customer) return null;
+    const entityRefs = [...new Set([customer.id, customer.phone].filter((value): value is string => Boolean(value)))];
+    const [riskResult, memoryResult] = await Promise.all([
+      this.client.from('orkto_risk_assessments')
+        .select('id,score,confidence,reasons,signals,recommended_action,assessed_at')
+        .eq('workspace_id', tenantId).in('customer_ref', entityRefs)
+        .order('assessed_at', { ascending: false }).limit(1).maybeSingle(),
+      this.client.from('orkto_wia_memories')
+        .select('id,memory_type,content,provenance,confidence,expires_at,created_at')
+        .eq('workspace_id', tenantId).in('entity_ref', entityRefs).eq('entity_type', 'customer').eq('status', 'active')
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+        .order('created_at', { ascending: false }).limit(20),
+    ]);
+    const risk = unwrap(riskResult, riskAssessmentSchema.nullable());
+    const memories = unwrap(memoryResult, z.array(memoryRowSchema));
+    return { customer, risk, memories };
+  }
+
   async getPendingApprovals(tenantId: string, limit: number): Promise<ApprovalRow[]> {
     const result = await this.client.from('orkto_approval_tasks')
-      .select('id,task_type,bot_name,proposed_content,reason,policy_applied,expires_at,created_at,orkto_conversations!inner(id,user_id,contact_name)')
-      .eq('status', 'pending').eq('orkto_conversations.user_id', tenantId)
+      .select('id,task_type,bot_name,proposed_content,reason,policy_applied,expires_at,created_at,orkto_conversations!inner(id,user_id,workspace_id,contact_name)')
+      .eq('status', 'pending').eq('workspace_id', tenantId).eq('orkto_conversations.workspace_id', tenantId)
       .order('created_at', { ascending: false }).limit(limit);
     return unwrap(result, z.array(approvalRowSchema));
   }
@@ -116,6 +164,20 @@ export function createT0ToolRegistry(dataSource: T0DataSource): ToolRegistry {
       async execute(input, context) {
         const customer = await dataSource.getCustomer(context.tenant.tenantId, input);
         return { customer, sourceIds: customer ? [`customer:${customer.id}`] : [] };
+      }, sourceIds: output => output.sourceIds,
+    })
+    .register({
+      name: 'get_customer_operational_context', purpose: 'Consulta risco e memórias comerciais ativas de um cliente no workspace.', requiredPermission: 'customers:read', timeoutMs: 5_000,
+      inputSchema: customerInput,
+      outputSchema: z.object({ context: z.object({ customer: customerRowSchema, risk: riskAssessmentSchema.nullable(), memories: z.array(memoryRowSchema) }).nullable(), sourceIds }),
+      async execute(input, context) {
+        const operationalContext = await dataSource.getCustomerOperationalContext(context.tenant.tenantId, input);
+        const sourceIds = operationalContext ? [
+          `customer:${operationalContext.customer.id}`,
+          ...(operationalContext.risk ? [`risk:${operationalContext.risk.id}`] : []),
+          ...operationalContext.memories.map(memory => `memory:${memory.id}`),
+        ] : [];
+        return { context: operationalContext, sourceIds };
       }, sourceIds: output => output.sourceIds,
     })
     .register({

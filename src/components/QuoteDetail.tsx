@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   FileText, 
@@ -29,8 +29,8 @@ interface QuoteDetailProps {
   onBack: () => void;
   onEdit: (quote: Quote) => void;
   onDuplicate: (quote: Quote) => void;
-  onQuoteUpdated: (updatedQuote: Quote) => void;
-  onQuoteDeleted: (quoteId: string) => void;
+  onQuoteUpdated: (updatedQuote: Quote) => Promise<void> | void;
+  onQuoteDeleted: (quoteId: string) => Promise<void> | void;
 }
 
 export default function QuoteDetail({
@@ -44,12 +44,78 @@ export default function QuoteDetail({
 }: QuoteDetailProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [writeError, setWriteError] = useState('');
   const [proposalLink, setProposalLink] = useState<string | null>(null);
   const [proposalLoading, setProposalLoading] = useState(false);
   const [proposalCopied, setProposalCopied] = useState(false);
   const [expiresAt, setExpiresAt] = useState(quote.retentionExpiresAt || null);
   const [extending, setExtending] = useState(false);
+  const [recoveryJobs, setRecoveryJobs] = useState<Array<{ id:string; step_key:string; due_at:string; status:string }>>([]);
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoverySaving, setRecoverySaving] = useState(false);
+  const [recoveryError, setRecoveryError] = useState('');
+  const [recoveryNotice, setRecoveryNotice] = useState('');
+  const [liveQuoteLink, setLiveQuoteLink] = useState('');
+  const [liveQuoteLoading, setLiveQuoteLoading] = useState(false);
   const canExtend = ['pro', 'business'].includes(userProfile?.activePlan || 'free');
+
+  const loadRecovery = useCallback(async () => {
+    setRecoveryLoading(true); setRecoveryError('');
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('Sua sessão expirou. Entre novamente para consultar a cadência.');
+      const response = await fetch(`/api/automations/proposal-recovery/${encodeURIComponent(quote.id)}`, { headers:{ Authorization:`Bearer ${token}` } });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível carregar os follow-ups da proposta.');
+      setRecoveryJobs(payload.data || []);
+    } catch (cause) { setRecoveryError(cause instanceof Error ? cause.message : 'Não foi possível carregar os follow-ups da proposta.'); }
+    finally { setRecoveryLoading(false); }
+  }, [quote.id]);
+
+  useEffect(() => { void loadRecovery(); }, [loadRecovery]);
+
+  const scheduleRecovery = async () => {
+    setRecoverySaving(true); setRecoveryError(''); setRecoveryNotice('');
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('Sua sessão expirou. Entre novamente para programar a cadência.');
+      const response = await fetch(`/api/automations/proposal-recovery/${encodeURIComponent(quote.id)}/schedule`, { method:'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:JSON.stringify({ enabled:true }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível programar a recuperação.');
+      setRecoveryNotice('Cadência registrada. A WIA preparará rascunhos para aprovação; nenhum contato será enviado sem canal configurado.');
+      await loadRecovery();
+    } catch (cause) { setRecoveryError(cause instanceof Error ? cause.message : 'Não foi possível programar a recuperação.'); }
+    finally { setRecoverySaving(false); }
+  };
+
+  const cancelRecovery = async () => {
+    if (!window.confirm('Cancelar os follow-ups pendentes desta proposta e rascunhos ainda não aprovados?')) return;
+    setRecoverySaving(true); setRecoveryError(''); setRecoveryNotice('');
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('Sua sessão expirou. Entre novamente para cancelar a cadência.');
+      const response = await fetch(`/api/automations/proposal-recovery/${encodeURIComponent(quote.id)}/cancel`, { method:'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:JSON.stringify({}) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível cancelar a recuperação.');
+      setRecoveryNotice(`Cancelamento salvo: ${payload.cancelledJobs || 0} jobs e ${payload.cancelledActions || 0} rascunhos pendentes.`);
+      await loadRecovery();
+    } catch (cause) { setRecoveryError(cause instanceof Error ? cause.message : 'Não foi possível cancelar a recuperação.'); }
+    finally { setRecoverySaving(false); }
+  };
+
+  const createLiveQuote = async () => {
+    setLiveQuoteLoading(true); setRecoveryError(''); setRecoveryNotice('');
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('Sua sessão expirou. Entre novamente para publicar o Orçamento Vivo.');
+      const response = await fetch(`/api/live-quotes/from-quote/${encodeURIComponent(quote.id)}`, { method:'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:JSON.stringify({}) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível criar o Orçamento Vivo.');
+      const link = `${window.location.origin}${payload.publicPath}`;
+      setLiveQuoteLink(link); setRecoveryNotice(`Orçamento Vivo versão ${payload.data.version} criado. O preço foi validado no Catálogo.`);
+    } catch (cause) { setRecoveryError(cause instanceof Error ? cause.message : 'Não foi possível criar o Orçamento Vivo.'); }
+    finally { setLiveQuoteLoading(false); }
+  };
   const extendDeadline = async () => {
     setExtending(true);
     try {
@@ -116,26 +182,28 @@ export default function QuoteDetail({
 
   const updateStatus = async (newStatus: 'approved' | 'rejected' | 'pending') => {
     setIsUpdating(true);
+    setWriteError('');
     try {
       const updates: any = { status: newStatus, updatedAt: Timestamp.now() };
       if (newStatus === 'approved') updates.approvedAt = Timestamp.now();
       if (newStatus === 'rejected') updates.rejectedAt = Timestamp.now();
       
-      onQuoteUpdated({ ...quote, ...updates });
+      await onQuoteUpdated({ ...quote, ...updates });
     } catch (err) {
-      console.error("Error updating quote status:", err);
+      setWriteError(err instanceof Error ? err.message : 'Não foi possível atualizar o orçamento.');
     } finally {
       setIsUpdating(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Tem certeza que quer remover este orçamento permanentemente? Esta ação não pode ser desfeita.')) return;
+    if (!window.confirm('Arquivar este orçamento? O histórico será preservado.')) return;
     setIsDeleting(true);
+    setWriteError('');
     try {
-      onQuoteDeleted(quote.id);
+      await onQuoteDeleted(quote.id);
     } catch (err) {
-      console.error("Error deleting quote:", err);
+      setWriteError(err instanceof Error ? err.message : 'Não foi possível arquivar o orçamento.');
     } finally {
       setIsDeleting(false);
     }
@@ -242,12 +310,15 @@ export default function QuoteDetail({
             onClick={handleDelete}
             disabled={isDeleting}
             className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors"
-            title="Excluir Orçamento"
+            title="Arquivar orçamento"
+            aria-label="Arquivar orçamento"
           >
             <Trash2 className="w-4.5 h-4.5" />
           </button>
         </div>
       </div>
+
+      {writeError && <p role="alert" className="mb-5 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-300">{writeError}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         {/* Core Invoice Card Detail View (2 cols) */}
@@ -443,6 +514,24 @@ export default function QuoteDetail({
               <button onClick={downloadArchive} className="py-2.5 bg-orange-500 text-black rounded-xl font-bold">Baixar dados completos</button>
             </div>
           </div>
+
+          <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-md dark:border-zinc-800 dark:bg-zinc-900" aria-label="Orçamento Vivo e recuperação">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-500">Operação acompanhada</p>
+            <h3 className="mt-1 text-sm font-bold text-zinc-900 dark:text-white">Orçamento Vivo e recuperação</h3>
+            <p className="mt-1 text-[10px] leading-4 text-zinc-500">A agenda prepara follow-ups sujeitos a aprovação. O envio só é liberado quando um canal real estiver configurado.</p>
+            {recoveryError && <p role="alert" className="mt-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-[10px] leading-4 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200">{recoveryError}</p>}
+            {recoveryNotice && <p role="status" className="mt-3 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-[10px] leading-4 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200">{recoveryNotice}</p>}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" onClick={() => void scheduleRecovery()} disabled={recoverySaving || !['draft','pending','sent','viewed'].includes(quote.status)} className="min-h-9 rounded-xl bg-orange-500 px-3 text-[10px] font-bold text-zinc-950 disabled:opacity-50">{recoverySaving ? 'Salvando…' : 'Programar D+1 / 4 / 10 / 30 / 90'}</button>
+              {recoveryJobs.some(job => job.status === 'scheduled') && <button type="button" onClick={() => void cancelRecovery()} disabled={recoverySaving} className="min-h-9 rounded-xl border border-zinc-300 px-3 text-[10px] font-semibold text-zinc-600 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300">Cancelar cadência</button>}
+              <button type="button" onClick={() => void loadRecovery()} disabled={recoveryLoading || recoverySaving} className="min-h-9 rounded-xl border border-zinc-300 px-3 text-[10px] font-semibold text-zinc-600 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300">{recoveryLoading ? 'Atualizando…' : 'Atualizar agenda'}</button>
+            </div>
+            {recoveryLoading ? <p role="status" className="mt-3 text-[10px] text-zinc-500">Carregando cadência…</p> : recoveryJobs.length > 0 && <ul className="mt-3 space-y-1.5">{recoveryJobs.map(job => <li key={job.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-zinc-100 px-2.5 py-2 text-[9px] dark:border-zinc-800"><span className="font-semibold text-zinc-700 dark:text-zinc-300">{job.step_key}</span><span className="text-zinc-500">{new Date(job.due_at).toLocaleString('pt-BR')}</span><span className="rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{job.status}</span></li>)}</ul>}
+            <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+              <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-[10px] font-semibold text-zinc-800 dark:text-zinc-200">Link com preço do Catálogo</p><p className="mt-0.5 text-[9px] text-zinc-500">A publicação é bloqueada se os itens/preços estiverem desatualizados ou sem origem.</p></div><button type="button" onClick={() => void createLiveQuote()} disabled={liveQuoteLoading || !['draft','pending','sent','viewed'].includes(quote.status)} className="min-h-9 rounded-xl border border-orange-500/40 px-3 text-[10px] font-bold text-orange-700 disabled:opacity-50 dark:text-orange-300">{liveQuoteLoading ? 'Validando…' : 'Criar Orçamento Vivo'}</button></div>
+              {liveQuoteLink && <div className="mt-2 flex min-w-0 items-center gap-2 rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"><a href={liveQuoteLink} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate text-[9px] text-orange-700 underline dark:text-orange-300">{liveQuoteLink}</a><button type="button" onClick={() => void navigator.clipboard.writeText(liveQuoteLink)} className="min-h-8 shrink-0 rounded-md bg-zinc-100 px-2 text-[9px] font-bold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">Copiar</button></div>}
+            </div>
+          </section>
 
           {/* Customer approval dynamic tracking timeline */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 rounded-3xl shadow-md">

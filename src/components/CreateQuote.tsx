@@ -58,6 +58,7 @@ export default function CreateQuote({
   // Step 1: Client Data
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
+  const [customerId, setCustomerId] = useState<string | null>(null);
   const [clientEmail, setClientEmail] = useState('');
   const [clientVehicleOrService, setClientVehicleOrService] = useState('');
   const [notes, setNotes] = useState('');
@@ -87,6 +88,7 @@ export default function CreateQuote({
     if (source) {
       setClientName(source.clientName || '');
       setClientPhone(source.clientPhone || '');
+      setCustomerId(source.customerId || null);
       setClientEmail(source.clientEmail || '');
       setClientVehicleOrService(source.clientVehicleOrService || '');
       setNotes(source.notes || '');
@@ -232,7 +234,8 @@ export default function CreateQuote({
       ...updated[index],
       name: service.name,
       description: service.description || '',
-      unitPrice: service.unitPrice
+      unitPrice: service.unitPrice,
+      catalogItemId: service.id,
     };
     setItems(updated);
     setActiveItemIndexForServiceSearch(null);
@@ -240,6 +243,7 @@ export default function CreateQuote({
 
   // Autocomplete client selection
   const handleQuickSelectClient = (client: SavedClient) => {
+    setCustomerId(client.id);
     setClientName(client.name);
     setClientPhone(client.phone);
     setClientVehicleOrService(client.vehicleOrService || '');
@@ -323,6 +327,7 @@ export default function CreateQuote({
         quoteNumber: quoteNumberStr,
         clientName,
         clientPhone,
+        customerId,
         clientEmail,
         clientVehicleOrService,
         notes,

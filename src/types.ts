@@ -42,7 +42,7 @@ export const AUTO_SERVICE_CATEGORIES = [
   'Outros Serviços'
 ];
 
-export type PlanType = 'free' | 'pro' | 'business';
+export type PlanType = 'free' | 'pro' | 'business' | 'starter' | 'scale' | 'enterprise' | 'founders' | 'legacy_standard';
 
 export type QuoteStatus = 'draft' | 'sent' | 'viewed' | 'pending' | 'approved' | 'rejected' | 'expired';
 
@@ -79,6 +79,7 @@ export interface UserProfile {
 
 export interface QuoteItem {
   id: string; // Dynamic client-side ID for list render and keys
+  catalogItemId?: string;
   name: string;
   description: string;
   quantity: number;
@@ -92,6 +93,8 @@ export interface Quote {
   quoteNumber: string;
   clientName: string;
   clientPhone: string;
+  customerId?: string | null;
+  dealId?: string | null;
   clientEmail?: string;
   clientCompany?: string;
   clientVehicleOrService: string; // Context (e.g., Honda Civic 2018 or Revisão Elétrica)

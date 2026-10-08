@@ -17,9 +17,15 @@ export function isProductionRuntime(env: RuntimeEnvironment): boolean {
 
 export function shouldEnableMockRoutes(env: RuntimeEnvironment): boolean {
   const requested = env[MOCK_ROUTES_FLAG] === 'true';
+  const appEnvironment = env.APP_ENV?.trim().toLowerCase();
+  const vercelEnvironment = env.VERCEL_ENV?.trim().toLowerCase();
+  const deploymentRuntime = isProductionRuntime(env)
+    || appEnvironment === 'staging'
+    || appEnvironment === 'production'
+    || vercelEnvironment === 'preview';
 
-  if (requested && isProductionRuntime(env)) {
-    throw new Error(`${MOCK_ROUTES_FLAG}=true is forbidden in production runtimes.`);
+  if (requested && deploymentRuntime) {
+    throw new Error(`${MOCK_ROUTES_FLAG}=true is forbidden outside local development.`);
   }
 
   return requested;

@@ -1,0 +1,9 @@
+[
+  { "id": "intent-priority", "taskType": "fast", "message": "Classifique a intenção e a urgência deste pedido de retorno para hoje." },
+  { "id": "extract-next-step", "taskType": "fast", "message": "Extraia a próxima ação desta solicitação: preciso receber a proposta amanhã." },
+  { "id": "short-summary", "taskType": "standard", "message": "Resuma esta operação e diga o que precisa de acompanhamento." },
+  { "id": "sales-reply", "taskType": "standard", "message": "Prepare uma resposta dizendo que posso verificar a proposta, sem inventar valores." },
+  { "id": "objection-followup", "taskType": "standard", "message": "Prepare um follow-up respeitoso para uma pessoa que disse que vai pensar." },
+  { "id": "long-analysis", "taskType": "deep", "message": "Faça um diagnóstico estratégico das possíveis causas de queda de conversão e liste evidências necessárias." },
+  { "id": "tool-decision", "taskType": "standard", "message": "A cliente pergunta quais propostas estão abertas; responda sem inventar registros e indique a consulta necessária." }
+]

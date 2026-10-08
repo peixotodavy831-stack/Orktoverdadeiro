@@ -21,9 +21,9 @@ import { formatBRL, formatCurrency } from '../utils/format';
 interface ServicesPageProps {
   services: SavedService[];
   userId: string;
-  onServiceAdded: (service: SavedService) => void;
-  onServiceUpdated: (service: SavedService) => void;
-  onServiceDeleted: (serviceId: string) => void;
+  onServiceAdded: (service: SavedService) => Promise<void> | void;
+  onServiceUpdated: (service: SavedService) => Promise<void> | void;
+  onServiceDeleted: (serviceId: string) => Promise<void> | void;
 }
 
 export default function ServicesPage({ 
@@ -43,6 +43,7 @@ export default function ServicesPage({
   const [unitPrice, setUnitPrice] = useState<number>(0);
   const [category, setCategory] = useState(AUTO_SERVICE_CATEGORIES[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [writeError, setWriteError] = useState('');
 
   // Quick Inline Editing State (lets users change prices instantly on the list!)
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
@@ -53,6 +54,7 @@ export default function ServicesPage({
     if (!name.trim()) return;
 
     setIsSubmitting(true);
+    setWriteError('');
     try {
       const serviceId = 'sv_' + Math.random().toString(36).substring(2, 9);
       const newService: SavedService = {
@@ -66,7 +68,7 @@ export default function ServicesPage({
         updatedAt: Timestamp.now()
       };
 
-      onServiceAdded(newService);
+      await onServiceAdded(newService);
       setIsAddOpen(false);
       // Reset form
       setName('');
@@ -74,7 +76,7 @@ export default function ServicesPage({
       setUnitPrice(0);
       setCategory(AUTO_SERVICE_CATEGORIES[0]);
     } catch (err) {
-      console.error(err);
+      setWriteError(err instanceof Error ? err.message : 'Não foi possível salvar o item do catálogo.');
     } finally {
       setIsSubmitting(false);
     }
@@ -90,20 +92,21 @@ export default function ServicesPage({
     if (isNaN(updatedPrice) || updatedPrice < 0) return;
 
     try {
-      onServiceUpdated({ ...service, unitPrice: updatedPrice, updatedAt: Timestamp.now() });
+      await onServiceUpdated({ ...service, unitPrice: updatedPrice, updatedAt: Timestamp.now() });
     } catch (err) {
-      console.error(err);
+      setWriteError(err instanceof Error ? err.message : 'Não foi possível atualizar o preço.');
     } finally {
       setInlineEditingId(null);
     }
   };
 
   const handleDeleteService = async (serviceId: string) => {
-    if (!window.confirm('Excluir este serviço do catálogo permanente?')) return;
+    if (!window.confirm('Arquivar este serviço? Ele deixará de aparecer no catálogo ativo, mas referências e histórico serão preservados.')) return;
     try {
-      onServiceDeleted(serviceId);
+      setWriteError('');
+      await onServiceDeleted(serviceId);
     } catch (err) {
-      console.error(err);
+      setWriteError(err instanceof Error ? err.message : 'Não foi possível arquivar o serviço.');
     }
   };
 
@@ -135,6 +138,7 @@ export default function ServicesPage({
           Cadastrar Modelo
         </button>
       </header>
+      {writeError && <p role="alert" className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300">{writeError}</p>}
 
       {/* Filter and Search Layout columns split */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

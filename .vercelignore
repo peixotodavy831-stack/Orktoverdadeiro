@@ -1,0 +1,11 @@
+# Local credentials and generated state must never enter a CLI Preview upload.
+.env
+.env.*
+.tmp-*
+supabase/.temp/
+dist/
+build/
+coverage/
+test-results/
+playwright-report/
+*.log

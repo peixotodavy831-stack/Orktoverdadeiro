@@ -3,11 +3,7 @@ import { motion } from 'motion/react';
 import { Clock, CheckCircle, XCircle, Loader2, Shield, DollarSign, AlertTriangle } from 'lucide-react';
 
 interface ProposalQuote {
-  id: string;
   quote_number: string;
-  client_name: string;
-  client_phone: string;
-  client_email: string;
   client_vehicle_or_service: string;
   notes: string;
   items: Array<{ id: string; name: string; description: string; quantity: number; unitPrice: number; discount: number }>;
@@ -22,7 +18,7 @@ interface ProposalQuote {
 }
 
 interface ProposalData {
-  proposal: { id: string; slug: string; expires_at: string; viewed_at: string; approved_at: string; created_at: string };
+  proposal: { expires_at: string };
   quote: ProposalQuote;
 }
 
@@ -119,6 +115,10 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
       setPixLoading(true);
       const res = await fetch(`/api/proposal/${slug}/pix`, { method: 'POST' });
       const json = await res.json();
+      if (!res.ok) {
+        alert(typeof json.error === 'string' ? json.error : 'PIX indisponível neste momento.');
+        return;
+      }
       if (json.success) { setPixData(json.pix); setShowPix(true); }
     } catch { alert('Erro ao gerar PIX'); } finally { setPixLoading(false); }
   };

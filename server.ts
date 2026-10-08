@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { createApiApp } from "./backend/app-factory";
+import { mountProductionAssets } from './backend/static-assets';
 
 dotenv.config();
 
@@ -30,7 +31,7 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static(path.join(process.cwd(), 'dist')));
+    mountProductionAssets(app, path.join(process.cwd(), 'dist'));
   }
 
   app.use('*', (_req, res) => {

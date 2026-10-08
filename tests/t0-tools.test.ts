@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createT0ToolRegistry, type ApprovalRow, type CustomerRow, type QuoteRow, type SaleRow, type T0DataSource } from '../backend/wiaos/t0-tools.js';
+import { createT0ToolRegistry, type ApprovalRow, type CustomerMemoryRow, type CustomerOperationalContext, type CustomerRow, type QuoteRow, type RiskAssessmentRow, type SaleRow, type T0DataSource } from '../backend/wiaos/t0-tools.js';
 import { decideWithWia, routeT0Request } from '../backend/wiaos/wia-service.js';
 
 const tenantId = '11111111-1111-4111-8111-111111111111';
 const otherTenantId = '22222222-2222-4222-8222-222222222222';
-const tenant = { userId: tenantId, tenantId, role: 'owner' as const };
+const tenant = { userId: tenantId, workspaceId: tenantId, tenantId, role: 'owner' as const };
 
 class FakeDataSource implements T0DataSource {
   observedTenantIds: string[] = [];
@@ -14,6 +14,13 @@ class FakeDataSource implements T0DataSource {
   async getSalesToday(id: string): Promise<SaleRow[]> { this.check(id); return [{ id: 'sale-1', quote_number: 'ORC-1', client_name: 'Ana', total: 1250, approved_at: '2026-09-25T10:00:00Z' }]; }
   async getOpenQuotes(id: string): Promise<QuoteRow[]> { this.check(id); return [{ id: 'quote-1', quote_number: 'ORC-2', client_name: 'Bia', total: 900, status: 'sent', updated_at: null }]; }
   async getCustomer(id: string): Promise<CustomerRow | null> { this.check(id); return { id: 'customer-1', name: 'Caio', phone: '11999999999', company: null, vehicle_or_service: null, notes: null, quote_count: 2, total_revenue: 300, last_contact_date: null }; }
+  async getCustomerOperationalContext(id: string): Promise<CustomerOperationalContext | null> {
+    this.check(id);
+    const customer: CustomerRow = { id: 'customer-1', name: 'Caio', phone: '11999999999', company: null, vehicle_or_service: null, notes: null, quote_count: 2, total_revenue: 300, last_contact_date: null };
+    const risk: RiskAssessmentRow = { id: 'risk-1', score: 72, confidence: 0.84, reasons: ['promessa de pagamento não cumprida'], signals: [{ type: 'missed_promise' }], recommended_action: 'human_review', assessed_at: '2026-09-25T10:00:00Z' };
+    const memory: CustomerMemoryRow = { id: 'memory-1', memory_type: 'preference', content: { contactWindow: 'morning' }, provenance: { source: 'operator_note' }, confidence: 0.9, expires_at: null, created_at: '2026-09-24T10:00:00Z' };
+    return { customer, risk, memories: [memory] };
+  }
   async getPendingApprovals(id: string): Promise<ApprovalRow[]> { this.check(id); return [{ id: 'approval-1', task_type: 'quote', bot_name: 'WIA', proposed_content: 'Aplicar desconto', reason: 'Acima do limite', policy_applied: 'discount_limit', expires_at: null, created_at: '2026-09-25T10:00:00Z', orkto_conversations: { id: 'conversation-1', user_id: id, contact_name: 'Dani' } }]; }
 }
 
@@ -21,9 +28,9 @@ function runtime(source = new FakeDataSource(), role: 'owner' | 'channel' = 'own
   return { source, toolRuntime: { registry: createT0ToolRegistry(source), context: { tenant: { ...tenant, role }, traceId: 'trace-pr3', now: new Date('2026-09-25T12:00:00Z') } } };
 }
 
-test('registra exatamente as quatro ferramentas T0 com contratos operacionais', () => {
+test('registra as ferramentas T0 com contratos operacionais', () => {
   const { toolRuntime } = runtime();
-  assert.deepEqual(toolRuntime.registry.list().map(tool => tool.name), ['get_sales_today', 'get_open_quotes', 'get_customer', 'get_pending_approvals']);
+  assert.deepEqual(toolRuntime.registry.list().map(tool => tool.name), ['get_sales_today', 'get_open_quotes', 'get_customer', 'get_customer_operational_context', 'get_pending_approvals']);
   assert.ok(toolRuntime.registry.list().every(tool => tool.timeoutMs === 5000 && tool.requiredPermission.endsWith(':read')));
 });
 
@@ -50,6 +57,32 @@ test('roteador reconhece somente intenções T0 explícitas', () => {
   assert.equal(routeT0Request('Mostre os orçamentos abertos')?.name, 'get_open_quotes');
   assert.equal(routeT0Request('Quais aprovações estão pendentes?')?.name, 'get_pending_approvals');
   assert.equal(routeT0Request('Ajude a escrever uma proposta'), null);
+  assert.deepEqual(routeT0Request('Qual é o risco e a preferência deste cliente +55 11 99999-0111?'), { name: 'get_customer_operational_context', input: { phone: '5511999990111' } });
+  assert.match(routeT0Request('Qual risco do João?')?.clarification || '', /telefone ou o ID do cliente/);
+});
+
+test('contexto operacional do cliente retorna risco, memórias e fontes sem sair do tenant autenticado', async () => {
+  const { source, toolRuntime } = runtime();
+  const routed = await decideWithWia({ message: 'Qual é o risco e a preferência deste cliente +55 11 99999-0111?', context: { openQuotes: 0, pendingValue: 0, clients: 1 }, sourceIds: [], toolRuntime });
+  assert.equal(routed.path, 't0');
+  assert.equal(routed.usage.totalTokens, 0);
+  assert.equal(routed.decision.reasonCode, 't0_get_customer_operational_context');
+  assert.match(routed.decision.messageDraft, /Risco alto \(72\/100/);
+  assert.match(routed.decision.messageDraft, /contactWindow/);
+  assert.deepEqual(routed.decision.sourceIds, ['customer:customer-1', 'risk:risk-1', 'memory:memory-1']);
+  assert.deepEqual(source.observedTenantIds, [tenantId]);
+  assert.ok(!source.observedTenantIds.includes(otherTenantId));
+});
+
+test('WIA pede um identificador de cliente em vez de inferir risco pelo nome', async () => {
+  const { source, toolRuntime } = runtime();
+  const result = await decideWithWia({ message: 'Qual risco do João?', context: { openQuotes: 0, pendingValue: 0, clients: 1 }, sourceIds: [], toolRuntime });
+  assert.equal(result.path, 't0');
+  assert.equal(result.decision.action, 'ask_clarification');
+  assert.equal(result.decision.reasonCode, 't0_customer_identifier_required');
+  assert.match(result.decision.messageDraft, /telefone ou o ID do cliente/);
+  assert.equal(result.toolExecutions.length, 0);
+  assert.deepEqual(source.observedTenantIds, []);
 });
 
 test('pergunta T0 percorre caminho zero-LLM', async () => {

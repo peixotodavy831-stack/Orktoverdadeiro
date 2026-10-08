@@ -159,6 +159,9 @@ export default function InboxPage(props: InboxPageProps) {
   const [replyContent, setReplyContent] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [prioritySaving, setPrioritySaving] = useState(false);
+  const [priorityError, setPriorityError] = useState<string | null>(null);
+  const [priorityNotice, setPriorityNotice] = useState<string | null>(null);
   const [sendingSim, setSendingSim] = useState(false);
   const [activeView, setActiveView] = useState<'inbox' | 'approvals'>('inbox');
   const [filter, setFilter] = useState<'all' | 'unread' | 'urgent' | 'riscos'>('all');
@@ -179,7 +182,8 @@ export default function InboxPage(props: InboxPageProps) {
   interface InboxConvView {
     id: string; phone: string; name?: string | null;
     messages_24h: number; last_message_by?: string; risk_score?: number | null;
-    priority_score?: number | null; mood_state?: string; mood_confidence?: number;
+    priority_score?: number | null; mood_state?: string; mood_confidence?: number; mood_explanation?: string; mood_reasons?: string[];
+    priority_override?: 'low' | 'normal' | 'high' | 'urgent' | null;
     priority_reason?: string | null; recent_messages?: Array<{ content?: string }>;
     last_message_at?: string; messages?: ConversationMessage[];
   }
@@ -191,9 +195,12 @@ export default function InboxPage(props: InboxPageProps) {
     last_message_by: (c as any).last_message_by,
     risk_score: (c as any).risk_score ?? null,
     priority_score: (c as any).priority_score ?? 0,
+    priority_override: (c as any).priority_override ?? null,
     mood_state: (c as any).mood_state,
     mood_confidence: (c as any).mood_confidence || 0,
-    priority_reason: (c as any).priority_reason,
+    priority_reason: Array.isArray((c as any).priority_reason) ? (c as any).priority_reason.join(' · ') : (c as any).priority_reason,
+    mood_explanation: (c as any).mood_explanation,
+    mood_reasons: Array.isArray((c as any).mood_reasons) ? (c as any).mood_reasons : [],
     recent_messages: (c as any).recent_messages,
     last_message_at: c.last_message_at,
     messages: c.messages as ConversationMessage[] | undefined,
@@ -204,6 +211,29 @@ export default function InboxPage(props: InboxPageProps) {
     if (filter === 'riscos') return c.risk_score !== null && c.risk_score > 0;
     return true;
   });
+  const selectedInboxDetails = filteredConversations.find(conversation => conversation.id === selectedConversationId);
+
+  const updatePriorityOverride = async (priority: string) => {
+    if (!selectedConversationId || prioritySaving) return;
+    setPrioritySaving(true); setPriorityError(null); setPriorityNotice(null);
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      if (!token) throw new Error('Sua sessão expirou. Entre novamente para alterar a prioridade.');
+      const response = await fetch(`/api/conversations/${encodeURIComponent(selectedConversationId)}/priority`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', 'x-idempotency-key':crypto.randomUUID() },
+        body: JSON.stringify({ priority: priority || null }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível salvar a prioridade manual.');
+      setPriorityNotice(priority ? 'Prioridade manual salva.' : 'Priorização automática restaurada.');
+      await handleRefresh();
+    } catch (cause) {
+      setPriorityError(cause instanceof Error ? cause.message : 'Não foi possível salvar a prioridade manual.');
+    } finally {
+      setPrioritySaving(false);
+    }
+  };
 
   const pendingApprovals = propApprovalTasks || hookApprovalTasks || [];
 
@@ -471,8 +501,9 @@ export default function InboxPage(props: InboxPageProps) {
                       lastMessage={c.recent_messages?.[0]?.content || null}
                       lastMessageBy={c.last_message_by as 'customer' | 'business' | undefined}
                       lastMessageAt={c.last_message_at}
-                      mood={c.mood_state as 'green' | 'yellow' | 'red' | 'blue' | 'neutral' | undefined}
+                      mood={c.mood_state as 'ENGAGED' | 'NEUTRAL' | 'STUCK' | 'LOYAL' | undefined}
                       moodConfidence={c.mood_confidence || 0}
+                      moodReason={c.mood_explanation}
                       priorityScore={c.priority_score}
                       priorityReason={c.priority_reason}
                       unread={c.messages_24h > 0 && c.last_message_by === 'customer'}
@@ -526,9 +557,10 @@ export default function InboxPage(props: InboxPageProps) {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <MoodRing 
-                          mood={(selectedConversation.mood || 'neutral') as 'green' | 'yellow' | 'red' | 'blue' | 'neutral'}
-                          confidence={0}
+                        <MoodRing
+                          mood={(selectedInboxDetails?.mood_state || 'NEUTRAL') as 'ENGAGED' | 'NEUTRAL' | 'STUCK' | 'LOYAL'}
+                          confidence={selectedInboxDetails?.mood_confidence || 0}
+                          reason={selectedInboxDetails?.mood_reasons?.join(' · ') || selectedInboxDetails?.mood_explanation}
                           size="lg"
                         />
                         <PriorityBadge 
@@ -538,6 +570,17 @@ export default function InboxPage(props: InboxPageProps) {
                         />
                       </div>
                     </div>
+                    {selectedInboxDetails && <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-zinc-800 pt-3">
+                      <label className="flex items-center gap-2 text-[11px] text-zinc-400">
+                        Prioridade
+                        <select aria-label="Definir prioridade manual" value={selectedInboxDetails.priority_override || ''} onChange={event => void updatePriorityOverride(event.target.value)} disabled={prioritySaving} className="min-h-9 rounded-lg border border-zinc-700 bg-zinc-900 px-2 text-xs text-zinc-100 disabled:opacity-50">
+                          <option value="">Automática</option><option value="low">Baixa</option><option value="normal">Normal</option><option value="high">Alta</option><option value="urgent">Urgente</option>
+                        </select>
+                        {prioritySaving && <Loader2 size={13} className="animate-spin" aria-hidden="true" />}
+                      </label>
+                      {priorityError && <span role="alert" className="text-[11px] text-red-400">{priorityError}</span>}
+                      {priorityNotice && <span role="status" className="text-[11px] text-emerald-400">{priorityNotice}</span>}
+                    </div>}
                   </div>
 
                   {/* Mensagens */}

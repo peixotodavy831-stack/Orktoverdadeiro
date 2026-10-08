@@ -1,10 +1,10 @@
 import React from 'react';
-import { Home, Users, Plus, FileText } from 'lucide-react';
+import { Home, TrendingUp, Plus, FileText } from 'lucide-react';
 import { Dock, DockIcon, DockItem, DockLabel } from './dock';
 import WiaMark from '../wia/WiaMark';
 
 interface TubelightNavbarProps {
-  currentView: 'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation';
+  currentView: 'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'internal_finance' | 'collections' | 'deals' | 'graph';
   setCurrentView: (view: any) => void;
   setSelectedQuoteId: (id: any) => void;
 }
@@ -18,7 +18,7 @@ export default function TubelightNavbar({
     { id: 'dashboard', label: 'Painel', icon: Home, view: 'dashboard' as const },
     { id: 'quotes', label: 'Orçamentos', icon: FileText, view: 'quotes' as const },
     { id: 'create_quote', label: 'Novo', icon: Plus, view: 'create_quote' as const, isSpecial: true },
-    { id: 'clients', label: 'Clientes', icon: Users, view: 'clients' as const },
+    { id: 'deals', label: 'Negócios', icon: TrendingUp, view: 'deals' as const },
     { id: 'conversations', label: 'WIA', icon: WiaMark, view: 'conversations' as const, isWia: true },
   ];
 

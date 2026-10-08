@@ -14,6 +14,24 @@
     "test:t0": "tsx --test tests/t0-tools.test.ts",
     "test:app-factory": "tsx --test tests/app-factory.test.ts",
     "test:tenancy": "tsx --test tests/tenant-context.test.ts",
+    "test:workspace-access": "tsx --test tests/operational-workspace-access.test.ts",
+    "test:finance": "tsx --test tests/finance-model.test.ts",
+    "test:operational": "tsx --test tests/full-operational.test.ts",
+    "test:csv-import": "tsx --test tests/csv-import.test.ts",
+    "benchmark:wia": "tsx scripts/wia-model-benchmark.ts",
+    "test:all": "node scripts/run-tests-isolated.mjs",
+    "readiness:snapshot": "node scripts/readiness-snapshot.mjs",
+    "readiness:build": "node scripts/validate-build.mjs",
+    "readiness:secret-scan": "node scripts/readiness/scan-secrets.mjs",
+    "readiness:migrations": "node scripts/validate-migrations.mjs",
+    "readiness:staging-auth": "node scripts/readiness/validate-staging-auth.mjs",
+    "readiness:staging:auth-e2e": "node scripts/readiness/validate-staging-auth.mjs --browser-e2e",
+    "e2e:staging": "playwright test --config=playwright.config.ts tests/e2e/staging.spec.ts",
+    "readiness:remote-capture": "node scripts/export-remote-readiness.mjs",
+    "readiness:remote-diff": "node scripts/compare-readiness-inventories.mjs",
+    "readiness:staging-gate": "node scripts/readiness/check-staging-migration-gate.mjs",
+    "readiness:staging": "node scripts/readiness/staging-preflight.mjs",
+    "test:readiness-tools": "node --test scripts/tests/compare-readiness-inventories.test.mjs scripts/tests/staging-migration-gate.test.mjs scripts/tests/api-authorization-matrix.test.mjs scripts/tests/staging-preflight.test.mjs scripts/tests/staging-e2e-config.test.mjs",
     "test:smoke": "npm run build && node scripts/smoke.mjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist",
@@ -56,6 +74,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@types/cors": "^2.8.19",
     "railway": "^3.11.0"
   }

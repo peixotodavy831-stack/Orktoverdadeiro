@@ -67,9 +67,11 @@ export function useInboxConversations() {
     try {
       const token = await getToken();
       const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-      const res = await fetch('/api/conversations', { headers });
+      const res = await fetch('/api/priority/inbox', { headers });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
+      const payload = await res.json();
+      const data = Array.isArray(payload) ? payload : payload.data;
+      if (!Array.isArray(data)) throw new Error('A fila da Inbox retornou um formato inválido.');
       setConversations(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar conversas');

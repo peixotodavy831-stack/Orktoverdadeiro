@@ -7,10 +7,12 @@ import { createApiApp } from '../backend/app-factory.js';
 import {
   TenantContextError,
   createOwnerTenantContext,
+  createWorkspaceTenantContext,
   requireTenantContext,
   resolveWebhookTenantContext,
   scopeQueryToTenant,
 } from '../backend/tenancy/tenant-context.js';
+import { selectActiveWorkspaceMembership, WorkspaceSelectionError } from '../backend/tenancy/workspace-selection.js';
 
 type Row = { id: string; user_id: string; value: string };
 
@@ -90,6 +92,24 @@ test('tenant scope prevents cross-tenant updates', () => {
   assert.equal(rows[1].value, 'original-b');
 });
 
+test('active workspace is resolved from membership and client-supplied IDs must be members', () => {
+  const userId = '11111111-1111-4111-8111-111111111111';
+  const workspaceA = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const workspaceB = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const memberships = [
+    { user_id: userId, workspace_id: workspaceA, role: 'member', status: 'active' },
+    { user_id: userId, workspace_id: workspaceB, role: 'admin', status: 'active' },
+    { user_id: userId, workspace_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', role: 'owner', status: 'suspended' },
+  ];
+  assert.deepEqual(selectActiveWorkspaceMembership(userId, memberships, workspaceA), { workspaceId: workspaceA, role: 'member' });
+  assert.throws(() => selectActiveWorkspaceMembership(userId, memberships, 'dddddddd-dddd-4ddd-8ddd-dddddddddddd'), WorkspaceSelectionError);
+  assert.throws(() => selectActiveWorkspaceMembership(userId, memberships), (error: unknown) => error instanceof WorkspaceSelectionError && error.statusCode === 409);
+  const context = createWorkspaceTenantContext(userId, workspaceB, 'admin');
+  assert.equal(context.userId, userId);
+  assert.equal(context.workspaceId, workspaceB);
+  assert.equal(context.tenantId, workspaceB);
+});
+
 test('webhook tenant resolution rejects absent and invalid bindings', () => {
   assert.equal(resolveWebhookTenantContext({}), null);
   assert.equal(resolveWebhookTenantContext({ WHATSAPP_TENANT_ID: 'demo-user' }), null);
@@ -97,13 +117,14 @@ test('webhook tenant resolution rejects absent and invalid bindings', () => {
     resolveWebhookTenantContext({ WHATSAPP_TENANT_ID: '11111111-1111-4111-8111-111111111111' }),
     {
       userId: '11111111-1111-4111-8111-111111111111',
+      workspaceId: '11111111-1111-4111-8111-111111111111',
       tenantId: '11111111-1111-4111-8111-111111111111',
       role: 'channel',
     },
   );
 });
 
-test('webhook without a resolved tenant creates no state', async () => {
+test('webhook without persistence remains disabled and creates no state', async () => {
   const previousSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
   const previousTenant = process.env.WHATSAPP_TENANT_ID;
   process.env.WHATSAPP_WEBHOOK_SECRET = 'test-secret';
@@ -116,7 +137,10 @@ test('webhook without a resolved tenant creates no state', async () => {
       body: JSON.stringify({ from: '+5500000000000', message: 'teste' }),
     });
     assert.equal(response.status, 503);
-    assert.match(await response.text(), /sem tenant configurado/);
+    assert.deepEqual(await response.json(), {
+      error: 'Webhook indisponível sem persistência configurada.',
+      category: 'configuration_error',
+    });
   } finally {
     if (previousSecret === undefined) delete process.env.WHATSAPP_WEBHOOK_SECRET;
     else process.env.WHATSAPP_WEBHOOK_SECRET = previousSecret;

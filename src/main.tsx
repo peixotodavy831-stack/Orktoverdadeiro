@@ -3,10 +3,25 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary';
+import TodayPrototype from './components/prototype/TodayPrototype';
 import './index.css';
 
-Sentry.init({
-  dsn: "https://a6c3c309574f8be78c252ea79aec2294@o4511734416605184.ingest.us.sentry.io/4511734426042368",
+const isTodayPrototype = new URLSearchParams(window.location.search).get('prototype') === 'hoje';
+
+if (isTodayPrototype) {
+  document.querySelectorAll('link[rel="icon"]').forEach(icon => icon.remove());
+  const icon = document.createElement('link');
+  icon.rel = 'icon';
+  icon.type = 'image/svg+xml';
+  icon.href = '/wia-favicon.svg';
+  document.head.appendChild(icon);
+  document.title = 'ORKTO · Protótipo';
+}
+
+const sentryDsn = import.meta.env.VITE_APP_ENV === 'staging' ? undefined : import.meta.env.VITE_SENTRY_DSN;
+
+if (!isTodayPrototype && sentryDsn) Sentry.init({
+  dsn: sentryDsn,
   integrations: [
     Sentry.browserTracingIntegration(),
     Sentry.replayIntegration(),
@@ -21,7 +36,7 @@ Sentry.init({
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      {isTodayPrototype ? <TodayPrototype /> : <App />}
     </ErrorBoundary>
   </StrictMode>,
 );

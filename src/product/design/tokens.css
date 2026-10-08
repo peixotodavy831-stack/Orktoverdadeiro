@@ -1,0 +1,296 @@
+:root {
+  color-scheme: light;
+  --orkto-brand: #FF9F1C;
+  --orkto-brand-hover: #E9890B;
+  --orkto-brand-text: #8A4B00;
+  --orkto-brand-on-fill: #0B0B0B;
+  --orkto-canvas: #F5F5F5;
+  --orkto-surface-1: #FFFFFF;
+  --orkto-surface-2: #F0F0F0;
+  --orkto-surface-3: #E8E8E8;
+  --orkto-border: #E1E1E1;
+  --orkto-border-strong: #C9C9C9;
+  --orkto-text-primary: #171717;
+  --orkto-text-secondary: #5F5F5F;
+  --orkto-text-muted: #767676;
+  --orkto-text-disabled: #929292;
+  --orkto-icon-primary: #292929;
+  --orkto-critical: #B42318;
+  --orkto-attention: #8A5A00;
+  --orkto-success: #16794A;
+  --orkto-info: #245DB3;
+  --orkto-focus: #8A4B00;
+  --orkto-overlay: rgba(11, 11, 11, 0.48);
+  --orkto-shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --orkto-radius-sm: 6px;
+  --orkto-radius-md: 10px;
+  --orkto-radius-lg: 14px;
+  --orkto-radius-pill: 999px;
+  --orkto-space-unit: 4px;
+  --orkto-control-sm: 32px;
+  --orkto-control-md: 40px;
+  --orkto-control-lg: 48px;
+  --orkto-touch-min: 44px;
+  --orkto-motion-fast: 120ms;
+  --orkto-motion-standard: 180ms;
+  --orkto-motion-slow: 240ms;
+  --orkto-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --orkto-shell-sidebar: 248px;
+  --orkto-shell-sidebar-compact: 76px;
+  --orkto-mobile-header: 56px;
+  --orkto-mobile-dock: 64px;
+}
+
+.dark {
+  color-scheme: dark;
+  --orkto-brand: #FF9F1C;
+  --orkto-brand-hover: #FFB347;
+  --orkto-brand-text: #FFC36D;
+  --orkto-brand-on-fill: #0B0B0B;
+  --orkto-canvas: #0B0B0B;
+  --orkto-surface-1: #111111;
+  --orkto-surface-2: #1A1A1A;
+  --orkto-surface-3: #222222;
+  --orkto-border: #2B2B2B;
+  --orkto-border-strong: #414141;
+  --orkto-text-primary: #F5F5F5;
+  --orkto-text-secondary: #B8B8B8;
+  --orkto-text-muted: #929292;
+  --orkto-text-disabled: #686868;
+  --orkto-icon-primary: #E7E7E7;
+  --orkto-critical: #FF6B63;
+  --orkto-attention: #F4B740;
+  --orkto-success: #4FC18B;
+  --orkto-info: #77A9FF;
+  --orkto-focus: #FFB347;
+  --orkto-overlay: rgba(0, 0, 0, 0.64);
+  --orkto-shadow-panel: 0 8px 24px rgba(0, 0, 0, 0.34);
+}
+
+.orkto-product {
+  min-height: 100%;
+  background: var(--orkto-canvas);
+  color: var(--orkto-text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.orkto-product-surface {
+  background: var(--orkto-surface-1);
+  border-color: var(--orkto-border);
+}
+
+.orkto-product-surface-muted {
+  background: var(--orkto-surface-2);
+  border-color: var(--orkto-border);
+}
+
+.orkto-product-border {
+  border-color: var(--orkto-border);
+}
+
+.orkto-product-muted {
+  color: var(--orkto-text-secondary);
+}
+
+.orkto-product-subtle {
+  color: var(--orkto-text-muted);
+}
+
+.orkto-product-control {
+  border: 1px solid var(--orkto-border-strong);
+  background: var(--orkto-surface-1);
+  color: var(--orkto-text-primary);
+}
+
+.orkto-product-control:focus-visible,
+.orkto-product button:focus-visible,
+.orkto-product a:focus-visible,
+.orkto-product input:focus-visible,
+.orkto-product textarea:focus-visible,
+.orkto-product select:focus-visible {
+  outline: 2px solid var(--orkto-focus);
+  outline-offset: 2px;
+}
+
+.orkto-product-primary {
+  background: var(--orkto-brand);
+  color: var(--orkto-brand-on-fill);
+}
+
+.orkto-product-primary:hover {
+  background: var(--orkto-brand-hover);
+}
+
+.orkto-product-nav-active {
+  color: var(--orkto-brand-text);
+  background: color-mix(in srgb, var(--orkto-brand) 10%, var(--orkto-surface-1));
+}
+
+.orkto-product-shell {
+  min-height: 100dvh;
+  background: var(--orkto-canvas);
+  color: var(--orkto-text-primary);
+}
+
+.orkto-product button,
+.orkto-product a,
+.orkto-product input,
+.orkto-product textarea,
+.orkto-product select {
+  scroll-margin-block: 12px;
+}
+
+.orkto-mobile-dock {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.orkto-mobile-dock > div {
+  height: var(--orkto-mobile-dock);
+}
+
+.orkto-mobile-sheet {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+.orkto-inbox-view {
+  height: calc(100dvh - var(--orkto-mobile-header) - var(--orkto-mobile-dock) - env(safe-area-inset-bottom));
+  min-height: 420px;
+  background: var(--orkto-canvas);
+  color: var(--orkto-text-primary);
+}
+
+.orkto-inbox-layout {
+  display: grid;
+  height: 100%;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.orkto-inbox-thread {
+  display: none;
+}
+
+.orkto-inbox-context-slot {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .orkto-inbox-view[data-nav-hidden="true"] {
+    height: calc(100dvh - var(--orkto-mobile-header));
+  }
+
+  .orkto-inbox-view[data-mobile-detail="true"] .orkto-inbox-list {
+    display: none;
+  }
+
+  .orkto-inbox-view[data-mobile-detail="true"] .orkto-inbox-thread {
+    display: block;
+  }
+
+  .orkto-inbox-thread {
+    height: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .orkto-inbox-view {
+    height: 100dvh;
+    min-height: 0;
+  }
+
+  .orkto-inbox-layout {
+    grid-template-columns: minmax(260px, 280px) minmax(0, 1fr);
+  }
+
+  .orkto-inbox-thread {
+    display: block;
+    height: 100%;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --orkto-shell-sidebar: 224px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .orkto-inbox-layout {
+    grid-template-columns: minmax(300px, 320px) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1440px) {
+  .orkto-inbox-layout[data-context-open="true"] {
+    grid-template-columns: minmax(300px, 320px) minmax(0, 1fr) minmax(300px, 320px);
+  }
+
+  .orkto-inbox-layout[data-context-open="true"] .orkto-inbox-context-slot {
+    display: block;
+    height: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orkto-product,
+  .orkto-product * {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* The conversation composer predates the semantic theme layer. Keep its established
+   layout while mapping its dark utility palette to the V2 light surfaces. */
+html:not(.dark) .orkto-inbox-conversation {
+  background: var(--orkto-canvas) !important;
+  color: var(--orkto-text-primary) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="bg-zinc-950"],
+html:not(.dark) .orkto-inbox-conversation [class*="bg-zinc-900"] {
+  background-color: var(--orkto-surface-1) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="bg-zinc-800"] {
+  background-color: var(--orkto-surface-2) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="bg-zinc-700"] {
+  background-color: var(--orkto-surface-3) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-50"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-100"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-200"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-300"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-400"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-white"] {
+  color: var(--orkto-text-primary) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-500"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-600"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-zinc-700"] {
+  color: var(--orkto-text-secondary) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="border-zinc-800"],
+html:not(.dark) .orkto-inbox-conversation [class*="border-zinc-700"] {
+  border-color: var(--orkto-border) !important;
+}
+
+html:not(.dark) .orkto-inbox-conversation [class*="text-orange-"],
+html:not(.dark) .orkto-inbox-conversation [class*="text-amber-"] {
+  color: var(--orkto-brand-text) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orkto-product *,
+  .orkto-product *::before,
+  .orkto-product *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

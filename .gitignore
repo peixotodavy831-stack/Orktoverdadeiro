@@ -1,7 +1,12 @@
 node_modules/
 build/
 dist/
+.tmp-safe-build-*/
+.tmp-staging-auth-ab/
+.tmp-*/
 coverage/
+playwright-report/
+test-results/
 .DS_Store
 *.log
 .env*

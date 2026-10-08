@@ -6,29 +6,41 @@ import { motion } from 'motion/react';
 
 // MoodRing: indicador visual do humor do contato
 interface MoodRingProps {
-  mood: 'green' | 'yellow' | 'red' | 'blue' | 'neutral';
+  mood: 'ENGAGED' | 'NEUTRAL' | 'STUCK' | 'LOYAL' | 'green' | 'yellow' | 'red' | 'blue' | 'neutral';
   confidence?: number;
+  reason?: string;
   size?: 'sm' | 'md' | 'lg';
 }
 
-const moodColors = {
-  green: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
-  yellow: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', dot: 'bg-amber-400' },
-  red: { bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/20', dot: 'bg-rose-400' },
-  blue: { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/20', dot: 'bg-sky-400' },
-  neutral: { bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/20', dot: 'bg-zinc-400' },
+type MoodValue = MoodRingProps['mood'];
+type CanonicalMood = 'ENGAGED' | 'NEUTRAL' | 'STUCK' | 'LOYAL';
+const canonicalMood = (mood: MoodValue): CanonicalMood => {
+  if (mood === 'green') return 'ENGAGED';
+  if (mood === 'yellow' || mood === 'red') return 'STUCK';
+  if (mood === 'blue') return 'LOYAL';
+  if (mood === 'neutral') return 'NEUTRAL';
+  return mood;
 };
+const moodColors: Record<CanonicalMood, { bg:string; text:string; border:string; dot:string }> = {
+  ENGAGED: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', dot: 'bg-emerald-400' },
+  STUCK: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', dot: 'bg-amber-400' },
+  LOYAL: { bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/20', dot: 'bg-orange-400' },
+  NEUTRAL: { bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/20', dot: 'bg-zinc-400' },
+};
+const moodLabels: Record<CanonicalMood,string> = { ENGAGED:'Engajado', NEUTRAL:'Neutro', STUCK:'Travado', LOYAL:'Fiel' };
 
 const sizeMap = { sm: 8, md: 12, lg: 16 };
 
-export function MoodRing({ mood = 'neutral', confidence = 0, size = 'md' }: MoodRingProps) {
-  const c = moodColors[mood] || moodColors.neutral;
+export function MoodRing({ mood = 'NEUTRAL', confidence = 0, reason, size = 'md' }: MoodRingProps) {
+  const normalized = canonicalMood(mood);
+  const c = moodColors[normalized] || moodColors.NEUTRAL;
   const dim = sizeMap[size] || sizeMap.md;
+  const confidencePercent = confidence <= 1 ? Math.round(confidence * 100) : Math.round(confidence);
   return (
-    <div className={`flex items-center gap-1.5 ${c.bg} ${c.border} border rounded-full px-2 py-0.5`}>
-      <span className={`w-2 h-2 rounded-full ${c.dot} ${confidence < 50 ? 'opacity-50' : ''}`} />
+    <div aria-label={`Mood Ring: ${moodLabels[normalized]}, confiança ${confidencePercent}%. ${reason || ''}`} title={`${moodLabels[normalized]} · confiança ${confidencePercent}%${reason ? ` · ${reason}` : ''}`} className={`inline-flex items-center gap-1.5 ${c.bg} ${c.border} border rounded-full px-2 py-0.5`}>
+      <span style={{ width: dim, height: dim }} className={`shrink-0 rounded-full ${c.dot} ${confidencePercent < 50 ? 'opacity-50' : ''}`} />
       <span className={`text-[10px] font-bold uppercase ${c.text}`}>
-        {mood === 'green' ? 'Ativo' : mood === 'yellow' ? 'Atenção' : mood === 'red' ? 'Urgente' : mood === 'blue' ? 'Fidelidade' : 'Neutro'}
+        {moodLabels[normalized]}
       </span>
     </div>
   );
@@ -95,8 +107,9 @@ interface ConversationItemProps {
   lastMessage?: string | null;
   lastMessageBy?: 'customer' | 'business';
   lastMessageAt?: string;
-  mood?: 'green' | 'yellow' | 'red' | 'blue' | 'neutral';
+  mood?: MoodValue;
   moodConfidence?: number;
+  moodReason?: string;
   priorityScore?: number | null;
   priorityReason?: string | null;
   unread?: boolean;
@@ -105,7 +118,7 @@ interface ConversationItemProps {
 
 export function ConversationItem({
   id, phone, name, lastMessage, lastMessageBy, lastMessageAt,
-  mood = 'neutral', moodConfidence = 0, priorityScore, unread = false, onClick,
+  mood = 'NEUTRAL', moodConfidence = 0, moodReason, priorityScore, unread = false, onClick,
 }: ConversationItemProps) {
   const initials = (name || phone || '?').slice(0, 2).toUpperCase();
   return (
@@ -133,10 +146,9 @@ export function ConversationItem({
           {lastMessage && (
             <p className="text-xs text-zinc-500 truncate mt-0.5">{lastMessage}</p>
           )}
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`w-2 h-2 rounded-full ${
-              mood === 'green' ? 'bg-emerald-400' : mood === 'yellow' ? 'bg-amber-400' : mood === 'red' ? 'bg-rose-400' : mood === 'blue' ? 'bg-sky-400' : 'bg-zinc-500'
-            } ${moodConfidence < 50 ? 'opacity-50' : ''}`} />
+      <div className="flex items-center gap-2 mt-1" title={moodReason}>
+            <span className={`w-2 h-2 rounded-full ${moodColors[canonicalMood(mood)].dot} ${(moodConfidence <= 1 ? moodConfidence*100 : moodConfidence) < 50 ? 'opacity-50' : ''}`} />
+            <span className="text-[9px] text-zinc-500">{moodLabels[canonicalMood(mood)]}</span>
             {priorityScore != null && (
               <span className="text-[9px] text-zinc-500 font-mono">P:{priorityScore}</span>
             )}

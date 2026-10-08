@@ -44,10 +44,18 @@ test('mock routes can be enabled explicitly in local development', async () => {
 test('production rejects an attempt to enable mock routes', () => {
   assert.throws(
     () => shouldEnableMockRoutes({ NODE_ENV: 'production', ORKTO_ENABLE_MOCK_ROUTES: 'true' }),
-    /forbidden in production runtimes/,
+    /forbidden outside local development/,
   );
   assert.throws(
     () => shouldEnableMockRoutes({ VERCEL: '1', ORKTO_ENABLE_MOCK_ROUTES: 'true' }),
-    /forbidden in production runtimes/,
+    /forbidden outside local development/,
+  );
+  assert.throws(
+    () => shouldEnableMockRoutes({ APP_ENV: 'staging', ORKTO_ENABLE_MOCK_ROUTES: 'true' }),
+    /forbidden outside local development/,
+  );
+  assert.throws(
+    () => shouldEnableMockRoutes({ VERCEL_ENV: 'preview', ORKTO_ENABLE_MOCK_ROUTES: 'true' }),
+    /forbidden outside local development/,
   );
 });

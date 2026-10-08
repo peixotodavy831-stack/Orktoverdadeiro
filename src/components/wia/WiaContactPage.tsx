@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   CheckCircle2,
   Clock3,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
   Target,
@@ -16,7 +17,7 @@ interface WiaContactPageProps {
 }
 
 interface ChatMessage {
-  id: number;
+  id: string;
   role: 'wia' | 'user';
   content: string;
   mode?: 'live' | 'simulated';
@@ -24,6 +25,8 @@ interface ChatMessage {
   requiresApproval?: boolean;
   sourceCount?: number;
   reasonCode?: string;
+  isError?: boolean;
+  persistenceWarning?: boolean;
 }
 
 interface WiaApiResponse {
@@ -36,6 +39,7 @@ interface WiaApiResponse {
     requiresApproval: boolean;
     reasonCode: string;
   };
+  chatPersistence?: 'persisted' | 'partial' | 'not_requested';
   error?: string;
 }
 
@@ -50,6 +54,15 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [historyError, setHistoryError] = useState('');
+  const [sessionId, setSessionId] = useState(() => {
+    const saved = localStorage.getItem('orkto_wia_session_id');
+    if (saved && /^[0-9a-f-]{36}$/i.test(saved)) return saved;
+    const created = crypto.randomUUID();
+    localStorage.setItem('orkto_wia_session_id', created);
+    return created;
+  });
   const conversationEndRef = useRef<HTMLDivElement>(null);
 
   const firstName = userProfile?.displayName?.split(' ')[0] || userProfile?.companyName || 'você';
@@ -58,11 +71,32 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
     conversationEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, sending]);
 
+  useEffect(() => {
+    let active = true;
+    localStorage.setItem('orkto_wia_session_id',sessionId);
+    setLoadingHistory(true);
+    setHistoryError('');
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error('Sua sessão expirou. Entre novamente para recuperar a conversa.');
+        const response = await fetch(`/api/wia/chat-history?sessionId=${encodeURIComponent(sessionId)}`, { headers: { Authorization: `Bearer ${session.access_token}` } });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'Não foi possível recuperar a conversa salva.');
+        if (active) setMessages((payload.data || []).map((item: { id: string; role: 'user' | 'assistant'; content: string }) => ({ id:item.id, role:item.role === 'user' ? 'user' : 'wia', content:item.content })));
+      } catch (error) {
+        if (active) setHistoryError(error instanceof Error ? error.message : 'Não foi possível recuperar a conversa salva.');
+      } finally { if (active) setLoadingHistory(false); }
+    })();
+    return () => { active = false; };
+  }, [sessionId]);
+
   const sendMessage = async (content = message, _meta?: WiaPromptMeta) => {
     const cleanMessage = content.trim();
-    if (!cleanMessage || sending) return;
+    if (!cleanMessage || sending || loadingHistory || historyError) return;
 
-    setMessages(current => [...current, { id: Date.now(), role: 'user', content: cleanMessage }]);
+    const clientMessageId = crypto.randomUUID();
+    setMessages(current => [...current, { id: clientMessageId, role: 'user', content: cleanMessage }]);
     setMessage('');
     setSending(true);
 
@@ -75,14 +109,14 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
           Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: cleanMessage }),
+        body: JSON.stringify({ message: cleanMessage, sessionId, clientMessageId }),
       });
-      const payload = await response.json() as WiaApiResponse;
-      if (!response.ok || !payload.success) throw new Error(payload.error || 'A WIA não conseguiu responder agora.');
+      const payload = await response.json().catch(() => null) as WiaApiResponse | null;
+      if (!response.ok || !payload?.success) throw new Error(payload?.error || 'A WIA não conseguiu responder agora.');
       setMessages(current => [
         ...current,
         {
-          id: Date.now() + 1,
+          id: crypto.randomUUID(),
           role: 'wia',
           content: payload.decision.messageDraft,
           mode: payload.mode,
@@ -90,14 +124,17 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
           requiresApproval: payload.decision.requiresApproval,
           sourceCount: payload.decision.sourceIds.length,
           reasonCode: payload.decision.reasonCode,
+          persistenceWarning: payload.chatPersistence === 'partial',
         },
       ]);
     } catch (error) {
       setMessages(current => [...current, {
-        id: Date.now() + 1,
+        id: crypto.randomUUID(),
         role: 'wia',
-        content: error instanceof Error ? error.message : 'A WIA não conseguiu responder agora. Nenhuma ação foi executada.',
-        mode: 'simulated',
+        content: error instanceof Error && error.message.startsWith('Sua sessão expirou')
+          ? error.message
+          : 'Não consegui responder agora. Tente novamente. Nenhuma ação foi executada.',
+        isError: true,
         reasonCode: 'request_failed',
       }]);
     } finally {
@@ -118,9 +155,9 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
             <p className="text-xs text-zinc-400">Converse com sua operação. A WIA prepara; você decide.</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-zinc-500">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
-          Contexto da operação disponível
+        <div className="flex items-center gap-3">
+          <span className="hidden items-center gap-2 text-[11px] text-zinc-500 sm:flex"><span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />Contexto da operação disponível</span>
+          <button type="button" onClick={() => { const next = crypto.randomUUID(); setMessages([]); setMessage(''); setSessionId(next); }} disabled={sending || loadingHistory || messages.length === 0} className="inline-flex min-h-10 items-center gap-1.5 rounded-lg border border-zinc-700 px-3 text-[11px] font-medium text-zinc-300 transition-colors hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#FF8A00] disabled:cursor-not-allowed disabled:opacity-40" aria-label="Iniciar nova conversa com a WIA"><RotateCcw size={13} />Nova conversa</button>
         </div>
       </header>
 
@@ -128,6 +165,8 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
         <section className="flex min-h-0 min-w-0 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 sm:py-5 lg:px-7" role="log" aria-live="polite" aria-label="Conversa com a WIA" aria-busy={sending}>
             <div className="mx-auto w-full max-w-3xl space-y-4">
+              {historyError && <div role="alert" className="rounded-xl border border-amber-700/40 bg-amber-950/20 px-4 py-3 text-xs leading-5 text-amber-100">{historyError} A WIA não enviará mensagens enquanto o histórico não puder ser recuperado.</div>}
+              {loadingHistory && <div role="status" className="flex items-center gap-2 text-xs text-zinc-500"><Clock3 className="h-4 w-4 animate-spin text-[#FF8A00]" /> Recuperando conversa salva…</div>}
               <div className="flex items-start gap-3">
                 <WiaMark size={36} className="h-9 w-9" />
                 <div className="min-w-0 max-w-2xl rounded-2xl rounded-tl-md border border-zinc-800 bg-[#141517] px-3.5 py-3 sm:px-4">
@@ -140,7 +179,7 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
               {messages.map(chatMessage => (
                 <div key={chatMessage.id} className={`flex min-w-0 items-start gap-2.5 sm:gap-3 ${chatMessage.role === 'user' ? 'justify-end' : ''}`}>
                   {chatMessage.role === 'wia' && <WiaMark size={34} className="h-[34px] w-[34px]" />}
-                  <div className={`min-w-0 max-w-[88%] rounded-2xl px-3.5 py-3 text-[14px] leading-6 sm:max-w-2xl sm:px-4 ${chatMessage.role === 'user' ? 'rounded-tr-md bg-zinc-800 text-white' : 'rounded-tl-md border border-zinc-800 bg-[#141517] text-zinc-200'}`}>
+                  <div className={`min-w-0 max-w-[88%] rounded-2xl px-3.5 py-3 text-[14px] leading-6 sm:max-w-2xl sm:px-4 ${chatMessage.role === 'user' ? 'rounded-tr-md bg-zinc-800 text-white' : chatMessage.isError ? 'rounded-tl-md border border-amber-700/40 bg-amber-950/20 text-amber-100' : 'rounded-tl-md border border-zinc-800 bg-[#141517] text-zinc-200'}`}>
                     <p>{chatMessage.content}</p>
                     {chatMessage.role === 'wia' && chatMessage.mode && (
                       <div className="mt-3 flex flex-wrap gap-2 border-t border-zinc-800 pt-3 text-[10px] leading-none">
@@ -161,6 +200,7 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
                         {chatMessage.requiresApproval && <span className="rounded-full border border-[#FF8A00]/25 px-2 py-1 text-[#FF8A00]">Requer aprovação</span>}
                       </div>
                     )}
+                    {chatMessage.persistenceWarning && <p className="mt-2 border-t border-amber-700/30 pt-2 text-[11px] text-amber-300">Resposta não salva no histórico. Recarregar pode perder esta mensagem.</p>}
                   </div>
                 </div>
               ))}
@@ -181,7 +221,7 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
             <div className="mx-auto w-full max-w-3xl">
               <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
                 {suggestions.map(suggestion => (
-                  <button key={suggestion} type="button" onClick={() => sendMessage(suggestion)} disabled={sending} className="min-h-10 shrink-0 whitespace-nowrap rounded-full border border-zinc-800 bg-[#151618] px-3 text-[11px] text-zinc-400 transition-colors hover:border-[#FF8A00]/40 hover:text-white disabled:opacity-50">
+                  <button key={suggestion} type="button" onClick={() => sendMessage(suggestion)} disabled={sending || loadingHistory || Boolean(historyError)} className="min-h-10 shrink-0 whitespace-nowrap rounded-full border border-zinc-800 bg-[#151618] px-3 text-[11px] text-zinc-400 transition-colors hover:border-[#FF8A00]/40 hover:text-white disabled:opacity-50">
                     {suggestion}
                   </button>
                 ))}
@@ -190,14 +230,14 @@ export default function WiaContactPage({ userProfile }: WiaContactPageProps) {
                 value={message}
                 onChange={setMessage}
                 onSubmit={(value, meta) => sendMessage(value, meta)}
-                disabled={sending}
+                disabled={sending || loadingHistory || Boolean(historyError)}
                 status={sending ? 'sending' : 'idle'}
                 placeholder="Pergunte sobre a operação ou peça uma ação..."
                 agents={['WIA']}
                 efforts={['Equilibrado']}
                 className="max-w-none"
               />
-              <p className="mt-2 text-center text-[10px] text-zinc-500">A WIA prepara recomendações. Ações sensíveis continuam sob seu controle.</p>
+              <p className="mt-2 text-center text-[10px] text-zinc-500">Esta conversa lembra as mensagens anteriores até você iniciar uma nova. Ações sensíveis continuam sob seu controle.</p>
             </div>
           </div>
         </section>
