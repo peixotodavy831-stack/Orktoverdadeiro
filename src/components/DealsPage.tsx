@@ -201,6 +201,12 @@ export default function DealsPage({ clients, accessToken, initialDealId, onIniti
 
   const moveDeal = (dealId: string, nextStage: DealStage) => {
     const deal = deals.find(item => item.id === dealId);
+    if (deal && ['won', 'lost'].includes(deal.stage)) {
+      setError('Negócios encerrados não podem ser reabertos por esta interface.');
+      setErrorStatus(423);
+      setDraggedId(null);
+      return;
+    }
     if (deal && deal.stage !== nextStage) void updateDeal(deal, { stage: nextStage });
     setDraggedId(null);
   };
@@ -285,9 +291,10 @@ export default function DealsPage({ clients, accessToken, initialDealId, onIniti
             <div className="mb-3 flex items-center justify-between"><h2 className="text-xs font-semibold">{stage.label}</h2><span className="text-xs orkto-product-muted">{stageDeals.length}</span></div>
             {stageDeals.length === 0 ? <p className="rounded-lg border border-dashed p-4 text-center text-xs orkto-product-border orkto-product-subtle">Sem negócios nesta etapa.</p> : <div className="space-y-2">{stageDeals.map(deal => {
               const client = clients.find(item => item.id === deal.customer_ref);
-              return <article key={deal.id} draggable={!saving} onDragStart={event => { event.dataTransfer.setData('text/plain', deal.id); setDraggedId(deal.id); }} onDragEnd={() => setDraggedId(null)} className="rounded-lg border p-3 orkto-product-border orkto-product-surface">
+              const terminal = ['won', 'lost'].includes(deal.stage);
+              return <article key={deal.id} draggable={!saving && !terminal} onDragStart={event => { event.dataTransfer.setData('text/plain', deal.id); setDraggedId(deal.id); }} onDragEnd={() => setDraggedId(null)} className="rounded-lg border p-3 orkto-product-border orkto-product-surface">
                 <button type="button" data-deal-trigger={deal.id} onClick={event => openPeek(deal, event.currentTarget)} className="min-h-11 w-full text-left"><span className="block truncate text-sm font-semibold">{client?.name || deal.title}</span><span className="mt-1 block truncate text-xs orkto-product-muted">{client?.name ? deal.title : 'Cliente não vinculado'}</span><span className="mt-2 block text-xs font-medium tabular-nums">{formatMoney(deal.value_cents)}</span></button>
-                <label className="mt-2 block text-[10px] font-medium orkto-product-muted">Mover para…<select value={deal.stage} disabled={saving} onChange={event => moveDeal(deal.id, event.target.value as DealStage)} className="orkto-product-control mt-1 min-h-10 w-full rounded-lg px-2 text-xs">{stages.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+                <label className="mt-2 block text-[10px] font-medium orkto-product-muted">{terminal ? 'Negócio encerrado' : 'Mover para…'}<select value={deal.stage} disabled={saving || terminal} onChange={event => moveDeal(deal.id, event.target.value as DealStage)} className="orkto-product-control mt-1 min-h-10 w-full rounded-lg px-2 text-xs">{stages.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
               </article>;
             })}</div>}
           </section>;
@@ -317,7 +324,7 @@ export default function DealsPage({ clients, accessToken, initialDealId, onIniti
             </section>
             {detailState.data?.contextual_memories?.length ? <details className="mt-4 border-t pt-4 orkto-product-border"><summary className="cursor-pointer text-xs font-semibold">Memória comercial relacionada ({detailState.data.contextual_memories.length})</summary><ul className="mt-2 space-y-2">{detailState.data.contextual_memories.map(memory => <li key={memory.id} className="rounded-lg border p-3 orkto-product-border orkto-product-surface-muted"><p className="text-xs font-medium">{memory.memory_type?.replaceAll('_', ' ') || 'Memória relacionada'}</p><p className="mt-1 text-[11px] orkto-product-muted">{typeof memory.content === 'string' ? memory.content : 'Conteúdo estruturado retornado pela memória comercial.'}</p><p className="mt-1 text-[10px] orkto-product-subtle">{memory.created_at ? new Date(memory.created_at).toLocaleString('pt-BR') : 'Data não retornada'}{memory.confidence != null ? ` · confiança ${Math.round(memory.confidence * 100)}%` : ''}</p></li>)}</ul></details> : null}
           </>}
-          <label className="mt-5 block text-xs font-medium">Mover para…<select value={selectedDeal.stage} disabled={saving} onChange={event => void updateDeal(selectedDeal, { stage: event.target.value })} className="orkto-product-control mt-1.5 min-h-11 w-full rounded-lg px-3 text-sm">{stages.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+          <label className="mt-5 block text-xs font-medium">{['won', 'lost'].includes(selectedDeal.stage) ? 'Negócio encerrado' : 'Mover para…'}<select value={selectedDeal.stage} disabled={saving || ['won', 'lost'].includes(selectedDeal.stage)} onChange={event => void updateDeal(selectedDeal, { stage: event.target.value })} className="orkto-product-control mt-1.5 min-h-11 w-full rounded-lg px-3 text-sm">{stages.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
           {selectedDeal.customer_ref && <button type="button" onClick={() => void assessSelectedRisk()} disabled={saving} className="mt-3 min-h-11 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-control disabled:opacity-55">{saving ? 'Avaliando…' : selectedDeal.risk ? 'Reavaliar risco' : 'Solicitar avaliação de risco'}</button>}
           <p className="mt-4 text-[11px] leading-5 orkto-product-subtle">O tempo na etapa não foi informado pelo contrato atual.</p>
           {error && <div className="mt-4" role="alert"><ErrorState title="A alteração não foi confirmada" message={error} /></div>}

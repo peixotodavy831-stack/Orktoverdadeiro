@@ -18,6 +18,10 @@ export default defineConfig({
   use: {
     baseURL: validated.baseURL,
     browserName: 'chromium',
+    // Some managed Windows runners terminate TLS through a local CA that is
+    // not present in Playwright's bundled trust store. Keep this staging-only
+    // and explicit; the target guard above still pins the exact Vercel host.
+    ignoreHTTPSErrors: process.env.ORKTO_E2E_ALLOW_RUNNER_CA === '1',
     viewport: { width: 1440, height: 900 },
     colorScheme: 'light',
     screenshot: 'only-on-failure',
