@@ -911,7 +911,9 @@ app.get('/api/wia/history', authenticate, async (req, res) => {
       ]);
       if (olderResult.error) throw olderResult.error;
       if (tieResult.error) throw tieResult.error;
-      candidates = [...(olderResult.data || []), ...(tieResult.data || [])]
+      const olderRows: any[] = (olderResult.data || []) as any[];
+      const tieRows: any[] = (tieResult.data || []) as any[];
+      candidates = [...olderRows, ...tieRows]
         .sort((a, b) => Date.parse(b.started_at) - Date.parse(a.started_at) || String(b.id).localeCompare(String(a.id)))
         .slice(0, limit + 1);
     }
