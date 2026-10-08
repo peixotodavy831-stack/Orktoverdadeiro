@@ -917,10 +917,10 @@ app.get('/api/wia/history', authenticate, async (req, res) => {
     }
 
     const hasMore = candidates.length > limit;
-    const runs = candidates.slice(0, limit);
+    const runs: any[] = candidates.slice(0, limit);
     const runIds = runs.map(run => run.id);
     const traceIds = runs.map(run => run.trace_id).filter(Boolean);
-    const [actionsResult, eventsResult, auditResult] = runIds.length ? await Promise.all([
+    const relatedResults: Array<{ data: any[] | null; error: unknown }> = runIds.length ? await Promise.all([
       historyDb.from('orkto_wia_actions').select('id,run_id,action_type,status,requires_approval,approved_by,approved_at,executed_at,created_at,updated_at')
         .eq('workspace_id', workspaceId).in('run_id', runIds).order('created_at', { ascending: true }).order('id', { ascending: true }),
       historyDb.from('orkto_wia_events').select('id,run_id,actor_user_id,event_type,source,entity_type,entity_ref,occurred_at')
@@ -929,6 +929,7 @@ app.get('/api/wia/history', authenticate, async (req, res) => {
         .eq('workspace_id', workspaceId).in('trace_id', traceIds).order('created_at', { ascending: true }).order('id', { ascending: true })
         : Promise.resolve({ data: [], error: null }),
     ]) : [{ data: [], error: null }, { data: [], error: null }, { data: [], error: null }];
+    const [actionsResult, eventsResult, auditResult] = relatedResults;
     for (const result of [actionsResult, eventsResult, auditResult]) if (result.error) throw result.error;
 
     const actionsByRun = new Map<string, any[]>();
