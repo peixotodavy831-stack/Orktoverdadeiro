@@ -13,7 +13,7 @@ export type CoreMutationCommand =
   | 'CREATE_DEAL' | 'UPDATE_DEAL' | 'CLOSE_DEAL' | 'ARCHIVE_DEAL' | 'APPROVE_WIA_ACTION' | 'REJECT_WIA_ACTION'
   | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
-  | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED';
+  | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN';
 
 export type CoreMutationResult = {
   result: string;
@@ -30,6 +30,8 @@ export type CoreMutationResult = {
   quote_id?: string;
   conversation?: { id: string; status: string; updated_at?: string };
   messages_marked_read?: number;
+  wia_run_id?: string;
+  action_id?: string | null;
 };
 
 type Environment = Record<string, string | undefined>;
@@ -89,8 +91,9 @@ export class CoreMutationClient {
         const allowed = new Set(['AUTH_REQUIRED', 'PERMISSION_DENIED', 'VALIDATION_FAILED', 'WORKSPACE_ACCESS_DENIED',
           'NOT_FOUND', 'CONFLICT', 'IDEMPOTENCY_CONFLICT', 'RATE_LIMITED', 'CONFIGURATION_REQUIRED']);
         const code = allowed.has(result.code || '') ? result.code : 'INTERNAL_ERROR';
+        const category = command === 'START_WIA_RUN' && code === 'RATE_LIMITED' ? 'plan_limit_reached' : code;
         res.status(gateway.status >= 400 && gateway.status < 500 ? gateway.status : 503)
-          .json({ error: 'Não foi possível concluir a operação.', category: code, requestId: req.requestId });
+          .json({ error: 'Não foi possível concluir a operação.', category, requestId: req.requestId });
         return null;
       }
       if (!result.data?.result) throw new Error('Invalid gateway response.');

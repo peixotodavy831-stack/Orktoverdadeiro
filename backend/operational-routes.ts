@@ -1159,41 +1159,14 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if (!parsed.success) return res.status(400).json({ error: 'Comando da WIA inválido.' });
     if (!db) return res.status(503).json({ error: 'WIA indisponível sem banco persistente.', category: 'configuration_error' });
     const context = await workspaceContext(req, res, db, false); if (!context) return;
-    try {
-      const access = await loadWorkspacePlanAccess(db,context.id);
-      if (!hasPlanFeature(access,'wia')) return res.status(403).json({ error:'O plano atual não inclui a WIA.', category:'entitlement_required', feature:'wia' });
-      const monthlyLimit = access.entitlements.limits?.monthly_wia_runs;
-      if (monthlyLimit === undefined) return res.status(503).json({ error:'Limite mensal da WIA não está configurado para este plano.', category:'configuration_required' });
-      const usageResult = await db.rpc('orkto_consume_plan_usage', {
-        p_workspace_id:context.id,
-        p_period_start:`${new Date().toISOString().slice(0,7)}-01`,
-        p_feature_key:'monthly_wia_runs',
-        p_delta:1,
-        p_limit:monthlyLimit,
-      });
-      if (usageResult.error) throw usageResult.error;
-      const usage = Array.isArray(usageResult.data) ? usageResult.data[0] : usageResult.data;
-      if (!usage?.allowed) return res.status(429).json({ error:'Limite mensal da WIA atingido para este plano.', category:'plan_limit_reached', feature:'monthly_wia_runs', limit:monthlyLimit });
-    } catch (error) {
-      failure(res,error,'Não foi possível validar o entitlement e o limite da WIA.');
-      return;
-    }
     const agent = (await import('./orkto-core/full-operational.js')).routeSwarmAgent(parsed.data.message, parsed.data);
     const ownerId = context.ownerUserId;
-    const actorId = req.user?.id || ownerId;
     const traceId = crypto.randomUUID();
-    const startedAt = new Date().toISOString();
-    let runId: string | null = null;
+    const started = await invokeCoreMutation(req,res,context,'START_WIA_RUN',{ traceId,agent });
+    if (!started?.wia_run_id) return;
+    const runId = started.wia_run_id;
     let sourceIds: string[] = [];
     try {
-      const { data: startedRun, error: startRunError } = await db.from('orkto_wia_runs').insert({
-        workspace_id: context.id, user_id: actorId, feature: 'wia_contact', agent, task_type: 'classify_or_answer',
-        status: 'running', trace_id: traceId, context_refs: sourceIds, started_at: startedAt,
-      }).select('id').single();
-      if (startRunError) throw startRunError;
-      runId = startedRun?.id || null;
-      if (!runId) throw new Error('WiaRun não foi iniciado com persistência.');
-
       const [quotesResult, clientsResult, profileResult] = await Promise.all([
         db.from('quotes').select('id,total').eq('workspace_id',context.id).in('status',['pending','sent','viewed']).limit(50),
         db.from('clients').select('id',{count:'exact',head:true}).eq('workspace_id',context.id),
@@ -1208,30 +1181,22 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         sourceIds, agent,
         ...(req.tenantContext ? { toolRuntime: { registry: (await import('./wiaos/t0-tools.js')).createT0ToolRegistry(new (await import('./wiaos/t0-tools.js')).SupabaseT0DataSource(db)), context: { tenant: req.tenantContext, traceId } } } : {}),
       });
-      const completedAt = new Date().toISOString();
-      const resolvedContextRefs = [...new Set([...sourceIds, ...result.decision.sourceIds])];
-      const { error: runUpdateError } = await db.from('orkto_wia_runs').update({ agent, task_type: result.usage.taskType, status: 'succeeded', provider: result.usage.provider, model: result.usage.model, context_refs: resolvedContextRefs, summary: result.decision.messageDraft, completed_at: completedAt }).eq('workspace_id', context.id).eq('id', runId);
-      if (runUpdateError) throw runUpdateError;
-      const { error: eventError } = await db.from('orkto_wia_events').insert({ workspace_id: context.id, run_id: runId, actor_user_id: actorId, event_type: 'wia.decision.prepared', source: 'wia', entity_type: 'wia_run', entity_ref: traceId, idempotency_key: `decision:${traceId}`, payload: { action: result.decision.action, requiresApproval: result.decision.requiresApproval, agent } });
-      if (eventError) throw eventError;
-      if (result.path === 'model') {
-        const { error: usageError } = await db.from('orkto_model_usage').insert({ user_id: actorId, workspace_id:context.id, trace_id: traceId, feature:'wia_contact', task_class:result.usage.taskType, provider: result.usage.provider, model: result.usage.model, prompt_tokens: result.usage.promptTokens, cached_input_tokens:0, completion_tokens: result.usage.completionTokens, total_tokens: result.usage.totalTokens, latency_ms: result.usage.latencyMs, mode: result.mode, billing_period_start:`${new Date().toISOString().slice(0,7)}-01` });
-        if (usageError) throw usageError;
-      }
-      for (const execution of result.toolExecutions) {
-        const { error: toolError } = await db.from('orkto_wia_tool_calls').insert({ workspace_id: context.id, run_id: runId, tool_name: execution.toolName, status: execution.status, output_summary: { sourceIds: execution.sourceIds }, error_category: execution.error?.code || null, duration_ms: execution.durationMs });
-        if (toolError) throw toolError;
-      }
-      if (result.decision.action !== 'answer' && result.decision.action !== 'ask_clarification') {
-        const { error: actionError } = await db.from('orkto_wia_actions').upsert({ workspace_id: context.id, run_id: runId, action_type: result.decision.action, payload: { messageDraft: result.decision.messageDraft, sourceIds: result.decision.sourceIds }, rationale: result.decision.reasonCode, risk_level: result.decision.requiresApproval ? 'medium' : 'low', confidence: result.decision.confidenceSignal === 'high' ? 0.9 : result.decision.confidenceSignal === 'medium' ? 0.65 : 0.3, status: result.decision.requiresApproval ? 'awaiting_approval' : 'prepared', requires_approval: result.decision.requiresApproval, idempotency_key: `wia-action:${traceId}`, created_by: actorId }, { onConflict: 'workspace_id,idempotency_key', ignoreDuplicates: true });
-        if (actionError) throw actionError;
-      }
+      const resolvedContextRefs = [...new Set([...sourceIds, ...result.decision.sourceIds])].slice(0,30);
+      const completed = await invokeCoreMutation(req,res,context,'COMPLETE_WIA_RUN',{
+        traceId,status:'succeeded',agent,contextRefs:resolvedContextRefs,path:result.path,mode:result.mode,
+        decision:result.decision,usage:result.usage,toolExecutions:result.toolExecutions.map(execution=>({
+          toolName:execution.toolName,status:execution.status,sourceIds:execution.sourceIds,
+          durationMs:execution.durationMs,...(execution.error?{error:execution.error}:{}),
+        })),
+      });
+      if (!completed) return;
       const { runId: serviceRunId, ...decisionResult } = result;
       return res.json({ success: true, agent, traceId, runId, serviceRunId, ...decisionResult });
     } catch (error) {
-      if (runId) {
-        try { await db.from('orkto_wia_runs').update({ status: 'failed', error_category: (error as { code?: string })?.code || 'execution_error', completed_at: new Date().toISOString() }).eq('workspace_id', context.id).eq('id', runId); } catch { /* preserve the original failure */ }
-      }
+      await invokeCoreMutation(req,res,context,'COMPLETE_WIA_RUN',{
+        traceId,status:'failed',errorCategory:(error as { code?: string })?.code || 'execution_error',agent,
+      });
+      if (res.headersSent) return;
       failure(res, error, 'A WIA não conseguiu preparar a resposta com os dados disponíveis.');
     }
   });

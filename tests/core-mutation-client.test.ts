@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { test } from 'node:test';
 import type { Request, Response } from 'express';
 import { CoreMutationClient, resolveCoreMutationEndpoint } from '../backend/core-mutation-client.js';
@@ -55,11 +56,23 @@ test('unconfigured gateway returns CONFIGURATION_REQUIRED without attempting a d
 });
 
 test('web runtime has one publishable JWT path and cannot regain service-role or staging-only writes', async () => {
-  const source = await readFile(new URL('../backend/core-app.ts', import.meta.url), 'utf8');
+  const source = await readFile(resolve(process.cwd(), 'backend/core-app.ts'), 'utf8');
   assert.doesNotMatch(source, /SUPABASE_SERVICE_ROLE_KEY|supabaseServiceKey/);
   assert.doesNotMatch(source, /stagingRequestDb|APP_ENV\s*===\s*['"]staging['"]\s*\?\s*req\.authenticatedSupabase/);
   assert.match(source, /const requestDb = supabaseClient \? createRequestScopedClient\(supabaseClient\) : null/);
   assert.match(source, /const membershipDb = req\.authenticatedSupabase/);
   assert.match(source, /ORKTO_EXTERNAL_MESSAGING_ENABLED !== ['"]true['"]/);
   assert.match(source, /AUDIT_MESSAGE_CONFIGURATION_REQUIRED/);
+});
+
+test('WIA preparation uses the explicit mutation lifecycle without a direct persistence fallback', async () => {
+  const source = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');
+  const start = source.indexOf("app.post('/api/wia/route-agent'");
+  const end = source.indexOf("app.get('/api/reports'", start);
+  assert.ok(start >= 0 && end > start);
+  const route = source.slice(start, end);
+  assert.match(route, /'START_WIA_RUN'/);
+  assert.match(route, /'COMPLETE_WIA_RUN'/);
+  assert.doesNotMatch(route, /\.from\(['"]orkto_wia_(runs|events|actions|tool_calls)['"]\)/);
+  assert.doesNotMatch(route, /orkto_consume_plan_usage/);
 });

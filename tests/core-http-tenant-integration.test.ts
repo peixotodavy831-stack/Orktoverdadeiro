@@ -365,6 +365,71 @@ before(async () => {
         id: randomUUID(), workspace_id: workspaceId, actor_user_id: user.id, event_type: eventType,
         entity_type: entityType, entity_ref: entityRef, request_id: headers.get('x-request-id'),
       });
+      if (request.command === 'START_WIA_RUN') {
+        const prior=database.rows('orkto_wia_runs').find(row=>row.workspace_id===workspaceId&&row.trace_id===payload.traceId);
+        if(prior){
+          if(prior.user_id!==user.id||prior.agent!==payload.agent) return Response.json({code:'IDEMPOTENCY_CONFLICT'},{status:409});
+          return ok({result:'REPLAY',wia_run_id:prior.id,status:prior.status});
+        }
+        const workspace=database.rows('orkto_workspaces').find(row=>row.id===workspaceId);
+        const plan=database.rows('orkto_plan_price_versions').find(row=>row.plan_key===workspace?.plan_key&&row.status==='approved');
+        const limit=plan?.entitlements?.limits?.monthly_wia_runs;
+        if(limit===undefined) return Response.json({code:'CONFIGURATION_REQUIRED'},{status:423});
+        const periodStart=`${new Date().toISOString().slice(0,7)}-01`;
+        let usage=database.rows('orkto_plan_usage').find(row=>row.workspace_id===workspaceId&&row.period_start===periodStart&&row.feature_key==='monthly_wia_runs');
+        if(limit!==null&&Number(usage?.quantity||0)+1>limit) return Response.json({code:'RATE_LIMITED'},{status:429});
+        if(usage) usage.quantity=Number(usage.quantity||0)+1;
+        else { usage={workspace_id:workspaceId,period_start:periodStart,feature_key:'monthly_wia_runs',quantity:1};database.rows('orkto_plan_usage').push(usage); }
+        const row={id:randomUUID(),workspace_id:workspaceId,user_id:user.id,feature:'wia_contact',agent:payload.agent,
+          task_type:'standard',status:'running',provider:null,model:null,trace_id:payload.traceId,context_refs:[],summary:null,
+          error_category:null,started_at:new Date().toISOString(),completed_at:null,created_at:new Date().toISOString()};
+        database.rows('orkto_wia_runs').push(row);
+        database.rows('orkto_wia_events').push({id:randomUUID(),workspace_id:workspaceId,run_id:row.id,actor_user_id:user.id,
+          event_type:'wia.run.started',source:'user',entity_type:'wia_run',entity_ref:row.id,idempotency_key:`wia-start:${payload.traceId}`});
+        return ok({result:'STARTED',wia_run_id:row.id,status:'running'});
+      }
+      if (request.command === 'COMPLETE_WIA_RUN') {
+        const run=database.rows('orkto_wia_runs').find(row=>row.workspace_id===workspaceId&&row.trace_id===payload.traceId);
+        if(!run) return Response.json({code:'NOT_FOUND'},{status:404});
+        if(run.user_id!==user.id||run.agent!==payload.agent) return Response.json({code:'PERMISSION_DENIED'},{status:403});
+        if(run.status!=='running') {
+          if(run.status!==payload.status) return Response.json({code:'CONFLICT'},{status:409});
+          const action=database.rows('orkto_wia_actions').find(row=>row.workspace_id===workspaceId&&row.run_id===run.id);
+          return ok({result:'REPLAY',wia_run_id:run.id,action_id:action?.id||null,status:run.status});
+        }
+        run.completed_at=new Date().toISOString();run.status=payload.status;
+        if(payload.status==='failed') {
+          run.error_category=payload.errorCategory;
+          database.rows('orkto_wia_events').push({id:randomUUID(),workspace_id:workspaceId,run_id:run.id,actor_user_id:user.id,
+            event_type:'wia.run.failed',source:'wia',entity_type:'wia_run',entity_ref:run.id,idempotency_key:`wia-complete:${payload.traceId}`});
+          database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:workspaceId,user_id:user.id,event_type:'wia.run.failed',
+            actor_type:'bot',actor_id:'wia',trace_id:payload.traceId,event_data:{error_category:payload.errorCategory}});
+          return ok({result:'FAILED',wia_run_id:run.id,status:'failed'});
+        }
+        Object.assign(run,{task_type:payload.usage.taskType,provider:payload.usage.provider,model:payload.usage.model,
+          context_refs:payload.contextRefs,summary:payload.decision.messageDraft,error_category:null});
+        database.rows('orkto_wia_events').push({id:randomUUID(),workspace_id:workspaceId,run_id:run.id,actor_user_id:user.id,
+          event_type:'wia.decision.prepared',source:'wia',entity_type:'wia_run',entity_ref:run.id,
+          idempotency_key:`wia-complete:${payload.traceId}`,payload:{action:payload.decision.action,requires_approval:payload.decision.requiresApproval}});
+        if(payload.path==='model') database.rows('orkto_model_usage').push({id:randomUUID(),workspace_id:workspaceId,user_id:user.id,
+          trace_id:payload.traceId,provider:payload.usage.provider,model:payload.usage.model,prompt_tokens:payload.usage.promptTokens,
+          cached_input_tokens:payload.usage.cachedInputTokens,completion_tokens:payload.usage.completionTokens,
+          total_tokens:payload.usage.totalTokens,latency_ms:payload.usage.latencyMs,mode:payload.mode});
+        for(const tool of payload.toolExecutions||[]) database.rows('orkto_wia_tool_calls').push({id:randomUUID(),workspace_id:workspaceId,
+          run_id:run.id,tool_name:tool.toolName,status:tool.status,output_summary:{sourceIds:tool.sourceIds},
+          error_category:tool.error?.code||null,duration_ms:tool.durationMs});
+        let action:Row|undefined;
+        if(!['answer','ask_clarification'].includes(payload.decision.action)){
+          action={id:randomUUID(),workspace_id:workspaceId,run_id:run.id,action_type:payload.decision.action,
+            payload:{messageDraft:payload.decision.messageDraft,sourceIds:payload.decision.sourceIds},rationale:payload.decision.reasonCode,
+            risk_level:payload.decision.requiresApproval?'medium':'low',status:payload.decision.requiresApproval?'awaiting_approval':'prepared',
+            requires_approval:payload.decision.requiresApproval,idempotency_key:`wia-action:${payload.traceId}`,created_by:user.id};
+          database.rows('orkto_wia_actions').push(action);
+        }
+        database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:workspaceId,user_id:user.id,event_type:'wia.decision.proposed',
+          actor_type:'bot',actor_id:'wia',trace_id:payload.traceId,event_data:{run_id:run.id,action_id:action?.id||null}});
+        return ok({result:'COMPLETED',wia_run_id:run.id,action_id:action?.id||null,status:'succeeded'});
+      }
       if (request.command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
         const conversation = denyForeign('orkto_conversations',payload.conversationId);
         if (!conversation) return Response.json({code:'NOT_FOUND'},{status:404});

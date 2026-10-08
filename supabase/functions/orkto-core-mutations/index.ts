@@ -9,6 +9,59 @@ import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './_shar
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
 const MAX_BODY_BYTES = 16_384;
+const WIA_AGENTS = new Set(['qualification_agent','sales_agent','objection_agent','followup_agent','recovery_agent','collection_agent','risk_agent','reporting_agent','customer_success_agent']);
+const WIA_ACTIONS = new Set(['answer','ask_clarification','create_draft','request_approval','handoff_to_human','record_optout']);
+
+function exactKeys(value: Record<string,unknown>, allowed: string[]) {
+  return Object.keys(value).every(key => allowed.includes(key));
+}
+
+function validWiaCompletion(value: unknown): value is Record<string,unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const body=value as Record<string,unknown>;
+  if (!exactKeys(body,['traceId','status','agent','errorCategory','contextRefs','path','mode','decision','usage','toolExecutions'])
+      || typeof body.traceId!=='string' || !UUID.test(body.traceId)
+      || typeof body.agent!=='string' || !WIA_AGENTS.has(body.agent)
+      || !['succeeded','failed'].includes(String(body.status))) return false;
+  if (body.status==='failed') return exactKeys(body,['traceId','status','agent','errorCategory'])
+    && typeof body.errorCategory==='string' && body.errorCategory.length>=1 && body.errorCategory.length<=100;
+  if (!Array.isArray(body.contextRefs) || body.contextRefs.length>30
+      || body.contextRefs.some(item=>typeof item!=='string'||item.length>200)
+      || !['t0','model'].includes(String(body.path)) || !['live','simulated'].includes(String(body.mode))) return false;
+  const decision=body.decision as Record<string,unknown> | null;
+  const usage=body.usage as Record<string,unknown> | null;
+  if (!decision || typeof decision!=='object' || Array.isArray(decision)
+      || !exactKeys(decision,['action','messageDraft','sourceIds','confidenceSignal','requiresApproval','reasonCode'])
+      || typeof decision.action!=='string' || !WIA_ACTIONS.has(decision.action)
+      || typeof decision.messageDraft!=='string' || decision.messageDraft.trim().length<1 || decision.messageDraft.length>4000
+      || !Array.isArray(decision.sourceIds) || decision.sourceIds.length>30
+      || decision.sourceIds.some(item=>typeof item!=='string'||item.length>200)
+      || !['low','medium','high'].includes(String(decision.confidenceSignal))
+      || typeof decision.requiresApproval!=='boolean'
+      || typeof decision.reasonCode!=='string' || !/^[a-z0-9_]{3,80}$/.test(decision.reasonCode)) return false;
+  const usageKeys=['provider','modelFamily','gateway','model','requestedModel','selectedModel','actualModel','taskType','fallbackUsed','fallbackReason','promptTokens','cachedInputTokens','completionTokens','totalTokens','latencyMs','status'];
+  if (!usage || typeof usage!=='object' || Array.isArray(usage) || !exactKeys(usage,usageKeys)
+      || !['fast','standard','deep'].includes(String(usage.taskType)) || usage.status!=='succeeded'
+      || typeof usage.fallbackUsed!=='boolean'
+      || ['provider','modelFamily','gateway','model','requestedModel','selectedModel','actualModel'].some(key=>typeof usage[key]!=='string'||(usage[key] as string).length>200)
+      || (usage.fallbackReason!==undefined && (typeof usage.fallbackReason!=='string'||usage.fallbackReason.length>200))
+      || ['promptTokens','cachedInputTokens','completionTokens','totalTokens','latencyMs'].some(key=>!Number.isInteger(usage[key])||(usage[key] as number)<0||(usage[key] as number)>10000000)) return false;
+  if (!Array.isArray(body.toolExecutions)||body.toolExecutions.length>20) return false;
+  return body.toolExecutions.every(item=>{
+    if(!item||typeof item!=='object'||Array.isArray(item)) return false;
+    const tool=item as Record<string,unknown>;
+    if(!exactKeys(tool,['toolName','status','sourceIds','durationMs','error'])
+      || typeof tool.toolName!=='string'||!/^[a-z0-9_]{2,80}$/.test(tool.toolName)
+      || !['succeeded','failed'].includes(String(tool.status))
+      || !Array.isArray(tool.sourceIds)||tool.sourceIds.length>100||tool.sourceIds.some(id=>typeof id!=='string'||id.length>200)
+      || !Number.isInteger(tool.durationMs)||(tool.durationMs as number)<0||(tool.durationMs as number)>3600000) return false;
+    if(tool.error===undefined) return true;
+    if(!tool.error||typeof tool.error!=='object'||Array.isArray(tool.error)) return false;
+    const error=tool.error as Record<string,unknown>;
+    return exactKeys(error,['code','message'])&&typeof error.code==='string'&&error.code.length<=100
+      && typeof error.message==='string'&&error.message.length<=500;
+  });
+}
 
 function response(status: number, code: string, requestId: string, data?: unknown, origin?: string) {
   const headers: Record<string,string> = {
@@ -286,6 +339,21 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = 'channel.send.configuration_required';
       argumentsForCommand = {};
+    } else if (command === 'START_WIA_RUN') {
+      const holder=suppliedPayload as {traceId?:unknown;agent?:unknown}|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder as Record<string,unknown>,['traceId','agent'])
+        ||typeof holder.traceId!=='string'||!UUID.test(holder.traceId)||typeof holder.agent!=='string'||!WIA_AGENTS.has(holder.agent))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={traceId:holder.traceId,agent:holder.agent};
+      functionName='orkto_wia_start_command';eventType='wia.run.started';
+      argumentsForCommand={p_trace_id:holder.traceId,p_agent:holder.agent};
+    } else if (command === 'COMPLETE_WIA_RUN') {
+      if(!validWiaCompletion(suppliedPayload)) return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical=suppliedPayload;functionName='orkto_wia_complete_command';eventType='wia.run.completed';
+      const holder=suppliedPayload as Record<string,unknown>;
+      const payload=holder.status==='failed'?{errorCategory:holder.errorCategory}:{contextRefs:holder.contextRefs,path:holder.path,
+        mode:holder.mode,decision:holder.decision,usage:holder.usage,toolExecutions:holder.toolExecutions};
+      argumentsForCommand={p_trace_id:holder.traceId,p_agent:holder.agent,p_status:holder.status,p_payload:payload};
     } else {
       return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
     }
@@ -320,7 +388,14 @@ Deno.serve(async (req: Request) => {
         && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
 
     const plan = await loadWorkspacePlanAccess(admin, membership.workspace_id);
-    if (plan.configurationRequired || plan.readOnly) return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command !== 'COMPLETE_WIA_RUN' && (plan.configurationRequired || plan.readOnly)) return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'START_WIA_RUN') {
+      if (!hasPlanFeature(plan,'wia')) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const limit=plan.entitlements.limits?.monthly_wia_runs;
+      if (limit === undefined || (limit !== null && (!Number.isInteger(limit)||limit<0)))
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      argumentsForCommand={...argumentsForCommand,p_monthly_limit:limit};
+    }
     if (command === 'CREATE_QUOTE' || command === 'UPDATE_QUOTE' || command === 'ARCHIVE_QUOTE') {
       if (!hasPlanFeature(plan,'proposals')) return response(423, 'CONFIGURATION_REQUIRED', requestId, undefined, origin);
     }
@@ -450,11 +525,12 @@ Deno.serve(async (req: Request) => {
     if ((count || 0) >= 30) return response(429, 'RATE_LIMITED', requestId, undefined, origin);
 
     const wiaDecision = command === 'APPROVE_WIA_ACTION' || command === 'REJECT_WIA_ACTION';
+    const wiaLifecycle = command === 'START_WIA_RUN' || command === 'COMPLETE_WIA_RUN';
     const { data, error } = await admin.rpc(functionName, {
       p_actor_user_id: user.id,
       p_workspace_id: membership.workspace_id,
       p_request_id: requestId,
-      ...(wiaDecision ? {} : { p_idempotency_key: idempotencyKey,p_fingerprint: await fingerprint(canonical) }),
+      ...(wiaDecision || wiaLifecycle ? {} : { p_idempotency_key: idempotencyKey,p_fingerprint: await fingerprint(canonical) }),
       ...argumentsForCommand,
     });
     if (error) {
@@ -466,6 +542,7 @@ Deno.serve(async (req: Request) => {
         ORKTO_VALIDATION_FAILED: [400,'VALIDATION_FAILED'],
         ORKTO_IDEMPOTENCY_CONFLICT: [409,'IDEMPOTENCY_CONFLICT'],
         ORKTO_CONFIGURATION_REQUIRED: [423,'CONFIGURATION_REQUIRED'],
+        ORKTO_RATE_LIMITED: [429,'RATE_LIMITED'],
       };
       const mapped = known[error.message];
       return response(mapped?.[0] || 503, mapped?.[1] || 'INTERNAL_ERROR', requestId, undefined, origin);

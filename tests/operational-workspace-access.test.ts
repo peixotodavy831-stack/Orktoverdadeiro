@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import express, { type Express } from 'express';
-import { afterEach, test } from 'node:test';
+import { after, afterEach, before, test } from 'node:test';
 import { registerOperationalRoutes } from '../backend/operational-routes.js';
 import { createOwnerTenantContext } from '../backend/tenancy/tenant-context.js';
 
@@ -12,6 +12,85 @@ const USER_A = WORKSPACE_A;
 const USER_B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 const USER_MEMBER = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 const WORKSPACE_UNRELATED = 'dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+const TEST_SUPABASE_URL = 'http://orkto-test-supabase.invalid';
+
+const originalFetch = globalThis.fetch;
+const gatewayDatabases = new Map<string, MemoryWorkspaceDatabase>();
+const originalGatewayEnv = Object.fromEntries(['APP_ENV','NODE_ENV','VITE_SUPABASE_URL','VITE_SUPABASE_ANON_KEY']
+  .map(key => [key,process.env[key]]));
+
+function gatewayJson(data: unknown, status=200) { return Response.json(data,{status}); }
+
+before(() => {
+  process.env.APP_ENV='development';process.env.NODE_ENV='test';
+  process.env.VITE_SUPABASE_URL=TEST_SUPABASE_URL;process.env.VITE_SUPABASE_ANON_KEY='test-publishable-key';
+  globalThis.fetch=async (input:RequestInfo|URL,init?:RequestInit) => {
+    const url=new URL(typeof input==='string'?input:input instanceof URL?input.href:input.url);
+    if(url.origin!==TEST_SUPABASE_URL || url.pathname!=='/functions/v1/orkto-core-mutations') return originalFetch(input,init);
+    const headers=new Headers(init?.headers);const token=(headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+    const db=gatewayDatabases.get(token);const workspaceId=headers.get('x-orkto-workspace')||'';
+    if(!db) return gatewayJson({code:'AUTH_REQUIRED'},401);
+    const membership=db.memberships.find(row=>row.user_id===token&&row.workspace_id===workspaceId&&row.status==='active');
+    if(!membership) return gatewayJson({code:'WORKSPACE_ACCESS_DENIED'},403);
+    const {command,payload={}}=JSON.parse(String(init?.body||'{}')) as {command:string;payload:Record<string,any>};
+    const ok=(data:Record<string,unknown>,status=200)=>gatewayJson({data},status);
+    const client=db.clients.find(row=>row.id===payload.clientId&&row.workspace_id===workspaceId&&!row.archived_at);
+    const service=db.services.find(row=>row.id===payload.serviceId&&row.workspace_id===workspaceId&&!row.archived_at);
+    const deal=db.deals.find(row=>row.id===payload.dealId&&row.workspace_id===workspaceId);
+    const audit=(event_type:string,entity_type:string,entity_ref:string,payload:Record<string,unknown>={})=>db.events.push({
+      id:`event-${randomUUID()}`,workspace_id:workspaceId,actor_user_id:token,event_type,entity_type,entity_ref,payload,occurred_at:new Date().toISOString(),
+    });
+    if(command==='CREATE_CLIENT'){
+      const row={id:`client-${randomUUID()}`,workspace_id:workspaceId,user_id:token,name:payload.name,phone:payload.phone,
+        company:payload.company??null,vehicle_or_service:payload.vehicleOrService??null,notes:payload.notes??null,archived_at:null,created_at:new Date().toISOString()};
+      db.clients.push(row);audit('client.created','client',row.id);return ok({result:'CREATED',client:row},201);
+    }
+    if(command==='UPDATE_CLIENT'){
+      if(!client)return gatewayJson({code:'NOT_FOUND'},404);Object.assign(client,payload.changes);audit('client.updated','client',client.id);return ok({result:'UPDATED',client});
+    }
+    if(command==='ARCHIVE_CLIENT'){
+      if(!client)return gatewayJson({code:'NOT_FOUND'},404);if(!['owner','admin'].includes(membership.role))return gatewayJson({code:'PERMISSION_DENIED'},403);
+      client.archived_at=new Date().toISOString();audit('client.archived','client',client.id);return ok({result:'ARCHIVED',client_id:client.id});
+    }
+    if(command==='CREATE_CATALOG_ITEM'){
+      const row={id:`service-${randomUUID()}`,workspace_id:workspaceId,user_id:token,name:payload.name,description:payload.description??'',
+        unit_price:payload.unitPrice,category:payload.category,archived_at:null,created_at:new Date().toISOString()};
+      db.services.push(row);audit('catalog_item.created','service',row.id);return ok({result:'CREATED',service:row},201);
+    }
+    if(command==='UPDATE_CATALOG_ITEM'){
+      if(!service)return gatewayJson({code:'NOT_FOUND'},404);const changes={...payload.changes};
+      if(Object.hasOwn(changes,'unitPrice')){changes.unit_price=changes.unitPrice;delete changes.unitPrice;}Object.assign(service,changes);
+      audit('catalog_item.updated','service',service.id);return ok({result:'UPDATED',service});
+    }
+    if(command==='ARCHIVE_CATALOG_ITEM'){
+      if(!service)return gatewayJson({code:'NOT_FOUND'},404);if(!['owner','admin'].includes(membership.role))return gatewayJson({code:'PERMISSION_DENIED'},403);
+      service.archived_at=new Date().toISOString();audit('catalog_item.archived','service',service.id);return ok({result:'ARCHIVED',service_id:service.id});
+    }
+    if(command==='CREATE_DEAL'){
+      if(payload.ownerUserId&&!db.memberships.some(row=>row.workspace_id===workspaceId&&row.user_id===payload.ownerUserId&&row.status==='active'))
+        return gatewayJson({code:'VALIDATION_FAILED'},400);
+      const row={id:`deal-${randomUUID()}`,workspace_id:workspaceId,created_by:token,title:payload.title,description:payload.description??'',
+        customer_ref:payload.customerRef??null,stage:payload.stage??'new',status:'open',value_cents:payload.valueCents??0,created_at:new Date().toISOString(),updated_at:new Date().toISOString()};
+      db.deals.push(row);audit('deal.created','deal',row.id);return ok({result:'CREATED',deal:row},201);
+    }
+    if(command==='UPDATE_DEAL'){
+      if(!deal)return gatewayJson({code:'NOT_FOUND'},404);if(deal.status==='archived')return gatewayJson({code:'CONFLICT'},409);
+      const from=deal.stage;const changes={...payload.changes};if(Object.hasOwn(changes,'valueCents')){changes.value_cents=changes.valueCents;delete changes.valueCents;}
+      Object.assign(deal,changes,{updated_at:new Date().toISOString()});audit(changes.stage&&changes.stage!==from?'deal.stage_changed':'deal.updated','deal',deal.id,{from_stage:from,to_stage:deal.stage});
+      return ok({result:'UPDATED',deal});
+    }
+    if(command==='ARCHIVE_DEAL'){
+      if(!deal)return gatewayJson({code:'NOT_FOUND'},404);if(!['owner','admin'].includes(membership.role))return gatewayJson({code:'PERMISSION_DENIED'},403);
+      if(deal.status==='archived')return ok({result:'REPLAY',deal});deal.status='archived';audit('deal.archived','deal',deal.id);return ok({result:'UPDATED',deal});
+    }
+    return gatewayJson({code:'VALIDATION_FAILED'},400);
+  };
+});
+
+after(() => {
+  globalThis.fetch=originalFetch;
+  for(const [key,value] of Object.entries(originalGatewayEnv)){if(value===undefined)delete process.env[key];else process.env[key]=value;}
+});
 
 type Membership = { workspace_id: string; user_id: string; role: string; status: string };
 
@@ -181,13 +260,16 @@ afterEach(async () => {
     server.close(error => error ? reject(error) : resolve());
   })));
   servers.clear();
+  gatewayDatabases.clear();
 });
 
 function createTestApp(database: MemoryWorkspaceDatabase, userId: string): Express {
+  gatewayDatabases.set(userId,database);
   const app = express();
   app.use(express.json());
   const authenticate = (req: any, _res: any, next: () => void) => {
     req.user = { id: userId, email: `${userId}@example.test` };
+    req.headers.authorization = `Bearer ${userId}`;
     req.tenantContext = createOwnerTenantContext(userId);
     next();
   };
