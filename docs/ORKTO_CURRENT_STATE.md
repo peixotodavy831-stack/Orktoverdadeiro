@@ -1,6 +1,29 @@
 # ORKTO Current State
 
-## Current release gate — 2026-10-09 (supersedes the dated checkpoints below)
+## Current release gate — 2026-10-09 18:49 BRT (authoritative)
+
+Scope: branch `production-readiness/migration-replay-20260928`, runtime commit `5e49e741248eb5bf486941d1a5e9cf7ad29d8011` followed only by this canonical state update, Supabase staging `ghrjongiodziasupakrk` and Vercel project `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`) only. Production was not changed. `READY_FOR_PRODUCTION_CANDIDATE=NO` and `SNAPSHOT_ELIGIBLE=NO`.
+
+| Gate | Status | Current evidence and limit |
+| --- | --- | --- |
+| Staging migrations | PASS | Local package and remote ledger are 38/38. Remote latest entry is `core_contact_mutation_gateway`; no migration was applied in this continuation. |
+| Preview identity and readiness | PASS | Deployment `dpl_DihiSTFkvWug7i33wK5D4Vsqbfr5` is READY, `target=null`, in `orkto-staging`, on the exact runtime commit above. `/api/health` and `/api/ready` returned 200; readiness reported `environment=staging` and reachable Supabase Auth. The production Vercel project returned zero deployments for this SHA. |
+| Auth A/B and Client gateway | PASS | Fresh synthetic users A/B authenticated on the final Preview. B created `Cliente B Final 14a66e` through the product Mutation Gateway; A could not read it and continued to see only its own record. A direct authenticated `clients` INSERT was attempted inside a rolled-back SQL block and denied; `authenticated` has no INSERT grant. |
+| Tenant isolation | PASS for the exercised path; full matrix PENDING | Final-Preview A/B Client read/write isolation passed. Earlier covered Client, Catalog, Deal and Quote flows remain valid evidence for their deployed ancestor, but were not all repeated after the WIA context change. Contacts and the remaining mutation matrix still lack final-Preview browser coverage. |
+| WIA | PASS with feature OFF | Workspace and source reads use the request JWT/RLS client; START/COMPLETE lifecycle writes stay in the Core Mutation Gateway. With no approved provider configured, the final Preview returns `CONFIGURATION_REQUIRED`, records `wia.run.failed/configuration_error`, exposes no internal error, and performs no paid-provider or external action. |
+| Inbox | PASS for no false delivery; action matrix PENDING | The Preview retained the correct empty/configuration-required behavior and made no delivery claim. No real message was sent. Full final-Preview action coverage was not rerun. |
+| Local CI | PASS | Final HEAD: `npm run test:all` passed 176/176 TypeScript and 28/28 readiness tests; lint/typecheck passed; isolated frontend build, server bundle and smoke passed; `git diff --check` passed apart from line-ending warnings. |
+| Secret hygiene | PASS | Repository scan covered 384 files with zero findings, blockers or reviews. No service-role credential is present in the Vercel Preview runtime. |
+| Accessibility | PARTIAL PASS | Final Preview exposes named landmarks, headings, labeled Client/WIA controls and named dialogs; the exercised Client screen remained operable at a 390x844 viewport. A complete automated accessibility suite was not run. |
+| Performance | PASS for build baseline | Final build kept WebGL in an async 889.34 kB chunk, charts at 336.05 kB and main at 160.91 kB. No evidence of a new blocking regression. |
+| Observability | PARTIAL PASS | Vercel logs distinguish request path, request ID, deployment, branch and `configuration_error` for the disabled WIA provider. Cross-domain billing/messaging/job failure observability was not exercised in this final Preview. |
+| Security release checkpoint | BLOCKED | Manual review of the three-file WIA delta found no Critical/High issue; live advisors report no Critical/High findings. Twelve no-policy tables remain service-only by grants and three authenticated SECURITY DEFINER membership helpers are intentional reviewed predicates. Supabase leaked-password protection remains disabled and is available only on Pro; the formal Codex Security diff launcher could not resolve this Windows worktree, so no sealed scan artifact exists. |
+| Full browser E2E | PENDING | Auth, shell, Clients, final gateway write, cross-tenant denial and WIA configuration-required behavior passed. The required final-Preview traversal of every critical domain was not completed. |
+| Snapshot | NOT GENERATED | Snapshot generation remains blocked until full browser E2E, the remaining mutation matrix and security policy blocker are resolved or explicitly accepted. |
+
+Core release blockers: final-Preview full E2E/mutation-matrix closure and a human/platform decision to upgrade Supabase or explicitly accept the leaked-password-protection limitation for the future production environment. Production remains untouched.
+
+## Prior release checkpoint — 2026-10-09 (superseded by the section above)
 
 Scope: branch `production-readiness/migration-replay-20260928`; runtime delta commit `2e593a5`, followed only by canonical readiness documentation updates. Supabase staging `ghrjongiodziasupakrk` and Vercel project `orkto-staging` only. Production was not changed. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
 
