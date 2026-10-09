@@ -88,7 +88,7 @@ do $$ declare f record; expected_browser boolean; function_count integer := 0; b
      or has_function_privilege('authenticated','public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)','EXECUTE')
      or not has_function_privilege('service_role','public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)','EXECUTE')
      or (select p.proconfig from pg_proc p where p.oid='public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)'::regprocedure)
-        is distinct from array['search_path=']::text[] then
+        is distinct from array['search_path=""']::text[] then
     raise exception 'Approval decision command privilege or search path mismatch';
   end if;
 end $$;
