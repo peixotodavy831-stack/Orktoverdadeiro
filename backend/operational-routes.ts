@@ -25,6 +25,7 @@ declare module 'express-serve-static-core' {
   interface Request {
     user?: { id: string; email?: string };
     tenantContext?: TenantContext;
+    authenticatedSupabase?: Database;
   }
 }
 
@@ -76,17 +77,21 @@ function importValidationError(message: string, code: 'import_validation_error' 
 }
 
 async function workspaceContext(req: Request, res: Response, db: Database, allowPersonalWorkspaceProvision = true, planCheckInGateway = false): Promise<WorkspaceContext | null> {
+  // Every Preview request must keep the caller's JWT-bound RLS context. The
+  // shared public client is only a construction fallback; using it here turns
+  // a valid membership into an anonymous query and incorrectly returns 503.
+  const requestDb = req.authenticatedSupabase || db;
   const userId = req.tenantContext?.userId || req.user?.id;
   if (!userId) { res.status(401).json({ error: 'Sessão necessária.' }); return null; }
   const requestedWorkspace = typeof req.headers['x-orkto-workspace'] === 'string'
     ? req.headers['x-orkto-workspace']
     : req.tenantContext?.workspaceId || userId;
   try {
-    const { data: membership, error: membershipError } = await db.from('orkto_workspace_members')
+    const { data: membership, error: membershipError } = await requestDb.from('orkto_workspace_members')
       .select('workspace_id,role,status').eq('workspace_id', requestedWorkspace).eq('user_id', userId).eq('status','active').maybeSingle();
     if (membershipError) throw membershipError;
     if (membership) {
-      const { data: workspace, error: workspaceError } = await db.from('orkto_workspaces').select('owner_user_id').eq('id',membership.workspace_id).maybeSingle();
+      const { data: workspace, error: workspaceError } = await requestDb.from('orkto_workspaces').select('owner_user_id').eq('id',membership.workspace_id).maybeSingle();
       if (workspaceError) throw workspaceError;
       if (!workspace?.owner_user_id) { res.status(409).json({ error:'Workspace sem proprietário válido.' }); return null; }
       const context = { id: membership.workspace_id, ownerUserId:workspace.owner_user_id, role: membership.role } as WorkspaceContext;
@@ -104,9 +109,9 @@ async function workspaceContext(req: Request, res: Response, db: Database, allow
     }
 
     // Provision only the authenticated user's personal workspace; shared workspaces require membership.
-    const { error: workspaceError } = await db.from('orkto_workspaces').upsert({ id: userId, owner_user_id: userId, name: 'Minha empresa' }, { onConflict: 'id', ignoreDuplicates: true });
+    const { error: workspaceError } = await requestDb.from('orkto_workspaces').upsert({ id: userId, owner_user_id: userId, name: 'Minha empresa' }, { onConflict: 'id', ignoreDuplicates: true });
     if (workspaceError) throw workspaceError;
-    const { error: ownerError } = await db.from('orkto_workspace_members').upsert({ workspace_id: userId, user_id: userId, role: 'owner', status: 'active', joined_at: new Date().toISOString() }, { onConflict: 'workspace_id,user_id', ignoreDuplicates: true });
+    const { error: ownerError } = await requestDb.from('orkto_workspace_members').upsert({ workspace_id: userId, user_id: userId, role: 'owner', status: 'active', joined_at: new Date().toISOString() }, { onConflict: 'workspace_id,user_id', ignoreDuplicates: true });
     if (ownerError) throw ownerError;
     if (!['GET','HEAD','OPTIONS'].includes(req.method)) {
       const access = await loadWorkspacePlanAccess(db,userId);
@@ -1205,6 +1210,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if (!parsed.success) return res.status(400).json({ error: 'Comando da WIA inválido.' });
     if (!db) return res.status(503).json({ error: 'WIA indisponível sem banco persistente.', category: 'configuration_error' });
     const context = await workspaceContext(req, res, db, false); if (!context) return;
+    const requestDb = req.authenticatedSupabase || db;
     const agent = (await import('./orkto-core/full-operational.js')).routeSwarmAgent(parsed.data.message, parsed.data);
     const ownerId = context.ownerUserId;
     const traceId = crypto.randomUUID();
@@ -1214,9 +1220,9 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     let sourceIds: string[] = [];
     try {
       const [quotesResult, clientsResult, profileResult] = await Promise.all([
-        db.from('quotes').select('id,total').eq('workspace_id',context.id).in('status',['pending','sent','viewed']).limit(50),
-        db.from('clients').select('id',{count:'exact',head:true}).eq('workspace_id',context.id),
-        db.from('profiles').select('company_name').eq('id',ownerId).maybeSingle(),
+        requestDb.from('quotes').select('id,total').eq('workspace_id',context.id).in('status',['pending','sent','viewed']).limit(50),
+        requestDb.from('clients').select('id',{count:'exact',head:true}).eq('workspace_id',context.id),
+        requestDb.from('profiles').select('company_name').eq('id',ownerId).maybeSingle(),
       ]);
       if (quotesResult.error) throw quotesResult.error; if (clientsResult.error) throw clientsResult.error; if (profileResult.error) throw profileResult.error;
       sourceIds = (quotesResult.data || []).map((quote: any) => `quote:${quote.id}`);
@@ -1225,7 +1231,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         message: parsed.data.message,
         context: { openQuotes: quotesResult.data?.length || 0, pendingValue: (quotesResult.data || []).reduce((sum: number, quote: any) => sum + Number(quote.total || 0),0), clients: clientsResult.count || 0, companyName: profileResult.data?.company_name || undefined },
         sourceIds, agent,
-        ...(req.tenantContext ? { toolRuntime: { registry: (await import('./wiaos/t0-tools.js')).createT0ToolRegistry(new (await import('./wiaos/t0-tools.js')).SupabaseT0DataSource(db)), context: { tenant: req.tenantContext, traceId } } } : {}),
+        ...(req.tenantContext ? { toolRuntime: { registry: (await import('./wiaos/t0-tools.js')).createT0ToolRegistry(new (await import('./wiaos/t0-tools.js')).SupabaseT0DataSource(requestDb)), context: { tenant: req.tenantContext, traceId } } } : {}),
       });
       const resolvedContextRefs = [...new Set([...sourceIds, ...result.decision.sourceIds])].slice(0,30);
       const completed = await invokeCoreMutation(req,res,context,'COMPLETE_WIA_RUN',{

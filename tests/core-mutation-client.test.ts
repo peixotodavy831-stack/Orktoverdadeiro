@@ -73,6 +73,11 @@ test('WIA preparation uses the explicit mutation lifecycle without a direct pers
   const route = source.slice(start, end);
   assert.match(route, /'START_WIA_RUN'/);
   assert.match(route, /'COMPLETE_WIA_RUN'/);
+  assert.match(route, /const requestDb = req\.authenticatedSupabase \|\| db/,
+    'WIA reads must preserve the authenticated caller JWT and RLS context');
+  assert.match(route, /requestDb\.from\(['"]quotes['"]\)/);
+  assert.match(route, /requestDb\.from\(['"]clients['"]\)/);
+  assert.match(route, /requestDb\.from\(['"]profiles['"]\)/);
   assert.doesNotMatch(route, /\.from\(['"]orkto_wia_(runs|events|actions|tool_calls)['"]\)/);
   assert.doesNotMatch(route, /orkto_consume_plan_usage/);
 });
