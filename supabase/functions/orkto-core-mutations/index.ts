@@ -316,6 +316,20 @@ Deno.serve(async (req: Request) => {
       functionName = 'orkto_publish_live_quote_command';
       eventType = 'live_quote.published';
       argumentsForCommand = { p_quote_id:holder.quoteId };
+    } else if (command === 'EXTEND_QUOTE_RETENTION') {
+      const holder = suppliedPayload as { quoteId?: unknown; expectedExpiry?: unknown } | null;
+      if (!holder || typeof holder !== 'object' || Array.isArray(holder)
+          || !exactKeys(holder as Record<string,unknown>, ['quoteId','expectedExpiry'])
+          || typeof holder.quoteId !== 'string' || !UUID.test(holder.quoteId)
+          || typeof holder.expectedExpiry !== 'string'
+          || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(holder.expectedExpiry)
+          || Number.isNaN(Date.parse(holder.expectedExpiry))) {
+        return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      }
+      canonical = { quoteId:holder.quoteId,expectedExpiry:new Date(holder.expectedExpiry).toISOString() };
+      functionName = 'orkto_extend_quote_retention_command';
+      eventType = 'quote.retention_extended';
+      argumentsForCommand = { p_quote_id:holder.quoteId,p_expected_expiry:canonical.expectedExpiry };
     } else if (command === 'ARCHIVE_QUOTE') {
       const holder = suppliedPayload as { quoteId?: unknown } | null;
       if (!holder || typeof holder !== 'object' || Array.isArray(holder)
@@ -421,7 +435,8 @@ Deno.serve(async (req: Request) => {
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       argumentsForCommand={...argumentsForCommand,p_monthly_limit:limit};
     }
-    if (command === 'CREATE_QUOTE' || command === 'UPDATE_QUOTE' || command === 'ARCHIVE_QUOTE' || command === 'PUBLISH_LIVE_QUOTE') {
+    if (command === 'CREATE_QUOTE' || command === 'UPDATE_QUOTE' || command === 'ARCHIVE_QUOTE'
+        || command === 'PUBLISH_LIVE_QUOTE' || command === 'EXTEND_QUOTE_RETENTION') {
       if (!hasPlanFeature(plan,'proposals')) return response(423, 'CONFIGURATION_REQUIRED', requestId, undefined, origin);
     }
     let publicToken: string | null = null;

@@ -11,7 +11,7 @@ export type CoreMutationCommand =
   | 'COMPLETE_ONBOARDING' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'ARCHIVE_CLIENT'
   | 'CREATE_CATALOG_ITEM' | 'UPDATE_CATALOG_ITEM' | 'ARCHIVE_CATALOG_ITEM'
   | 'CREATE_DEAL' | 'UPDATE_DEAL' | 'CLOSE_DEAL' | 'ARCHIVE_DEAL' | 'APPROVE_WIA_ACTION' | 'REJECT_WIA_ACTION'
-  | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE'
+  | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE' | 'EXTEND_QUOTE_RETENTION'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN';
 
@@ -28,6 +28,7 @@ export type CoreMutationResult = {
   external_delivery?: string;
   quote?: unknown;
   quote_id?: string;
+  expires_at?: string;
   conversation?: { id: string; status: string; updated_at?: string };
   messages_marked_read?: number;
   wia_run_id?: string;

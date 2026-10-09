@@ -546,6 +546,28 @@ before(async () => {
         database.rows('orkto_live_quotes').push(row);quote.status='sent';audit('live_quote.published','quote',quote.id);
         return ok({result:'CREATED',live_quote:row,token,publicPath:`/proposta-viva/${token}`});
       }
+      if (request.command === 'EXTEND_QUOTE_RETENTION') {
+        const quote=denyForeign('quotes',payload.quoteId);
+        if(!quote||quote.archived_at) return Response.json({code:'NOT_FOUND'},{status:404});
+        const key=`core:extend_quote_retention:${headers.get('x-idempotency-key')}`;
+        const prior=database.rows('orkto_wia_events').find(row=>row.workspace_id===workspaceId&&row.idempotency_key===key);
+        if(prior){
+          if(prior.actor_user_id!==user.id||prior.entity_ref!==quote.id||prior.payload?.expectedExpiry!==payload.expectedExpiry)
+            return Response.json({code:'IDEMPOTENCY_CONFLICT'},{status:409});
+          return ok({result:'REPLAY',expires_at:prior.payload.expiresAt});
+        }
+        if(['approved','accepted','rejected','expired'].includes(quote.status)
+          || !quote.sent_at || !quote.retention_expires_at
+          || new Date(quote.retention_expires_at).getTime()<=Date.now()
+          || quote.retention_expires_at!==payload.expectedExpiry)
+          return Response.json({code:'CONFLICT'},{status:409});
+        const next=new Date(new Date(quote.retention_expires_at).getTime()+14*86_400_000).toISOString();
+        quote.retention_expires_at=next;
+        database.rows('orkto_wia_events').push({id:randomUUID(),workspace_id:workspaceId,actor_user_id:user.id,
+          event_type:'quote.retention_extended',entity_type:'quote',entity_ref:quote.id,idempotency_key:key,
+          payload:{expectedExpiry:payload.expectedExpiry,expiresAt:next}});
+        return ok({result:'EXTENDED',expires_at:next});
+      }
       if (request.command === 'SET_CONVERSATION_PRIORITY') {
         const row = denyForeign('orkto_conversations',payload.conversationId);
         if (!row) return Response.json({code:'NOT_FOUND'},{status:404});
@@ -1738,6 +1760,33 @@ test('commercial Graph emits only evidence-backed workspace-local edges and navi
   const foreignGraph = await api(base,CLIENT_TOKEN_B,'/api/graph');
   assert.equal(foreignGraph.status,200);
   assert.equal(((await foreignGraph.json() as {nodes:Row[]}).nodes.some(node=>node.entityRef===customer.id)),false,'a workspace cannot navigate to another workspace records');
+});
+
+test('Quote retention extension is workspace-scoped, idempotent and rejects stale expiry', async () => {
+  resetDatabase();
+  const base=await serve(app);
+  const current=new Date(Date.now()+7*86_400_000).toISOString();
+  const quoteId=randomUUID();
+  database.rows('quotes').push({id:quoteId,workspace_id:WORKSPACE_A,user_id:USER_A,
+    status:'sent',sent_at:new Date().toISOString(),retention_expires_at:current,
+    archived_at:null});
+  const path=`/api/quotes/${quoteId}/extend`;
+  assert.equal((await api(base,CLIENT_TOKEN_B,path,json({expectedExpiry:current}))).status,404);
+  const key='quote-extension-12345678';
+  const extend=await api(base,CLIENT_TOKEN_A,path,{
+    ...json({expectedExpiry:current}),headers:{'content-type':'application/json','x-idempotency-key':key},
+  });
+  assert.equal(extend.status,200);
+  const expiresAt=(await extend.json() as {expiresAt:string}).expiresAt;
+  assert.equal(new Date(expiresAt).getTime()-new Date(current).getTime(),14*86_400_000);
+  const replay=await api(base,CLIENT_TOKEN_A,path,{
+    ...json({expectedExpiry:current}),headers:{'content-type':'application/json','x-idempotency-key':key},
+  });
+  assert.equal(replay.status,200);
+  assert.equal((await replay.json() as {expiresAt:string}).expiresAt,expiresAt);
+  assert.equal((await api(base,CLIENT_TOKEN_A,path,json({expectedExpiry:current}))).status,409);
+  assert.equal(database.rows('orkto_wia_events').filter(row=>row.event_type==='quote.retention_extended').length,1);
+  assert.equal((await api(base,CLIENT_TOKEN_A,path,json({expectedExpiry:current,workspace_id:WORKSPACE_B}))).status,400);
 });
 
 test('universal import pipeline previews, validates, commits, deduplicates and compensates entity types', async () => {

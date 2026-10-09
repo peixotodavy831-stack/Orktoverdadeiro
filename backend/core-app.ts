@@ -1688,13 +1688,15 @@ app.post("/api/proposal/:slug/pix", (_req, res) => {
 });
 
 app.post('/api/quotes/:quoteId/extend', authenticate, async (req, res) => {
-  if (!supabase) return res.status(503).json({ error: 'Banco indisponível' });
-  if (!z.string().datetime({ offset: true }).safeParse(req.body.expectedExpiry).success) return res.status(400).json({ error: 'Atualize o orçamento antes de prorrogar.' });
+  const parsed = z.object({ expectedExpiry: z.string().datetime({ offset: true }) }).strict().safeParse(req.body);
+  if (!z.string().uuid().safeParse(req.params.quoteId).success || !parsed.success)
+    return res.status(400).json({ error: 'Atualize o orçamento antes de prorrogar.', category: 'VALIDATION_FAILED' });
   if (!await requireWritablePlan(req,res,'proposals')) return;
   const tenantContext = requireTenantContext(req);
-  const { data, error } = await supabase.rpc('extend_quote_retention', { p_quote_id: req.params.quoteId, p_user_id: await workspaceOwnerUserId(tenantContext.workspaceId), p_expected_expiry: req.body.expectedExpiry });
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ expiresAt: data });
+  const result = await invokeCoreMutation(req, res, { id: tenantContext.workspaceId },
+    'EXTEND_QUOTE_RETENTION', { quoteId: req.params.quoteId, expectedExpiry: parsed.data.expectedExpiry });
+  if (!result) return;
+  res.json({ expiresAt: result.expires_at });
 });
 
 app.post("/api/proposal/generate", authenticate, async (req, res) => {

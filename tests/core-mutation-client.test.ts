@@ -96,3 +96,15 @@ test('proposal publication and public decisions use explicit gateways without a 
   assert.match(core, /LEGACY_LINK_DISABLED/);
   assert.match(core, /Envio externo de proposta está desativado/);
 });
+
+test('Quote retention uses the scoped gateway and never returns a raw RPC error', async () => {
+  const core = await readFile(resolve(process.cwd(), 'backend/core-app.ts'), 'utf8');
+  const start = core.indexOf("app.post('/api/quotes/:quoteId/extend'");
+  const end = core.indexOf('app.post("/api/proposal/generate"', start);
+  assert.ok(start >= 0 && end > start);
+  const route = core.slice(start, end);
+  assert.match(route, /'EXTEND_QUOTE_RETENTION'/);
+  assert.doesNotMatch(route, /\.rpc\(|error\.message/);
+  const edge = await readFile(resolve(process.cwd(), 'supabase/functions/orkto-core-mutations/index.ts'), 'utf8');
+  assert.match(edge, /orkto_extend_quote_retention_command/);
+});
