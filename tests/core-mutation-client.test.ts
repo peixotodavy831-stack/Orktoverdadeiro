@@ -73,6 +73,8 @@ test('WIA preparation uses the explicit mutation lifecycle without a direct pers
   const route = source.slice(start, end);
   assert.match(route, /'START_WIA_RUN'/);
   assert.match(route, /'COMPLETE_WIA_RUN'/);
+  assert.match(route, /workspaceContext\(req, res, db, false, true\)/,
+    'WIA plan enforcement must remain in the Core Mutation Gateway');
   assert.match(route, /const requestDb = req\.authenticatedSupabase \|\| db/,
     'WIA reads must preserve the authenticated caller JWT and RLS context');
   assert.match(route, /requestDb\.from\(['"]quotes['"]\)/);

@@ -1209,7 +1209,10 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     const parsed = z.object({ message: z.string().trim().min(1).max(4000), overdueAmountCents: z.number().int().nonnegative().optional(), reportRequest: z.boolean().optional() }).safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: 'Comando da WIA inválido.' });
     if (!db) return res.status(503).json({ error: 'WIA indisponível sem banco persistente.', category: 'configuration_error' });
-    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    // START_WIA_RUN/COMPLETE_WIA_RUN are authorized by the Core Mutation
+    // Gateway, including plan enforcement. Do not query plan state through the
+    // shared public client before the gateway sees the authenticated request.
+    const context = await workspaceContext(req, res, db, false, true); if (!context) return;
     const requestDb = req.authenticatedSupabase || db;
     const agent = (await import('./orkto-core/full-operational.js')).routeSwarmAgent(parsed.data.message, parsed.data);
     const ownerId = context.ownerUserId;
