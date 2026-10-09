@@ -194,14 +194,43 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   await page.getByRole('button', { name: 'Clientes' }).click();
   await expect(page.getByRole('heading', { name: 'Base de Clientes' })).toBeVisible();
   await ensureSyntheticClient(page, 'A');
-  await expect(page.getByRole('row', { name: /Customer A Synthetic/ }).first()).toBeVisible();
+  const clientRowA=page.getByRole('row', { name: /Customer A Synthetic/ }).first();
+  await expect(clientRowA).toBeVisible();
   await expect(page.getByText('Customer B Synthetic', { exact: true })).toHaveCount(0);
+  await clientRowA.getByRole('button',{name:'Histórico'}).click();
+  const clientDialog=page.getByRole('dialog',{name:/Detalhes de Customer A Synthetic/});
+  await expect(clientDialog).toBeVisible();
+  await clientDialog.getByRole('textbox',{name:'Nome do contato'}).fill('Contact A Synthetic');
+  await clientDialog.getByRole('textbox',{name:'Telefone do contato'}).fill('+5511999990041');
+  await clientDialog.getByRole('textbox',{name:'Cargo do contato'}).fill('Compras');
+  const [createdContactResponse]=await Promise.all([
+    page.waitForResponse(response=>new URL(response.url()).pathname==='/api/contacts'&&response.request().method()==='POST'),
+    clientDialog.getByRole('button',{name:'Adicionar contato'}).click(),
+  ]);
+  const createdContactBody=await createdContactResponse.json();
+  expect(createdContactResponse.status(),`browser CREATE_CONTACT returned ${createdContactResponse.status()}`).toBe(201);
+  const contactA=createdContactBody?.data?.id as string;
+  expect(contactA).toMatch(/^[0-9a-f-]{36}$/i);
+  await expect(clientDialog.getByText('Contact A Synthetic',{exact:true})).toBeVisible();
+  await clientDialog.getByRole('button',{name:'Editar contato Contact A Synthetic'}).click();
+  await clientDialog.getByRole('textbox',{name:'Cargo do contato'}).fill('Decisor');
+  const [updatedContactResponse]=await Promise.all([
+    page.waitForResponse(response=>new URL(response.url()).pathname===`/api/contacts/${contactA}`&&response.request().method()==='PATCH'),
+    clientDialog.getByRole('button',{name:'Salvar contato'}).click(),
+  ]);
+  expect(updatedContactResponse.status(),'browser UPDATE_CONTACT must use the gateway').toBe(200);
+  await expect(clientDialog.getByText(/Decisor/)).toBeVisible();
+  await clientDialog.getByRole('button',{name:'Fechar detalhes do cliente'}).click();
   await capture(page, 'a-clients-desktop-1440.png');
   await page.reload();
   await page.getByRole('button', { name: 'Clientes' }).waitFor({ state: 'visible' });
   await expect(page.getByText('Workspace A Synthetic', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Clientes' }).click();
-  await expect(page.getByRole('row', { name: /Customer A Synthetic/ }).first()).toBeVisible();
+  const reloadedClientRowA=page.getByRole('row', { name: /Customer A Synthetic/ }).first();
+  await expect(reloadedClientRowA).toBeVisible();
+  await reloadedClientRowA.getByRole('button',{name:'Histórico'}).click();
+  await expect(page.getByRole('dialog',{name:/Detalhes de Customer A Synthetic/}).getByText(/Decisor/)).toBeVisible();
+  await page.getByRole('button',{name:'Fechar detalhes do cliente'}).click();
 
   await page.getByRole('button', { name: 'Negócios' }).click();
   await expect(page.getByRole('main')).toBeVisible();
@@ -268,6 +297,11 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
     headers: { Authorization: bearerB!, 'x-idempotency-key': crypto.randomUUID(), ...protectionHeaders() },
   });
   expect(foreignRead.status(), 'User B cannot mutate User A conversation').toBe(404);
+  const foreignContactEdit=await page.request.patch(`/api/contacts/${contactA}`,{
+    headers:{Authorization:bearerB!,'x-idempotency-key':`e2e-contact-foreign-${crypto.randomUUID()}`,...protectionHeaders()},
+    data:{role:'Foreign change'},
+  });
+  expect(foreignContactEdit.status(),'User B cannot mutate User A contact').toBe(404);
   const conversationBResponse = await page.request.get('/api/conversations', {
     headers: { Authorization: bearerB!, ...protectionHeaders() },
   });
@@ -332,6 +366,16 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   const activeBearerA = `Bearer ${(await refreshedA.json()).access_token as string}`;
   const apiHeadersA = { Authorization: activeBearerA, ...bypassHeaders };
   const apiHeadersB = { Authorization: bearerB!, ...bypassHeaders };
+
+  for (const [path,data] of [
+    ['/api/memories',{type:'fact',entityType:'customer',content:{note:'blocked'},provenance:{sourceRef:'e2e'},explicitlyConfirmed:true}],
+    ['/api/purchases',{customerRef:crypto.randomUUID(),productName:'blocked',quantity:1,amountCents:1,purchasedAt:new Date().toISOString(),idempotencyKey:`blocked-${crypto.randomUUID()}`}],
+    ['/api/imports/preview',{source:'blocked.csv',entityType:'customers',rows:[{name:'blocked'}],mapping:{name:'name'}}],
+  ] as const) {
+    const blocked=await page.request.post(path,{headers:apiHeadersA,data});
+    expect(blocked.status(),`${path} is feature-gated in staging`).toBe(423);
+    expect((await blocked.json()).category).toBe('FEATURE_DISABLED');
+  }
 
   const invalidToken = await page.request.get('/api/clients', {
     headers: { Authorization: 'Bearer invalid.synthetic.token', ...bypassHeaders },

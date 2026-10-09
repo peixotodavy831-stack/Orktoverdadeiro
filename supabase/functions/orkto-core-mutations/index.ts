@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { clientInput } from './_shared/client-input.ts';
+import { contactInput, contactPatchInput } from './_shared/contact-input.ts';
 import { serviceInput } from './_shared/service-input.ts';
 import { dealInput, dealPatchInput } from './_shared/deal-input.ts';
 import { quoteCreateInput, quotePatchInput, calculateQuoteMoney, quoteCustomerMatchesDeal } from './_shared/quote-input.ts';
@@ -191,6 +192,26 @@ Deno.serve(async (req: Request) => {
       functionName = 'orkto_archive_client_command';
       eventType = 'client.archived';
       argumentsForCommand = { p_client_id:holder.clientId };
+    } else if (command === 'CREATE_CONTACT' || command === 'UPDATE_CONTACT') {
+      const holder = suppliedPayload as { contactId?: unknown; changes?: unknown } | null;
+      const parsed = command === 'CREATE_CONTACT'
+        ? contactInput.safeParse(suppliedPayload)
+        : contactPatchInput.safeParse(holder?.changes);
+      if (!parsed.success || (command === 'UPDATE_CONTACT' &&
+          (!holder || typeof holder !== 'object' || Array.isArray(holder)
+           || !exactKeys(holder as Record<string,unknown>,['contactId','changes'])
+           || typeof holder.contactId !== 'string' || !UUID.test(holder.contactId)))) {
+        return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      }
+      const names: Record<string,string> = {
+        fullName:'full_name', customerId:'customer_id', phone:'phone', email:'email',
+        company:'company', role:'role',
+      };
+      const fields = Object.fromEntries(Object.entries(parsed.data).map(([key,value]) => [names[key],value]));
+      canonical = { command, contactId:command === 'UPDATE_CONTACT' ? holder?.contactId : null, fields };
+      functionName = 'orkto_contact_command';
+      eventType = command === 'CREATE_CONTACT' ? 'contact.created' : 'contact.updated';
+      argumentsForCommand = { p_command:command,p_contact_id:command === 'UPDATE_CONTACT' ? holder?.contactId : null,p_fields:fields };
     } else if (command === 'CREATE_CATALOG_ITEM') {
       const parsed = serviceInput.safeParse(suppliedPayload);
       if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
@@ -607,7 +628,7 @@ Deno.serve(async (req: Request) => {
       return response(mapped?.[0] || 503, mapped?.[1] || 'INTERNAL_ERROR', requestId, undefined, origin);
     }
     const resultData = publicToken && data ? { ...data, token:publicToken, publicPath:`/proposta-viva/${publicToken}` } : data;
-    return response((command === 'CREATE_CLIENT' || command === 'CREATE_CATALOG_ITEM' || command === 'CREATE_DEAL' || command === 'CREATE_QUOTE' || command === 'PUBLISH_LIVE_QUOTE') && data?.result !== 'REPLAY' ? 201 : 200, 'OK', requestId, resultData, origin);
+    return response((command === 'CREATE_CLIENT' || command === 'CREATE_CONTACT' || command === 'CREATE_CATALOG_ITEM' || command === 'CREATE_DEAL' || command === 'CREATE_QUOTE' || command === 'PUBLISH_LIVE_QUOTE') && data?.result !== 'REPLAY' ? 201 : 200, 'OK', requestId, resultData, origin);
   } catch {
     return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
   }

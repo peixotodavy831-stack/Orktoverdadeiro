@@ -490,6 +490,26 @@ before(async () => {
           ({vehicleOrService:'vehicle_or_service'} as Row)[key] || key,value])));
         audit('client.updated','client',row.id); return ok({result:'UPDATED',client:row});
       }
+      if (request.command === 'CREATE_CONTACT' || request.command === 'UPDATE_CONTACT') {
+        const changes = request.command === 'CREATE_CONTACT' ? payload : payload.changes;
+        if (changes.customerId && !database.rows('clients').some(row => row.id === changes.customerId
+          && row.workspace_id === workspaceId && !row.archived_at))
+          return Response.json({code:'NOT_FOUND'},{status:404});
+        const existing = request.command === 'UPDATE_CONTACT'
+          ? denyForeign('orkto_contacts',payload.contactId) : null;
+        if (request.command === 'UPDATE_CONTACT' && !existing) return Response.json({code:'NOT_FOUND'},{status:404});
+        const mapped = Object.fromEntries(Object.entries(changes).map(([key,value]) =>
+          [({fullName:'full_name',customerId:'customer_id'} as Row)[key] || key,value]));
+        const row = existing || {id:randomUUID(),workspace_id:workspaceId,created_by:user.id,source:'manual'};
+        Object.assign(row,mapped,{updated_at:new Date().toISOString()});
+        if (!row.phone && !row.email) return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        if (!existing) database.rows('orkto_contacts').push(row);
+        audit(request.command === 'CREATE_CONTACT' ? 'contact.created' : 'contact.updated','contact',row.id);
+        database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:workspaceId,user_id:user.id,
+          event_type:request.command === 'CREATE_CONTACT' ? 'contact.created' : 'contact.updated',
+          actor_type:'human',actor_id:user.id,event_data:{entity_type:'contact',entity_id:row.id,result:'succeeded'}});
+        return ok({result:request.command === 'CREATE_CONTACT' ? 'CREATED' : 'UPDATED',contact:row});
+      }
       if (request.command === 'CREATE_DEAL') {
         if (payload.customerRef && database.rows('clients').some(row=>row.id===payload.customerRef && row.workspace_id!==workspaceId))
           return Response.json({code:'VALIDATION_FAILED'},{status:400});
@@ -1042,6 +1062,50 @@ test('staging Inbox read and status writes cross the explicit gateway with tenan
     else process.env.APP_ENV = priorAppEnv;
     if (priorUrl === undefined) delete process.env.VITE_SUPABASE_URL;
     else process.env.VITE_SUPABASE_URL = priorUrl;
+  }
+});
+
+test('Contacts commands validate ownership, input and audit without a direct table-write path', async () => {
+  resetDatabase();
+  const base = await serve(app);
+  const aClient = (await (await api(base,CLIENT_TOKEN_A,'/api/clients',json({name:'Cliente A',phone:'+5511999000001'}))).json() as {data:Row}).data;
+  const bClient = (await (await api(base,CLIENT_TOKEN_B,'/api/clients',json({name:'Cliente B',phone:'+5511999000002'}))).json() as {data:Row}).data;
+  const created = await api(base,CLIENT_TOKEN_A,'/api/contacts',json({fullName:'Contato A',phone:'+5511999000003',customerId:aClient.id}));
+  assert.equal(created.status,201);
+  const contact = (await created.json() as {data:Row}).data;
+  assert.equal(contact.workspace_id,WORKSPACE_A);
+  assert.equal(contact.customer_id,aClient.id);
+  const listed = await api(base,CLIENT_TOKEN_A,`/api/contacts?customerId=${aClient.id}`);
+  assert.equal(listed.status,200);
+  assert.equal(((await listed.json()) as {data:Row[]}).data.length,1);
+  assert.equal((await api(base,CLIENT_TOKEN_B,`/api/contacts/${contact.id}`,{method:'PATCH',body:JSON.stringify({role:'Outra empresa'})})).status,404);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/contacts',json({fullName:'Cruzado',email:'x@example.test',customerId:bClient.id}))).status,404);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/contacts',json({fullName:'Spoof',phone:'+5511999000004',workspace_id:WORKSPACE_B}))).status,400);
+  assert.equal((await api(base,CLIENT_TOKEN_A,`/api/contacts/${contact.id}`,{method:'PATCH',body:JSON.stringify({email:'a@example.test'})})).status,200);
+  assert.equal(database.rows('orkto_contacts').find(row=>row.id===contact.id)?.email,'a@example.test');
+  assert.equal(database.rows('orkto_audit_log').filter(row=>row.workspace_id===WORKSPACE_A && row.event_type==='contact.created').length,1);
+  assert.equal(database.rows('orkto_audit_log').filter(row=>row.workspace_id===WORKSPACE_A && row.event_type==='contact.updated').length,1);
+});
+
+test('optional customer write features fail closed in staging until each has a trusted mutation boundary', async () => {
+  resetDatabase();
+  const base=await serve(app);
+  const previous=process.env.APP_ENV;
+  process.env.APP_ENV='staging';
+  try {
+    const cases:Array<[string,RequestInit]> = [
+      ['/api/memories',json({type:'fact',entityType:'customer',content:{note:'x'},provenance:{sourceRef:'x'},explicitlyConfirmed:true})],
+      ['/api/purchases',json({customerRef:randomUUID(),productName:'x',quantity:1,amountCents:1,purchasedAt:new Date().toISOString(),idempotencyKey:'optional-test-1'})],
+      ['/api/imports/preview',json({source:'x.csv',entityType:'customers',rows:[{name:'x'}],mapping:{name:'name'}})],
+      [`/api/automations/repurchase/${randomUUID()}/schedule`,json({confirm:true})],
+    ];
+    for (const [path,init] of cases) {
+      const response=await api(base,CLIENT_TOKEN_A,path,init);
+      assert.equal(response.status,423,path);
+      assert.equal((await response.json() as Row).category,'FEATURE_DISABLED',path);
+    }
+  } finally {
+    if(previous===undefined) delete process.env.APP_ENV; else process.env.APP_ENV=previous;
   }
 });
 

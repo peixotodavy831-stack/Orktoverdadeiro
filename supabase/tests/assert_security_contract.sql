@@ -91,6 +91,13 @@ do $$ declare f record; expected_browser boolean; function_count integer := 0; b
         is distinct from array['search_path=""']::text[] then
     raise exception 'Approval decision command privilege or search path mismatch';
   end if;
+  if has_function_privilege('anon','public.orkto_contact_command(uuid,uuid,text,uuid,text,text,uuid,jsonb)','EXECUTE')
+     or has_function_privilege('authenticated','public.orkto_contact_command(uuid,uuid,text,uuid,text,text,uuid,jsonb)','EXECUTE')
+     or not has_function_privilege('service_role','public.orkto_contact_command(uuid,uuid,text,uuid,text,text,uuid,jsonb)','EXECUTE')
+     or (select p.proconfig from pg_proc p where p.oid='public.orkto_contact_command(uuid,uuid,text,uuid,text,text,uuid,jsonb)'::regprocedure)
+        is distinct from array['search_path=""']::text[] then
+    raise exception 'Contact command privilege or search path mismatch';
+  end if;
 end $$;
 
 do $$ declare sequence_name text; operation text; begin
@@ -122,6 +129,7 @@ declare
   b uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
   fixture_conversation_id uuid;
   fixture_task_id uuid;
+  fixture_contact_id uuid;
   key text := 'security-approval-' || gen_random_uuid()::text;
   result jsonb;
 begin
@@ -154,6 +162,28 @@ begin
   end;
   if exists(select 1 from public.orkto_messages where conversation_id=fixture_conversation_id and direction='outgoing') then
     raise exception 'Draft approval created outgoing message';
+  end if;
+  key := 'security-contact-' || gen_random_uuid()::text;
+  result := public.orkto_contact_command(a,a,key,gen_random_uuid(),repeat('d',64),'CREATE_CONTACT',null,
+    jsonb_build_object('full_name','Security Contact','phone','+5500000000888'));
+  fixture_contact_id := (result->'contact'->>'id')::uuid;
+  if result->>'result'<>'CREATED' or fixture_contact_id is null then raise exception 'Contact create failed'; end if;
+  result := public.orkto_contact_command(a,a,key,gen_random_uuid(),repeat('d',64),'CREATE_CONTACT',null,
+    jsonb_build_object('full_name','Security Contact','phone','+5500000000888'));
+  if result->>'result'<>'REPLAY' then raise exception 'Contact replay failed'; end if;
+  result := public.orkto_contact_command(a,a,'security-contact-update-'||gen_random_uuid()::text,gen_random_uuid(),repeat('e',64),
+    'UPDATE_CONTACT',fixture_contact_id,jsonb_build_object('role','Decision maker'));
+  if result->>'result'<>'UPDATED' or result->'contact'->>'role'<>'Decision maker' then raise exception 'Contact update failed'; end if;
+  begin
+    perform public.orkto_contact_command(b,b,'security-contact-foreign-'||gen_random_uuid()::text,gen_random_uuid(),repeat('f',64),
+      'UPDATE_CONTACT',fixture_contact_id,jsonb_build_object('role','Foreign'));
+    raise exception 'Cross-workspace contact update succeeded';
+  exception when raise_exception then
+    if sqlerrm<>'ORKTO_NOT_FOUND' then raise; end if;
+  end;
+  if (select count(*) from public.orkto_audit_log where workspace_id=a and event_type in ('contact.created','contact.updated')
+      and event_data->>'entity_id'=fixture_contact_id::text)<>2 then
+    raise exception 'Contact audit is not exactly once per command';
   end if;
 end $$;
 

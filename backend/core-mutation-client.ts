@@ -9,6 +9,7 @@ const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
 
 export type CoreMutationCommand =
   | 'COMPLETE_ONBOARDING' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'ARCHIVE_CLIENT'
+  | 'CREATE_CONTACT' | 'UPDATE_CONTACT'
   | 'CREATE_CATALOG_ITEM' | 'UPDATE_CATALOG_ITEM' | 'ARCHIVE_CATALOG_ITEM'
   | 'CREATE_DEAL' | 'UPDATE_DEAL' | 'CLOSE_DEAL' | 'ARCHIVE_DEAL' | 'APPROVE_WIA_ACTION' | 'REJECT_WIA_ACTION'
   | 'APPROVE_DRAFT_TASK' | 'REJECT_DRAFT_TASK'
@@ -21,6 +22,7 @@ export type CoreMutationResult = {
   profile?: { id: string };
   client?: unknown;
   client_id?: string;
+  contact?: unknown;
   service?: unknown;
   service_id?: string;
   deal?: unknown;

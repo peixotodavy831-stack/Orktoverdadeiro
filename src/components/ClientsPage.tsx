@@ -29,6 +29,8 @@ import WiaInline from './wia/WiaInline';
 import { supabase } from '../lib/supabase';
 import { parseCsv } from '../utils/csv-import';
 
+const OPTIONAL_CUSTOMER_OPERATIONS_ENABLED = import.meta.env.VITE_ENABLE_ADVANCED_CUSTOMER_OPERATIONS === 'true';
+
 interface ClientsPageProps {
   clients: SavedClient[];
   quotes: Quote[];
@@ -94,6 +96,16 @@ interface RepurchaseView {
   jobs: Array<{ id: string; step_key: string; due_at: string; status: string }>;
 }
 
+interface ContactRecord {
+  id: string;
+  customer_id: string | null;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+  company: string | null;
+  role: string | null;
+}
+
 export default function ClientsPage({ 
   clients, 
   quotes, 
@@ -156,6 +168,16 @@ export default function ClientsPage({
   const [importNotice, setImportNotice] = useState('');
   const [importCompleted, setImportCompleted] = useState(false);
   const [importRolledBack, setImportRolledBack] = useState(false);
+  const [contacts, setContacts] = useState<ContactRecord[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [contactError, setContactError] = useState('');
+  const [contactEditingId, setContactEditingId] = useState<string | null>(null);
+  const [contactName, setContactName] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactRole, setContactRole] = useState('');
+  const [contactSaving, setContactSaving] = useState(false);
+  const [contactRefresh, setContactRefresh] = useState(0);
 
   const suggestColumn = (headers: string[], aliases: string[]) => headers.find(header => {
     const normalized = header.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -251,6 +273,52 @@ export default function ClientsPage({
     })();
     return () => { active = false; };
   }, [selectedClientHistory?.id, intelligenceRefresh]);
+
+  useEffect(() => {
+    const customerId = selectedClientHistory?.id;
+    if (!customerId) { setContacts([]); setContactError(''); return; }
+    let active = true;
+    setContactsLoading(true); setContactError('');
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error('Entre novamente para consultar os contatos.');
+        const response = await fetch(`/api/contacts?customerId=${encodeURIComponent(customerId)}`, {
+          headers:{ Authorization:`Bearer ${session.access_token}` },
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'Não foi possível carregar os contatos.');
+        if (active) setContacts(payload?.data || []);
+      } catch (cause) {
+        if (active) setContactError(cause instanceof Error ? cause.message : 'Não foi possível carregar os contatos.');
+      } finally { if (active) setContactsLoading(false); }
+    })();
+    return () => { active=false; };
+  }, [selectedClientHistory?.id,contactRefresh]);
+
+  const resetContactForm = () => {
+    setContactEditingId(null); setContactName(''); setContactPhone(''); setContactEmail(''); setContactRole('');
+  };
+
+  const saveContact = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!selectedClientHistory || !contactName.trim() || (!contactPhone.trim() && !contactEmail.trim())) return;
+    setContactSaving(true); setContactError('');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Entre novamente para salvar o contato.');
+      const response = await fetch(contactEditingId ? `/api/contacts/${encodeURIComponent(contactEditingId)}` : '/api/contacts', {
+        method:contactEditingId ? 'PATCH' : 'POST',
+        headers:{ Authorization:`Bearer ${session.access_token}`,'Content-Type':'application/json','x-idempotency-key':crypto.randomUUID() },
+        body:JSON.stringify({fullName:contactName.trim(),phone:contactPhone.trim() || null,email:contactEmail.trim() || null,
+          role:contactRole.trim() || null,customerId:selectedClientHistory.id}),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'Não foi possível salvar o contato.');
+      resetContactForm(); setContactRefresh(value=>value+1);
+    } catch (cause) { setContactError(cause instanceof Error ? cause.message : 'Não foi possível salvar o contato.'); }
+    finally { setContactSaving(false); }
+  };
 
   useEffect(() => {
     const customerId = selectedClientHistory?.id;
@@ -532,9 +600,9 @@ export default function ClientsPage({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-2">
-          <button type="button" onClick={() => { setIsImportOpen(true); setImportError(''); setImportNotice(''); }} className="flex items-center justify-center gap-2 px-4 py-3 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:border-orange-400 rounded-2xl text-sm font-bold transition-all min-h-11">
+          {OPTIONAL_CUSTOMER_OPERATIONS_ENABLED && <button type="button" onClick={() => { setIsImportOpen(true); setImportError(''); setImportNotice(''); }} className="flex items-center justify-center gap-2 px-4 py-3 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 hover:border-orange-400 rounded-2xl text-sm font-bold transition-all min-h-11">
             <Upload className="w-4 h-4" /> Importar CSV
-          </button>
+          </button>}
           <button
             onClick={() => setIsAddOpen(true)}
             className="flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-sm font-bold transition-all shadow-md shadow-orange-505/10 active:scale-95 text-center"
@@ -864,6 +932,9 @@ export default function ClientsPage({
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 200 }}
               className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-full p-8 shadow-2xl flex flex-col justify-between overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Detalhes de ${selectedClientHistory.name}`}
             >
               <div>
                 <header className="flex justify-between items-center pb-6 border-b border-zinc-100 dark:border-zinc-800 mb-6">
@@ -921,6 +992,7 @@ export default function ClientsPage({
                       setIsEditing(false);
                     }} 
                     className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 shrink-0"
+                    aria-label="Fechar detalhes do cliente"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -943,7 +1015,7 @@ export default function ClientsPage({
                   </> : !intelligenceLoading && <p className="mt-3 text-[10px] leading-4 text-zinc-500">Nenhum sinal calculado disponível ainda.</p>}
                 </section>}
 
-                {!isEditing && <section className="mb-5 space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/40" aria-label="Memória comercial e recompra">
+                {OPTIONAL_CUSTOMER_OPERATIONS_ENABLED && !isEditing && <section className="mb-5 space-y-3 rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-950/40" aria-label="Memória comercial e recompra">
                   <div><p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#FF9F1C]">Contexto persistente · workspace</p><h4 className="mt-1 text-xs font-semibold text-zinc-900 dark:text-zinc-100">Memória comercial e recompra</h4><p className="mt-1 text-[10px] leading-4 text-zinc-500">Memórias são fatos/preferências confirmados, com origem. O cálculo de recompra usa apenas compras registradas.</p></div>
                   {(customerContextError || customerContextNotice) && <p role={customerContextError ? 'alert' : 'status'} className={`rounded-lg border px-3 py-2 text-[10px] leading-4 ${customerContextError ? 'border-red-300 bg-red-50 text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200' : 'border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/20 dark:text-emerald-200'}`}>{customerContextError || customerContextNotice}</p>}
                   {customerContextLoading ? <p role="status" className="text-[10px] text-zinc-500">Carregando memória e histórico de compras…</p> : <>
@@ -1060,6 +1132,27 @@ export default function ClientsPage({
                         <p className="text-xs text-zinc-500 bg-orange-50/5 p-3 rounded-2xl border border-orange-200/5 leading-relaxed">{selectedClientHistory.notes}</p>
                       </div>
                     )}
+
+                    <section aria-label="Contatos do cliente" className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800">
+                      <div className="flex items-center justify-between gap-3">
+                        <div><h4 className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Contatos ({contacts.length})</h4><p className="mt-1 text-[10px] text-zinc-500">Pessoas vinculadas a este cliente.</p></div>
+                        <button type="button" onClick={resetContactForm} className="min-h-8 rounded-lg border border-zinc-300 px-3 text-[9px] font-semibold dark:border-zinc-700">Novo contato</button>
+                      </div>
+                      {contactError && <p role="alert" className="mt-3 text-[10px] text-red-600">{contactError}</p>}
+                      {contactsLoading ? <p role="status" className="mt-3 text-[10px] text-zinc-500">Carregando contatos…</p> :
+                        contacts.length === 0 ? <p className="mt-3 text-[10px] text-zinc-500">Nenhum contato cadastrado.</p> :
+                        <ul className="mt-3 space-y-2">{contacts.map(contact => <li key={contact.id} className="flex items-center justify-between gap-3 rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950">
+                          <div><p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{contact.full_name}</p><p className="mt-1 text-[9px] text-zinc-500">{[contact.role,contact.phone,contact.email].filter(Boolean).join(' · ')}</p></div>
+                          <button type="button" aria-label={`Editar contato ${contact.full_name}`} onClick={() => { setContactEditingId(contact.id);setContactName(contact.full_name);setContactPhone(contact.phone || '');setContactEmail(contact.email || '');setContactRole(contact.role || ''); }} className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-800"><Pencil className="h-3.5 w-3.5" /></button>
+                        </li>)}</ul>}
+                      <form onSubmit={saveContact} className="mt-3 grid gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800 sm:grid-cols-2">
+                        <input required aria-label="Nome do contato" value={contactName} onChange={event=>setContactName(event.target.value)} placeholder="Nome do contato" maxLength={200} className="min-h-9 rounded-lg border border-zinc-200 bg-white px-2.5 text-[10px] dark:border-zinc-700 dark:bg-zinc-950" />
+                        <input aria-label="Cargo do contato" value={contactRole} onChange={event=>setContactRole(event.target.value)} placeholder="Cargo" maxLength={120} className="min-h-9 rounded-lg border border-zinc-200 bg-white px-2.5 text-[10px] dark:border-zinc-700 dark:bg-zinc-950" />
+                        <input aria-label="Telefone do contato" value={contactPhone} onChange={event=>setContactPhone(event.target.value)} placeholder="Telefone" maxLength={80} className="min-h-9 rounded-lg border border-zinc-200 bg-white px-2.5 text-[10px] dark:border-zinc-700 dark:bg-zinc-950" />
+                        <input type="email" aria-label="Email do contato" value={contactEmail} onChange={event=>setContactEmail(event.target.value)} placeholder="E-mail" maxLength={254} className="min-h-9 rounded-lg border border-zinc-200 bg-white px-2.5 text-[10px] dark:border-zinc-700 dark:bg-zinc-950" />
+                        <button type="submit" disabled={contactSaving || !contactName.trim() || (!contactPhone.trim() && !contactEmail.trim())} className="min-h-9 rounded-lg bg-[#FF9F1C] px-3 text-[10px] font-bold text-zinc-950 disabled:opacity-50 sm:col-span-2">{contactSaving ? 'Salvando…' : contactEditingId ? 'Salvar contato' : 'Adicionar contato'}</button>
+                      </form>
+                    </section>
 
                     {/* Dynamic Quotation timelines list */}
                     <div>

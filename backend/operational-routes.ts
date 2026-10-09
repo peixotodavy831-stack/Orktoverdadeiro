@@ -8,6 +8,7 @@ import {
 } from './orkto-core/full-operational.js';
 import { buildCommercialGraph } from './orkto-core/commercial-graph.js';
 import { clientInput } from './orkto-core/client-input.js';
+import { contactInput, contactPatchInput } from './orkto-core/contact-input.js';
 import { serviceInput } from './orkto-core/service-input.js';
 import { dealInput, dealPatchInput } from './orkto-core/deal-input.js';
 import { scheduleRepurchaseCandidate } from './orkto-core/repurchase-scheduler.js';
@@ -29,6 +30,12 @@ declare module 'express-serve-static-core' {
 
 type Database = any;
 type WorkspaceContext = { id: string; ownerUserId: string; role: 'owner' | 'admin' | 'manager' | 'member' };
+
+function blockOptionalDirectWrite(res: Response): boolean {
+  if (!['staging','production'].includes((process.env.APP_ENV || '').trim().toLowerCase())) return false;
+  res.status(423).json({ error:'Recurso desativado até concluir a fronteira de mutação.', category:'FEATURE_DISABLED' });
+  return true;
+}
 
 const collectionInput = z.object({
   customerRef: z.string().trim().min(1).max(200), dealId: z.string().uuid().optional(), amountCents: z.number().int().positive().max(10_000_000_000),
@@ -319,6 +326,42 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
       if (!result) return;
       if (!result.client_id) return res.status(503).json({ error:'Resposta inválida do Mutation Gateway.', category:'mutation_gateway_unavailable' });
       return res.json({ data:{ id:result.client_id }, archived:true, requestId:req.requestId });
+  });
+
+  app.get('/api/contacts', authenticate, requireDb, async (req, res) => {
+    const context = await workspaceContext(req,res,db); if (!context) return;
+    const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit || '50'), 10) || 50));
+    const offset = Math.max(0, Number.parseInt(String(req.query.offset || '0'), 10) || 0);
+    const customerId = typeof req.query.customerId === 'string' ? req.query.customerId : null;
+    if (customerId && !z.string().uuid().safeParse(customerId).success) return res.status(400).json({ error:'Cliente inválido.' });
+    try {
+      let query = db.from('orkto_contacts').select('id,workspace_id,customer_id,full_name,phone,email,company,role,created_at,updated_at',{count:'exact'})
+        .eq('workspace_id',context.id).order('created_at',{ascending:false}).range(offset,offset+limit-1);
+      if (customerId) query = query.eq('customer_id',customerId);
+      const {data,error,count} = await query;
+      if (error) throw error;
+      return res.json({data:data || [],total:count ?? 0,limit,offset});
+    } catch (error) { failure(res,error,'Não foi possível carregar os contatos.'); }
+  });
+
+  app.post('/api/contacts', authenticate, requireDb, async (req,res) => {
+    const parsed = contactInput.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({error:parsed.error.issues[0]?.message || 'Contato inválido.'});
+    const context = await workspaceContext(req,res,db,false,true); if (!context) return;
+    const result = await invokeCoreMutation(req,res,context,'CREATE_CONTACT',parsed.data);
+    if (!result) return;
+    if (!result.contact) return res.status(503).json({error:'Resposta inválida do Mutation Gateway.',category:'mutation_gateway_unavailable'});
+    return res.status(result.result === 'REPLAY' ? 200 : 201).json({data:result.contact,requestId:req.requestId});
+  });
+
+  app.patch('/api/contacts/:contactId', authenticate, requireDb, async (req,res) => {
+    const parsed = contactPatchInput.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({error:parsed.error.issues[0]?.message || 'Contato inválido.'});
+    const context = await workspaceContext(req,res,db,false,true); if (!context) return;
+    const result = await invokeCoreMutation(req,res,context,'UPDATE_CONTACT',{contactId:req.params.contactId,changes:parsed.data});
+    if (!result) return;
+    if (!result.contact) return res.status(503).json({error:'Resposta inválida do Mutation Gateway.',category:'mutation_gateway_unavailable'});
+    return res.json({data:result.contact,requestId:req.requestId});
   });
 
   app.get('/api/catalog', authenticate, requireDb, async (req, res) => {
@@ -738,6 +781,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/memories', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const parsed = memoryInput.safeParse(req.body); if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Memória inválida.' });
     if (parsed.data.type === 'raw_event') return res.status(403).json({ error:'Eventos brutos só podem ser registrados por ingestões confiáveis.', category:'permission_denied' });
     if (parsed.data.type === 'inference' && !parsed.data.explicitlyConfirmed) return res.status(409).json({ error: 'Inferências precisam ser confirmadas por uma pessoa antes de virarem memória persistente.', category: 'human_confirmation_required' });
@@ -751,6 +795,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/memories/:memoryId/correct', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const parsed = z.object({ content: z.record(z.string(),z.unknown()), provenance: z.object({ source:z.string().trim().min(1).max(80), sourceRef:z.string().trim().max(200).optional() }), confidence:z.number().min(0).max(1).optional(), expiresAt:z.string().datetime({offset:true}).nullable().optional(), reason:z.string().trim().min(1).max(500) }).strict().safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Correção de memória inválida.' });
     const context = await workspaceContext(req,res,db); if (!context) return;
@@ -1531,6 +1576,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/automations/repurchase/:customerRef/schedule', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const parsed = z.object({ productRef: z.string().trim().max(200).optional(), confirm: z.literal(true) }).safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: 'Confirme a programação da reativação.' });
     const context = await workspaceContext(req,res,db); if (!context) return;
@@ -1567,6 +1613,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/automations/repurchase/:customerRef/cancel', authenticate, requireDb, async (req,res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const parsed = z.object({ productRef:z.string().trim().max(200).optional() }).strict().safeParse(req.body || {});
     if (!parsed.success) return res.status(400).json({ error:'Filtro de cancelamento inválido.' });
     const context = await workspaceContext(req,res,db); if (!context) return;
@@ -1591,6 +1638,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/purchases', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const parsed = z.object({ customerRef: z.string().trim().min(1).max(200), productRef: z.string().trim().max(200).optional(), productName: z.string().trim().min(1).max(180), quantity: z.number().positive().max(100000).default(1), amountCents: z.number().int().nonnegative().max(10_000_000_000), purchasedAt: z.string().datetime({offset:true}), source: z.string().trim().min(1).max(80).default('manual'), idempotencyKey: z.string().trim().min(8).max(200) }).safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Compra inválida.' });
     const context = await workspaceContext(req, res, db); if (!context) return;
@@ -1625,6 +1673,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/imports/preview', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const parsed = z.object({ source: z.string().trim().min(1).max(80), entityType:z.enum(['customers','contacts','proposals','commercial_records']).default('customers'), rows: z.array(z.record(z.string(),z.unknown())).min(1).max(1000), mapping: z.record(z.string(),z.string()).default({}) }).safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues[0]?.message || 'Arquivo ou mapeamento inválido.' });
     const context = await workspaceContext(req, res, db); if (!context) return;
@@ -1704,6 +1753,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/imports/:jobId/commit', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const context = await workspaceContext(req, res, db); if (!context) return;
     const ownerId = context.ownerUserId;
     const importJobId = String(req.params.jobId || '');
@@ -1835,6 +1885,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/imports/:jobId/rollback', authenticate, requireDb, async (req, res) => {
+    if (blockOptionalDirectWrite(res)) return;
     const context = await workspaceContext(req, res, db); if (!context) return;
     const ownerId = context.ownerUserId;
     try {
