@@ -83,9 +83,10 @@ async function capture(page: Page, name: string): Promise<void> {
 
 async function ensureSyntheticClient(page: Page, group: 'A' | 'B'): Promise<void> {
   const name = `Customer ${group} Synthetic`;
-  // The app loads Clients after navigation. Wait for the known synthetic seed
-  // before deciding whether this retry needs to create another record.
-  await expect(page.getByRole('table').getByRole('row').nth(1)).toBeVisible();
+  // Wait for the loaded collection or the valid empty state. A workspace can
+  // also contain clients other than this test's synthetic record.
+  await expect(page.getByRole('table').first()
+    .or(page.getByText('Sem Clientes Cadastrados', { exact: true })).first()).toBeVisible();
   if (await page.getByRole('row', { name: new RegExp(name) }).count()) return;
   await page.getByRole('button', { name: 'Novo Cliente' }).click();
   await page.getByPlaceholder('Ex: Pedro Alves Silva').fill(name);

@@ -284,6 +284,19 @@ Deno.serve(async (req: Request) => {
       functionName = 'orkto_wia_decide_command';
       eventType = command === 'APPROVE_WIA_ACTION' ? 'wia.action.approved_and_executed' : 'wia.action.rejected';
       argumentsForCommand = { p_action_id:holder.actionId,p_decision:command === 'APPROVE_WIA_ACTION' ? 'APPROVE' : 'REJECT',p_reason:holder.reason || '' };
+    } else if (command === 'APPROVE_DRAFT_TASK' || command === 'REJECT_DRAFT_TASK') {
+      const holder = suppliedPayload as { taskId?: unknown; reason?: unknown } | null;
+      if (!holder || typeof holder !== 'object' || Array.isArray(holder)
+          || !exactKeys(holder as Record<string,unknown>, ['taskId','reason'])
+          || typeof holder.taskId !== 'string' || !UUID.test(holder.taskId)
+          || (holder.reason !== undefined && (typeof holder.reason !== 'string' || holder.reason.length > 1000))) {
+        return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      }
+      canonical = { taskId:holder.taskId,decision:command,reason:(holder.reason || '').trim() };
+      functionName = 'orkto_decide_approval_task_command';
+      eventType = command === 'APPROVE_DRAFT_TASK' ? 'approval.approved' : 'approval.rejected';
+      argumentsForCommand = { p_task_id:holder.taskId,
+        p_decision:command === 'APPROVE_DRAFT_TASK' ? 'APPROVE' : 'REJECT',p_reason:canonical.reason };
     } else if (command === 'CREATE_QUOTE') {
       const parsed = quoteCreateInput.safeParse(suppliedPayload);
       if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
@@ -423,6 +436,7 @@ Deno.serve(async (req: Request) => {
     if ((command === 'ARCHIVE_CLIENT' || command === 'ARCHIVE_CATALOG_ITEM' || command === 'ARCHIVE_QUOTE' || command === 'ARCHIVE_DEAL') && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if (command === 'COMPLETE_ONBOARDING' && membership.role !== 'owner') return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if ((command === 'APPROVE_WIA_ACTION' || command === 'REJECT_WIA_ACTION') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if ((command === 'APPROVE_DRAFT_TASK' || command === 'REJECT_DRAFT_TASK') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if (command === 'SET_CONVERSATION_STATUS' && canonical.status === 'archived'
         && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
 

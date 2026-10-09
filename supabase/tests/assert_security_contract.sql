@@ -84,6 +84,13 @@ do $$ declare f record; expected_browser boolean; function_count integer := 0; b
   if has_function_privilege('authenticated','public.orkto_consume_plan_usage(uuid,date,text,numeric,numeric)','EXECUTE') then
     raise exception 'Browser can consume quota directly';
   end if;
+  if has_function_privilege('anon','public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)','EXECUTE')
+     or has_function_privilege('authenticated','public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)','EXECUTE')
+     or not has_function_privilege('service_role','public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)','EXECUTE')
+     or (select p.proconfig from pg_proc p where p.oid='public.orkto_decide_approval_task_command(uuid,uuid,text,uuid,text,uuid,text,text)'::regprocedure)
+        is distinct from array['search_path=']::text[] then
+    raise exception 'Approval decision command privilege or search path mismatch';
+  end if;
 end $$;
 
 do $$ declare sequence_name text; operation text; begin
@@ -107,6 +114,48 @@ do $$ begin
   exception when insufficient_privilege then null; end;
 end $$;
 reset role;
+
+-- The decision, idempotency record and audit must share one SQL transaction.
+do $$
+declare
+  a uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  b uuid := 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  fixture_conversation_id uuid;
+  fixture_task_id uuid;
+  key text := 'security-approval-' || gen_random_uuid()::text;
+  result jsonb;
+begin
+  insert into public.orkto_conversations(workspace_id,user_id,contact_name,contact_phone,source_channel)
+  values(a,a,'Security fixture','+5500000000777','manual') returning id into fixture_conversation_id;
+  insert into public.orkto_approval_tasks(workspace_id,conversation_id,bot_name,proposed_content,reason,policy_applied)
+  values(a,fixture_conversation_id,'fixture','No external send','Security assertion','approval_required')
+  returning id into fixture_task_id;
+  result := public.orkto_decide_approval_task_command(a,a,key,gen_random_uuid(),repeat('a',64),fixture_task_id,'APPROVE','Reviewed');
+  if result->>'result'<>'DECIDED' or result->'task'->>'status'<>'approved' then
+    raise exception 'Approval decision failed';
+  end if;
+  result := public.orkto_decide_approval_task_command(a,a,key,gen_random_uuid(),repeat('a',64),fixture_task_id,'APPROVE','Reviewed');
+  if result->>'result'<>'REPLAY' then raise exception 'Approval replay failed'; end if;
+  if (select count(*) from public.orkto_audit_log where approval_task_id=fixture_task_id and event_type='wia.draft.approved')<>1 then
+    raise exception 'Approval audit is not exactly once';
+  end if;
+  begin
+    perform public.orkto_decide_approval_task_command(a,a,key,gen_random_uuid(),repeat('b',64),fixture_task_id,'APPROVE','Changed');
+    raise exception 'Changed-payload replay succeeded';
+  exception when raise_exception then
+    if sqlerrm<>'ORKTO_IDEMPOTENCY_CONFLICT' then raise; end if;
+  end;
+  begin
+    perform public.orkto_decide_approval_task_command(b,b,'foreign-approval-'||gen_random_uuid()::text,
+      gen_random_uuid(),repeat('c',64),fixture_task_id,'APPROVE','Foreign');
+    raise exception 'Cross-workspace approval succeeded';
+  exception when raise_exception then
+    if sqlerrm<>'ORKTO_NOT_FOUND' then raise; end if;
+  end;
+  if exists(select 1 from public.orkto_messages where conversation_id=fixture_conversation_id and direction='outgoing') then
+    raise exception 'Draft approval created outgoing message';
+  end if;
+end $$;
 
 insert into auth.users(id,email) values
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','no-membership@example.test')

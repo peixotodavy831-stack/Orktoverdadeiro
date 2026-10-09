@@ -2040,58 +2040,28 @@ app.post("/api/whatsapp/webhook", async (req, res) => {
 
 // POST /api/approval-tasks/:id/approve
 app.post("/api/approval-tasks/:taskId/approve", authenticate, async (req, res) => {
-  if (!supabase) return res.status(503).json({ error: 'Aprovações indisponíveis sem persistência configurada.', category: 'configuration_error' });
-  try {
-    const tenantContext = requireTenantContext(req);
-    const workspaceId = tenantContext.workspaceId;
-    const { taskId } = req.params;
-    const reason = z.string().trim().max(1000).optional().parse(req.body?.reason);
-    const { data: task, error: taskError } = await supabase.from('orkto_approval_tasks')
-      .select('*, orkto_conversations!orkto_approval_conversation_workspace_fkey!inner(*)').eq('id', taskId).eq('status', 'pending')
-      .eq('workspace_id',workspaceId).eq('orkto_conversations.workspace_id', workspaceId).maybeSingle();
-    if (taskError) throw taskError;
-    if (!task || task.orkto_conversations?.workspace_id !== workspaceId) return res.status(404).json({ error: 'Tarefa ou conversa não encontrada.' });
-    const { data: updated, error: updateError } = await supabase.from('orkto_approval_tasks').update({
-      status: 'approved', decided_at: new Date().toISOString(), decided_by: tenantContext.userId, decision_reason: reason || '',
-    }).eq('workspace_id',workspaceId).eq('id', taskId).eq('status', 'pending').select('*').maybeSingle();
-    if (updateError) throw updateError;
-    if (!updated) return res.status(409).json({ error: 'A tarefa foi decidida em outra operação. Atualize e tente novamente.' });
-    const { error: auditError } = await supabase.from('orkto_audit_log').insert({ user_id: tenantContext.userId, workspace_id:workspaceId, conversation_id: task.conversation_id, approval_task_id: taskId, event_type: 'wia.draft.approved', actor_type: 'human', actor_id: tenantContext.userId, trace_id: task.trace_id, event_data: { delivery_status: 'channel_not_configured' } });
-    if (auditError) throw auditError;
-    await recordCoreEvent(workspaceId, tenantContext.userId, 'approval.approved', 'approval_task', taskId, { conversation_id: task.conversation_id, delivery_status: 'CONFIGURATION_REQUIRED' });
-    res.json({ success: true, task: updated, deliveryStatus: 'CONFIGURATION_REQUIRED', category: 'channel_not_configured', message: 'Rascunho aprovado; nenhum envio foi feito porque o canal de saída ainda não está conectado.' });
-  } catch (error) {
-    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
-    res.status(500).json({ error: 'Erro ao aprovar tarefa.' });
-  }
+  const parsed = z.object({ reason:z.string().trim().max(1000).optional() }).strict().safeParse(req.body || {});
+  if (!parsed.success || !z.string().uuid().safeParse(req.params.taskId).success)
+    return res.status(400).json({ error:'Aprovação inválida.', category:'VALIDATION_FAILED' });
+  const workspaceId = requireTenantContext(req).workspaceId;
+  const result = await invokeCoreMutation(req,res,{id:workspaceId},'APPROVE_DRAFT_TASK',
+    { taskId:req.params.taskId,reason:parsed.data.reason });
+  if (!result) return;
+  res.json({ success:true,task:result.task,deliveryStatus:'CONFIGURATION_REQUIRED',
+    category:'channel_not_configured',idempotentReplay:result.result==='REPLAY',
+    message:'Rascunho aprovado; nenhum envio foi feito porque o canal de saída ainda não está conectado.' });
 });
 
 // POST /api/approval-tasks/:id/reject
 app.post("/api/approval-tasks/:taskId/reject", authenticate, async (req, res) => {
-  if (!supabase) return res.status(503).json({ error: 'Aprovações indisponíveis sem persistência configurada.', category: 'configuration_error' });
-  try {
-    const tenantContext = requireTenantContext(req);
-    const workspaceId = tenantContext.workspaceId;
-    const { taskId } = req.params;
-    const reason = z.string().trim().max(1000).optional().parse(req.body?.reason);
-    const { data: task, error: taskError } = await supabase.from('orkto_approval_tasks')
-      .select('*, orkto_conversations!orkto_approval_conversation_workspace_fkey!inner(*)').eq('id', taskId).eq('status', 'pending')
-      .eq('workspace_id',workspaceId).eq('orkto_conversations.workspace_id', workspaceId).maybeSingle();
-    if (taskError) throw taskError;
-    if (!task || task.orkto_conversations?.workspace_id !== workspaceId) return res.status(404).json({ error: 'Tarefa ou conversa não encontrada.' });
-    const { data: updated, error: updateError } = await supabase.from('orkto_approval_tasks').update({
-      status: 'rejected', decided_at: new Date().toISOString(), decided_by: tenantContext.userId, decision_reason: reason || 'Rejeitado pelo operador',
-    }).eq('workspace_id',workspaceId).eq('id', taskId).eq('status', 'pending').select('*').maybeSingle();
-    if (updateError) throw updateError;
-    if (!updated) return res.status(409).json({ error: 'A tarefa foi decidida em outra operação. Atualize e tente novamente.' });
-    const { error: auditError } = await supabase.from('orkto_audit_log').insert({ user_id: tenantContext.userId, workspace_id:workspaceId, conversation_id: task.conversation_id, approval_task_id: taskId, event_type: 'wia.draft.rejected', actor_type: 'human', actor_id: tenantContext.userId, trace_id: task.trace_id, event_data: { reason: reason || null } });
-    if (auditError) throw auditError;
-    await recordCoreEvent(workspaceId, tenantContext.userId, 'approval.rejected', 'approval_task', taskId, { conversation_id: task.conversation_id, reason: reason || null });
-    res.json({ success: true, task: updated });
-  } catch (error) {
-    console.error(`[ERRO] ${req.method} ${req.path}:`, error);
-    res.status(500).json({ error: 'Erro ao rejeitar tarefa.' });
-  }
+  const parsed = z.object({ reason:z.string().trim().max(1000).optional() }).strict().safeParse(req.body || {});
+  if (!parsed.success || !z.string().uuid().safeParse(req.params.taskId).success)
+    return res.status(400).json({ error:'Rejeição inválida.', category:'VALIDATION_FAILED' });
+  const workspaceId = requireTenantContext(req).workspaceId;
+  const result = await invokeCoreMutation(req,res,{id:workspaceId},'REJECT_DRAFT_TASK',
+    { taskId:req.params.taskId,reason:parsed.data.reason });
+  if (!result) return;
+  res.json({ success:true,task:result.task,idempotentReplay:result.result==='REPLAY' });
 });
 
 // POST /api/conversations/:id/send

@@ -1,7 +1,7 @@
-export const TARGET_MIGRATION_COUNT = 32;
+export const TARGET_MIGRATION_COUNT = 37;
 export const STAGING_PROJECT_REF = 'ghrjongiodziasupakrk';
 export const MIGRATION_18_NAME = 'v20260928130000_durable_payment_and_delivery_ledgers';
-export const CORE_MUTATION_MIGRATION_NAMES = ['core_client_mutation_gateway','core_client_update_archive_gateway','core_catalog_mutation_gateway','core_deal_mutation_gateway','core_wia_decision_gateway','core_quote_create_gateway','core_inbox_priority_gateway','core_quote_customer_match_guard','core_profile_onboarding_gateway','core_inbox_state_gateway','core_quote_archive_gateway','core_quote_update_gateway','quote_legacy_link_invalidation','core_deal_outcome_gateway'];
+export const CORE_MUTATION_MIGRATION_NAMES = ['core_client_mutation_gateway','core_client_update_archive_gateway','core_catalog_mutation_gateway','core_deal_mutation_gateway','core_wia_decision_gateway','core_quote_create_gateway','core_inbox_priority_gateway','core_quote_customer_match_guard','core_profile_onboarding_gateway','core_inbox_state_gateway','core_quote_archive_gateway','core_quote_update_gateway','quote_legacy_link_invalidation','core_deal_outcome_gateway','core_wia_prepare_gateway','core_live_quote_gateway','core_quote_retention_gateway','quote_retention_workspace_plan','core_approval_task_decision_gateway'];
 
 export function evaluateStagingMigrationGate({ capture, ledger, now = Date.now(), maxAgeMs = 30 * 60 * 1000 }) {
   if (!capture || !ledger || !Array.isArray(ledger.migrations)) {

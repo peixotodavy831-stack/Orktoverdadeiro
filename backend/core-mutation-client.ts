@@ -11,6 +11,7 @@ export type CoreMutationCommand =
   | 'COMPLETE_ONBOARDING' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'ARCHIVE_CLIENT'
   | 'CREATE_CATALOG_ITEM' | 'UPDATE_CATALOG_ITEM' | 'ARCHIVE_CATALOG_ITEM'
   | 'CREATE_DEAL' | 'UPDATE_DEAL' | 'CLOSE_DEAL' | 'ARCHIVE_DEAL' | 'APPROVE_WIA_ACTION' | 'REJECT_WIA_ACTION'
+  | 'APPROVE_DRAFT_TASK' | 'REJECT_DRAFT_TASK'
   | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE' | 'EXTEND_QUOTE_RETENTION'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN';
@@ -25,6 +26,7 @@ export type CoreMutationResult = {
   deal?: unknown;
   memory_status?: string;
   action?: unknown;
+  task?: unknown;
   external_delivery?: string;
   quote?: unknown;
   quote_id?: string;

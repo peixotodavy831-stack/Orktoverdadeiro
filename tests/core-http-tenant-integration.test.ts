@@ -365,6 +365,37 @@ before(async () => {
         id: randomUUID(), workspace_id: workspaceId, actor_user_id: user.id, event_type: eventType,
         entity_type: entityType, entity_ref: entityRef, request_id: headers.get('x-request-id'),
       });
+      if (request.command === 'APPROVE_DRAFT_TASK' || request.command === 'REJECT_DRAFT_TASK') {
+        if (!['owner','admin','manager'].includes(membership.role))
+          return Response.json({code:'PERMISSION_DENIED'},{status:403});
+        const task=denyForeign('orkto_approval_tasks',payload.taskId);
+        const conversation=task && database.rows('orkto_conversations').find(row=>
+          row.id===task.conversation_id && row.workspace_id===workspaceId);
+        if(!task||!conversation) return Response.json({code:'NOT_FOUND'},{status:404});
+        const status=request.command==='APPROVE_DRAFT_TASK'?'approved':'rejected';
+        const key=headers.get('x-idempotency-key');
+        const eventType=status==='approved'?'approval.approved':'approval.rejected';
+        const previous=database.rows('orkto_wia_events').find(row=>
+          row.workspace_id===workspaceId&&row.idempotency_key===`core:approval_task:${key}`);
+        if(previous){
+          if(previous.actor_user_id!==user.id||previous.event_type!==eventType||previous.entity_ref!==task.id
+            ||previous.payload?.reason!==(payload.reason||''))
+            return Response.json({code:'IDEMPOTENCY_CONFLICT'},{status:409});
+          return ok({result:'REPLAY',task,deliveryStatus:'CONFIGURATION_REQUIRED'});
+        }
+        if(task.status!=='pending') return Response.json({code:'CONFLICT'},{status:409});
+        task.status=status;task.decided_by=user.id;task.decided_at=new Date().toISOString();
+        task.decision_reason=payload.reason|| (status==='rejected'?'Rejeitado pelo operador':'');
+        database.rows('orkto_wia_events').push({id:randomUUID(),workspace_id:workspaceId,
+          actor_user_id:user.id,event_type:eventType,entity_type:'approval_task',entity_ref:task.id,
+          idempotency_key:`core:approval_task:${key}`,payload:{reason:payload.reason||''}});
+        database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:workspaceId,
+          user_id:user.id,conversation_id:conversation.id,approval_task_id:task.id,
+          event_type:status==='approved'?'wia.draft.approved':'wia.draft.rejected',
+          actor_type:'human',actor_id:user.id,trace_id:task.trace_id,
+          event_data:{delivery_status:'channel_not_configured'}});
+        return ok({result:'DECIDED',task,deliveryStatus:'CONFIGURATION_REQUIRED'});
+      }
       if (request.command === 'START_WIA_RUN') {
         const prior=database.rows('orkto_wia_runs').find(row=>row.workspace_id===workspaceId&&row.trace_id===payload.traceId);
         if(prior){
@@ -1178,9 +1209,21 @@ test('core HTTP flow persists client, deal, catalog-priced proposal, inbox, WIA 
   assert.equal((await externalSend.json() as Row).status, 'CONFIGURATION_REQUIRED');
   assert.ok(database.rows('orkto_audit_log').some(row => row.workspace_id === WORKSPACE_A && row.conversation_id === conversationId && row.event_type === 'channel.send.configuration_required'));
   assert.equal(database.rows('orkto_messages').filter(row => row.direction === 'outgoing').length, 0, 'an unconfigured adapter must not create a sent message');
-  const approval = await api(base, CLIENT_TOKEN_A, `/api/approval-tasks/${taskId}/approve`, json({ reason: 'Aprovado para registrar; canal não conectado' }));
+  const approvalKey=`approval-e2e-${randomUUID()}`;
+  const approvalInput={reason:'Aprovado para registrar; canal não conectado'};
+  const approvalRequest={...json(approvalInput),headers:{'x-idempotency-key':approvalKey}};
+  assert.equal((await api(base,CLIENT_TOKEN_A_RECIPIENT,`/api/approval-tasks/${taskId}/approve`,approvalRequest)).status,403,
+    'ordinary workspace member cannot approve an Inbox draft');
+  const approval = await api(base, CLIENT_TOKEN_A, `/api/approval-tasks/${taskId}/approve`, approvalRequest);
   assert.equal(approval.status, 200);
   assert.equal((await approval.json() as Row).deliveryStatus, 'CONFIGURATION_REQUIRED');
+  const approvalReplay=await api(base,CLIENT_TOKEN_A,`/api/approval-tasks/${taskId}/approve`,approvalRequest);
+  assert.equal(approvalReplay.status,200);
+  assert.equal((await approvalReplay.json() as Row).idempotentReplay,true);
+  assert.equal((await api(base,CLIENT_TOKEN_A,`/api/approval-tasks/${taskId}/reject`,
+    {...json({reason:'Conflicting decision'}),headers:{'x-idempotency-key':approvalKey}})).status,409);
+  assert.equal(database.rows('orkto_audit_log').filter(row=>row.approval_task_id===taskId&&row.event_type==='wia.draft.approved').length,1,
+    'one decision creates one audit row across retries');
   assert.equal(database.rows('orkto_messages').filter(row => row.direction === 'outgoing').length, 0, 'approval must not pretend an external send happened');
 
   const wia = await api(base, CLIENT_TOKEN_A, '/api/wia/route-agent', json({ message: 'FOLLOWUP_TEST_APPROVAL prepare um follow-up para esta proposta' }));
