@@ -237,4 +237,61 @@ begin
   exception when foreign_key_violation then null; end;
 end $$;
 
+-- Quote retention command: workspace plan, stale write, replay and audit remain atomic.
+do $$
+declare
+  v_quote_id uuid;
+  v_old_expiry timestamptz;
+  v_new_expiry timestamptz;
+  v_response jsonb;
+  v_workspace uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  v_actor uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+begin
+  update public.orkto_workspace_subscriptions
+    set plan_key='pro',status='active',trial_ends_at=null
+    where workspace_id=v_workspace;
+  insert into public.quotes
+    (workspace_id,user_id,quote_number,client_name,client_phone,sent_at,status)
+  values(v_workspace,v_actor,'RETENTION-COMMAND-CI','Synthetic retention','+550000000000',
+    now(),'sent')
+  returning id,retention_expires_at into v_quote_id,v_old_expiry;
+  if v_old_expiry is null then raise exception 'Quote fixture lacks retention expiry'; end if;
+  v_response := public.orkto_extend_quote_retention_command(
+    v_actor,v_workspace,v_quote_id,v_old_expiry,'retention-command-ci-01',
+    gen_random_uuid(),repeat('a',64));
+  v_new_expiry := (v_response->>'expires_at')::timestamptz;
+  if v_response->>'result'<>'EXTENDED' or v_new_expiry<>v_old_expiry+interval '14 days'
+     or (select count(*) from public.quote_extensions
+          where workspace_id=v_workspace and quote_id=v_quote_id)<>1
+     or (select count(*) from public.orkto_audit_log
+          where workspace_id=v_workspace and event_type='quote.retention_extended'
+            and event_data->>'quote_id'=v_quote_id::text)<>1 then
+    raise exception 'Quote extension did not persist exactly once with audit';
+  end if;
+  v_response := public.orkto_extend_quote_retention_command(
+    v_actor,v_workspace,v_quote_id,v_old_expiry,'retention-command-ci-01',
+    gen_random_uuid(),repeat('a',64));
+  if v_response->>'result'<>'REPLAY'
+     or (select count(*) from public.quote_extensions
+          where workspace_id=v_workspace and quote_id=v_quote_id)<>1 then
+    raise exception 'Quote extension replay duplicated the effect';
+  end if;
+  begin
+    perform public.orkto_extend_quote_retention_command(
+      v_actor,v_workspace,v_quote_id,v_old_expiry,'retention-command-ci-02',
+      gen_random_uuid(),repeat('b',64));
+    raise exception 'Stale Quote expiry was accepted';
+  exception when raise_exception then
+    if sqlerrm<>'ORKTO_CONFLICT' then raise; end if;
+  end;
+  begin
+    perform public.orkto_extend_quote_retention_command(
+      v_actor,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',v_quote_id,v_new_expiry,
+      'retention-command-ci-03',gen_random_uuid(),repeat('c',64));
+    raise exception 'Foreign workspace Quote was accepted';
+  exception when raise_exception then
+    if sqlerrm not in ('ORKTO_WORKSPACE_ACCESS_DENIED','ORKTO_NOT_FOUND') then raise; end if;
+  end;
+end $$;
+
 rollback;
