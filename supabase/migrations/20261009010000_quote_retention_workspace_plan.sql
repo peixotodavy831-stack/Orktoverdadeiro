@@ -87,7 +87,7 @@ begin
   values (v_quote.id,v_quote.user_id,p_workspace_id,v_quote.retention_expires_at,v_new_expiry);
   insert into public.orkto_audit_log
     (user_id,workspace_id,event_type,actor_type,actor_id,trace_id,event_data)
-  values (p_actor_user_id,p_workspace_id,'quote.retention_extended','user',
+  values (p_actor_user_id,p_workspace_id,'quote.retention_extended','human',
     p_actor_user_id::text,p_request_id::text,
     jsonb_build_object('quote_id',v_quote.id,'previous_expiry',v_quote.retention_expires_at,
       'new_expiry',v_new_expiry,'request_id',p_request_id));
