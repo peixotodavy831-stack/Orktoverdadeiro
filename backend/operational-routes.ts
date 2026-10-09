@@ -1252,6 +1252,13 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         traceId,status:'failed',errorCategory:(error as { code?: string })?.code || 'execution_error',agent,
       });
       if (res.headersSent) return;
+      if ((error as { code?: string })?.code === 'configuration_error') {
+        return res.status(503).json({
+          error:'Configure um provider de IA aprovado para executar esta análise.',
+          category:'configuration_required',
+          status:'CONFIGURATION_REQUIRED',
+        });
+      }
       failure(res, error, 'A WIA não conseguiu preparar a resposta com os dados disponíveis.');
     }
   });

@@ -80,6 +80,8 @@ test('WIA preparation uses the explicit mutation lifecycle without a direct pers
   assert.match(route, /requestDb\.from\(['"]quotes['"]\)/);
   assert.match(route, /requestDb\.from\(['"]clients['"]\)/);
   assert.match(route, /requestDb\.from\(['"]profiles['"]\)/);
+  assert.match(route, /code === ['"]configuration_error['"][\s\S]*?category:['"]configuration_required['"][\s\S]*?status:['"]CONFIGURATION_REQUIRED['"]/,
+    'a disabled AI provider must fail closed as CONFIGURATION_REQUIRED');
   assert.doesNotMatch(route, /\.from\(['"]orkto_wia_(runs|events|actions|tool_calls)['"]\)/);
   assert.doesNotMatch(route, /orkto_consume_plan_usage/);
 });
