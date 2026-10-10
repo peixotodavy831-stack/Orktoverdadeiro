@@ -69,6 +69,7 @@ begin
     definer_count := definer_count + 1;
     if f.proname not in (
       'orkto_is_workspace_member','orkto_is_workspace_admin','orkto_provision_workspace_for_profile',
+      'orkto_provision_profile_for_auth_user',
       'orkto_legacy_owner_matches','orkto_create_default_workspace_trial','orkto_consume_plan_usage',
       'orkto_claim_payment_intent','orkto_finish_payment_intent','orkto_apply_payment_intent_provider_event','orkto_claim_payment_webhook_event',
       'orkto_finish_payment_webhook_event','orkto_reserve_channel_send','orkto_mark_channel_send',
@@ -101,7 +102,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> (34 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
+  if definer_count <> (35 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;
