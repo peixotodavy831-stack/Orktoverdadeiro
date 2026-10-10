@@ -74,9 +74,7 @@ export default function CreateQuote({
 
   // Step 3: Terms
   const [validValueDays, setValidValueDays] = useState(10);
-  const [paymentInstructions, setPaymentInstructions] = useState(
-    userProfile?.paymentInfo || 'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: Orkto Pro Solutions Ltda'
-  );
+  const [paymentInstructions, setPaymentInstructions] = useState(userProfile?.paymentInfo || '');
   const [taxes, setTaxes] = useState<number>(0);
   const [linkCopied, setLinkCopied] = useState(false);
   const [proposalLink, setProposalLink] = useState<string | null>(null);

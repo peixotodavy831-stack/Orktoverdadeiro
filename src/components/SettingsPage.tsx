@@ -68,10 +68,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
     userProfile?.whatsappTemplate || 
     'Olá *[CLIENT_NAME]*, aqui está a proposta comercial de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar todos os detalhes e aprovar online com 1 clique:\n\n*[LINK]*'
   );
-  const [paymentInfo, setPaymentInfo] = useState(
-    userProfile?.paymentInfo || 
-    'Chave Pix CNPJ: 14.502.836/0001-90\nBanco Cora - Favorecido: Orkto Pro Solutions Ltda'
-  );
+  const [paymentInfo, setPaymentInfo] = useState(userProfile?.paymentInfo || '');
   const [quoteColor, setQuoteColor] = useState(userProfile?.quoteColor || '#FF9F1C');
   const [address, setAddress] = useState(userProfile?.address || '');
 
