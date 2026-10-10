@@ -1,3 +1,5 @@
+import { stagingPreviewOrigin } from './staging-boundary.js';
+
 export class PublicAppUrlConfigurationError extends Error {
   readonly code = 'public_app_url_required';
   constructor() {
@@ -8,6 +10,10 @@ export class PublicAppUrlConfigurationError extends Error {
 
 /** Resolves a public application origin without trusting request Host/Forwarded headers. */
 export function resolvePublicAppBaseUrl(env: Record<string, string | undefined> = process.env): string {
+  // An immutable, project-pinned Preview link must stay on the same deployment.
+  // APP_URL can name a staging alias that has no deployment or points elsewhere.
+  const previewOrigin = stagingPreviewOrigin(env);
+  if (previewOrigin) return previewOrigin;
   const configured = env.APP_URL?.trim();
   if (!configured) {
     if (env.NODE_ENV === 'test' || env.NODE_ENV === 'development' || env.APP_ENV === 'development') {

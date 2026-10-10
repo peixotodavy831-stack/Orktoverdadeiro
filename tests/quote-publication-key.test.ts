@@ -30,8 +30,9 @@ test('a pending publication reuses its request key until confirmed', () => {
 
 test('quote creation cannot share an app URL when the proposal link is unconfirmed', async () => {
   const source = await readFile(resolve('src/components/CreateQuote.tsx'), 'utf8');
-  assert.match(source, /'x-idempotency-key': pendingQuotePublicationKey\(persistedQuote\.id\)/);
-  assert.match(source, /if \(!createdQuote \|\| !proposalLink\) return '';/);
-  assert.doesNotMatch(source, /proposalLink \|\| origin/);
-  assert.match(source, /Gere o link antes de compartilhar/);
+  assert.doesNotMatch(source, /fetch\('\/api\/proposal\/generate'/,
+    'saving a Quote must not publish and then discard a public link');
+  assert.doesNotMatch(source, /wa\.me\//,
+    'the save flow must not prepare a WhatsApp message before a link exists');
+  assert.match(source, /Abra o detalhe para gerar um link validado pelo Catálogo/);
 });

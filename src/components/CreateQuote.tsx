@@ -8,8 +8,6 @@ import {
   Plus, 
   Trash2, 
   CheckCircle, 
-  Send, 
-  Copy, 
   Download, 
   Calendar, 
   ChevronRight, 
@@ -19,17 +17,14 @@ import {
   DollarSign,
   AlertCircle,
   Clock,
-  Printer,
-  ExternalLink,
   Mail,
   Briefcase,
   Sparkles
 } from 'lucide-react';
 import { Quote, QuoteItem, SavedClient, SavedService, UserProfile, Timestamp } from '../types';
-import { formatCurrency, formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
+import { formatCurrency, formatBRL, formatPhone } from '../utils/format';
 import { improveQuoteCopy, QuoteTone } from '../lib/localCopywriter';
 import { supabase } from '../lib/supabase';
-import { completeQuotePublication, pendingQuotePublicationKey } from '../lib/quote-publication-key';
 
 interface CreateQuoteProps {
   userProfile: UserProfile | null;
@@ -77,8 +72,6 @@ export default function CreateQuote({
   const [validValueDays, setValidValueDays] = useState(10);
   const [paymentInstructions, setPaymentInstructions] = useState(userProfile?.paymentInfo || '');
   const [taxes, setTaxes] = useState<number>(0);
-  const [linkCopied, setLinkCopied] = useState(false);
-  const [proposalLink, setProposalLink] = useState<string | null>(null);
   const [quoteTone, setQuoteTone] = useState<QuoteTone>((userProfile?.brandTone as QuoteTone) || 'comercial');
 
   // Use useEffect to prefill if duplication or editing source is active
@@ -362,20 +355,6 @@ export default function CreateQuote({
       }
 
       setCreatedQuote(persistedQuote);
-      if (!editQuoteSource) {
-        try {
-          const token = (await supabase.auth.getSession()).data.session?.access_token;
-          const response = await fetch('/api/proposal/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-idempotency-key': pendingQuotePublicationKey(persistedQuote.id), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-            body: JSON.stringify({ quoteId: persistedQuote.id }),
-          });
-          const result = await response.json();
-          if (response.ok && result.link) { completeQuotePublication(persistedQuote.id); setProposalLink(result.link); }
-        } catch (linkError) {
-          console.warn('Orçamento salvo, mas o link seguro não pôde ser gerado:', linkError);
-        }
-      }
       setStep(4);
     } catch (err: any) {
       console.error(err);
@@ -387,22 +366,6 @@ export default function CreateQuote({
 
   const serverTimestampOrNow = () => {
     return Timestamp.now();
-  };
-
-  // Share text builder
-  const getWhatsAppLink = () => {
-    if (!createdQuote || !proposalLink) return '';
-    
-    // Custom template replace
-    let text = userProfile?.whatsappTemplate || 
-      'Olá *[CLIENT_NAME]*, aqui está a proposta de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar os detalhes e aprovar:\n\n*[LINK]*';
-    
-    text = text.replace('[CLIENT_NAME]', createdQuote.clientName);
-    text = text.replace('[SERVICE_TYPE]', createdQuote.clientVehicleOrService || 'serviços');
-    text = text.replace('[TOTAL]', formatBRL(createdQuote.total));
-    text = text.replace('[LINK]', proposalLink);
-
-    return `https://wa.me/${getCleanPhoneForWhatsApp(createdQuote.clientPhone)}?text=${encodeURIComponent(text)}`;
   };
 
   // Helper date adder
@@ -421,7 +384,7 @@ export default function CreateQuote({
             {step === 4 ? 'Proposta Comercial Pronta!' : 'Criar Nova Proposta'}
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {step === 4 ? (proposalLink ? 'Link pronto para compartilhamento manual; entrega não confirmada' : 'Orçamento salvo; gere um link antes de compartilhar') : `Passo ${step} de 3 - ${step === 1 ? 'Identificação do Cliente' : step === 2 ? 'Escopo & Proposta' : 'Envio & Condições Comercial'}`}
+            {step === 4 ? 'Orçamento salvo; gere o link no detalhe antes de compartilhar' : `Passo ${step} de 3 - ${step === 1 ? 'Identificação do Cliente' : step === 2 ? 'Escopo & Proposta' : 'Envio & Condições Comercial'}`}
           </p>
         </div>
         <button 
@@ -868,60 +831,9 @@ export default function CreateQuote({
                   <p className="text-zinc-400 text-xs mt-1">Orçamento número #{createdQuote.quoteNumber} para {createdQuote.clientName}</p>
                 </div>
 
-                <div className="bg-zinc-950 p-4 border border-zinc-800 rounded-2xl font-mono text-xs break-all space-y-2">
-                  <p className="font-bold text-zinc-500 uppercase tracking-widest text-[9px] mb-2">LINK DO ORÇAMENTO PARA O CLIENTE</p>
-                  <p className="text-orange-400 select-all underline">{proposalLink || 'Link não confirmado. Abra o orçamento para tentar novamente.'}</p>
-                </div>
-
-                <div className="space-y-3 pt-3">
-                  {proposalLink ? <a
-                    href={getWhatsAppLink()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    referrerPolicy="no-referrer"
-                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-95"
-                  >
-                    <Send className="w-5 h-5" />
-                    Abrir WhatsApp com mensagem pronta
-                  </a> : <button type="button" disabled className="w-full py-4 bg-zinc-700 text-zinc-300 font-bold text-sm rounded-xl">
-                    Gere o link antes de compartilhar
-                  </button>}
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <a
-                    href={proposalLink || undefined}
-                    aria-disabled={!proposalLink}
-                    onClick={event => { if (!proposalLink) event.preventDefault(); }}
-                      target="_blank"
-                      className="py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold text-[10px] sm:text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      Tela Cheia
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const link = proposalLink;
-                        if (!link) return;
-                        navigator.clipboard.writeText(link);
-                        setLinkCopied(true);
-                        setTimeout(() => setLinkCopied(false), 2000);
-                      }}
-                      className={`py-3 font-bold text-[10px] sm:text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 ${linkCopied ? 'bg-emerald-600 text-white animate-pulse' : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-100'}`}
-                    >
-                      <Copy className="w-4 h-4" />
-                      {linkCopied ? 'Copiado!' : 'Copiar Link'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => window.print()}
-                      className="py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold text-[10px] sm:text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <Printer className="w-4 h-4" />
-                      Imprimir
-                    </button>
-                  </div>
-                </div>
+                <p className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4 text-xs text-zinc-300">
+                  O orçamento foi salvo. Abra o detalhe para gerar um link validado pelo Catálogo. Nenhuma entrega foi confirmada.
+                </p>
 
                 <div className="pt-4 border-t border-zinc-800 text-center">
                   <button
