@@ -594,7 +594,7 @@ before(async () => {
           items:structuredClone(quote.items),subtotal:quote.subtotal,discountTotal:quote.discount_total,taxes:quote.taxes,total:quote.total,
           notes:quote.notes,paymentInstructions:quote.payment_instructions,validUntil};
         const row={id:randomUUID(),workspace_id:workspaceId,quote_ref:quote.id,version,snapshot,current_price_cents:Math.round(Number(quote.total)*100),status:'active',valid_until:validUntil,created_by:user.id,_test_token:token};
-        database.rows('orkto_live_quotes').push(row);quote.status='sent';audit('live_quote.published','quote',quote.id);
+        database.rows('orkto_live_quotes').push(row);audit('live_quote.published','quote',quote.id);
         return ok({result:'CREATED',live_quote:row,token,publicPath:`/proposta-viva/${token}`});
       }
       if (request.command === 'EXTEND_QUOTE_RETENTION') {
@@ -2011,6 +2011,8 @@ test('live quote versions keep accepted snapshots immutable and revoke obsolete 
   const quote = await quoteResponse.json() as Row;
   const firstLinkResponse = await api(base,CLIENT_TOKEN_A,`/api/live-quotes/from-quote/${quote.id}`,json({}));
   assert.equal(firstLinkResponse.status,201);
+  assert.equal(database.rows('quotes').find(row=>row.id===quote.id)?.status,'pending',
+    'publishing a link without provider delivery must not mark the quote as sent');
   const firstLink = await firstLinkResponse.json() as {data:Row;token:string};
   assert.equal((await api(base,CLIENT_TOKEN_B,`/api/live-quotes/from-quote/${quote.id}`,json({}))).status,404,
     'workspace B cannot mint a public token for workspace A quote');
@@ -2034,7 +2036,7 @@ test('live quote versions keep accepted snapshots immutable and revoke obsolete 
   const concurrentAccept = await accept();
   assert.equal(concurrentAccept.status,409,await concurrentAccept.clone().text());
   assert.equal(database.rows('orkto_live_quotes').find(row=>row.id===secondLink.data.id)?.status,'revoked');
-  assert.equal(database.rows('quotes').find(row=>row.id===quote.id)?.status,'sent','the stale acceptance cannot approve newly edited terms');
+  assert.equal(database.rows('quotes').find(row=>row.id===quote.id)?.status,'pending','the stale acceptance cannot approve newly edited terms');
 
   const thirdLinkResponse = await api(base,CLIENT_TOKEN_A,`/api/live-quotes/from-quote/${quote.id}`,json({}));
   assert.equal(thirdLinkResponse.status,201);

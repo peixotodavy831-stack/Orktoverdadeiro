@@ -8,6 +8,14 @@ import { CoreMutationClient, resolveCoreMutationEndpoint } from '../backend/core
 const staging = 'https://ghrjongiodziasupakrk.supabase.co';
 const production = 'https://qneqljlphgkptebsaonb.supabase.co';
 
+test('live-link publication preserves Quote delivery status and keeps the RPC service-only', async () => {
+  const sql = await readFile(resolve('supabase/migrations/20261010170000_live_quote_publication_state.sql'), 'utf8');
+  assert.match(sql, /create or replace function public\.orkto_publish_live_quote_command/);
+  assert.doesNotMatch(sql, /update public\.quotes set status='sent'/);
+  assert.match(sql, /revoke all on function public\.orkto_publish_live_quote_command[^;]+ from public,anon,authenticated;/);
+  assert.match(sql, /grant execute on function public\.orkto_publish_live_quote_command[^;]+ to service_role;/);
+});
+
 test('the same command endpoint contract resolves independently for staging and production', () => {
   assert.equal(resolveCoreMutationEndpoint({ APP_ENV: 'staging', VITE_SUPABASE_URL: staging }),
     `${staging}/functions/v1/orkto-core-mutations`);

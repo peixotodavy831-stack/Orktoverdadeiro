@@ -1,5 +1,9 @@
 # ORKTO core mutation matrix
 
+## 2026-10-10 publication delta
+
+Staging has **39/39** migrations; the local package targets **40** with a pending forward migration that preserves Quote status when a Live Quote link is merely created. The real staging browser published one synthetic catalog-validated link and the database recorded one `human` audit event, but the deployed SQL marked the Quote `sent` without delivery. This semantic defect is open until PostgreSQL 17 replay, staging migration 40, postcheck and exact-SHA Preview confirm the fix. The local browser now retains the same idempotency key for a retry after an ambiguous response; 39 focused tests, full local test suite, lint, isolated build/smoke and secret scan passed. The latest Preview still runs `03de12e`, while the pushed runtime is `0b20f52` and the publication fix is local. Public accept/reject, full final-SHA E2E and release security checkpoint remain **PENDING**. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
 ## Current matrix delta — 2026-10-09
 
 2026-10-10 browser addendum: on an authenticated staging Preview, synthetic A created Client, Contact, Catalog item, Deal, nonterminal Deal transition and Quote through the product routes; synthetic B created Client and Contact in its own workspace. A/B UI reads stayed separated. The final immutable Preview at `3588a08` reverified A authentication, proposal summary and readiness after copy-only changes. This narrows the Contacts browser gap, but does not prove the remaining terminal/public proposal, Inbox approval, WIA execution and full adversarial write matrix. `READY_FOR_PRODUCTION_CANDIDATE=NO`.

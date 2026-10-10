@@ -22,6 +22,7 @@ import {
 import { Quote, UserProfile, Timestamp } from '../types';
 import { formatBRL, formatPhone, formatCurrency, getCleanPhoneForWhatsApp } from '../utils/format';
 import { supabase } from '../lib/supabase';
+import { completeQuotePublication, pendingQuotePublicationKey } from '../lib/quote-publication-key';
 
 interface QuoteDetailProps {
   quote: Quote;
@@ -108,10 +109,11 @@ export default function QuoteDetail({
     try {
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       if (!token) throw new Error('Sua sessão expirou. Entre novamente para publicar o Orçamento Vivo.');
-      const response = await fetch(`/api/live-quotes/from-quote/${encodeURIComponent(quote.id)}`, { method:'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' }, body:JSON.stringify({}) });
+      const response = await fetch(`/api/live-quotes/from-quote/${encodeURIComponent(quote.id)}`, { method:'POST', headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json', 'x-idempotency-key':pendingQuotePublicationKey(quote.id) }, body:JSON.stringify({}) });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error || 'Não foi possível criar o Orçamento Vivo.');
       const link = `${window.location.origin}${payload.publicPath}`;
+      completeQuotePublication(quote.id);
       setLiveQuoteLink(link); setRecoveryNotice(`Orçamento Vivo versão ${payload.data.version} criado. O preço foi validado no Catálogo.`);
     } catch (cause) { setRecoveryError(cause instanceof Error ? cause.message : 'Não foi possível criar o Orçamento Vivo.'); }
     finally { setLiveQuoteLoading(false); }
@@ -137,12 +139,12 @@ export default function QuoteDetail({
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const res = await fetch('/api/proposal/generate', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'x-idempotency-key': pendingQuotePublicationKey(quote.id) },
         body: JSON.stringify({ quoteId: quote.id }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao gerar link');
-      if (data.success) { setProposalLink(data.link); setExpiresAt(data.expiresAt); }
+      if (data.success) { completeQuotePublication(quote.id); setProposalLink(data.link); setExpiresAt(data.expiresAt); }
     } catch { alert('Erro ao gerar link'); } finally { setProposalLoading(false); }
   };
 

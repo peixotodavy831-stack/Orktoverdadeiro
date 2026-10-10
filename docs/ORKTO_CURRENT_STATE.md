@@ -1,5 +1,22 @@
 # ORKTO Current State
 
+## Current release gate — 2026-10-10, continuation
+
+Scope: branch `production-readiness/migration-replay-20260928`, last pushed commit `0b20f52e622ef96f2c68532496f931ac2b2e4cc1`, with a local, uncommitted publication fix. Supabase staging is `ghrjongiodziasupakrk`; Vercel staging is `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`). Production was not changed. `READY_FOR_PRODUCTION_CANDIDATE=NO`; final snapshot is **NOT RUN**. This section supersedes older snapshots below when they differ.
+
+| Gate | Status | Current evidence and limit |
+| --- | --- | --- |
+| Staging migration 39 | PASS | Staging ledger readback was 39/39 after `live_quote_audit_actor_fix`; authenticated RPC EXECUTE remained denied. PostgreSQL 17 CI run `38065934909` passed both replay jobs. |
+| Migration 40 publication semantics | PENDING | Local additive migration `live_quote_publication_state` removes the automatic `quotes.status='sent'` transition from link creation. The prior staging SQL demonstrably set `sent` without external delivery. The local 39 focused tests pass, but PostgreSQL 17 replay and staging application have **NOT RUN** for migration 40. Target package is 40; staging remains 39. |
+| Browser A/B and Live Quote | PASS for exercised path | On immutable staging Preview `dpl_D6KHFECXSaNRZRszoJ5yypro67bd` (`03de12e`), synthetic A/B authenticated, traversed Clients/Contacts/Catalog/Deals/Quotes, and B could not read A records. A published a catalog-validated Live Quote link after migration 39; read-only SQL found one live version and one `human` audit event. No message or billing action occurred. Public accept/reject and full adversarial write matrix remain **PENDING**. |
+| Current runtime Preview | PENDING | Authenticated Vercel project listing still shows `03de12e` as latest READY Preview. The pushed `0b20f52` payment-copy fix and the local publication fix have no confirmed Preview deployment. The staging project has no connected Git repository for automatic Preview; the previous connector deployment surface is unavailable. A READY ancestor does not validate the current code. |
+| Local tests and build | PASS for local publication delta | Full `npm run test:all` and 28 readiness tests, lint, isolated frontend/server build and smoke all passed after the publication fix. The 39 focused gateway/publication tests also passed with loopback access. Secret scan covered 388 files with zero findings, blockers or reviews; `git diff --check` passed apart from line-ending warnings. An initial sandboxed HTTP run failed because loopback fetch was unavailable; the elevated rerun passed. Remote PostgreSQL 17 replay and browser E2E for this delta remain **PENDING**. |
+| Mutation matrix | PENDING | Explicit gateway and direct-table denial cover the earlier listed commands. The browser still lacks a full final-SHA traversal, public proposal decisions, and remaining adversarial mutation coverage. `docs/05_ENGINEERING/ORKTO_CORE_MUTATION_MATRIX.md` holds command-level evidence and limitations. |
+| Security release checkpoint | BLOCKED | No sealed full release scan exists. The last reviewed delta had zero confirmed Critical/High, but current changes require review and Preview validation. Supabase leaked-password protection is disabled on the current plan. Do not infer release approval from the earlier focused review. |
+| Snapshot | NOT RUN | Requires the final migration, exact-SHA Preview/E2E, mutation matrix, security checkpoint and regression evidence. |
+
+The local publication change also reuses one idempotency key across retries until a successful response, then clears it for a deliberate new version. It does not claim provider delivery. No production target was used.
+
 ## Current release gate — 2026-10-10 (latest)
 
 Scope: `production-readiness/migration-replay-20260928`, runtime commit `3588a08f11c559eccb90fcb6473867ceb146e101`. Only staging Supabase `ghrjongiodziasupakrk` and staging Vercel project `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`) were changed or exercised. Production was not touched. This section supersedes older checkpoint claims below where they differ. `READY_FOR_PRODUCTION_CANDIDATE=NO`; no final snapshot was generated.
