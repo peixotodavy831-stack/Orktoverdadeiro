@@ -2163,7 +2163,9 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/live-quotes/from-quote/:quoteId', authenticate, requireDb, async (req, res) => {
-    const context = await workspaceContext(req, res, db); if (!context) return;
+    // The gateway enforces plan access. A Preview has only the caller's JWT;
+    // the legacy server-side plan query cannot use an elevated database key.
+    const context = await workspaceContext(req, res, db, false, true); if (!context) return;
     const result = await invokeCoreMutation(req,res,context,'PUBLISH_LIVE_QUOTE',{quoteId:req.params.quoteId});
     if (!result) return;
     res.status(result.result === 'REPLAY' ? 200 : 201).json({

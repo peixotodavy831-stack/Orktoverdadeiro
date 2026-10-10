@@ -98,6 +98,8 @@ test('proposal publication and public decisions use explicit gateways without a 
   assert.match(publication, /'PUBLISH_LIVE_QUOTE'/);
   assert.doesNotMatch(publication, /\.from\(['"](?:proposals|quotes|orkto_live_quotes)['"]\)/);
   assert.match(live, /'PUBLISH_LIVE_QUOTE'/);
+  assert.match(live, /workspaceContext\(req, res, db, false, true\)/,
+    'live Quote publication must delegate plan authorization to the gateway in public-key-only Preview');
   assert.match(live, /invokePublicProposal/);
   assert.doesNotMatch(live, /\.from\(['"](?:proposals|quotes|orkto_live_quotes|orkto_live_quote_events)['"]\)\.(?:insert|update|upsert|delete)/);
   assert.match(publicClient, /resolveCoreMutationEndpoint/);
