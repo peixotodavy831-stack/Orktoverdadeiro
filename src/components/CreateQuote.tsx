@@ -602,7 +602,7 @@ export default function CreateQuote({
                     className="px-3.5 py-2 bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400 font-bold text-xs rounded-xl hover:bg-orange-100 transition-colors flex items-center gap-1.5"
                   >
                     <Plus className="w-4 h-4" />
-                    Add Item
+                    Adicionar item
                   </button>
                 </div>
 
@@ -610,7 +610,7 @@ export default function CreateQuote({
                   <div className="flex flex-col sm:flex-row sm:items-end gap-3">
                     <div className="flex-1">
                       <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1.5">Tom do orçamento</label>
-                      <select value={quoteTone} onChange={(event) => setQuoteTone(event.target.value as QuoteTone)} className="w-full px-3 py-2.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-500">
+                      <select aria-label="Tom do orçamento" value={quoteTone} onChange={(event) => setQuoteTone(event.target.value as QuoteTone)} className="w-full px-3 py-2.5 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-orange-500">
                         <option value="comercial">Comercial — direto para fechar</option>
                         <option value="técnico">Técnico — preciso e detalhado</option>
                         <option value="formal">Formal — sóbrio e institucional</option>
@@ -650,6 +650,7 @@ export default function CreateQuote({
                         <div className="md:col-span-2 relative">
                           <input
                             type="text"
+                            aria-label={`Nome do item ${index + 1}`}
                             value={item.name}
                             onChange={(e) => handleUpdateItemField(index, 'name', e.target.value)}
                             onFocus={() => setActiveItemIndexForServiceSearch(index)}
@@ -685,6 +686,7 @@ export default function CreateQuote({
                         <div>
                           <input
                             type="text"
+                            aria-label={`Descrição do item ${index + 1}`}
                             value={item.description}
                             onChange={(e) => handleUpdateItemField(index, 'description', e.target.value)}
                             placeholder="Descritivo do escopo / entregas"
@@ -712,6 +714,7 @@ export default function CreateQuote({
                           <label className="block text-[10px] text-zinc-400 font-bold tracking-wider mb-1">Quantidade</label>
                           <input
                             type="number"
+                            aria-label={`Quantidade do item ${index + 1}`}
                             min="1"
                             value={item.quantity}
                             onChange={(e) => handleUpdateItemField(index, 'quantity', parseInt(e.target.value) || 1)}
@@ -723,6 +726,7 @@ export default function CreateQuote({
                           <label className="block text-[10px] text-zinc-400 font-bold tracking-wider mb-1">Valor Unitário (R$)</label>
                           <input
                             type="number"
+                            aria-label={`Valor unitário do item ${index + 1}`}
                             min="0"
                             step="0.01"
                             value={item.unitPrice || ''}
@@ -736,6 +740,7 @@ export default function CreateQuote({
                           <label className="block text-[10px] text-zinc-400 font-bold tracking-wider mb-1">Desconto (%)</label>
                           <input
                             type="number"
+                            aria-label={`Desconto do item ${index + 1} em porcentagem`}
                             min="0"
                             max="100"
                             value={item.discount || ''}

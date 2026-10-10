@@ -180,7 +180,7 @@ export default function ClientProposalView({ slug }: ClientProposalViewProps) {
               </div>
               {approved && <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-md text-xs font-bold flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Aprovada</span>}
               {rejected && <span className="px-3 py-1 bg-red-500/10 text-red-400 border border-red-500/25 rounded-md text-xs font-bold flex items-center gap-1"><XCircle className="w-3.5 h-3.5" /> Recusada</span>}
-              {!approved && !rejected && quote.status === 'approved' && <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-md text-xs font-bold flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Paga</span>}
+              {!approved && !rejected && quote.status === 'approved' && <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-md text-xs font-bold flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> Aprovada</span>}
             </div>
 
             {quote.client_vehicle_or_service && (

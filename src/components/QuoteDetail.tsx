@@ -545,30 +545,30 @@ export default function QuoteDetail({
                 <p className="text-[10px] text-zinc-400 font-mono">{formatDate(quote.createdAt)}</p>
               </div>
 
-              {/* Step 2: Sent */}
+              {/* Step 2: Link availability is not proof of delivery. */}
               <div className="relative">
-                <span className="w-4 h-4 bg-orange-500 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1" />
-                <p className="text-xs font-bold text-zinc-900 dark:text-white">Enviado por Link</p>
-                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{quote.sentAt ? formatDate(quote.sentAt) : 'Enviado hoje'}</p>
+                <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${quote.sentAt ? 'bg-orange-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                <p className="text-xs font-bold text-zinc-900 dark:text-white">Link da proposta</p>
+                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{quote.sentAt ? `Registrado em ${formatDate(quote.sentAt)}; entrega não confirmada` : 'Ainda não registrado; entrega não confirmada'}</p>
               </div>
 
               {/* Step 3: Viewed */}
               <div className="relative">
-                <span className="w-4 h-4 bg-emerald-500 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1" />
-                <p className="text-xs font-bold text-zinc-900 dark:text-white">Visualizado pelo Cliente</p>
-                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">Visualizado na web</p>
+                <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${quote.viewedAt ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                <p className="text-xs font-bold text-zinc-900 dark:text-white">Visualização da proposta</p>
+                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{quote.viewedAt ? `Registrada em ${formatDate(quote.viewedAt)}` : 'Nenhuma visualização registrada'}</p>
               </div>
 
               {/* Step 4: Approved / Rejected */}
               <div className="relative">
                 <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${quote.status === 'approved' ? 'bg-emerald-500' : quote.status === 'rejected' ? 'bg-red-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
-                <p className="text-xs font-bold text-zinc-900 dark:text-white">Retorno do Cliente</p>
+                <p className="text-xs font-bold text-zinc-900 dark:text-white">Decisão da proposta</p>
                 <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
                   {quote.status === 'approved' 
                     ? `Aprovado em ${formatDate(quote.approvedAt || quote.updatedAt)}` 
                     : quote.status === 'rejected' 
                       ? `Recusado em ${formatDate(quote.rejectedAt || quote.updatedAt)}` 
-                      : 'Aguardando Aprovação do Cliente'}
+                      : 'Nenhuma decisão registrada'}
                 </p>
               </div>
             </div>

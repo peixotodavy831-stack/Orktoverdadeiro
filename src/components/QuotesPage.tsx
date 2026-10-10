@@ -329,7 +329,7 @@ export default function QuotesPage({
         {/* Card 1: Total & values */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 flex flex-col justify-between shadow-sm transition-colors duration-300">
           <div className="flex items-center justify-between text-[10px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-widest">
-            <span>Todos Enviados</span>
+            <span>Total de Orçamentos</span>
             <span className="p-1 bg-zinc-100 dark:bg-zinc-950 text-zinc-500 dark:text-zinc-400 rounded-lg"><FileText className="w-3.5 h-3.5" /></span>
           </div>
           <div className="mt-3.5">
