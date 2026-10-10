@@ -317,9 +317,9 @@ export default function QuotesPage({
 
       <WiaInline
         eyebrow="WIA · orçamentos"
-        title={`${quotes.filter(quote => quote.status === 'pending').length} proposta${quotes.filter(quote => quote.status === 'pending').length === 1 ? '' : 's'} esperando decisão`}
-        description="A WIA pode organizar a fila por tempo sem resposta e preparar mensagens de acompanhamento. Nenhum envio acontece sem a regra de autonomia definida."
-        actions={['detectar abandono', 'preparar mensagem', 'respeitar opt-out']}
+        title={`${quotes.filter(quote => quote.status === 'pending').length} proposta${quotes.filter(quote => quote.status === 'pending').length === 1 ? '' : 's'} pendente${quotes.filter(quote => quote.status === 'pending').length === 1 ? '' : 's'} de acompanhamento`}
+        description="A WIA pode organizar propostas pendentes e preparar mensagens de acompanhamento. Nenhum envio acontece sem a regra de autonomia definida."
+        actions={['acompanhar status', 'preparar mensagem', 'respeitar opt-out']}
         onPrimaryAction={onCreateQuoteClick}
         primaryLabel="Novo orçamento"
       />
