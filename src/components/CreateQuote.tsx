@@ -426,8 +426,9 @@ export default function CreateQuote({
 
                 {/* Autocomplete sugestão de clientes */}
                 <div className="relative">
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Nome do Cliente *</label>
+                  <label htmlFor="quote-client-name" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Nome do Cliente *</label>
                   <input
+                    id="quote-client-name"
                     type="text"
                     value={clientName}
                     onChange={(e) => {
@@ -471,10 +472,11 @@ export default function CreateQuote({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">WhatsApp / Celular *</label>
+                    <label htmlFor="quote-client-phone" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">WhatsApp / Celular *</label>
                     <div className="relative">
                       <Phone className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
                       <input
+                        id="quote-client-phone"
                         type="text"
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
@@ -486,10 +488,11 @@ export default function CreateQuote({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">E-mail do Cliente</label>
+                    <label htmlFor="quote-client-email" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">E-mail do Cliente</label>
                     <div className="relative">
                       <Mail className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
                       <input
+                        id="quote-client-email"
                         type="email"
                         value={clientEmail}
                         onChange={(e) => setClientEmail(e.target.value)}
@@ -502,10 +505,11 @@ export default function CreateQuote({
 
                 <div className="grid grid-cols-1 gap-6">
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Projeto / Escopo de Serviço</label>
+                    <label htmlFor="quote-client-scope" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Projeto / Escopo de Serviço</label>
                     <div className="relative">
                       <Briefcase className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
                       <input
+                        id="quote-client-scope"
                         type="text"
                         value={clientVehicleOrService}
                         onChange={(e) => setClientVehicleOrService(e.target.value)}
@@ -517,10 +521,11 @@ export default function CreateQuote({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Observações Adicionais (Aparece no Orçamento)</label>
+                  <label htmlFor="quote-client-notes" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Observações Adicionais (Aparece no Orçamento)</label>
                   <div className="relative">
                     <FileText className="w-5 h-5 absolute left-4 top-4 text-zinc-400" />
                     <textarea
+                      id="quote-client-notes"
                       rows={3}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
@@ -785,8 +790,9 @@ export default function CreateQuote({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Instruções de Pagamento / Cobrança</label>
+                  <label htmlFor="quote-payment-instructions" className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Instruções de Pagamento / Cobrança</label>
                   <textarea
+                    id="quote-payment-instructions"
                     rows={4}
                     value={paymentInstructions}
                     onChange={(e) => setPaymentInstructions(e.target.value)}

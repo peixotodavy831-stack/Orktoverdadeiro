@@ -395,6 +395,7 @@ export default function QuotesPage({
             <Search className="w-4 h-4 text-zinc-400 dark:text-zinc-550 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Buscar orçamentos"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar orçamento por cliente, escopo ou número..."

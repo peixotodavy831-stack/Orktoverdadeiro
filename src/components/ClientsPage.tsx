@@ -679,6 +679,7 @@ export default function ClientsPage({
         <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
         <input
           type="text"
+          aria-label="Buscar clientes"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar cliente por nome, telefone ou área de projeto..."
@@ -693,8 +694,8 @@ export default function ClientsPage({
             <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
               <Users className="w-8 h-8 text-zinc-300 dark:text-zinc-650" />
             </div>
-            <p className="text-zinc-500 dark:text-zinc-400 font-bold mb-2">Sem Clientes Cadastrados</p>
-            <p className="text-zinc-400 text-xs max-w-sm mx-auto mb-6">Cadastre novos clientes clicando no botão acima ou eles serão adicionados automaticamente ao criar orçamentos.</p>
+            <p className="text-zinc-500 dark:text-zinc-400 font-bold mb-2">{clients.length > 0 ? 'Nenhum cliente encontrado' : 'Sem clientes cadastrados'}</p>
+            <p className="text-zinc-400 text-xs max-w-sm mx-auto mb-6">{clients.length > 0 ? 'Ajuste o termo de busca para encontrar outro cliente.' : 'Cadastre um cliente pelo botão acima ou ao criar um orçamento.'}</p>
           </div>
         ) : (
           <div className="w-full">

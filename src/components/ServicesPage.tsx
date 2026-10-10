@@ -179,6 +179,7 @@ export default function ServicesPage({
             <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Buscar serviços no catálogo"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar serviço no catálogo pelo nome ou detalhes..."
