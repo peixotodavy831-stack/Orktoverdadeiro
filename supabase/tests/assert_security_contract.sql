@@ -1,5 +1,18 @@
--- Run after candidate 18 on a disposable PostgreSQL 17 database only.
+-- Run after the current migration target on a disposable PostgreSQL 17 database only.
 -- The caller supplies --single-transaction so fixture writes are rolled back.
+do $$
+declare definition text;
+begin
+  definition := pg_get_functiondef('public.orkto_publish_live_quote_command(uuid,uuid,uuid,text,text,uuid,text)'::regprocedure);
+  if position('''live_quote.created'',''human''' in definition)=0 then
+    raise exception 'Live Quote publication audit actor must match the human actor constraint';
+  end if;
+  if has_function_privilege('anon','public.orkto_publish_live_quote_command(uuid,uuid,uuid,text,text,uuid,text)','EXECUTE')
+     or has_function_privilege('authenticated','public.orkto_publish_live_quote_command(uuid,uuid,uuid,text,text,uuid,text)','EXECUTE') then
+    raise exception 'Live Quote publication bypass grant';
+  end if;
+end $$;
+
 do $$
 declare
   t record;
