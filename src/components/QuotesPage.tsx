@@ -504,6 +504,8 @@ export default function QuotesPage({
                       <div className="relative">
                         <button
                           type="button"
+                          aria-label={`Mais ações do orçamento ${quote.quoteNumber}`}
+                          aria-expanded={activeDropdownId === quote.id}
                           onClick={() => setActiveDropdownId(activeDropdownId === quote.id ? null : quote.id)}
                           className="p-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all"
                         >
@@ -671,6 +673,8 @@ export default function QuotesPage({
                           <div className="relative">
                             <button
                               type="button"
+                              aria-label={`Mais ações do orçamento ${quote.quoteNumber}`}
+                              aria-expanded={activeDropdownId === quote.id}
                               onClick={() => setActiveDropdownId(activeDropdownId === quote.id ? null : quote.id)}
                               className="p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all"
                             >

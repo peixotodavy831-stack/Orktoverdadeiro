@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Timestamp } from './types';
 import {
   Zap,
@@ -176,6 +176,27 @@ export default function App() {
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const activeUserIdRef = useRef<string | null>(null);
+  const dataRequestIdRef = useRef(0);
+
+  const setAuthIdentity = (nextUserId: string | null) => {
+    if (activeUserIdRef.current === nextUserId) return;
+    activeUserIdRef.current = nextUserId;
+    dataRequestIdRef.current += 1;
+    setUserProfile(null);
+    setUserDataLoading(Boolean(nextUserId));
+    setUserDataError(null);
+    setQuotes([]);
+    setClients([]);
+    setServices([]);
+    setConversations([]);
+    setApprovalTasks([]);
+    setSelectedConversationId(null);
+    setSelectedClientId(null);
+    setSelectedDealId(null);
+    setSelectedQuoteId(null);
+    localStorage.removeItem('orkto_profile');
+  };
 
   // Listen for Supabase auth state changes on mount
   useEffect(() => {
@@ -183,6 +204,7 @@ export default function App() {
       .then(({ data: { session } }) => {
         if (session?.user) {
           const u = session.user;
+          setAuthIdentity(u.id);
           setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
           setAccessToken(session.access_token);
           setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
@@ -195,13 +217,14 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const u = session.user;
+        setAuthIdentity(u.id);
         setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
         setAccessToken(session.access_token);
         setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
         loadUserProfile(u.id, u);
       } else {
+        setAuthIdentity(null);
         setUser(null);
-        setUserProfile(null);
         setAccessToken(null);
       }
     });
@@ -211,6 +234,7 @@ export default function App() {
 
   const loadUserProfile = async (uid: string, authUser?: any) => {
     const { data } = await supabase.from('profiles').select('id, display_name, email, photo_url, created_at, onboarding_completed, company_name, tax_id, company_logo, whatsapp_number, whatsapp_template, payment_info, quote_color, address, profession, brand_name, brand_tone, active_plan, plan_period, is_founder').eq('id', uid).maybeSingle();
+    if (activeUserIdRef.current !== uid) return;
     if (data) {
       const profile: UserProfile = {
         uid: data.id,
@@ -249,10 +273,14 @@ export default function App() {
         activePlan: 'free',
       };
       setUserProfile(defaultProfile);
+      setUserDataLoading(false);
     }
   };
 
   const loadUserData = async (uid: string) => {
+    if (activeUserIdRef.current !== uid) return;
+    const requestId = ++dataRequestIdRef.current;
+    const isCurrentRequest = () => activeUserIdRef.current === uid && dataRequestIdRef.current === requestId;
     setUserDataLoading(true);
     setUserDataError(null);
     try {
@@ -283,6 +311,7 @@ export default function App() {
               fetchTablePages('clients'),
               fetchTablePages('services'),
             ]);
+            if (!isCurrentRequest()) return;
 
             const mappedQuotes: Quote[] = quotesRes.map(mapApiQuote);
             setQuotes(mappedQuotes);
@@ -294,33 +323,38 @@ export default function App() {
             setServices(mappedServices);
 
             // Load conversations for swarm features
-            await loadConversations(uid);
+            await loadConversations(uid, isCurrentRequest);
           } catch (err) {
+            if (!isCurrentRequest()) return;
             console.error('Error loading user data:', err);
             setUserDataError(err instanceof Error ? err.message : 'Não foi possível carregar os dados do workspace.');
           } finally {
-            setUserDataLoading(false);
+            if (isCurrentRequest()) setUserDataLoading(false);
           }
         };
 
         // Load conversations and approval tasks for swarm features
-        const loadConversations = async (uid: string) => {
+        const loadConversations = async (uid: string, isCurrentRequest: () => boolean) => {
           try {
             const token = (await supabase.auth.getSession()).data.session?.access_token;
             const authHeaders: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
 
             // Fetch conversations
             const convRes = await fetch('/api/priority/inbox', { headers: authHeaders });
+            if (!isCurrentRequest()) return;
             if (convRes.ok) {
               const payload = await convRes.json();
+              if (!isCurrentRequest()) return;
               const data = Array.isArray(payload) ? payload : payload.data;
               if (Array.isArray(data)) setConversations(data);
             }
 
             // Fetch approval tasks
             const aptRes = await fetch('/api/approval-tasks', { headers: authHeaders });
+            if (!isCurrentRequest()) return;
             if (aptRes.ok) {
               const data = await aptRes.json();
+              if (!isCurrentRequest()) return;
               setApprovalTasks(data);
             }
           } catch (err) {
@@ -398,8 +432,8 @@ export default function App() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      setAuthIdentity(null);
       setUser(null);
-      setUserProfile(null);
       setAccessToken(null);
       setCurrentView('landing');
     } catch {
@@ -1499,6 +1533,7 @@ export default function App() {
               >
                 <Suspense fallback={<PageFallback />}>
                   <TodayV2Page
+                    key={user?.uid}
                     user={user}
                     userProfile={userProfile}
                     quotes={quotes}
