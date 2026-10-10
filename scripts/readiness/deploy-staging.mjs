@@ -137,12 +137,10 @@ function main() {
   const defaultConfig = JSON.parse(readFileSync(path.join(repoRoot, 'vercel.json'), 'utf8'));
   const stagingConfig = JSON.parse(readFileSync(path.join(repoRoot, 'vercel.staging.json'), 'utf8'));
   const productionConfig = JSON.parse(readFileSync(path.join(repoRoot, 'vercel.production.json'), 'utf8'));
-  const { crons, buildCommand: productionBuildCommand, ...withoutCronsAndBuildCommand } = productionConfig;
-  const { buildCommand: stagingBuildCommand, ...withoutStagingBuildCommand } = defaultConfig;
+  const { crons, ...withoutCrons } = productionConfig;
   if (!Array.isArray(crons) || crons.length !== 1
-    || productionBuildCommand !== 'vite build'
-    || stagingBuildCommand !== 'vite build && node scripts/render-public-url.mjs'
-    || JSON.stringify(withoutStagingBuildCommand) !== JSON.stringify(withoutCronsAndBuildCommand)
+    || defaultConfig.buildCommand !== 'vite build && node scripts/render-public-url.mjs'
+    || JSON.stringify(defaultConfig) !== JSON.stringify(withoutCrons)
     || JSON.stringify(stagingConfig) !== JSON.stringify(defaultConfig)) {
     process.stderr.write('STAGING_DEPLOY_ABORT: STAGING_CONFIG_DRIFT\n');
     process.exitCode = 2;
