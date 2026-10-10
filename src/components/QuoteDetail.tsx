@@ -245,7 +245,7 @@ export default function QuoteDetail({
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
       <section className="mb-5 rounded-xl border border-orange-300 bg-orange-50 p-4 text-zinc-900 dark:bg-zinc-900 dark:text-white">
-        <p>{expiresAt ? `Exclusão programada: ${new Date(expiresAt).toLocaleString('pt-BR')}. Baixe seu orçamento antes dessa data.` : 'Ao gerar o link de envio, começa o prazo de 14 dias. Depois o orçamento e seus dados serão excluídos.'}</p>
+        <p>{expiresAt ? `Exclusão programada: ${new Date(expiresAt).toLocaleString('pt-BR')}. Baixe seu orçamento antes dessa data.` : 'Ao gerar o link da proposta, começa o prazo de 14 dias. Depois o orçamento e seus dados serão excluídos.'}</p>
         {expiresAt && new Date(expiresAt).getTime() - Date.now() < 3 * 86400000 && <p role="alert" className="font-bold">Atenção: faltam menos de 3 dias para a exclusão.</p>}
         <button onClick={extendDeadline} disabled={!canExtend || !expiresAt || extending || new Date(expiresAt).getTime() <= Date.now()} className="mt-3 rounded-lg bg-orange-500 px-4 py-2 text-black disabled:opacity-50">{extending ? 'Prorrogando...' : canExtend ? 'Prorrogar por 14 dias' : 'Prorrogação: Pro ou Business'}</button>
       </section>
@@ -459,7 +459,7 @@ export default function QuoteDetail({
           <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-3xl text-white space-y-4">
             <h3 className="text-sm font-bold font-display uppercase tracking-widest text-zinc-400">Enviar para o Cliente</h3>
             <p className="text-xs text-zinc-500 leading-relaxed">
-              Gere o link para enviar via WhatsApp. O primeiro envio inicia os 14 dias de disponibilidade.
+              Gere o link para compartilhar via WhatsApp. A geração do link inicia os 14 dias de disponibilidade; o compartilhamento não é confirmado automaticamente.
             </p>
 
             {!proposalLink ? (

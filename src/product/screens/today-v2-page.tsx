@@ -168,7 +168,7 @@ export default function TodayV2Page({
             </article>;
           })}
           {pendingQuotes.slice(0, 3).map(quote => <article key={quote.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted"><Clock3 size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">Proposta aguardando resposta</h3><StatusBadge tone="attention">Pendente</StatusBadge></div><p className="mt-1 text-[13px] orkto-product-muted">{quote.clientName || 'Cliente sem nome'} · #{quote.quoteNumber}</p></div></div>
+            <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted"><Clock3 size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">Proposta pendente de acompanhamento</h3><StatusBadge tone="attention">Pendente</StatusBadge></div><p className="mt-1 text-[13px] orkto-product-muted">{quote.clientName || 'Cliente sem nome'} · #{quote.quoteNumber}</p></div></div>
             <button type="button" onClick={() => onSelectQuote(quote.id)} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Abrir proposta <ArrowRight size={15} /></button>
           </article>)}
         </div>

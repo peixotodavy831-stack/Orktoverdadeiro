@@ -285,7 +285,7 @@ export default function QuotesPage({
 
   return (
     <div className="space-y-8 select-none">
-      <p className="rounded-xl border border-orange-300 p-4 text-sm text-orange-700 dark:text-orange-300">Os orçamentos são excluídos 14 dias após o primeiro envio. Abra cada orçamento para baixar os dados ou prorrogar no Pro e Business.</p>
+      <p className="rounded-xl border border-orange-300 p-4 text-sm text-orange-700 dark:text-orange-300">Os orçamentos são excluídos 14 dias após a geração do link. Abra cada orçamento para baixar os dados ou prorrogar no Pro e Business.</p>
       {quotes.some(q => q.retentionExpiresAt && new Date(q.retentionExpiresAt).getTime() - Date.now() < 3 * 86400000) && <p role="alert" className="font-bold text-orange-600">Há orçamentos com exclusão prevista nos próximos 3 dias. Baixe os arquivos para guardá-los.</p>}
       {/* Header section with top stats and new button */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-850/80">
@@ -299,7 +299,7 @@ export default function QuotesPage({
             </h1>
           </div>
           <p className="text-xs text-zinc-400">
-            Acompanhe o funil comercial de suas propostas, links digitais enviados e as taxas de fechamento em tempo real.
+            Acompanhe o funil comercial de suas propostas, links digitais registrados e as taxas de fechamento em tempo real.
           </p>
         </div>
 
@@ -365,7 +365,7 @@ export default function QuotesPage({
           <div className="mt-3.5">
             <span className="text-2xl font-black text-zinc-900 dark:text-white font-mono">{pendingCount}</span>
             <div className="text-[10px] text-zinc-550 dark:text-zinc-400 mt-1 flex items-center gap-1">
-              <span>Pendente de retorno comercial</span>
+              <span>Aguardam acompanhamento comercial</span>
             </div>
           </div>
         </div>
