@@ -2,7 +2,7 @@
 
 > Sistema brasileiro de orçamentos online para autônomos, MEIs, prestadores de serviço e pequenas empresas.
 
-Site oficial: https://orktoverdadeiro-production.up.railway.app/
+Site oficial: __ORKTO_PUBLIC_ORIGIN__/
 Idioma: português do Brasil
 Contato: ola@orkto.co
 
@@ -21,11 +21,11 @@ Autônomos, MEIs, oficinas, mecânicos, eletricistas, pintores, designers, advog
 
 ## Páginas públicas
 
-- Início e demonstração: https://orktoverdadeiro-production.up.railway.app/
-- Termos: https://orktoverdadeiro-production.up.railway.app/termos.html
-- Privacidade: https://orktoverdadeiro-production.up.railway.app/privacidade.html
-- Como criar um orçamento online: https://orktoverdadeiro-production.up.railway.app/guias/orcamento-online.html
-- Como enviar orçamento pelo WhatsApp: https://orktoverdadeiro-production.up.railway.app/guias/orcamento-pelo-whatsapp.html
-- Orçamento para MEI e autônomo: https://orktoverdadeiro-production.up.railway.app/guias/orcamento-para-mei.html
+- Início e demonstração: __ORKTO_PUBLIC_ORIGIN__/
+- Termos: __ORKTO_PUBLIC_ORIGIN__/termos.html
+- Privacidade: __ORKTO_PUBLIC_ORIGIN__/privacidade.html
+- Como criar um orçamento online: __ORKTO_PUBLIC_ORIGIN__/guias/orcamento-online.html
+- Como enviar orçamento pelo WhatsApp: __ORKTO_PUBLIC_ORIGIN__/guias/orcamento-pelo-whatsapp.html
+- Orçamento para MEI e autônomo: __ORKTO_PUBLIC_ORIGIN__/guias/orcamento-para-mei.html
 
 Informações de contas, clientes e propostas são privadas e não devem ser indexadas.

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://orktoverdadeiro-production.up.railway.app/sitemap.xml
+Sitemap: __ORKTO_PUBLIC_ORIGIN__/sitemap.xml

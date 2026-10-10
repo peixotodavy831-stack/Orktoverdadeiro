@@ -120,6 +120,7 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   const stagingConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.staging.json',import.meta.url)),'utf8'));
   const productionConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.production.json',import.meta.url)),'utf8'));
   assert.deepEqual(defaultConfig,stagingConfig);
+  assert.equal(stagingConfig.buildCommand,'vite build && node scripts/render-public-url.mjs');
   assert.equal(defaultConfig.crons,undefined);
   assert.deepEqual(productionConfig.crons,[{path:'/api/cron/automation-dispatch',schedule:'15 * * * *'}]);
 });
