@@ -26,6 +26,8 @@ $$;
 
 revoke all on function public.orkto_provision_profile_for_auth_user()
   from public, anon, authenticated;
+grant execute on function public.orkto_provision_profile_for_auth_user()
+  to service_role;
 
 drop trigger if exists orkto_auth_provision_profile on auth.users;
 create trigger orkto_auth_provision_profile
