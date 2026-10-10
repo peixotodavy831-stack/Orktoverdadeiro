@@ -29,6 +29,7 @@ import { Quote, QuoteItem, SavedClient, SavedService, UserProfile, Timestamp } f
 import { formatCurrency, formatBRL, formatPhone, getCleanPhoneForWhatsApp } from '../utils/format';
 import { improveQuoteCopy, QuoteTone } from '../lib/localCopywriter';
 import { supabase } from '../lib/supabase';
+import { completeQuotePublication, pendingQuotePublicationKey } from '../lib/quote-publication-key';
 
 interface CreateQuoteProps {
   userProfile: UserProfile | null;
@@ -366,11 +367,11 @@ export default function CreateQuote({
           const token = (await supabase.auth.getSession()).data.session?.access_token;
           const response = await fetch('/api/proposal/generate', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            headers: { 'Content-Type': 'application/json', 'x-idempotency-key': pendingQuotePublicationKey(persistedQuote.id), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
             body: JSON.stringify({ quoteId: persistedQuote.id }),
           });
           const result = await response.json();
-          if (response.ok && result.link) setProposalLink(result.link);
+          if (response.ok && result.link) { completeQuotePublication(persistedQuote.id); setProposalLink(result.link); }
         } catch (linkError) {
           console.warn('Orçamento salvo, mas o link seguro não pôde ser gerado:', linkError);
         }
@@ -390,9 +391,7 @@ export default function CreateQuote({
 
   // Share text builder
   const getWhatsAppLink = () => {
-    if (!createdQuote) return '';
-    const origin = window.location.origin;
-    const viewLink = proposalLink || origin;
+    if (!createdQuote || !proposalLink) return '';
     
     // Custom template replace
     let text = userProfile?.whatsappTemplate || 
@@ -401,7 +400,7 @@ export default function CreateQuote({
     text = text.replace('[CLIENT_NAME]', createdQuote.clientName);
     text = text.replace('[SERVICE_TYPE]', createdQuote.clientVehicleOrService || 'serviços');
     text = text.replace('[TOTAL]', formatBRL(createdQuote.total));
-    text = text.replace('[LINK]', viewLink);
+    text = text.replace('[LINK]', proposalLink);
 
     return `https://wa.me/${getCleanPhoneForWhatsApp(createdQuote.clientPhone)}?text=${encodeURIComponent(text)}`;
   };
@@ -422,7 +421,7 @@ export default function CreateQuote({
             {step === 4 ? 'Proposta Comercial Pronta!' : 'Criar Nova Proposta'}
           </h1>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {step === 4 ? 'Envie para o cliente agora e acelere o fechamento comercial' : `Passo ${step} de 3 - ${step === 1 ? 'Identificação do Cliente' : step === 2 ? 'Escopo & Proposta' : 'Envio & Condições Comercial'}`}
+            {step === 4 ? (proposalLink ? 'Link pronto para compartilhamento manual; entrega não confirmada' : 'Orçamento salvo; gere um link antes de compartilhar') : `Passo ${step} de 3 - ${step === 1 ? 'Identificação do Cliente' : step === 2 ? 'Escopo & Proposta' : 'Envio & Condições Comercial'}`}
           </p>
         </div>
         <button 
@@ -871,23 +870,28 @@ export default function CreateQuote({
 
                 <div className="bg-zinc-950 p-4 border border-zinc-800 rounded-2xl font-mono text-xs break-all space-y-2">
                   <p className="font-bold text-zinc-500 uppercase tracking-widest text-[9px] mb-2">LINK DO ORÇAMENTO PARA O CLIENTE</p>
-                  <p className="text-orange-400 select-all underline">{proposalLink || 'Link seguro disponível na tela de detalhes'}</p>
+                  <p className="text-orange-400 select-all underline">{proposalLink || 'Link não confirmado. Abra o orçamento para tentar novamente.'}</p>
                 </div>
 
                 <div className="space-y-3 pt-3">
-                  <a
+                  {proposalLink ? <a
                     href={getWhatsAppLink()}
                     target="_blank"
+                    rel="noopener noreferrer"
                     referrerPolicy="no-referrer"
                     className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-xl transition-all shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 active:scale-95"
                   >
                     <Send className="w-5 h-5" />
-                    Enviar pelo WhatsApp ao Cliente
-                  </a>
+                    Abrir WhatsApp com mensagem pronta
+                  </a> : <button type="button" disabled className="w-full py-4 bg-zinc-700 text-zinc-300 font-bold text-sm rounded-xl">
+                    Gere o link antes de compartilhar
+                  </button>}
 
                   <div className="grid grid-cols-3 gap-2">
                     <a
-                    href={proposalLink || '#'}
+                    href={proposalLink || undefined}
+                    aria-disabled={!proposalLink}
+                    onClick={event => { if (!proposalLink) event.preventDefault(); }}
                       target="_blank"
                       className="py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 font-bold text-[10px] sm:text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
                     >

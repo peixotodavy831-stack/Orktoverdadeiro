@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { completeQuotePublication, pendingQuotePublicationKey } from '../src/lib/quote-publication-key.js';
 
 test('a pending publication reuses its request key until confirmed', () => {
@@ -24,4 +26,12 @@ test('a pending publication reuses its request key until confirmed', () => {
     completeQuotePublication('quote-b');
     Object.defineProperty(globalThis, 'window', { configurable: true, value: previousWindow });
   }
+});
+
+test('quote creation cannot share an app URL when the proposal link is unconfirmed', async () => {
+  const source = await readFile(resolve('src/components/CreateQuote.tsx'), 'utf8');
+  assert.match(source, /'x-idempotency-key': pendingQuotePublicationKey\(persistedQuote\.id\)/);
+  assert.match(source, /if \(!createdQuote \|\| !proposalLink\) return '';/);
+  assert.doesNotMatch(source, /proposalLink \|\| origin/);
+  assert.match(source, /Gere o link antes de compartilhar/);
 });
