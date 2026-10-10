@@ -1,5 +1,22 @@
 # ORKTO Current State
 
+## Current release gate — 2026-10-10 (latest)
+
+Scope: `production-readiness/migration-replay-20260928`, runtime commit `3588a08f11c559eccb90fcb6473867ceb146e101`. Only staging Supabase `ghrjongiodziasupakrk` and staging Vercel project `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`) were changed or exercised. Production was not touched. This section supersedes older checkpoint claims below where they differ. `READY_FOR_PRODUCTION_CANDIDATE=NO`; no final snapshot was generated.
+
+| Gate | Status | Evidence and limit |
+| --- | --- | --- |
+| Staging schema | PASS | Authenticated read-only ledger listing returned 38 migrations, ending in `core_contact_mutation_gateway`. No migration was applied in this continuation. |
+| Browser A/B core traversal | PARTIAL PASS | Fresh synthetic A/B users logged into staging Preview. A used the product gateway to create Client, Contact, Catalog item, Deal, nonterminal Deal transition and Quote; B created Client and Contact. Each browser workspace displayed only its own records. A's Deal detail showed audit activity. This is a covered browser path, not the full adversarial mutation matrix. |
+| WIA and Inbox | PARTIAL PASS | A's WIA request returned `CONFIGURATION_REQUIRED` with the paid provider OFF. The Inbox showed an empty state and made no delivery claim. Approval/rejection, full WIA lifecycle and message receipt transitions were not exercised in this final browser pass. |
+| Proposal delivery semantics | PASS for inspected UI; full action path PENDING | An unsent synthetic Quote on the staging Preview had no registered link, view or decision. The UI distinguishes link registration from delivery. On the final immutable Preview, the pending summary and WIA card no longer imply a customer response. The printable label was corrected in source/build but the browser print output was not exercised. No external message was sent. |
+| Latest local regression | PASS | At `3588a08`, `npm run test:all` passed 176 TypeScript tests and 28 readiness tests with loopback access; `npm run lint` passed; `npm run readiness:build` passed isolated frontend, server bundle and smoke; `git diff --check` passed with only line-ending warnings; secret scan covered 384 files with zero findings/blockers/reviews. An initial sandboxed test attempt failed on localhost `fetch failed`; the complete rerun outside that restriction passed. |
+| Preview | PASS for identity, readiness and inspected browser path | `dpl_8kyeHadX4EKBswF8jsvjXWqLrg8o` is READY from exact SHA `3588a08` in staging project with `target=null`. `/api/health` and `/api/ready` returned 200 and `environment=staging`; A authenticated and saw the corrected proposal summary. The production Vercel project returned zero deployments for this SHA. The full E2E matrix remains pending. |
+| Security release checkpoint | BLOCKED | The latest code change is UI language only. The earlier focused review found no confirmed Critical/High in its reviewed delta, but no sealed full release scan exists. Supabase leaked-password protection remains disabled on the current plan. Complete mutation matrix, browser E2E and final security decision remain open. |
+| Final snapshot | NOT RUN | Blocked by open release gates. |
+
+Core release blockers remain full authenticated E2E and mutation-matrix coverage plus the final security checkpoint, including the platform leaked-password-protection decision. Preview success alone is not Production Candidate evidence.
+
 ## Current release gate — 2026-10-09 18:49 BRT (authoritative)
 
 Scope: branch `production-readiness/migration-replay-20260928`, runtime commit `5e49e741248eb5bf486941d1a5e9cf7ad29d8011` followed only by this canonical state update, Supabase staging `ghrjongiodziasupakrk` and Vercel project `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`) only. Production was not changed. `READY_FOR_PRODUCTION_CANDIDATE=NO` and `SNAPSHOT_ELIGIBLE=NO`.

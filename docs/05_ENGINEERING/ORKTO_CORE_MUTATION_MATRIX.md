@@ -2,6 +2,8 @@
 
 ## Current matrix delta — 2026-10-09
 
+2026-10-10 browser addendum: on an authenticated staging Preview, synthetic A created Client, Contact, Catalog item, Deal, nonterminal Deal transition and Quote through the product routes; synthetic B created Client and Contact in its own workspace. A/B UI reads stayed separated. The final immutable Preview at `3588a08` reverified A authentication, proposal summary and readiness after copy-only changes. This narrows the Contacts browser gap, but does not prove the remaining terminal/public proposal, Inbox approval, WIA execution and full adversarial write matrix. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
 Staging has **38/38** migrations. `orkto-core-mutations` v20 and `orkto-public-proposals` v1 are active. The shared `CoreMutationClient` is used across development, staging and production configurations; an unavailable/mismatched gateway fails closed. The latest real Preview A/B run is for an older commit and must be repeated for `2e593a5`. PostgreSQL 17 CI `37977950323` passed both replay paths. Rows below dated before this delta are historical when they disagree with the table here.
 
 | Domain / action | Current write path | Evidence | Release state |
