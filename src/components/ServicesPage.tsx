@@ -282,20 +282,24 @@ export default function ServicesPage({
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={() => setIsAddOpen(false)} />
             <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="service-model-dialog-title"
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
               className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden outline-none"
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold font-display text-zinc-900 dark:text-white">Cadastrar Modelo</h3>
-                <button onClick={() => setIsAddOpen(false)} className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-450"><X className="w-5 h-5" /></button>
+                <h3 id="service-model-dialog-title" className="text-xl font-bold font-display text-zinc-900 dark:text-white">Cadastrar Modelo</h3>
+                <button type="button" aria-label="Fechar cadastro de modelo" onClick={() => setIsAddOpen(false)} className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-450"><X className="w-5 h-5" /></button>
               </div>
 
               <form onSubmit={handleCreateService} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Nome do Serviço / Item *</label>
+                  <label htmlFor="service-model-name" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Nome do Serviço / Item *</label>
                   <input
+                    id="service-model-name"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -306,8 +310,9 @@ export default function ServicesPage({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Descrição / Marca Modelo</label>
+                  <label htmlFor="service-model-description" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Descrição / Marca Modelo</label>
                   <input
+                    id="service-model-description"
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -318,8 +323,9 @@ export default function ServicesPage({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Categoria *</label>
+                    <label htmlFor="service-model-category" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Categoria *</label>
                     <select
+                      id="service-model-category"
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
                       className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:outline-none"
@@ -331,8 +337,9 @@ export default function ServicesPage({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Preço Base (R$) *</label>
+                    <label htmlFor="service-model-price" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Preço Base (R$) *</label>
                     <input
+                      id="service-model-price"
                       type="number"
                       step="0.01"
                       min="0"

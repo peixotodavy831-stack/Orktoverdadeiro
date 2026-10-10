@@ -203,6 +203,20 @@ end $$;
 insert into auth.users(id,email) values
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee','no-membership@example.test')
   on conflict(id) do nothing;
+-- A fresh Auth identity must receive only its own profile and owner workspace.
+do $$ begin
+  if not exists(select 1 from public.profiles where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee')
+    or not exists(select 1 from public.orkto_workspace_members
+      where workspace_id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
+        and user_id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'
+        and role='owner' and status='active') then
+    raise exception 'Auth signup did not provision its profile and personal workspace';
+  end if;
+end $$;
+-- Keep the pre-existing no-membership isolation assertion meaningful.
+delete from public.orkto_workspace_members where user_id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+delete from public.orkto_workspaces where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+delete from public.profiles where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
 set role authenticated;
 select set_config('request.jwt.claim.sub','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',false);
 do $$ begin

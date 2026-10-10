@@ -136,6 +136,7 @@ export default function QuoteDetail({
   const generateProposalLink = async () => {
     try {
       setProposalLoading(true);
+      setWriteError('');
       const token = (await supabase.auth.getSession()).data.session?.access_token;
       const res = await fetch('/api/proposal/generate', {
         method: 'POST',
@@ -145,7 +146,9 @@ export default function QuoteDetail({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erro ao gerar link');
       if (data.success) { completeQuotePublication(quote.id); setProposalLink(data.link); setExpiresAt(data.expiresAt); }
-    } catch { alert('Erro ao gerar link'); } finally { setProposalLoading(false); }
+    } catch (error) {
+      setWriteError(error instanceof Error ? error.message : 'Não foi possível gerar o link da proposta.');
+    } finally { setProposalLoading(false); }
   };
 
   const copyProposalLink = () => {

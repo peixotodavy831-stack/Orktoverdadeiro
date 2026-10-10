@@ -752,6 +752,7 @@ export default function CreateQuote({
                   <div>
                     <label className="block text-xs font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Validade do Orçamento (Dias) *</label>
                     <select
+                      aria-label="Validade do Orçamento (Dias)"
                       value={validValueDays}
                       onChange={(e) => setValidValueDays(parseInt(e.target.value) || 10)}
                       className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/35"
@@ -770,6 +771,7 @@ export default function CreateQuote({
                     <div className="relative">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 text-xs font-bold font-mono">R$</span>
                       <input
+                        aria-label="Ajustes / Taxa Extra (Opcional)"
                         type="number"
                         min="0"
                         step="0.01"
