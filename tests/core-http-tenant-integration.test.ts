@@ -593,8 +593,11 @@ before(async () => {
         const snapshot={clientName:quote.client_name,company:quote.client_company,request:quote.client_vehicle_or_service,
           items:structuredClone(quote.items),subtotal:quote.subtotal,discountTotal:quote.discount_total,taxes:quote.taxes,total:quote.total,
           notes:quote.notes,paymentInstructions:quote.payment_instructions,validUntil};
-        const row={id:randomUUID(),workspace_id:workspaceId,quote_ref:quote.id,version,snapshot,current_price_cents:Math.round(Number(quote.total)*100),status:'active',valid_until:validUntil,created_by:user.id,_test_token:token};
-        database.rows('orkto_live_quotes').push(row);audit('live_quote.published','quote',quote.id);
+        const createdAt=new Date().toISOString();
+        const row={id:randomUUID(),workspace_id:workspaceId,quote_ref:quote.id,version,snapshot,current_price_cents:Math.round(Number(quote.total)*100),status:'active',valid_until:validUntil,created_by:user.id,created_at:createdAt,_test_token:token};
+        database.rows('orkto_live_quotes').push(row);
+        database.rows('orkto_live_quote_events').push({id:randomUUID(),workspace_id:workspaceId,live_quote_id:row.id,event_type:'created',occurred_at:createdAt});
+        audit('live_quote.published','quote',quote.id);
         return ok({result:'CREATED',live_quote:row,token,publicPath:`/proposta-viva/${token}`});
       }
       if (request.command === 'EXTEND_QUOTE_RETENTION') {
@@ -729,17 +732,21 @@ before(async () => {
       if(stale&&!['accepted','rejected'].includes(link.status)){link.status='revoked';return Response.json({code:'STALE'},{status:409});}
       if(request.command==='READ'||request.command==='VIEW'){
         if(link.status==='active') link.status='viewed';
+        if(!database.rows('orkto_live_quote_events').some(row=>row.live_quote_id===link.id&&row.event_type==='viewed'))
+          database.rows('orkto_live_quote_events').push({id:randomUUID(),workspace_id:link.workspace_id,live_quote_id:link.id,event_type:'viewed',occurred_at:new Date().toISOString()});
         return Response.json({data:{result:'OK',proposal:{id:link.id,version:link.version,snapshot:link.snapshot,status:link.status,validUntil:link.valid_until}}});
       }
       if(request.command==='ACCEPT'){
         if(link.status==='accepted') return Response.json({data:{result:'REPLAY',status:'accepted'}});
         if(link.status==='rejected'||['approved','accepted','rejected'].includes(quote.status)) return Response.json({code:'CONFLICT'},{status:409});
-        quote.status='approved';link.status='accepted';link.accepted_by_name=request.customerName;
+        quote.status='approved';link.status='accepted';link.accepted_by_name=request.customerName;link.accepted_at=new Date().toISOString();
       }else if(request.command==='REJECT'){
         if(link.status==='rejected') return Response.json({data:{result:'REPLAY',status:'rejected'}});
         if(link.status==='accepted'||['approved','accepted'].includes(quote.status)) return Response.json({code:'CONFLICT'},{status:409});
         quote.status='rejected';link.status='rejected';
       }else return Response.json({code:'VALIDATION_FAILED'},{status:400});
+      if(!database.rows('orkto_live_quote_events').some(row=>row.live_quote_id===link.id&&row.event_type===link.status))
+        database.rows('orkto_live_quote_events').push({id:randomUUID(),workspace_id:link.workspace_id,live_quote_id:link.id,event_type:link.status,occurred_at:new Date().toISOString()});
       for(const job of database.rows('orkto_automation_jobs').filter(row=>row.workspace_id===link.workspace_id&&row.entity_ref===link.quote_ref&&['scheduled','processing'].includes(row.status))) job.status='cancelled';
       for(const action of database.rows('orkto_wia_actions').filter(row=>row.workspace_id===link.workspace_id&&row.payload?.quoteId===link.quote_ref&&['prepared','awaiting_approval','executing'].includes(row.status))) action.status='cancelled';
       database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:link.workspace_id,user_id:link.created_by,event_type:`live_quote.${link.status}`,actor_type:'system',actor_id:'public_link'});
@@ -1184,6 +1191,20 @@ test('core HTTP flow persists client, deal, catalog-priced proposal, inbox, WIA 
   assert.equal(publicProposal.snapshot.total, quote.total);
   assert.equal(publicProposal.workspace_id, undefined);
   assert.equal(publicProposal.quote_ref, undefined);
+  const lifecycleResponse = await api(base,CLIENT_TOKEN_A,'/api/quotes/list');
+  assert.equal(lifecycleResponse.status,200);
+  const lifecycleRows = await lifecycleResponse.json() as Row[];
+  const linkedQuote = lifecycleRows.find(row=>row.id===quote.id);
+  assert.equal((linkedQuote?.live_quote as Row)?.status,'viewed','owner quote list must use the public link lifecycle, not legacy sent/viewed columns');
+  assert.equal((linkedQuote?.live_quote as Row)?.version,2);
+  assert.ok((linkedQuote?.live_quote as Row)?.created_at);
+  assert.ok((linkedQuote?.live_quote as Row)?.viewed_at);
+  assert.equal(Object.hasOwn(linkedQuote?.live_quote || {},'public_token_hash'),false,'lifecycle summary must not expose bearer-token material');
+  const lifecycleDetailResponse = await api(base,CLIENT_TOKEN_A,`/api/quotes/detail/${quote.id}`);
+  assert.equal(lifecycleDetailResponse.status,200);
+  const lifecycleDetail = await lifecycleDetailResponse.json() as Row;
+  assert.equal((lifecycleDetail.live_quote as Row)?.status,'viewed','quote detail must use the same persisted lifecycle summary');
+  assert.deepEqual(await (await api(base,CLIENT_TOKEN_B,'/api/quotes/list')).json(),[],'lifecycle summaries remain workspace-scoped');
   assert.equal((await api(base, '', '/api/public/live-quotes/not-a-valid-bearer-token')).status, 404);
   assert.equal((await api(base, CLIENT_TOKEN_A, '/api/proposal/Legacy01')).status, 410, 'legacy links fail closed and cannot mutate proposal state');
   assert.equal(database.rows('proposals').filter(row => row.quote_id === quote.id).length, 0);
@@ -1760,6 +1781,11 @@ test('advanced scheduler gates, cadence cancellation, repurchase threshold and l
   assert.equal(reject.status,200);
   assert.equal(database.rows('orkto_live_quotes').find(row => row.id === liveBody.data.id)?.status,'rejected');
   assert.equal(database.rows('quotes').find(row => row.id === liveQuoteId)?.status,'rejected');
+  const rejectedLifecycleResponse = await api(base,CLIENT_TOKEN_A,'/api/quotes/list');
+  const rejectedLifecycleRows = await rejectedLifecycleResponse.json() as Row[];
+  const rejectedQuote = rejectedLifecycleRows.find(row=>row.id===liveQuoteId);
+  assert.equal((rejectedQuote?.live_quote as Row)?.status,'rejected');
+  assert.ok((rejectedQuote?.live_quote as Row)?.rejected_at);
   assert.ok(database.rows('orkto_automation_jobs').find(job => job.entity_ref === liveQuoteId)?.status === 'cancelled');
   assert.ok(database.rows('orkto_wia_actions').find(action => action.action_type === 'send_proposal_followup' && action.payload.quoteId === liveQuoteId)?.status === 'cancelled');
   assert.equal(database.rows('orkto_messages').filter(row => row.direction === 'outgoing').length,0,'cadence and public status changes never fake a channel send');

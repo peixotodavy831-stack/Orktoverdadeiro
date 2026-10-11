@@ -59,6 +59,11 @@ export default function QuoteDetail({
   const [liveQuoteLink, setLiveQuoteLink] = useState('');
   const [liveQuoteLoading, setLiveQuoteLoading] = useState(false);
   const canExtend = ['pro', 'business'].includes(userProfile?.activePlan || 'free');
+  const liveQuoteStatusLabel = quote.liveQuote ? ({
+    active: 'ativo', viewed: 'visualizado', accepted: 'aceito',
+    rejected: 'recusado', expired: 'expirado', revoked: 'revogado',
+  } as const)[quote.liveQuote.status] : null;
+  const liveQuoteViewedAt = quote.liveQuote ? quote.liveQuote.viewedAt : quote.viewedAt;
 
   const loadRecovery = useCallback(async () => {
     setRecoveryLoading(true); setRecoveryError('');
@@ -552,16 +557,18 @@ export default function QuoteDetail({
 
               {/* Step 2: Link availability is not proof of delivery. */}
               <div className="relative">
-                <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${quote.sentAt ? 'bg-orange-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${quote.liveQuote || quote.sentAt ? 'bg-orange-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                 <p className="text-xs font-bold text-zinc-900 dark:text-white">Link da proposta</p>
-                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{quote.sentAt ? `Registrado em ${formatDate(quote.sentAt)}; entrega não confirmada` : 'Ainda não registrado; entrega não confirmada'}</p>
+                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{quote.liveQuote
+                  ? `Versão ${quote.liveQuote.version} criada em ${formatDate(quote.liveQuote.createdAt)}; link ${liveQuoteStatusLabel}. Compartilhamento e entrega não confirmados.`
+                  : quote.sentAt ? `Registrado em ${formatDate(quote.sentAt)}; entrega não confirmada` : 'Nenhum link registrado; compartilhamento e entrega não confirmados'}</p>
               </div>
 
               {/* Step 3: Viewed */}
               <div className="relative">
-                <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${quote.viewedAt ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
+                <span className={`w-4 h-4 rounded-full border-4 border-white dark:border-zinc-900 absolute -left-[23px] top-1 ${liveQuoteViewedAt ? 'bg-emerald-500' : 'bg-zinc-300 dark:bg-zinc-700'}`} />
                 <p className="text-xs font-bold text-zinc-900 dark:text-white">Visualização da proposta</p>
-                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{quote.viewedAt ? `Registrada em ${formatDate(quote.viewedAt)}` : 'Nenhuma visualização registrada'}</p>
+                <p className="text-[10px] text-zinc-400 font-mono mt-0.5">{liveQuoteViewedAt ? `Registrada em ${formatDate(liveQuoteViewedAt)}` : 'Nenhuma visualização registrada'}</p>
               </div>
 
               {/* Step 4: Approved / Rejected */}

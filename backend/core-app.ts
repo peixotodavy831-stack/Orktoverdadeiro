@@ -1174,6 +1174,69 @@ function escapeHtml(value: unknown) {
   return String(value ?? '').replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]!));
 }
 
+async function attachLiveQuoteLifecycle(workspaceId: string, quotes: any[]) {
+  if (!quotes.length) return quotes;
+  if (!supabase) throw new Error('Banco de dados indisponível.');
+
+  const quoteIds = quotes.map(quote => String(quote.id)).filter(Boolean);
+  const { data: liveQuotes, error: liveQuotesError } = await supabase
+    .from('orkto_live_quotes')
+    .select('id,quote_ref,version,status,created_at,valid_until,accepted_at')
+    .eq('workspace_id', workspaceId)
+    .in('quote_ref', quoteIds)
+    .order('version', { ascending: false });
+  if (liveQuotesError) throw liveQuotesError;
+
+  const latestByQuote = new Map<string, any>();
+  for (const liveQuote of liveQuotes || []) {
+    const quoteRef = String(liveQuote.quote_ref);
+    if (!latestByQuote.has(quoteRef)) latestByQuote.set(quoteRef, liveQuote);
+  }
+
+  const latestLinks = [...latestByQuote.values()];
+  if (!latestLinks.length) return quotes.map(quote => ({ ...quote, live_quote: null }));
+
+  const liveQuoteIds = latestLinks.map(liveQuote => String(liveQuote.id));
+  const { data: events, error: eventsError } = await supabase
+    .from('orkto_live_quote_events')
+    .select('live_quote_id,event_type,occurred_at')
+    .eq('workspace_id', workspaceId)
+    .in('live_quote_id', liveQuoteIds)
+    .in('event_type', ['viewed', 'accepted', 'rejected']);
+  if (eventsError) throw eventsError;
+
+  const eventTimesByLink = new Map<string, Record<string, string>>();
+  for (const event of events || []) {
+    const linkId = String(event.live_quote_id);
+    const eventTimes = eventTimesByLink.get(linkId) || {};
+    const eventType = String(event.event_type);
+    const occurredAt = String(event.occurred_at || '');
+    if (occurredAt && (!eventTimes[eventType] || occurredAt < eventTimes[eventType])) {
+      eventTimes[eventType] = occurredAt;
+    }
+    eventTimesByLink.set(linkId, eventTimes);
+  }
+
+  const lifecycleByQuote = new Map<string, any>();
+  for (const liveQuote of latestLinks) {
+    const eventTimes = eventTimesByLink.get(String(liveQuote.id)) || {};
+    lifecycleByQuote.set(String(liveQuote.quote_ref), {
+      status: liveQuote.status,
+      version: Number(liveQuote.version),
+      created_at: liveQuote.created_at || null,
+      valid_until: liveQuote.valid_until || null,
+      viewed_at: eventTimes.viewed || null,
+      accepted_at: eventTimes.accepted || liveQuote.accepted_at || null,
+      rejected_at: eventTimes.rejected || null,
+    });
+  }
+
+  return quotes.map(quote => ({
+    ...quote,
+    live_quote: lifecycleByQuote.get(String(quote.id)) || null,
+  }));
+}
+
 if (supabase && supabaseClient) {
   app.get("/api/quotes/list", authenticate, async (req, res) => {
     try {
@@ -1182,7 +1245,7 @@ if (supabase && supabaseClient) {
       const tenantContext = requireTenantContext(req);
       const { data, error } = await supabase.from('quotes').select().eq('workspace_id', tenantContext.workspaceId).is('archived_at', null).or(`retention_expires_at.is.null,retention_expires_at.gt.${new Date().toISOString()}`).order('created_at', { ascending: false }).range(offset, offset + limit - 1);
       if (error) throw error;
-      res.json(data);
+      res.json(await attachLiveQuoteLifecycle(tenantContext.workspaceId, data || []));
     } catch (error) {
       console.error(`[ERRO] ${req.method} ${req.path}:`, error);
       const message = error instanceof Error ? error.message : '';
@@ -1228,7 +1291,8 @@ if (supabase && supabaseClient) {
       if (data.retention_expires_at && new Date(data.retention_expires_at).getTime() <= Date.now()) return res.status(410).json({ error: 'Orçamento expirado e indisponível.' });
       const entities = [{type:'quote',ref:String(data.id)}, ...(data.customer_id ? [{type:'customer',ref:String(data.customer_id)}] : []), ...(data.deal_id ? [{type:'deal',ref:String(data.deal_id)}] : [])];
       const contextualMemories = await loadContextualMemories(supabase,tenantContext.workspaceId,entities,6);
-      res.json({ ...data, contextual_memories:contextualMemories });
+      const [quoteWithLifecycle] = await attachLiveQuoteLifecycle(tenantContext.workspaceId, [data]);
+      res.json({ ...quoteWithLifecycle, contextual_memories:contextualMemories });
     } catch (error) {
       console.error(`[ERRO] ${req.method} ${req.path}:`, error);
       res.status(500).json({ error: 'Erro interno do servidor. Tente novamente.' });

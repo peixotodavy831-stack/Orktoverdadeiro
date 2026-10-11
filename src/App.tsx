@@ -30,7 +30,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Quote, SavedClient, SavedService, UserProfile } from './types';
+import { LiveQuoteTimeline, Quote, SavedClient, SavedService, UserProfile } from './types';
 import { formatBRL, formatPhone } from './utils/format';
 import { supabase } from './lib/supabase';
 
@@ -146,6 +146,15 @@ export default function App() {
     viewedAt: q.viewed_at ? Timestamp.fromDate(new Date(q.viewed_at)) : null,
     approvedAt: q.approved_at ? Timestamp.fromDate(new Date(q.approved_at)) : null,
     rejectedAt: q.rejected_at ? Timestamp.fromDate(new Date(q.rejected_at)) : null,
+    liveQuote: q.live_quote && ['active', 'viewed', 'accepted', 'rejected', 'expired', 'revoked'].includes(q.live_quote.status) ? {
+      status: q.live_quote.status as LiveQuoteTimeline['status'],
+      version: Number(q.live_quote.version) || 1,
+      createdAt: q.live_quote.created_at || null,
+      validUntil: q.live_quote.valid_until || null,
+      viewedAt: q.live_quote.viewed_at || null,
+      acceptedAt: q.live_quote.accepted_at || null,
+      rejectedAt: q.live_quote.rejected_at || null,
+    } : null,
   });
 
   // Navigation & Viewing states

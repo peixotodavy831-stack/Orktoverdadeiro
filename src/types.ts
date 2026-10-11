@@ -87,6 +87,16 @@ export interface QuoteItem {
   discount: number; // In percentage or fixed currency (we'll do percentage discount)
 }
 
+export interface LiveQuoteTimeline {
+  status: 'active' | 'viewed' | 'accepted' | 'rejected' | 'expired' | 'revoked';
+  version: number;
+  createdAt: string | null;
+  validUntil: string | null;
+  viewedAt: string | null;
+  acceptedAt: string | null;
+  rejectedAt: string | null;
+}
+
 export interface Quote {
   id: string;
   userId: string;
@@ -120,6 +130,7 @@ export interface Quote {
   viewedAt?: Timestamp | null;
   approvedAt?: Timestamp | null;
   rejectedAt?: Timestamp | null;
+  liveQuote?: LiveQuoteTimeline | null;
 }
 
 export interface SavedClient {
