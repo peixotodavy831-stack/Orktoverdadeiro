@@ -12,6 +12,7 @@ const validEnv = {
 };
 
 test('staging preflight is read-only and passes only for the pinned staging environment and current schema', () => {
+  assert.equal(STAGING_TARGET.migrationCount, 41);
   const passing = evaluateStagingPreflight(validEnv, { status: 'PASS', code: 'STAGING_SCHEMA_CURRENT', expected: STAGING_TARGET.migrationCount, actual: STAGING_TARGET.migrationCount });
   assert.equal(passing.status, 'PASS');
   assert.deepEqual(passing.actionsPerformed, []);

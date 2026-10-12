@@ -33,6 +33,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LiveQuoteTimeline, Quote, SavedClient, SavedService, UserProfile } from './types';
 import { formatBRL, formatPhone } from './utils/format';
 import { supabase } from './lib/supabase';
+import { resolveSignedOutView } from './lib/auth-navigation';
 
 // Core UI Modules (kept as static — always needed)
 import LandingPage from './components/LandingPage';
@@ -235,6 +236,7 @@ export default function App() {
         setAuthIdentity(null);
         setUser(null);
         setAccessToken(null);
+        setCurrentView(current => resolveSignedOutView(current));
       }
     });
 
@@ -1169,6 +1171,18 @@ export default function App() {
         </div>
       )}
       </>
+    );
+  }
+
+  // A session can expire while the user is inside a protected module. Never
+  // render the authenticated shell (whose pages require a user identity) once
+  // Supabase has removed the session.
+  if (!user) {
+    return (
+      <LandingPage
+        onStartClick={() => setCurrentView('auth')}
+        onDemoClick={() => setDemoView('proposal')}
+      />
     );
   }
 
