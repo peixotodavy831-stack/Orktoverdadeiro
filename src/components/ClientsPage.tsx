@@ -28,6 +28,7 @@ import { formatBRL, formatPhone } from '../utils/format';
 import WiaInline from './wia/WiaInline';
 import { supabase } from '../lib/supabase';
 import { parseCsv } from '../utils/csv-import';
+import { escapeCsvTextCell } from '../utils/csv-export';
 
 const OPTIONAL_CUSTOMER_OPERATIONS_ENABLED = import.meta.env.VITE_ENABLE_ADVANCED_CUSTOMER_OPERATIONS === 'true';
 
@@ -545,18 +546,12 @@ export default function ClientsPage({
       q.items.forEach(item => {
         const itemTotal = (item.quantity * item.unitPrice) * (1 - (item.discount || 0) / 100);
         
-        const escapeCSV = (text: string) => {
-          if (!text) return '';
-          const escaped = text.replace(/"/g, '""');
-          return `"${escaped}"`;
-        };
-        
         const row = [
           `#${q.quoteNumber}`,
           dateStr,
           q.status === 'approved' ? 'Aprovado' : q.status === 'pending' ? 'Pendente' : q.status === 'rejected' ? 'Rejeitado' : 'Expirado',
-          escapeCSV(item.name),
-          escapeCSV(item.description || ''),
+          escapeCsvTextCell(item.name),
+          escapeCsvTextCell(item.description || ''),
           item.quantity,
           item.unitPrice.toFixed(2),
           (item.discount || 0).toFixed(0),

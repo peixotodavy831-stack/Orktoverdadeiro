@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
+import { consumeWindowRateLimit, type RateLimitBucket } from '../_shared/rate-limit.ts';
 
 const TOKEN = /^[A-Za-z0-9_-]{43}$/;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 2048;
-const buckets = new Map<string,{ started:number; count:number }>();
+const buckets = new Map<string,RateLimitBucket>();
 
 function allowedOrigin(origin: string | null): string | undefined | false {
   if (!origin) return undefined;
@@ -23,9 +24,7 @@ async function sha256Hex(value:string) {
 }
 
 function rateLimited(key:string) {
-  const now=Date.now(); const prior=buckets.get(key);
-  if(!prior||now-prior.started>=60_000){buckets.set(key,{started:now,count:1});return false;}
-  prior.count+=1; return prior.count>30;
+  return consumeWindowRateLimit(buckets,key,Date.now());
 }
 
 Deno.serve(async(req:Request)=>{
