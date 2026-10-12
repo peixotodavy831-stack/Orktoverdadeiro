@@ -2,19 +2,19 @@
 
 ## Gate atual — 2026-10-12 (continuação sem usuário A)
 
-Escopo: staging `ghrjongiodziasupakrk`, Vercel `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`). Produção não foi tocada. HEAD publicado continua `a0cd81ffee47b61b5d3f5c8b0dffcdb0e1ea4a91`; as correções locais abaixo ainda não foram publicadas. `READY_FOR_PRODUCTION_CANDIDATE=NO`; snapshot final **NOT RUN**.
+Escopo: staging `ghrjongiodziasupakrk`, Vercel `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`). Produção não foi tocada. Commit `c106ccf3b8ee9c55f83360d6218ca141e1aa84b7` foi criado e enviado à branch `production-readiness/migration-replay-20260928`; o Preview mais recente continua no SHA anterior `a0cd81ffee47b61b5d3f5c8b0dffcdb0e1ea4a91`. `READY_FOR_PRODUCTION_CANDIDATE=NO`; snapshot final **NOT RUN**.
 
 | Gate | Estado | Evidência e limite |
 | --- | --- | --- |
 | Staging migrations | PASS 41/41 | Ledger remoto read-only já confirmado em 41 entradas; nenhuma migration ou dado foi alterado nesta continuação. |
-| Preview exato | FAIL no caminho observado | O deployment `dpl_8qVKyTxyAv2NJnofZ95NNrykjEJ3` continua sendo Preview READY do projeto staging, SHA `a0cd81f…`, `target=null`. A aba do hostname imutável mostrou `Cannot read properties of null (reading 'uid')`; não há prova atual de uma identidade autenticada utilizável nessa aba. |
-| Correção de sessão | PASS LOCAL; Preview PENDING | `src/App.tsx` agora retorna à tela pública quando a sessão desaparece, em vez de renderizar módulo protegido com `user=null`; teste focado cobre landing, login e rotas protegidas. A correção ainda não foi publicada/retestada no Preview. |
+| Preview exato | PENDING PATCH DEPLOY | O deployment `dpl_8qVKyTxyAv2NJnofZ95NNrykjEJ3` continua sendo o Preview READY mais recente no projeto staging, SHA `a0cd81f…`, `target=null`. A aba desse hostname mostrou `Cannot read properties of null (reading 'uid')`; não há prova atual de uma identidade autenticada utilizável. |
+| Correção de sessão | PASS LOCAL; Preview BLOCKED | `src/App.tsx` retorna à tela pública quando a sessão desaparece, em vez de renderizar módulo protegido com `user=null`; teste focado cobre landing, login e rotas protegidas. O commit `c106ccf` foi enviado, mas o runner Vercel CLI falhou antes de criar deployment (`fetch failed` ao carregar a sessão). Consulta Vercel autenticada não encontrou deployment desse SHA em staging nem produção. O projeto staging não aparece na lista de projetos ligados a Git; não tentei uma fonte alternativa incerta. |
 | Usuário A | SKIPPED BY USER | Não redefini senha nem usei a conta A. Auth A/B e isolamento adversarial não foram executados nesta continuação. |
 | Regressão local | PASS | `npm run test:all`: 182/182 testes TypeScript e 30/30 testes Node; `npm run lint` passou; o secret scan leu 392 arquivos e reportou zero findings/blockers/review. `npm run readiness:build` passou frontend, render da URL pública, bundle do servidor e smoke local. |
-| Alvo de deploy | PASS GUARD-ONLY | `deploy-staging.mjs --guard-only` confirmou `orkto-staging` + `ghrjongiodziasupakrk`. Nenhum deploy/push ocorreu. |
-| Segurança e experiência completa | PENDING | Checkpoint formal de segurança, E2E completo, matriz restante de mutações/isolation, WIA/Inbox, acessibilidade, performance e observabilidade continuam sem evidência final neste SHA/correção. O snapshot não foi gerado. |
+| Alvo de deploy | PASS GUARD-ONLY; DEPLOY BLOCKED | Runner em worktree limpo confirmou `orkto-staging` + `ghrjongiodziasupakrk`. A CLI retornou erro de rede ao carregar autenticação e nenhum deployment foi criado. |
+| Segurança e experiência completa | PENDING | Regressão local PASS; checkpoint formal de segurança não gerou scanId/relatório porque a ferramenta recusou o checkout com `Review changes requires a non-bare Git worktree with a resolvable HEAD`. E2E completo, matriz restante de mutações/isolation, WIA/Inbox, acessibilidade, performance e observabilidade continuam sem evidência final no novo SHA. O snapshot não foi gerado. |
 
-Não interpretar a correção local como evidência do Preview. Primeiro publicar somente pelo runner com guard de staging e confirmar o SHA/deployment; em seguida repetir o caminho de navegação com a conta B. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+Não interpretar a correção local como evidência do Preview. Próxima ação técnica: restaurar a autenticação da CLI Vercel neste ambiente ou usar a conexão autenticada correta para publicar somente o commit `c106ccf` no Preview staging; confirmar SHA/ID, e então repetir navegação com a conta B. Não usar usuário A. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
 
 ## Gate atual — 2026-10-11 (continuação do quote lifecycle)
 
