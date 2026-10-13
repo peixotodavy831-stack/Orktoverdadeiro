@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { STAGING_E2E_TARGET, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from '../readiness/staging-e2e-config.mjs';
+import { STAGING_E2E_TARGET, stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from '../readiness/staging-e2e-config.mjs';
 
 const valid = {
   ORKTO_STAGING_E2E: '1',
@@ -68,4 +68,28 @@ test('E2E refuses credentials unless authenticated Vercel inspect binds URL to t
   assert.equal(check({ ...good, url:'attacker-staging.vercel.app' }).ok, false);
   assert.equal(check({ ...good, target:'production' }).ok, false);
   assert.equal(check({ ...good, readyState:'ERROR' }).ok, false);
+});
+
+test('browser child receives only access for the exact staging Preview origin', () => {
+  const share = `${valid.ORKTO_STAGING_PREVIEW_URL}/?_vercel_share=synthetic-access`;
+  assert.deepEqual(stagingPreviewAccessForBrowser({ ...valid, ORKTO_STAGING_PREVIEW_ACCESS_URL: share }), {
+    ok: true, values: { ORKTO_STAGING_PREVIEW_ACCESS_URL: share },
+  });
+  assert.deepEqual(stagingPreviewAccessForBrowser({ ...valid, ORKTO_STAGING_E2E_BYPASS_SECRET: 'synthetic-bypass' }), {
+    ok: true, values: { ORKTO_STAGING_E2E_BYPASS_SECRET: 'synthetic-bypass' },
+  });
+  assert.deepEqual(stagingPreviewAccessForBrowser(valid), {
+    ok: false, code: 'STAGING_PREVIEW_ACCESS_REQUIRED',
+  });
+  for (const unsafe of [
+    `${valid.ORKTO_STAGING_PREVIEW_URL}/?_vercel_share=synthetic-access#fragment`,
+    'https://orkto.co/?_vercel_share=synthetic-access',
+    `${valid.ORKTO_STAGING_PREVIEW_URL}/?token=synthetic-access`,
+  ]) {
+    assert.equal(stagingPreviewAccessForBrowser({ ...valid, ORKTO_STAGING_PREVIEW_ACCESS_URL: unsafe }).ok, false);
+  }
+  assert.equal(stagingPreviewAccessForBrowser({ ...valid,
+    ORKTO_STAGING_PREVIEW_ACCESS_URL: share,
+    ORKTO_STAGING_E2E_BYPASS_SECRET: 'synthetic-bypass',
+  }).code, 'STAGING_PREVIEW_ACCESS_AMBIGUOUS');
 });

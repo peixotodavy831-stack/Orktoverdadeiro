@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
-import { validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
+import { stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
 
 const ref = 'ghrjongiodziasupakrk';
 const url = `https://${ref}.supabase.co`;
@@ -51,10 +51,13 @@ assertKeyBoundary(publicKey, 'anon', 'Publishable');
 
 const browserE2E = process.argv.includes('--browser-e2e');
 let previewUrl;
+let previewAccess;
 if (browserE2E) {
   const targetConfig = validateStagingE2ETargetConfig(process.env);
   assert.equal(targetConfig.ok, true, `Browser E2E target rejected: ${targetConfig.code}`);
   previewUrl = targetConfig.baseURL;
+  previewAccess = stagingPreviewAccessForBrowser(process.env);
+  assert.equal(previewAccess.ok, true, `Browser E2E access rejected: ${previewAccess.code}`);
   const parsedPreviewUrl = new URL(previewUrl);
   // Confirm deployment identity before creating users or synthetic records.
   const inspect = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
@@ -392,9 +395,9 @@ if (browserE2E) {
   });
   assert.equal(e2eConfig.ok, true, `Browser E2E configuration rejected: ${e2eConfig.code}`);
 
-  // The Playwright child receives only the two synthetic users' short-lived
-  // passwords and public deployment identity. Admin/public database keys and
-  // every other inherited environment value are intentionally withheld.
+  // The Playwright child receives only synthetic passwords, deployment identity,
+  // and the selected Preview access method. Admin/public database keys and all
+  // other inherited environment values are intentionally withheld.
   const browserEnv = {};
   for (const name of ['PATH', 'Path', 'SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'COMSPEC', 'PATHEXT']) {
     if (process.env[name]) browserEnv[name] = process.env[name];
@@ -411,6 +414,7 @@ if (browserE2E) {
     ORKTO_STAGING_E2E_USER_B_EMAIL: rawUsers[1].email,
     ORKTO_STAGING_E2E_USER_B_PASSWORD: rawUsers[1].password,
   });
+  Object.assign(browserEnv, previewAccess.values);
   const playwrightCli = resolve(process.cwd(), 'node_modules', '@playwright', 'test', 'cli.js');
   const browserRun = spawnSync(process.execPath, [playwrightCli, 'test', '--config=playwright.config.ts', 'tests/e2e/staging.spec.ts'], {
     cwd: process.cwd(), env: browserEnv, stdio: 'inherit', timeout: 15 * 60 * 1000,

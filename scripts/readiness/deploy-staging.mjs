@@ -217,12 +217,15 @@ function main() {
     encoding: 'utf8',
     shell: process.platform === 'win32',
     stdio: ['ignore', 'pipe', 'pipe'],
+    timeout: 5 * 60 * 1000,
   });
 
   // Discard CLI output: build logs can contain deployment configuration.
   if (resultFromCli.error || resultFromCli.status !== 0) {
     const diagnostic = String(resultFromCli.stderr || '');
-    const reason = /target|environment/i.test(diagnostic) ? 'TARGET_OR_ENVIRONMENT'
+    const reason = resultFromCli.error?.code === 'ETIMEDOUT' ? 'TIMEOUT'
+      : /blocked/i.test(diagnostic) ? 'DEPLOYMENT_BLOCKED'
+      : /target|environment/i.test(diagnostic) ? 'TARGET_OR_ENVIRONMENT'
       : /project|link/i.test(diagnostic) ? 'PROJECT_LINK'
       : /permission|forbidden|unauthorized|login/i.test(diagnostic) ? 'AUTHORIZATION'
       : /build/i.test(diagnostic) ? 'BUILD'

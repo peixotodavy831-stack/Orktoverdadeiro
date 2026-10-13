@@ -118,6 +118,7 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   assert.doesNotMatch(runner, /--prod|--target=production/);
   assert.match(runner, /'--target=preview'/);
   assert.match(runner, /validateStagingPreviewDeployment/);
+  assert.match(runner, /timeout: 5 \* 60 \* 1000/);
   const defaultConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.json',import.meta.url)),'utf8'));
   const stagingConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.staging.json',import.meta.url)),'utf8'));
   const productionConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.production.json',import.meta.url)),'utf8'));

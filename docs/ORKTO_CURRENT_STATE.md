@@ -1,5 +1,9 @@
 # ORKTO Current State
 
+## Atualização de execução — 2026-10-13 — Preview do SHA `6bc8adb`
+
+A branch isolada foi publicada até `6bc8adbdceca70f5082216e0f0fb627f74f960a6`. O painel Vercel criou o deployment Git `dpl_B46i5eAs22Z3wLyh9sQSWfHJxKoo` no projeto `orkto-staging`, URL imutável `https://orkto-staging-nx1lr6klp-peixoto-s-projects1.vercel.app/`; listagem ID-scoped confirmou `READY`, `target=null` e SHA exato. A tentativa CLI anterior `dpl_A9ri8P7vvFoZ47r3VJbqHrKjDLXq` ficou `BLOCKED` porque a Vercel não associou o e-mail Git do commit a uma conta; ela não é evidência de Preview funcional. A listagem recente do projeto Vercel de produção encontrou zero deployments do SHA `6bc8adb`. O runner local recebeu, após o Preview, um ajuste focado para repassar **somente** o acesso temporário ao navegador Playwright e recusar execução sem ele; o segredo administrativo continua restrito ao processo pai. Testes focados passaram (16/16), mas o E2E A/B autenticado **não foi executado**. O acesso temporário ao Preview e a credencial administrativa exclusiva do Supabase staging ainda precisam ser fornecidos ao runner por uma superfície segura, sem chat, arquivo `.env` ou Vercel Preview. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
 ## Atualização de execução — 2026-10-13 — runner de deploy
 
 O runner `scripts/readiness/deploy-staging.mjs` recebeu a correção do contrato `expectedSha`: agora exige checkout Git limpo, obtém o SHA do `HEAD`, fixa o projeto `orkto-staging` por ID e envia esse SHA como metadado do Preview para conferência após o deploy. Os testes focados de deploy e identidade passaram (15/15), e `--guard-only` confirmou o projeto/ref de staging. Esta é evidência **local**; nenhum novo Preview, push, E2E autenticado ou checkpoint de segurança foi executado nesta atualização. As alterações preexistentes no checkout permanecem preservadas; o deployment exige checkout isolado e limpo. `READY_FOR_PRODUCTION_CANDIDATE=NO`.

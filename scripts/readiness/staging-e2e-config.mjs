@@ -64,6 +64,29 @@ export function validateStagingE2EConfig(env) {
   return { ...target, code: 'STAGING_E2E_CONFIG_VALID' };
 }
 
+/** Pass only Preview access material to the browser child; never the admin key. */
+export function stagingPreviewAccessForBrowser(env) {
+  const accessUrl = env.ORKTO_STAGING_PREVIEW_ACCESS_URL?.trim();
+  const bypass = env.ORKTO_STAGING_E2E_BYPASS_SECRET?.trim();
+  if (accessUrl && bypass) return { ok: false, code: 'STAGING_PREVIEW_ACCESS_AMBIGUOUS' };
+  if (accessUrl) {
+    let preview;
+    let access;
+    try {
+      preview = new URL(env.ORKTO_STAGING_PREVIEW_URL || '');
+      access = new URL(accessUrl);
+    } catch { return { ok: false, code: 'STAGING_PREVIEW_ACCESS_URL_REQUIRED_OR_UNSAFE' }; }
+    if (access.origin !== preview.origin || access.pathname !== '/'
+      || [...access.searchParams.keys()].some(key => key !== '_vercel_share')
+      || !access.searchParams.get('_vercel_share') || access.hash) {
+      return { ok: false, code: 'STAGING_PREVIEW_ACCESS_URL_REQUIRED_OR_UNSAFE' };
+    }
+    return { ok: true, values: { ORKTO_STAGING_PREVIEW_ACCESS_URL: accessUrl } };
+  }
+  if (bypass) return { ok: true, values: { ORKTO_STAGING_E2E_BYPASS_SECRET: bypass } };
+  return { ok: false, code: 'STAGING_PREVIEW_ACCESS_REQUIRED' };
+}
+
 /** Authenticated inspect plus an ID-scoped deployment list bind URL and SHA before credentials reach a browser. */
 export function validateStagingPreviewDeployment(previewUrl, deployment, projectDeployments = [], expectedSha) {
   let expected;
