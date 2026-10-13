@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
-import { validateStagingE2EConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
+import { validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
 
 const ref = 'ghrjongiodziasupakrk';
 const url = `https://${ref}.supabase.co`;
@@ -48,6 +48,36 @@ function assertKeyBoundary(key, expectedRole, label) {
 
 assertKeyBoundary(adminKey, 'service_role', 'Admin');
 assertKeyBoundary(publicKey, 'anon', 'Publishable');
+
+const browserE2E = process.argv.includes('--browser-e2e');
+let previewUrl;
+if (browserE2E) {
+  const targetConfig = validateStagingE2ETargetConfig(process.env);
+  assert.equal(targetConfig.ok, true, `Browser E2E target rejected: ${targetConfig.code}`);
+  previewUrl = targetConfig.baseURL;
+  const parsedPreviewUrl = new URL(previewUrl);
+  // Confirm deployment identity before creating users or synthetic records.
+  const inspect = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
+    ['inspect', parsedPreviewUrl.hostname, '--format=json'], {
+      cwd: process.cwd(), encoding: 'utf8', shell: process.platform === 'win32', timeout: 60_000,
+      env: { ...process.env, ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
+    });
+  assert.equal(inspect.status, 0, 'Authenticated Vercel deployment inspection failed.');
+  let deployment;
+  try { deployment = JSON.parse(inspect.stdout); }
+  catch { throw new Error('Authenticated Vercel deployment inspection returned invalid JSON.'); }
+  const scopedList = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
+    ['list', 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc', '--format=json', '--limit', '20'], {
+      cwd: process.cwd(), encoding: 'utf8', shell: process.platform === 'win32', timeout: 60_000,
+      env: { ...process.env, ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
+    });
+  assert.equal(scopedList.status, 0, 'Authenticated staging project deployment listing failed.');
+  let scopedDeployments;
+  try { scopedDeployments = JSON.parse(scopedList.stdout).deployments; }
+  catch { throw new Error('Authenticated staging project deployment listing returned invalid JSON.'); }
+  const identity = validateStagingPreviewDeployment(previewUrl, deployment, scopedDeployments, process.env.ORKTO_STAGING_EXPECTED_SHA);
+  assert.equal(identity.ok, true, identity.code);
+}
 
 const admin = createClient(url, adminKey, { auth: { persistSession: false, autoRefreshToken: false } });
 const publicProbe = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: publicKey } });
@@ -352,33 +382,15 @@ for (const user of users) {
   assert.equal((await user.client.auth.getUser()).data.user, null, `Session cleared ${user.label}`);
 }
 
-if (process.argv.includes('--browser-e2e')) {
-  const previewUrl = process.env.ORKTO_STAGING_PREVIEW_URL?.trim();
-  const e2eConfig = validateStagingE2EConfig(process.env);
+if (browserE2E) {
+  const e2eConfig = validateStagingE2EConfig({
+    ...process.env,
+    ORKTO_STAGING_E2E_USER_A_EMAIL: rawUsers[0].email,
+    ORKTO_STAGING_E2E_USER_A_PASSWORD: rawUsers[0].password,
+    ORKTO_STAGING_E2E_USER_B_EMAIL: rawUsers[1].email,
+    ORKTO_STAGING_E2E_USER_B_PASSWORD: rawUsers[1].password,
+  });
   assert.equal(e2eConfig.ok, true, `Browser E2E configuration rejected: ${e2eConfig.code}`);
-  const parsedPreviewUrl = new URL(previewUrl);
-  // Only a hostname vetted above reaches the CLI. Inspect runs before passing
-  // synthetic passwords to Playwright and fails closed without exposing them.
-  const inspect = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
-    ['inspect', parsedPreviewUrl.hostname, '--format=json'], {
-      cwd: process.cwd(), encoding: 'utf8', shell: process.platform === 'win32', timeout: 60_000,
-      env: { ...process.env, ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
-    });
-  assert.equal(inspect.status, 0, 'Authenticated Vercel deployment inspection failed.');
-  let deployment;
-  try { deployment = JSON.parse(inspect.stdout); }
-  catch { throw new Error('Authenticated Vercel deployment inspection returned invalid JSON.'); }
-  const scopedList = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
-    ['list', 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc', '--format=json', '--limit', '20'], {
-      cwd: process.cwd(), encoding:'utf8', shell:process.platform === 'win32', timeout:60_000,
-      env:{ ...process.env, ORKTO_STAGING_E2E_USER_A_PASSWORD:'', ORKTO_STAGING_E2E_USER_B_PASSWORD:'' },
-    });
-  assert.equal(scopedList.status,0,'Authenticated staging project deployment listing failed.');
-  let scopedDeployments;
-  try { scopedDeployments = JSON.parse(scopedList.stdout).deployments; }
-  catch { throw new Error('Authenticated staging project deployment listing returned invalid JSON.'); }
-  const identity = validateStagingPreviewDeployment(previewUrl, deployment, scopedDeployments);
-  assert.equal(identity.ok, true, identity.code);
 
   // The Playwright child receives only the two synthetic users' short-lived
   // passwords and public deployment identity. Admin/public database keys and
@@ -391,6 +403,7 @@ if (process.argv.includes('--browser-e2e')) {
     CI: '1',
     ORKTO_STAGING_E2E: '1',
     ORKTO_STAGING_PREVIEW_URL: previewUrl,
+    ORKTO_STAGING_EXPECTED_SHA: process.env.ORKTO_STAGING_EXPECTED_SHA,
     ORKTO_STAGING_VERCEL_PROJECT_ID: 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc',
     ORKTO_STAGING_SUPABASE_REF: ref,
     ORKTO_STAGING_E2E_USER_A_EMAIL: rawUsers[0].email,

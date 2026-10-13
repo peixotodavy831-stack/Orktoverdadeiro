@@ -14,7 +14,7 @@ const productionHosts = new Set([
   'orktoverdeiro-production.up.railway.app', 'qneqljlphgkptebsaonb.supabase.co',
 ]);
 
-export function validateStagingE2EConfig(env) {
+export function validateStagingE2ETargetConfig(env) {
   if (env.ORKTO_STAGING_E2E !== '1') return { ok: false, code: 'STAGING_E2E_EXPLICIT_OPT_IN_REQUIRED' };
   if (env.ORKTO_STAGING_VERCEL_PROJECT_ID !== STAGING_E2E_TARGET.vercelProjectId
     || env.ORKTO_STAGING_SUPABASE_REF !== STAGING_E2E_TARGET.supabaseRef) {
@@ -30,7 +30,23 @@ export function validateStagingE2EConfig(env) {
     || productionHosts.has(preview.hostname.toLowerCase())) {
     return { ok: false, code: 'STAGING_PREVIEW_URL_REQUIRED_OR_UNSAFE' };
   }
+  if (!/^[a-f0-9]{40}$/i.test(env.ORKTO_STAGING_EXPECTED_SHA || '')) {
+    return { ok: false, code: 'STAGING_EXPECTED_SHA_REQUIRED' };
+  }
 
+  const configuredValues = Object.values(env).filter((value) => typeof value === 'string');
+  if (configuredValues.some((value) => value.includes('qneqljlphgkptebsaonb')
+    || value.includes('prj_XiwDjfbGC8sq8L8zb59lcZA4HUny')
+    || /(?:service_role|SUPABASE_ADMIN_KEY)/i.test(value))) {
+    return { ok: false, code: 'STAGING_ENVIRONMENT_MISMATCH' };
+  }
+
+  return { ok: true, code: 'STAGING_E2E_TARGET_VALID', baseURL: preview.origin };
+}
+
+export function validateStagingE2EConfig(env) {
+  const target = validateStagingE2ETargetConfig(env);
+  if (!target.ok) return target;
   const groups = [];
   for (const name of ['A', 'B']) {
     const group = syntheticIdentityGroup(env[`ORKTO_STAGING_E2E_USER_${name}_EMAIL`], name);
@@ -45,31 +61,30 @@ export function validateStagingE2EConfig(env) {
     return { ok: false, code: 'STAGING_SYNTHETIC_PASSWORDS_MUST_DIFFER' };
   }
 
-  const configuredValues = Object.values(env).filter((value) => typeof value === 'string');
-  if (configuredValues.some((value) => value.includes('qneqljlphgkptebsaonb')
-    || value.includes('prj_XiwDjfbGC8sq8L8zb59lcZA4HUny')
-    || /(?:service_role|SUPABASE_ADMIN_KEY)/i.test(value))) {
-    return { ok: false, code: 'STAGING_ENVIRONMENT_MISMATCH' };
-  }
-
-  return { ok: true, code: 'STAGING_E2E_CONFIG_VALID', baseURL: preview.origin };
+  return { ...target, code: 'STAGING_E2E_CONFIG_VALID' };
 }
 
-/** Authenticated inspect plus an ID-scoped deployment list bind the URL before credentials reach a browser. */
-export function validateStagingPreviewDeployment(previewUrl, deployment, projectDeployments = []) {
+/** Authenticated inspect plus an ID-scoped deployment list bind URL and SHA before credentials reach a browser. */
+export function validateStagingPreviewDeployment(previewUrl, deployment, projectDeployments = [], expectedSha) {
   let expected;
   try { expected = new URL(previewUrl); }
   catch { return { ok: false, code: 'STAGING_PREVIEW_IDENTITY_NOT_VERIFIED' }; }
   const projectId = deployment?.projectId || deployment?.project?.id;
   const deploymentUrl = deployment?.url;
   const actualHost = typeof deploymentUrl === 'string' ? deploymentUrl.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase() : '';
+  const previewTarget = target => target === null || target === 'preview';
   const inStagingList = Array.isArray(projectDeployments) && projectDeployments.some(item =>
     item?.url?.toLowerCase() === expected.hostname.toLowerCase()
-      && item?.name === 'orkto-staging' && item?.state === 'READY' && item?.target !== 'production');
+      && item?.name === 'orkto-staging' && item?.state === 'READY' && previewTarget(item?.target));
+  const sourceSha = deployment?.gitSource?.sha || deployment?.meta?.githubCommitSha
+    || deployment?.meta?.gitlabCommitSha || deployment?.meta?.bitbucketCommitSha;
+  if (!/^[a-f0-9]{40}$/i.test(expectedSha || '') || String(sourceSha || '').toLowerCase() !== expectedSha.toLowerCase()) {
+    return { ok: false, code: 'STAGING_PREVIEW_SHA_MISMATCH' };
+  }
   if ((projectId && projectId !== STAGING_E2E_TARGET.vercelProjectId)
     || (!projectId && !inStagingList)
     || actualHost !== expected.hostname.toLowerCase()
-    || deployment?.target !== 'preview' || deployment?.readyState !== 'READY') {
+    || !previewTarget(deployment?.target) || deployment?.readyState !== 'READY') {
     return { ok: false, code: 'STAGING_PREVIEW_IDENTITY_NOT_VERIFIED' };
   }
   return { ok: true, code: 'STAGING_PREVIEW_IDENTITY_VERIFIED' };

@@ -1,0 +1,12 @@
+# ADR 0002 — Preview without a Supabase service-role key
+
+Date: 2026-10-03
+Status: Approved direction; implementation in progress
+
+The `orkto-staging` Vercel Preview must use the staging Supabase URL, a publishable/anon key, user Auth tokens, and RLS. It must contain neither `SUPABASE_SERVICE_ROLE_KEY` nor an elevated-key fingerprint. Administrative readiness operations belong in a separate staging-only runner or a tightly authenticated, temporary Supabase Edge Function. Production is outside this decision's execution scope.
+
+The Preview variables `SUPABASE_SERVICE_ROLE_KEY` and `STAGING_SERVICE_ROLE_KEY_SHA256` were removed from the staging project on 2026-10-03. The runtime, deploy runner, and preflight now reject these names in staging. The staging backend uses a request-scoped public-key client carrying the verified user's JWT after authentication; unauthenticated calls use the anon role. This removes the elevated client from staging request execution, but it does not make every route functional. Migration 17 deliberately grants authenticated users SELECT only on most application tables and reserves sensitive RPCs for service-role. Core writes, public-token flows, webhooks, jobs, and WIA execution therefore need a reviewed RLS/grant and server-boundary conversion before Preview is functionally ready. Migration 18 was applied to staging separately and does not change this privilege boundary.
+
+No generic privileged endpoint may be added as a shortcut. Each write path needs a tenant policy, an authorization test, and an idempotency/audit review before it moves to user-scoped RLS or a separately justified privileged executor. Disabled billing, messaging, and paid-provider paths remain fail-closed.
+
+The staging Auth A/B probe on 2026-10-03 confirmed the tradeoff: direct PostgREST and the Express backend both use the same publishable key plus user JWT. If `authenticated` receives a broad table write grant, the browser can call PostgREST directly and bypass Express validation, approvals, plan limits and audit. The current `ALL` policies on some operational/WIA tables only enforce membership. Therefore a blanket grant is unsafe. Core writes need a reviewed database-level rule/RPC or a narrow authenticated Supabase-side executor for each operation; service-only payment/channel RPCs stay in a separate privileged boundary. This is a core engineering blocker, not a reason to restore a service-role key to Vercel Preview.
