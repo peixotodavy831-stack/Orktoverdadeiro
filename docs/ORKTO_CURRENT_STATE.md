@@ -1,18 +1,18 @@
 # ORKTO Current State
 
-## Estado vigente — 2026-10-13 — staging Preview `b722beb`
+## Estado vigente — 2026-10-13 — staging Preview `f22e75f`
 
 | Gate | Estado | Evidência e limite |
 | --- | --- | --- |
 | Produção | PASS — intocada | Nenhum acesso de escrita, deploy, migration, cobrança ou mensagem em produção nesta continuação. |
 | Staging SQL | PASS 41/41 | Ledger lido no projeto `ghrjongiodziasupakrk`; nenhuma migration nova. |
 | Edge Function | PASS para deploy e fonte; HTTP autenticado PENDING | `orkto-core-mutations` v23 ACTIVE, `verify_jwt=true`, 11 arquivos recuperados iguais ao checkout. O novo comando WIA calcula proveniência dentro da Edge e recusa `START_WIA_RUN`/`COMPLETE_WIA_RUN` enviados pelo cliente. Leituras limitadas não alegam total falso. |
-| Preview | PASS para identidade e landing; E2E PENDING | Projeto `orkto-staging`, deployment `dpl_FfxtVKzoUn3tZEqfgqhPWMEjN8XQ` READY em `b722beb593486fd08f4f685cbd01fff79dc8c8ed`, branch isolada e ambiente Preview. Landing abriu; HTML remoto marcou `noindex`, canonical e ogUrl do hostname imutável. A correção adicional de limite WIA na Edge v23 ainda não pertence ao SHA desse Preview. |
+| Preview | PASS para identidade e landing; E2E PENDING | Projeto `orkto-staging`, deployment `dpl_3QNKeqCjp8Ea7agiaMGWMDsHsWmJ` READY em `f22e75f50262578aaad1041f21ab37dd3578cdea`, branch isolada e ambiente Preview. Landing e tela de login abriram no hostname imutável. O patch de dependências posterior a este SHA ainda não foi publicado. |
 | Preview secrets | PASS para metadados; valor/alvo efetivo PENDING | Painel Vercel mostrou 10 variáveis de escopo Preview: somente configuração pública, URL, origens, flags e project ID; sem nome de service-role, admin, billing, messaging ou provider pago. Valores não foram revelados. |
 | Plano e WIA | PASS_LOCAL; HTTP autenticado PENDING | `READ_PLAN_CATALOG` remove o SELECT direto bloqueado; sete versões aprovadas no staging, nenhuma marcada como preço público. `PREPARE_WIA_T0` autentica e deriva workspace/tool/proveniência no servidor. Testes focados passaram, mas o novo Preview não foi percorrido com JWT A/B. |
 | Auth A/B, tenant e E2E | BLOCKED para execução remota exata | Senhas dos usuários sintéticos não estão no runner, A foi pulado pelo proprietário e não há sessão autenticada no novo hostname. O navegador bloqueou `/api/ready` (`ERR_BLOCKED_BY_CLIENT`); não foi criado link temporário de bypass SSO. Provas de deployments anteriores são históricas. |
-| Segurança | PENDING | Grants/RLS e bloqueios do gateway têm evidência local e de catálogo; faltam HTTP adversarial no SHA atual, checkpoint formal e revisão final após todos os fixes. Proteção contra senhas vazadas está desligada no plano staging. |
-| Regressão local | PASS após delta v23 | `npm run test:all` 196/196 aplicação e 30/30 readiness fora da restrição de loopback; lint, build isolado frontend/servidor, smoke, secret scan 400/0 e `git diff --check` passaram após o delta. A execução inicial no sandbox falhou por bloqueio de loopback/EPERM; a repetição com acesso local apropriado passou. |
+| Segurança | PENDING | Grants/RLS e bloqueios do gateway têm evidência local e de catálogo; faltam HTTP adversarial no SHA atual, checkpoint formal e revisão final após todos os fixes. Atualização compatível do lockfile reduziu `npm audit` de 1 crítico/1 alto/2 moderados/1 baixo para somente 1 baixo em `tsx` de desenvolvimento; testes e build após atualização passaram. Proteção contra senhas vazadas está desligada no plano staging. |
+| Regressão local | PASS após delta v23 e correção de dependências | `npm run test:all` 196/196 aplicação e 30/30 readiness fora da restrição de loopback; lint, build isolado frontend/servidor, smoke, secret scan 400/0 e `git diff --check` passaram para o delta v23. Após a atualização do lockfile, lint, a suíte completa e build/smoke passaram novamente. A execução inicial no sandbox falhou por bloqueio de loopback/EPERM; a repetição com acesso local apropriado passou. |
 | Comercial e jurídico | BLOCKED por decisão do proprietário | Preços/planos e promessas não têm aprovação comercial registrada. Termos e Privacidade públicos de julho de 2026 não têm aprovação jurídica e descrevem integrações que não estão ativas. Cadastro real não deve coletar aceite desses textos como se estivessem aprovados. |
 | Snapshot | NOT RUN | Gates remotos, segurança e comercial/jurídico ainda abertos. |
 
