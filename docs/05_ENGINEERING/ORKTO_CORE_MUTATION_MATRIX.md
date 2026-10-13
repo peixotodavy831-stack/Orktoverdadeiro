@@ -1,5 +1,9 @@
 # ORKTO core mutation matrix
 
+## Preview final — 2026-10-13
+
+Preview `dpl_DZCCuMt8NSFbgZ5DbtQyDX3bh6uw` is READY on exact commit `6099a2cc44d9194afb30a331a9ac52bd15602065` in `orkto-staging`. Public loading, responsive layout and login semantics passed. The exact-SHA authenticated mutation matrix is **BLOCKED**, not failed: no synthetic password is present in the runner, User A was skipped, and all reusable User B browser sessions expired. Local gateway tests and prior staging SQL/browser evidence remain valid only at their recorded scopes. `CORE_MUTATION_MATRIX=PASS_LOCAL_WITH_EXACT_PREVIEW_AUTH_BLOCKED`; `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
 ## Candidate gateway delta — 2026-10-13
 
 Supabase staging `orkto-core-mutations` v23 is ACTIVE with JWT verification and remote source readback matching 11 local files. `READ_PLAN_CATALOG` requires active workspace membership, reads approved versions through Edge service credentials, and masks unpublished prices; browser table SELECT remains denied. `PREPARE_WIA_T0` derives the tool route and queries only the verified member's workspace inside the Edge runtime, then persists the computed decision and evidence through service-only RPCs. The prior caller-supplied `START_WIA_RUN` and `COMPLETE_WIA_RUN` commands are rejected by the allowlist. Bounded WIA reads disclose truncation instead of falsely claiming a total. Local targeted auth, spoofing, T0 and gateway tests plus the full suite passed before the bounded-read delta; focused delta tests passed 17/17. Preview `dpl_FfxtVKzoUn3tZEqfgqhPWMEjN8XQ` is READY on `b722beb` in `orkto-staging`, but **exact-SHA authenticated Preview proof remains pending**. No production resource was changed.
