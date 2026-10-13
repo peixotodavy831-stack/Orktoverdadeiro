@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
+import { test } from '../../scripts/readiness/staging-safe-test';
 import { syntheticIdentityGroup } from '../../scripts/readiness/staging-e2e-config.mjs';
 
 const productionHosts = new Set([
@@ -83,7 +84,8 @@ async function signIn(page: Page, email: string, password: string, group: 'A' | 
 }
 
 async function capture(page: Page, name: string): Promise<void> {
-  await page.screenshot({ path: test.info().outputPath(name), fullPage: true, animations: 'disabled' });
+  // Screenshots are withheld until a reviewed visual-redaction pipeline exists.
+  void page; void name;
 }
 
 async function ensureSyntheticClient(page: Page, group: 'A' | 'B'): Promise<void> {

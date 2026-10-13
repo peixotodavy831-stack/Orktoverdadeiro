@@ -5,11 +5,19 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
+import { browserTlsEnvironment, buildStagingBrowserEnvironment, errorClass, sanitizeArtifacts, secretValues } from './staging-browser-security.mjs';
+
+// Never let Node serialize assertion actual/expected objects or provider errors
+// containing credentials from the administrative parent process.
+const safeFatal = error => { console.error(`STAGING_RUNNER_FAILED:${errorClass(error)}`); process.exit(1); };
+process.on('uncaughtException', safeFatal);
+process.on('unhandledRejection', safeFatal);
 
 const ref = 'ghrjongiodziasupakrk';
 const url = `https://${ref}.supabase.co`;
 const configuredUrl = process.env.ORKTO_STAGING_SUPABASE_URL?.replace(/\/$/, '');
 const adminKey = process.env.ORKTO_STAGING_SUPABASE_ADMIN_KEY?.trim();
+browserTlsEnvironment(process.env); // reject insecure TLS overrides before any remote operation
 const publicKey = (process.env.ORKTO_STAGING_SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_ANON_KEY)?.trim();
 
 if (configuredUrl && configuredUrl !== url) {
@@ -399,13 +407,8 @@ if (browserE2E) {
   // The Playwright child receives only synthetic passwords, deployment identity,
   // and the selected Preview access method. Admin/public database keys and all
   // other inherited environment values are intentionally withheld.
-  const browserEnv = {};
-  for (const name of ['PATH', 'Path', 'SystemRoot', 'WINDIR', 'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'COMSPEC', 'PATHEXT']) {
-    if (process.env[name]) browserEnv[name] = process.env[name];
-  }
-  Object.assign(browserEnv, {
-    CI: '1',
-    ORKTO_STAGING_E2E: '1',
+  const browserEnv = buildStagingBrowserEnvironment({
+    ...process.env,
     ORKTO_STAGING_PREVIEW_URL: previewUrl,
     ORKTO_STAGING_EXPECTED_SHA: process.env.ORKTO_STAGING_EXPECTED_SHA,
     ORKTO_STAGING_VERCEL_PROJECT_ID: 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc',
@@ -414,13 +417,44 @@ if (browserE2E) {
     ORKTO_STAGING_E2E_USER_A_PASSWORD: rawUsers[0].password,
     ORKTO_STAGING_E2E_USER_B_EMAIL: rawUsers[1].email,
     ORKTO_STAGING_E2E_USER_B_PASSWORD: rawUsers[1].password,
-  });
-  Object.assign(browserEnv, previewAccess.values);
+  }, previewAccess.values);
   const sourceRoot = fileURLToPath(new URL('../../', import.meta.url));
   const playwrightCli = resolve(sourceRoot, 'node_modules', '@playwright', 'test', 'cli.js');
-  const browserRun = spawnSync(process.execPath, [playwrightCli, 'test', '--config=playwright.config.ts', 'tests/e2e/staging.spec.ts'], {
-    cwd: sourceRoot, env: browserEnv, stdio: 'inherit', timeout: 15 * 60 * 1000,
-  });
+  console.log(`PLAYWRIGHT_TLS_SYSTEM_CA=${browserEnv.NODE_USE_SYSTEM_CA === '1'} EXTRA_CA=${Boolean(browserEnv.NODE_EXTRA_CA_CERTS)}`);
+  let browserRun;
+  try {
+    browserRun = spawnSync(process.execPath, [playwrightCli, 'test', '--config=playwright.config.ts', 'tests/e2e/staging.spec.ts'], {
+      cwd: sourceRoot, env: browserEnv, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 15 * 60 * 1000,
+    });
+    // Forward only reporter-generated status records. Raw Playwright diagnostics
+    // can include HTTP headers and are never forwarded, even on process crashes.
+    for (const line of String(browserRun.stdout || '').split(/\r?\n/)) {
+      if (!line.startsWith('ORKTO_SAFE_RESULT ')) continue;
+      try {
+        const record = JSON.parse(line.slice('ORKTO_SAFE_RESULT '.length));
+        const statuses = ['passed', 'failed', 'timedOut', 'skipped', 'interrupted', 'runner_error'];
+        const errors = ['TLS_CERTIFICATE_ERROR', 'TIMEOUT', 'ASSERTION_FAILED', 'TEST_ERROR'];
+        if (statuses.includes(record.status) && (record.id === undefined || /^[a-f0-9]{16}$/.test(record.id))
+          && Array.isArray(record.errors) && record.errors.every(code => errors.includes(code))) {
+          console.log(JSON.stringify({ id: record.id, status: record.status, errors: record.errors }));
+        }
+      } catch { /* never forward unstructured output */ }
+    }
+  } finally {
+    sanitizeArtifacts(resolve(sourceRoot, 'test-results/staging-e2e'), [...secretValues(process.env), ...secretValues(browserEnv)]);
+    // A failed browser request can leave a synthetic session active. Establish
+    // a fresh synthetic session in the parent and revoke all its refresh sessions.
+    let cleanupFailed = false;
+    for (const user of rawUsers) {
+      const cleanup = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+      const login = await cleanup.auth.signInWithPassword({ email: user.email, password: user.password });
+      if (login.error || login.data.user?.id !== user.userId) { cleanupFailed = true; continue; }
+      const signedOut = await cleanup.auth.signOut({ scope: 'global' });
+      if (signedOut.error) cleanupFailed = true;
+    }
+    if (cleanupFailed) throw new Error('SYNTHETIC_SESSION_CLEANUP_FAILED');
+    console.log('SYNTHETIC_SESSION_CLEANUP=PASS');
+  }
   if (browserRun.error) throw new Error(`Playwright staging E2E could not start (${browserRun.error.code || 'runner error'}).`);
   assert.equal(browserRun.signal, null, 'Playwright staging E2E was terminated unexpectedly.');
   assert.equal(browserRun.status, 0, 'Playwright staging E2E failed. Review only sanitized test output; credentials are never printed.');

@@ -11,20 +11,17 @@ export default defineConfig({
   retries: 0,
   timeout: 90_000,
   expect: { timeout: 15_000 },
-  reporter: [['list']],
+  reporter: [['./scripts/readiness/staging-safe-reporter.mjs']],
   outputDir: 'test-results/staging-e2e',
   // Traces can contain Authorization headers and browser storage. Keep them
   // disabled until a reviewed redaction pipeline exists.
   use: {
     baseURL: validated.baseURL,
     browserName: 'chromium',
-    // Some managed Windows runners terminate TLS through a local CA that is
-    // not present in Playwright's bundled trust store. Keep this staging-only
-    // and explicit; the target guard above still pins the exact Vercel host.
-    ignoreHTTPSErrors: process.env.ORKTO_E2E_ALLOW_RUNNER_CA === '1',
+    ignoreHTTPSErrors: false,
     viewport: { width: 1440, height: 900 },
     colorScheme: 'light',
-    screenshot: 'only-on-failure',
+    screenshot: 'off',
     trace: 'off',
     video: 'off',
     actionTimeout: 15_000,

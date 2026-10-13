@@ -1,5 +1,17 @@
 # Staging E2E access — 2026-10-13
 
+## Follow-up: TLS and credential containment
+
+The owner's actual A/B run reached Playwright but both tests failed TLS. The former child-environment whitelist dropped `NODE_USE_SYSTEM_CA`; this is now propagated explicitly, and optional `NODE_EXTRA_CA_CERTS` must name an existing absolute CA file. Insecure overrides are rejected. The corrected child performed two GETs on this exact candidate: health and readiness both 200, system CA active, admin key absent. No custom CA was needed for those requests.
+
+Raw Playwright output is now captured in memory; the parent forwards only allowlisted test IDs/statuses/error classes. A safe fixture redacts known credentials before Playwright writes error context; a custom reporter withholds unstructured error artifacts altogether, and the parent repeats containment even after crashes/timeouts. This also covers unknown opaque secrets that regex cannot recognize. Only allowlisted last-run status/IDs are retained. Screenshots, traces and video are withheld; unreviewed binary artifacts are removed. Old local error-context files were replaced with safe withholding markers and scanned (3 files, zero findings). This does not erase a terminal transcript or copies previously retained outside this checkout.
+
+The exposed synthetic Auth session was globally signed out through staging Auth (HTTP 204). SQL afterwards found zero sessions/refresh tokens for both reserved synthetic users. Issued access JWTs are stateless and may remain usable until expiry; sign-out is not an immediate cryptographic revocation. OIDC was minted anew and the leaked token was not reused; no team signing-key change or deployment-protection modification was attempted. The parent now globally signs out synthetic users after browser success/failure as well.
+
+Security fixtures passed locally: child CA propagation/admin isolation, override rejection, text redaction, live TLS trust/hostname tests, deliberate Playwright failures without credential retention, and old artifact sanitation. The full corrected A/B suite is **NOT RUN**; use the same masked launcher command below for the single next attempt. These changes affect runners/tests only; the candidate application SHA/deployment remains unchanged.
+
+A stricter regression initially found an opaque fixture value retained because the reporter read nonexistent `result.outputDir`. The reporter now obtains the actual project output directories from `onBegin(config)`; the same regression passed after correction. No test was removed or weakened. Typecheck passed; the focused scan of changed files and contained artifacts reported 14 files/zero findings.
+
 Candidate: `65d5f8ac8284e495bd95d742172da11f6a25b782`, deployment `dpl_6oqdS1C4pkSNHAN3fLEvoNz8yPZf`, immutable URL `https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app/`.
 
 ## Executed evidence

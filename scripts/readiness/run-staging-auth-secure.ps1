@@ -2,6 +2,12 @@ param(
     [string]$OidcDirectory = 'C:\Users\sobooa7iqytvqheo\Documents\Codex\Orktoverdeiro-deploy-6bc8adb'
 )
 $ErrorActionPreference = 'Stop'
+if ($env:NODE_TLS_REJECT_UNAUTHORIZED -eq '0' -or $env:ORKTO_E2E_ALLOW_RUNNER_CA -eq '1') {
+    throw 'INSECURE_TLS_OVERRIDE_REJECTED'
+}
+if ($env:NODE_EXTRA_CA_CERTS -and (-not [IO.Path]::IsPathRooted($env:NODE_EXTRA_CA_CERTS) -or -not (Test-Path -LiteralPath $env:NODE_EXTRA_CA_CERTS -PathType Leaf))) {
+    throw 'TRUSTED_CA_FILE_REQUIRED'
+}
 $candidateUrl = 'https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app/'
 $candidateSha = '65d5f8ac8284e495bd95d742172da11f6a25b782'
 $projectId = 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc'
@@ -45,6 +51,7 @@ try {
         if ($value) { $start.EnvironmentVariables[$name] = $value }
     }
     $start.EnvironmentVariables['NODE_USE_SYSTEM_CA'] = '1'
+    if ($env:NODE_EXTRA_CA_CERTS) { $start.EnvironmentVariables['NODE_EXTRA_CA_CERTS'] = $env:NODE_EXTRA_CA_CERTS }
     $start.EnvironmentVariables['ORKTO_STAGING_E2E'] = '1'
     $start.EnvironmentVariables['ORKTO_STAGING_PREVIEW_URL'] = $candidateUrl
     $start.EnvironmentVariables['ORKTO_STAGING_EXPECTED_SHA'] = $candidateSha
