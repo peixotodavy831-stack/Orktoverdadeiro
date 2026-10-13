@@ -6,8 +6,10 @@ import path from 'node:path';
 import {
   PRODUCTION_DEPLOY_TARGET,
   STAGING_DEPLOY_TARGET,
+  buildStagingDeployArgs,
   parseStagingDeploymentUrl,
   validateStagingDeployBoundary,
+  verifyStagingDeployResult,
 } from '../readiness/deploy-staging.mjs';
 
 const projectLink = {
@@ -125,4 +127,34 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   assert.deepEqual(productionWithoutCrons,defaultConfig);
   assert.equal(defaultConfig.crons,undefined);
   assert.deepEqual(productionConfig.crons,[{path:'/api/cron/automation-dispatch',schedule:'15 * * * *'}]);
+});
+
+test('CLI deploy pins project, Preview target, and the exact clean-checkout SHA', () => {
+  const sha = 'a'.repeat(40);
+  const args = buildStagingDeployArgs(sha);
+  assert.deepEqual(args.slice(0, 7), [
+    'deploy', '--yes', '--target=preview', '--project', STAGING_DEPLOY_TARGET.projectId,
+    '--scope', STAGING_DEPLOY_TARGET.orgId,
+  ]);
+  assert.deepEqual(args.slice(args.indexOf('--meta'), args.indexOf('--meta') + 2),
+    ['--meta', `githubCommitSha=${sha}`]);
+  assert.throws(() => buildStagingDeployArgs('unknown'), /STAGING_SOURCE_SHA_INVALID/);
+  assert.equal(args.includes('--prod'), false);
+});
+
+test('deploy result binds the inspected staging Preview to the expected SHA', () => {
+  const sha = 'a'.repeat(40);
+  const url = 'https://orkto-staging-test.vercel.app';
+  const deployment = {
+    projectId: STAGING_DEPLOY_TARGET.projectId,
+    url: new URL(url).hostname,
+    target: null,
+    readyState: 'READY',
+    meta: { githubCommitSha: sha },
+  };
+  assert.equal(verifyStagingDeployResult(url, deployment, [], sha).ok, true);
+  assert.equal(verifyStagingDeployResult(url, deployment, [], 'b'.repeat(40)).code,
+    'STAGING_PREVIEW_SHA_MISMATCH');
+  assert.equal(verifyStagingDeployResult(url, deployment, [], undefined).code,
+    'STAGING_PREVIEW_SHA_MISMATCH');
 });

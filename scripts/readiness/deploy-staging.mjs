@@ -47,6 +47,29 @@ export function parseStagingDeploymentUrl(output) {
   return url.hostname.startsWith('orkto-staging-') && url.hostname.endsWith('.vercel.app') ? url : null;
 }
 
+export function buildStagingDeployArgs(expectedSha) {
+  if (!/^[a-f0-9]{40}$/i.test(expectedSha || '')) {
+    throw new Error('STAGING_SOURCE_SHA_INVALID');
+  }
+  return [
+    'deploy',
+    '--yes',
+    '--target=preview',
+    '--project', STAGING_DEPLOY_TARGET.projectId,
+    '--scope', STAGING_DEPLOY_TARGET.orgId,
+    '--local-config', 'vercel.staging.json',
+    '--meta', `githubCommitSha=${expectedSha.toLowerCase()}`,
+    '--build-env', 'APP_ENV=staging',
+    '--build-env', 'VITE_APP_ENV=staging',
+    '--build-env', `VITE_SUPABASE_URL=${STAGING_DEPLOY_TARGET.supabaseUrl}`,
+    '--build-env', `ORKTO_STAGING_SUPABASE_REF=${STAGING_DEPLOY_TARGET.supabaseRef}`,
+  ];
+}
+
+export function verifyStagingDeployResult(previewUrl, deployment, scopedDeployments, expectedSha) {
+  return validateStagingPreviewDeployment(previewUrl, deployment, scopedDeployments, expectedSha);
+}
+
 function matchesStagingTarget(name, value) {
   const normalized = value.trim().replace(/\/$/, '');
   if (name.endsWith('_URL') && name.includes('SUPABASE')) {
@@ -164,22 +187,25 @@ function main() {
     return;
   }
 
+  const git = (gitArgs) => spawnSync('git', gitArgs, {
+    cwd: repoRoot, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const head = git(['rev-parse', 'HEAD']);
+  const status = git(['status', '--porcelain', '--untracked-files=all']);
+  const expectedSha = head.stdout?.trim();
+  if (head.status !== 0 || status.status !== 0 || !/^[a-f0-9]{40}$/i.test(expectedSha || '')) {
+    process.stderr.write('STAGING_DEPLOY_ABORT: SOURCE_SHA_NOT_VERIFIED\n');
+    process.exitCode = 2;
+    return;
+  }
+  if (status.stdout.trim()) {
+    process.stderr.write('STAGING_DEPLOY_ABORT: SOURCE_TREE_DIRTY\n');
+    process.exitCode = 2;
+    return;
+  }
+
   const command = process.platform === 'win32' ? 'vercel.cmd' : 'vercel';
-  const deployArgs = [
-    'deploy',
-    '--yes',
-    '--target=preview',
-    '--scope', STAGING_DEPLOY_TARGET.orgId,
-    '--local-config', 'vercel.staging.json',
-    '--build-env',
-    `APP_ENV=staging`,
-    '--build-env',
-    `VITE_APP_ENV=staging`,
-    '--build-env',
-    `VITE_SUPABASE_URL=${STAGING_DEPLOY_TARGET.supabaseUrl}`,
-    '--build-env',
-    `ORKTO_STAGING_SUPABASE_REF=${STAGING_DEPLOY_TARGET.supabaseRef}`,
-  ];
+  const deployArgs = buildStagingDeployArgs(expectedSha);
   const childEnv = { ...process.env };
   // Pin the same project whose local link was verified. Vercel documents
   // these variables for non-interactive deploys; never inherit another target.
@@ -237,8 +263,8 @@ function main() {
   let identity;
   try {
     if (inspect.status !== 0 || list.status !== 0) throw new Error('Deployment inspection failed');
-    identity = validateStagingPreviewDeployment(deployedUrl.origin,
-      JSON.parse(inspect.stdout),JSON.parse(list.stdout).deployments);
+    identity = verifyStagingDeployResult(deployedUrl.origin,
+      JSON.parse(inspect.stdout), JSON.parse(list.stdout).deployments, expectedSha);
   } catch {
     identity = {ok:false};
   }

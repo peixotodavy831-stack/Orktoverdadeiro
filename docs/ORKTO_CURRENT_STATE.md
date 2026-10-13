@@ -1,5 +1,9 @@
 # ORKTO Current State
 
+## Atualização de execução — 2026-10-13 — runner de deploy
+
+O runner `scripts/readiness/deploy-staging.mjs` recebeu a correção do contrato `expectedSha`: agora exige checkout Git limpo, obtém o SHA do `HEAD`, fixa o projeto `orkto-staging` por ID e envia esse SHA como metadado do Preview para conferência após o deploy. Os testes focados de deploy e identidade passaram (15/15), e `--guard-only` confirmou o projeto/ref de staging. Esta é evidência **local**; nenhum novo Preview, push, E2E autenticado ou checkpoint de segurança foi executado nesta atualização. As alterações preexistentes no checkout permanecem preservadas; o deployment exige checkout isolado e limpo. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
 ## Estado vigente — 2026-10-13 — staging Preview `6099a2c`
 
 | Gate | Estado | Evidência e limite |
