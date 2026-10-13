@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
 
@@ -415,9 +416,10 @@ if (browserE2E) {
     ORKTO_STAGING_E2E_USER_B_PASSWORD: rawUsers[1].password,
   });
   Object.assign(browserEnv, previewAccess.values);
-  const playwrightCli = resolve(process.cwd(), 'node_modules', '@playwright', 'test', 'cli.js');
+  const sourceRoot = fileURLToPath(new URL('../../', import.meta.url));
+  const playwrightCli = resolve(sourceRoot, 'node_modules', '@playwright', 'test', 'cli.js');
   const browserRun = spawnSync(process.execPath, [playwrightCli, 'test', '--config=playwright.config.ts', 'tests/e2e/staging.spec.ts'], {
-    cwd: process.cwd(), env: browserEnv, stdio: 'inherit', timeout: 15 * 60 * 1000,
+    cwd: sourceRoot, env: browserEnv, stdio: 'inherit', timeout: 15 * 60 * 1000,
   });
   if (browserRun.error) throw new Error(`Playwright staging E2E could not start (${browserRun.error.code || 'runner error'}).`);
   assert.equal(browserRun.signal, null, 'Playwright staging E2E was terminated unexpectedly.');

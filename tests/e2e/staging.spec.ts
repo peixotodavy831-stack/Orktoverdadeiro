@@ -17,6 +17,8 @@ function optional(name: string): string | undefined {
 }
 
 function protectionHeaders(): Record<string, string> {
+  const oidc = optional('VERCEL_OIDC_TOKEN');
+  if (oidc) return { 'x-vercel-trusted-oidc-idp-token': oidc };
   const bypass = optional('ORKTO_STAGING_E2E_BYPASS_SECRET');
   return bypass ? { 'x-vercel-protection-bypass': bypass } : {};
 }
@@ -42,10 +44,13 @@ async function signIn(page: Page, email: string, password: string, group: 'A' | 
   const previewOrigin = new URL(required('ORKTO_STAGING_PREVIEW_URL')).origin;
   const headers = protectionHeaders();
   await page.route('**/*', async route => {
+    const original = { ...route.request().headers() };
+    delete original['x-vercel-trusted-oidc-idp-token'];
+    delete original['x-vercel-protection-bypass'];
     if (new URL(route.request().url()).origin === previewOrigin) {
-      await route.continue({ headers:{ ...route.request().headers(), ...headers } });
+      await route.continue({ headers:{ ...original, ...headers } });
     } else {
-      await route.continue();
+      await route.continue({ headers: original });
     }
   });
   await establishPreviewAccess(page);
@@ -106,11 +111,11 @@ test('health and readiness confirm the deployed app is staging and its database 
   const accessUrl = optional('ORKTO_STAGING_PREVIEW_ACCESS_URL');
   if (accessUrl) await request.get(accessUrl);
   const headers=protectionHeaders();
-  const health = await request.get('/api/health',{headers});
+  const health = await request.get('/api/health',{ maxRedirects: 0,headers});
   expect(health.ok()).toBeTruthy();
   expect((await health.json()).status).toBe('ok');
 
-  const ready = await request.get('/api/ready',{headers});
+  const ready = await request.get('/api/ready',{ maxRedirects: 0,headers});
   expect(ready.status()).toBe(200);
   const body = await ready.json();
   expect(body.status).toBe('ready');
@@ -161,7 +166,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   await signIn(page, emailA, passwordA, 'A');
   const bearerA = appBearer;
   expect(bearerA && publicKey, 'synthetic A auth and public configuration must be available in memory').toBeTruthy();
-  const workspaceAResponse = await page.request.get('/api/operational/workspace', {
+  const workspaceAResponse = await page.request.get('/api/operational/workspace', { maxRedirects: 0,
     headers: { Authorization: bearerA!, ...protectionHeaders() },
   });
   expect(workspaceAResponse.status()).toBe(200);
@@ -170,7 +175,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   const ownerA = workspaceAPayload.members?.find((member: { role?: string }) => member.role === 'owner')?.user_id as string;
   expect(workspaceA).toMatch(/^[0-9a-f-]{36}$/i);
   expect(ownerA).toMatch(/^[0-9a-f-]{36}$/i);
-  const conversationAResponse = await page.request.get('/api/conversations', {
+  const conversationAResponse = await page.request.get('/api/conversations', { maxRedirects: 0,
     headers: { Authorization: bearerA!, ...protectionHeaders() },
   });
   expect(conversationAResponse.status()).toBe(200);
@@ -178,13 +183,13 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   expect(conversationA).toMatch(/^[0-9a-f-]{36}$/i);
   const readKey = crypto.randomUUID();
   for (const replay of [false, true]) {
-    const marked = await page.request.post(`/api/conversations/${conversationA}/read`, {
+    const marked = await page.request.post(`/api/conversations/${conversationA}/read`, { maxRedirects: 0,
       headers: { Authorization: bearerA!, 'x-idempotency-key': readKey, ...protectionHeaders() },
     });
     expect(marked.status(), 'staging Inbox read must use the authorized gateway').toBe(200);
     expect((await marked.json()).idempotentReplay).toBe(replay);
   }
-  const changed = await page.request.patch(`/api/conversations/${conversationA}`, {
+  const changed = await page.request.patch(`/api/conversations/${conversationA}`, { maxRedirects: 0,
     headers: { Authorization: bearerA!, 'x-idempotency-key': crypto.randomUUID(), ...protectionHeaders() },
     data: { status: 'active' },
   });
@@ -283,7 +288,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   await signIn(page, emailB, passwordB, 'B');
   const bearerB = appBearer;
   expect(bearerB && bearerB !== bearerA, 'synthetic users must have distinct live sessions').toBeTruthy();
-  const workspaceBResponse = await page.request.get('/api/operational/workspace', {
+  const workspaceBResponse = await page.request.get('/api/operational/workspace', { maxRedirects: 0,
     headers: { Authorization: bearerB!, ...protectionHeaders() },
   });
   expect(workspaceBResponse.status()).toBe(200);
@@ -293,27 +298,27 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   expect(workspaceB).toMatch(/^[0-9a-f-]{36}$/i);
   expect(ownerB).toMatch(/^[0-9a-f-]{36}$/i);
   expect(workspaceA).not.toBe(workspaceB);
-  const foreignRead = await page.request.post(`/api/conversations/${conversationA}/read`, {
+  const foreignRead = await page.request.post(`/api/conversations/${conversationA}/read`, { maxRedirects: 0,
     headers: { Authorization: bearerB!, 'x-idempotency-key': crypto.randomUUID(), ...protectionHeaders() },
   });
   expect(foreignRead.status(), 'User B cannot mutate User A conversation').toBe(404);
-  const foreignContactEdit=await page.request.patch(`/api/contacts/${contactA}`,{
+  const foreignContactEdit=await page.request.patch(`/api/contacts/${contactA}`,{ maxRedirects: 0,
     headers:{Authorization:bearerB!,'x-idempotency-key':`e2e-contact-foreign-${crypto.randomUUID()}`,...protectionHeaders()},
     data:{role:'Foreign change'},
   });
   expect(foreignContactEdit.status(),'User B cannot mutate User A contact').toBe(404);
-  const conversationBResponse = await page.request.get('/api/conversations', {
+  const conversationBResponse = await page.request.get('/api/conversations', { maxRedirects: 0,
     headers: { Authorization: bearerB!, ...protectionHeaders() },
   });
   expect(conversationBResponse.status()).toBe(200);
   const conversationB = (await conversationBResponse.json())?.[0]?.id as string;
   expect(conversationB).toMatch(/^[0-9a-f-]{36}$/i);
   expect(conversationB).not.toBe(conversationA);
-  const ownReadB = await page.request.post(`/api/conversations/${conversationB}/read`, {
+  const ownReadB = await page.request.post(`/api/conversations/${conversationB}/read`, { maxRedirects: 0,
     headers: { Authorization: bearerB!, 'x-idempotency-key': crypto.randomUUID(), ...protectionHeaders() },
   });
   expect(ownReadB.status(), 'User B can mutate its own conversation via the gateway').toBe(200);
-  const directWrite = await page.request.patch(`https://ghrjongiodziasupakrk.supabase.co/rest/v1/orkto_conversations?id=eq.${conversationB}`, {
+  const directWrite = await page.request.patch(`https://ghrjongiodziasupakrk.supabase.co/rest/v1/orkto_conversations?id=eq.${conversationB}`, { maxRedirects: 0,
     headers: { apikey: publicKey!, Authorization: bearerB!, Prefer: 'return=representation',
       'Content-Type':'application/json' },
     data: { status: 'paused' },
@@ -323,7 +328,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   for (const [bearer, own, foreign, userId] of [[bearerA!, workspaceA, workspaceB, ownerA], [bearerB!, workspaceB, workspaceA, ownerB]]) {
     for (const functionName of ['orkto_is_workspace_member', 'orkto_is_workspace_admin']) {
       for (const [target, expected] of [[own, true], [foreign, false]] as const) {
-        const rpc = await page.request.post(`${rpcOrigin}/rest/v1/rpc/${functionName}`, {
+        const rpc = await page.request.post(`${rpcOrigin}/rest/v1/rpc/${functionName}`, { maxRedirects: 0,
           headers: { apikey: publicKey!, Authorization: bearer, 'Content-Type':'application/json' },
           data: { target_workspace: target },
         });
@@ -332,7 +337,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
       }
     }
     for (const [target, expected] of [[own, true], [foreign, false]] as const) {
-      const rpc = await page.request.post(`${rpcOrigin}/rest/v1/rpc/orkto_legacy_owner_matches`, {
+      const rpc = await page.request.post(`${rpcOrigin}/rest/v1/rpc/orkto_legacy_owner_matches`, { maxRedirects: 0,
         headers: { apikey: publicKey!, Authorization: bearer, 'Content-Type':'application/json' },
         data: { target_workspace: target, legacy_user: userId },
       });
@@ -340,7 +345,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
       expect(await rpc.json(), 'legacy owner helper must also require current workspace membership').toBe(expected);
     }
   }
-  const anonymousHelper = await page.request.post(`${rpcOrigin}/rest/v1/rpc/orkto_is_workspace_member`, {
+  const anonymousHelper = await page.request.post(`${rpcOrigin}/rest/v1/rpc/orkto_is_workspace_member`, { maxRedirects: 0,
     headers: { apikey: publicKey!, 'Content-Type':'application/json' },
     data: { target_workspace: workspaceA },
   });
@@ -358,7 +363,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   await capture(page, 'b-clients-desktop-1440.png');
 
   const bypassHeaders = protectionHeaders();
-  const refreshedA = await page.request.post('https://ghrjongiodziasupakrk.supabase.co/auth/v1/token?grant_type=password', {
+  const refreshedA = await page.request.post('https://ghrjongiodziasupakrk.supabase.co/auth/v1/token?grant_type=password', { maxRedirects: 0,
     headers: { apikey: publicKey!, 'Content-Type':'application/json' },
     data: { email:emailA,password:passwordA },
   });
@@ -372,70 +377,70 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
     ['/api/purchases',{customerRef:crypto.randomUUID(),productName:'blocked',quantity:1,amountCents:1,purchasedAt:new Date().toISOString(),idempotencyKey:`blocked-${crypto.randomUUID()}`}],
     ['/api/imports/preview',{source:'blocked.csv',entityType:'customers',rows:[{name:'blocked'}],mapping:{name:'name'}}],
   ] as const) {
-    const blocked=await page.request.post(path,{headers:apiHeadersA,data});
+    const blocked=await page.request.post(path,{ maxRedirects: 0,headers:apiHeadersA,data});
     expect(blocked.status(),`${path} is feature-gated in staging`).toBe(423);
     expect((await blocked.json()).category).toBe('FEATURE_DISABLED');
   }
 
-  const invalidToken = await page.request.get('/api/clients', {
+  const invalidToken = await page.request.get('/api/clients', { maxRedirects: 0,
     headers: { Authorization: 'Bearer invalid.synthetic.token', ...bypassHeaders },
   });
   expect(invalidToken.status(), 'invalid tokens fail closed').toBe(401);
-  const spoofedWorkspace = await page.request.post('/api/clients', {
+  const spoofedWorkspace = await page.request.post('/api/clients', { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-spoof-${crypto.randomUUID()}` },
     data: { name:'Synthetic spoof attempt',phone:'+5500000088810',workspace_id:workspaceB },
   });
   expect(spoofedWorkspace.status(), 'workspace IDs supplied by the browser are rejected').toBe(400);
 
-  const catalogCreated = await page.request.post('/api/catalog', {
+  const catalogCreated = await page.request.post('/api/catalog', { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-catalog-${crypto.randomUUID()}` },
     data: { name:'SYNTHETIC E2E SERVICE',description:'Readiness only',unitPrice:25,category:'Serviço' },
   });
   expect(catalogCreated.status(), 'A creates a catalog item through the gateway').toBe(201);
   const catalogId = (await catalogCreated.json())?.data?.id as string;
   expect(catalogId).toMatch(/^[0-9a-f-]{36}$/i);
-  const foreignCatalogEdit = await page.request.patch(`/api/catalog/${catalogId}`, {
+  const foreignCatalogEdit = await page.request.patch(`/api/catalog/${catalogId}`, { maxRedirects: 0,
     headers: { ...apiHeadersB, 'x-idempotency-key': `e2e-catalog-foreign-${crypto.randomUUID()}` },
     data: { name:'Foreign change' },
   });
   expect(foreignCatalogEdit.status(), 'B cannot edit A catalog item').toBe(404);
-  const ownCatalogEdit = await page.request.patch(`/api/catalog/${catalogId}`, {
+  const ownCatalogEdit = await page.request.patch(`/api/catalog/${catalogId}`, { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-catalog-edit-${crypto.randomUUID()}` },
     data: { description:'Updated through Preview' },
   });
   expect(ownCatalogEdit.status(), 'A edits its catalog item through the gateway').toBe(200);
 
-  const dealCreated = await page.request.post('/api/deals', {
+  const dealCreated = await page.request.post('/api/deals', { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-deal-${crypto.randomUUID()}` },
     data: { title:'SYNTHETIC E2E DEAL',valueCents:2500,stage:'new' },
   });
   expect(dealCreated.status(), 'A creates a deal through the gateway').toBe(201);
   const dealId = (await dealCreated.json())?.data?.id as string;
   expect(dealId).toMatch(/^[0-9a-f-]{36}$/i);
-  const foreignDealEdit = await page.request.patch(`/api/deals/${dealId}`, {
+  const foreignDealEdit = await page.request.patch(`/api/deals/${dealId}`, { maxRedirects: 0,
     headers: { ...apiHeadersB, 'x-idempotency-key': `e2e-deal-foreign-${crypto.randomUUID()}` },
     data: { stage:'qualification' },
   });
   expect(foreignDealEdit.status(), 'B cannot mutate A deal').toBe(404);
   const terminalKey = `e2e-deal-terminal-${crypto.randomUUID()}`;
   for (const replay of [false, true]) {
-    const closed = await page.request.patch(`/api/deals/${dealId}`, {
+    const closed = await page.request.patch(`/api/deals/${dealId}`, { maxRedirects: 0,
       headers: { ...apiHeadersA, 'x-idempotency-key': terminalKey }, data: { stage:'won' },
     });
     expect(closed.status(), 'A can close its deal through the terminal command').toBe(200);
     expect((await closed.json()).idempotentReplay).toBe(replay);
   }
-  const conflictingTerminal = await page.request.patch(`/api/deals/${dealId}`, {
+  const conflictingTerminal = await page.request.patch(`/api/deals/${dealId}`, { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-deal-terminal-conflict-${crypto.randomUUID()}` },
     data: { stage:'lost',lostReason:'Conflicting terminal outcome' },
   });
   expect(conflictingTerminal.status(), 'a terminal deal cannot receive a second outcome').toBe(409);
-  const unsupportedReopen = await page.request.patch(`/api/deals/${dealId}`, {
+  const unsupportedReopen = await page.request.patch(`/api/deals/${dealId}`, { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-deal-reopen-${crypto.randomUUID()}` },
     data: { stage:'qualification' },
   });
   expect([409,423]).toContain(unsupportedReopen.status());
-  const archivedDeal = await page.request.delete(`/api/deals/${dealId}`, {
+  const archivedDeal = await page.request.delete(`/api/deals/${dealId}`, { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-deal-archive-${crypto.randomUUID()}` },
   });
   expect(archivedDeal.status(), 'owner can archive a terminal synthetic deal').toBe(200);
@@ -444,19 +449,19 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   for (const table of directTables) {
     const endpoint = `https://ghrjongiodziasupakrk.supabase.co/rest/v1/${table}`;
     const directHeaders = { apikey:publicKey!,Authorization:activeBearerA,'Content-Type':'application/json',Prefer:'return=representation' };
-    const directInsert = await page.request.post(endpoint, { headers:directHeaders,data:{ id:crypto.randomUUID() } });
+    const directInsert = await page.request.post(endpoint, { maxRedirects: 0, headers:directHeaders,data:{ id:crypto.randomUUID() } });
     expect(directInsert.status(), `direct INSERT must remain denied for ${table}`).toBeGreaterThanOrEqual(400);
-    const directUpdate = await page.request.patch(`${endpoint}?id=eq.${crypto.randomUUID()}`, { headers:directHeaders,data:{ id:crypto.randomUUID() } });
+    const directUpdate = await page.request.patch(`${endpoint}?id=eq.${crypto.randomUUID()}`, { maxRedirects: 0, headers:directHeaders,data:{ id:crypto.randomUUID() } });
     expect(directUpdate.status(), `direct UPDATE must remain denied for ${table}`).toBeGreaterThanOrEqual(400);
-    const directDelete = await page.request.delete(`${endpoint}?id=eq.${crypto.randomUUID()}`, { headers:directHeaders });
+    const directDelete = await page.request.delete(`${endpoint}?id=eq.${crypto.randomUUID()}`, { maxRedirects: 0, headers:directHeaders });
     expect(directDelete.status(), `direct DELETE must remain denied for ${table}`).toBeGreaterThanOrEqual(400);
   }
 
-  const catalogArchived = await page.request.delete(`/api/catalog/${catalogId}`, {
+  const catalogArchived = await page.request.delete(`/api/catalog/${catalogId}`, { maxRedirects: 0,
     headers: { ...apiHeadersA, 'x-idempotency-key': `e2e-catalog-archive-${crypto.randomUUID()}` },
   });
   expect(catalogArchived.status(), 'owner archives the synthetic catalog item through the gateway').toBe(200);
-  const quoteCreated = await page.request.post('/api/quotes', {
+  const quoteCreated = await page.request.post('/api/quotes', { maxRedirects: 0,
     headers: { Authorization: activeBearerA, 'x-idempotency-key': `e2e-quote-${crypto.randomUUID()}`, ...bypassHeaders },
     data: { clientName: 'SYNTHETIC PREVIEW ARCHIVE', clientPhone: '+5500000088891',
       items: [{ name:'Synthetic internal service',description:'',quantity:1,unitPrice:25,discount:0 }] },
@@ -465,12 +470,12 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   expect(quoteCreated.status(), `A can create a synthetic Quote through the Preview gateway: ${quoteCreateBody.category || 'unknown'}`).toBe(201);
   const quoteId = quoteCreateBody?.id as string;
   expect(quoteId).toMatch(/^[0-9a-f-]{36}$/i);
-  const foreignEdit = await page.request.put(`/api/quotes/${quoteId}`, {
+  const foreignEdit = await page.request.put(`/api/quotes/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: bearerB!, 'x-idempotency-key': `e2e-edit-foreign-${crypto.randomUUID()}`, ...bypassHeaders },
     data: { notes:'Foreign edit denied' },
   });
   expect(foreignEdit.status(), 'B cannot edit A Quote').toBe(404);
-  const ownEdit = await page.request.put(`/api/quotes/${quoteId}`, {
+  const ownEdit = await page.request.put(`/api/quotes/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: activeBearerA, 'x-idempotency-key': `e2e-edit-${crypto.randomUUID()}`, ...bypassHeaders },
     data: { notes:'Edited through Preview',total:0,status:'pending' },
   });
@@ -478,26 +483,26 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   const editedQuote = await ownEdit.json();
   expect(editedQuote.notes).toBe('Edited through Preview');
   expect(Number(editedQuote.total), 'client-supplied total is ignored').toBe(25);
-  const forgedStatus = await page.request.put(`/api/quotes/${quoteId}`, {
+  const forgedStatus = await page.request.put(`/api/quotes/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: activeBearerA, 'x-idempotency-key': `e2e-edit-status-${crypto.randomUUID()}`, ...bypassHeaders },
     data: { notes:'Forbidden state',status:'approved' },
   });
   expect(forgedStatus.status(), 'generic edit cannot approve a Quote').toBe(423);
   const archiveKey = `e2e-archive-${crypto.randomUUID()}`;
-  const foreignArchive = await page.request.delete(`/api/quotes/${quoteId}`, {
+  const foreignArchive = await page.request.delete(`/api/quotes/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: bearerB!, 'x-idempotency-key': archiveKey, ...bypassHeaders },
   });
   const foreignArchiveBody = await foreignArchive.json();
   expect(foreignArchive.status(), `B cannot archive A Quote through the Preview gateway: ${foreignArchiveBody.category || 'unknown'}`).toBe(404);
-  const ownArchive = await page.request.delete(`/api/quotes/${quoteId}`, {
+  const ownArchive = await page.request.delete(`/api/quotes/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: activeBearerA, 'x-idempotency-key': archiveKey, ...bypassHeaders },
   });
   expect(ownArchive.status(), 'A can archive its own synthetic Quote').toBe(200);
-  const replayArchive = await page.request.delete(`/api/quotes/${quoteId}`, {
+  const replayArchive = await page.request.delete(`/api/quotes/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: activeBearerA, 'x-idempotency-key': archiveKey, ...bypassHeaders },
   });
   expect(replayArchive.status(), 'same operation key replays without a second archive').toBe(200);
-  const hiddenArchive = await page.request.get(`/api/quotes/detail/${quoteId}`, {
+  const hiddenArchive = await page.request.get(`/api/quotes/detail/${quoteId}`, { maxRedirects: 0,
     headers: { Authorization: activeBearerA, ...bypassHeaders },
   });
   expect(hiddenArchive.status(), 'archived Quote is absent from active detail').toBe(404);

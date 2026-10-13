@@ -93,3 +93,16 @@ test('browser child receives only access for the exact staging Preview origin', 
     ORKTO_STAGING_E2E_BYPASS_SECRET: 'synthetic-bypass',
   }).code, 'STAGING_PREVIEW_ACCESS_AMBIGUOUS');
 });
+
+test('OIDC access accepts a live token in memory and rejects expired or ambiguous access', () => {
+  const jwt = claims => `synthetic.${Buffer.from(JSON.stringify(claims)).toString('base64url')}.signature`;
+  const token = jwt({ exp: Math.floor(Date.now() / 1000) + 600 });
+  const selected = stagingPreviewAccessForBrowser({ ...valid, VERCEL_OIDC_TOKEN: token,
+    ORKTO_STAGING_SUPABASE_ADMIN_KEY: 'synthetic-admin-never-forwarded' });
+  assert.deepEqual(selected, { ok: true, values: { VERCEL_OIDC_TOKEN: token } });
+  assert.equal(stagingPreviewAccessForBrowser({ ...valid, VERCEL_OIDC_TOKEN: jwt({ exp: 1 }) }).code,
+    'STAGING_OIDC_TOKEN_INVALID_OR_EXPIRED');
+  assert.equal(stagingPreviewAccessForBrowser({ ...valid, VERCEL_OIDC_TOKEN: 'malformed' }).ok, false);
+  assert.equal(stagingPreviewAccessForBrowser({ ...valid, VERCEL_OIDC_TOKEN: token,
+    ORKTO_STAGING_E2E_BYPASS_SECRET: 'synthetic-bypass' }).code, 'STAGING_PREVIEW_ACCESS_AMBIGUOUS');
+});

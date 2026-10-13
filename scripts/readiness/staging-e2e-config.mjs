@@ -68,7 +68,19 @@ export function validateStagingE2EConfig(env) {
 export function stagingPreviewAccessForBrowser(env) {
   const accessUrl = env.ORKTO_STAGING_PREVIEW_ACCESS_URL?.trim();
   const bypass = env.ORKTO_STAGING_E2E_BYPASS_SECRET?.trim();
-  if (accessUrl && bypass) return { ok: false, code: 'STAGING_PREVIEW_ACCESS_AMBIGUOUS' };
+  const oidc = env.VERCEL_OIDC_TOKEN?.trim();
+  if ([accessUrl, bypass, oidc].filter(Boolean).length > 1) return { ok: false, code: 'STAGING_PREVIEW_ACCESS_AMBIGUOUS' };
+  if (oidc) {
+    try {
+      const claims = JSON.parse(Buffer.from(oidc.split('.')[1], 'base64url').toString('utf8'));
+      if (!Number.isFinite(claims.exp) || claims.exp <= Date.now() / 1000) {
+        return { ok: false, code: 'STAGING_OIDC_TOKEN_INVALID_OR_EXPIRED' };
+      }
+    } catch { return { ok: false, code: 'STAGING_OIDC_TOKEN_INVALID_OR_EXPIRED' }; }
+    // Signature and Trusted Source claims are checked by Vercel, not by this
+    // local expiry guard. The browser attaches this only to the verified origin.
+    return { ok: true, values: { VERCEL_OIDC_TOKEN: oidc } };
+  }
   if (accessUrl) {
     let preview;
     let access;
