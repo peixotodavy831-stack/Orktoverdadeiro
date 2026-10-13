@@ -32,16 +32,19 @@ export async function executeTrustedT0(db: any, workspaceId: string, route: T0Ro
     const start = new Date().toISOString().slice(0,10) + 'T00:00:00.000Z';
     const end = new Date(Date.parse(start) + 86_400_000).toISOString();
     const rows = requireData(await db.from('quotes').select('id,total').eq('workspace_id',workspaceId)
-      .eq('status','approved').gte('approved_at',start).lt('approved_at',end).limit(100)) || [];
-    output = { salesCount:rows.length,total:rows.reduce((sum:number,row:any)=>sum+Number(row.total||0),0),sourceIds:rows.map((row:any)=>`quote:${row.id}`) };
+      .eq('status','approved').gte('approved_at',start).lt('approved_at',end).limit(101)) || [];
+    const bounded=rows.slice(0,100);
+    output = { salesCount:bounded.length,truncated:rows.length>100,total:bounded.reduce((sum:number,row:any)=>sum+Number(row.total||0),0),sourceIds:bounded.map((row:any)=>`quote:${row.id}`) };
   } else if (route.name === 'get_open_quotes') {
     const rows = requireData(await db.from('quotes').select('id,total').eq('workspace_id',workspaceId)
-      .in('status',['pending','sent','viewed']).order('updated_at',{ascending:false}).limit(50)) || [];
-    output = { count:rows.length,total:rows.reduce((sum:number,row:any)=>sum+Number(row.total||0),0),sourceIds:rows.map((row:any)=>`quote:${row.id}`) };
+      .in('status',['pending','sent','viewed']).order('updated_at',{ascending:false}).limit(51)) || [];
+    const bounded=rows.slice(0,50);
+    output = { count:bounded.length,truncated:rows.length>50,total:bounded.reduce((sum:number,row:any)=>sum+Number(row.total||0),0),sourceIds:bounded.map((row:any)=>`quote:${row.id}`) };
   } else if (route.name === 'get_pending_approvals') {
     const rows = requireData(await db.from('orkto_approval_tasks').select('id').eq('workspace_id',workspaceId)
-      .eq('status','pending').limit(50)) || [];
-    output = { count:rows.length,sourceIds:rows.map((row:any)=>`approval:${row.id}`) };
+      .eq('status','pending').limit(51)) || [];
+    const bounded=rows.slice(0,50);
+    output = { count:bounded.length,truncated:rows.length>50,sourceIds:bounded.map((row:any)=>`approval:${row.id}`) };
   } else if (route.name === 'get_customer' || route.name === 'get_customer_operational_context') {
     const id = typeof route.input.customerId === 'string' ? route.input.customerId : null;
     const phone = typeof route.input.phone === 'string' ? route.input.phone : null;

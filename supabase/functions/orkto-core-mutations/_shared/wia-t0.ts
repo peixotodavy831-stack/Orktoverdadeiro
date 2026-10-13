@@ -22,9 +22,15 @@ function brl(value: number): string {
 
 export function messageForTool(name: string, output: unknown): string {
   const data = output as Record<string, unknown>;
-  if (name === 'get_sales_today') return `Hoje há ${data.salesCount} venda(s) aprovada(s), totalizando ${brl(Number(data.total))}.`;
-  if (name === 'get_open_quotes') return `Há ${data.count} orçamento(s) aberto(s), totalizando ${brl(Number(data.total))}.`;
-  if (name === 'get_pending_approvals') return `Há ${data.count} aprovação(ões) aguardando sua decisão.`;
+  if (name === 'get_sales_today') return data.truncated === true
+    ? 'Há mais de 100 vendas aprovadas hoje (UTC). O limite de consulta foi atingido; o total precisa de uma consulta específica.'
+    : `Hoje (UTC) há ${data.salesCount} venda(s) aprovada(s), totalizando ${brl(Number(data.total))}.`;
+  if (name === 'get_open_quotes') return data.truncated === true
+    ? 'Há mais de 50 orçamentos abertos. O limite de consulta foi atingido; o total precisa de uma consulta específica.'
+    : `Há ${data.count} orçamento(s) aberto(s), totalizando ${brl(Number(data.total))}.`;
+  if (name === 'get_pending_approvals') return data.truncated === true
+    ? 'Há mais de 50 aprovações aguardando decisão. O limite de consulta foi atingido.'
+    : `Há ${data.count} aprovação(ões) aguardando sua decisão.`;
   if (name === 'get_customer') {
     const customer = data.customer as { name?: string; company?: string | null; quote_count?: number } | null;
     return customer ? `${customer.name}${customer.company ? `, da ${customer.company}` : ''}, possui ${customer.quote_count ?? 0} orçamento(s) registrado(s).` : 'Não encontrei esse cliente neste workspace.';

@@ -2,7 +2,7 @@
 
 ## Delta em staging — 13/10/2026
 
-A Edge Function `orkto-core-mutations` v22, somente em Supabase staging, já rejeita os comandos públicos `START_WIA_RUN` e `COMPLETE_WIA_RUN`. O novo `PREPARE_WIA_T0` deriva a rota, consulta dados do workspace validado e grava sua própria decisão, tool call e audit; o backend correspondente está no checkout local e ainda precisa de Preview atualizado. Modelo pago permanece desabilitado nessa rota. Testes locais passaram, mas a execução autenticada no deployment novo ainda está pendente; portanto a proveniência não é declarada PASS de release. O texto de 12/10 abaixo descreve o estado anterior à v22.
+A Edge Function `orkto-core-mutations` v23, somente em Supabase staging, já rejeita os comandos públicos `START_WIA_RUN` e `COMPLETE_WIA_RUN`. O novo `PREPARE_WIA_T0` deriva a rota, consulta dados do workspace validado e grava sua própria decisão, tool call e audit; o Preview `b722beb` do backend correspondente está READY em `orkto-staging`. Consultas limitadas declaram quando não possuem um total completo. Modelo pago permanece desabilitado nessa rota. Testes locais passaram, mas a execução autenticada nesse deployment ainda está pendente; portanto a proveniência não é declarada PASS de release. O texto de 12/10 abaixo descreve o estado anterior à v23.
 
 ## Estado vigente em 12/10/2026
 

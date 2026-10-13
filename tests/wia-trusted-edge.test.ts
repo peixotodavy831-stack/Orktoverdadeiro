@@ -44,3 +44,12 @@ test('unsupported model prompts never become caller-supplied execution evidence'
   assert.equal(routeT0Request('Escreva uma mensagem para este cliente'),null);
   assert.equal(routeT0Request('Mostre aprovações pendentes')?.name,'get_pending_approvals');
 });
+
+test('bounded T0 reads do not claim a false total when more rows exist', async () => {
+  const rows=Array.from({length:51},(_,i)=>({id:`quote-${i}`,workspace_id:workspaceA,status:'pending',total:10}));
+  const db={from(table:string) { assert.equal(table,'quotes'); return fakeRead(rows); }};
+  const result=await executeTrustedT0(db,workspaceA,routeT0Request('orçamentos abertos')!);
+  assert.equal(result.sourceIds.length,50);
+  assert.match(result.decision.messageDraft,/mais de 50/);
+  assert.doesNotMatch(result.decision.messageDraft,/R\$/);
+});
