@@ -53,7 +53,7 @@ export default function LandingPage({ onStartClick, onDemoClick }: LandingPagePr
                 Conversas viram <span className="text-[#FF8A00]">resultados.</span>
               </h1>
               <p className="mt-7 max-w-lg text-base leading-7 text-zinc-400 sm:text-lg">
-                A ORKTO organiza o atendimento no WhatsApp, prepara orçamentos e mostra as oportunidades que precisam da sua atenção.
+                A ORKTO reúne clientes, negócios e propostas e mostra as oportunidades que precisam da sua atenção.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <button type="button" onClick={onStartClick} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#FF8A00] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff9d2e]">
@@ -71,6 +71,7 @@ export default function LandingPage({ onStartClick, onDemoClick }: LandingPagePr
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-[#111214] p-3 shadow-2xl shadow-black/40">
+              <p className="px-2 pb-2 text-[11px] text-zinc-500">Prévia ilustrativa da interface · dados fictícios</p>
               <div className="rounded-xl border border-white/8 bg-[#0E0F11] p-5 sm:p-6">
                 <div className="flex items-center justify-between border-b border-white/8 pb-5">
                   <div>
@@ -141,7 +142,7 @@ export default function LandingPage({ onStartClick, onDemoClick }: LandingPagePr
             <div className="space-y-0 border-l border-white/10">
               {[
                 ['01', 'Entende', 'Interpreta intenção, urgência e oportunidade.'],
-                ['02', 'Age', 'Responde, prepara orçamento e organiza o próximo passo.'],
+                ['02', 'Prepara', 'Prepara respostas e orçamentos para revisão e organiza o próximo passo.'],
                 ['03', 'Escala', 'Preço, desconto e exceções chegam para sua aprovação.'],
               ].map(([number, title, text]) => (
                 <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 border-b border-white/10 py-5 pl-5 first:border-t"><span className="text-xs font-semibold text-[#FF8A00]">{number}</span><div><h3 className="text-sm font-semibold">{title}</h3><p className="mt-1 text-sm text-zinc-500">{text}</p></div></div>
@@ -153,7 +154,7 @@ export default function LandingPage({ onStartClick, onDemoClick }: LandingPagePr
         <section className="border-y border-white/10 bg-[#101113]">
           <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 py-14 sm:px-8 md:flex-row md:items-center">
             <div><p className="text-2xl font-semibold tracking-tight">Mais conversas hoje. Mais negócios amanhã.</p><p className="mt-2 text-sm text-zinc-500">Comece com o essencial e deixe a operação ganhar inteligência com o tempo.</p></div>
-            <button type="button" onClick={onStartClick} className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-lg bg-[#FF8A00] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff9d2e]">Começar gratuitamente <ArrowRight className="h-4 w-4" /></button>
+            <button type="button" onClick={onStartClick} className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-lg bg-[#FF8A00] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff9d2e]">Criar conta <ArrowRight className="h-4 w-4" /></button>
           </div>
         </section>
       </main>

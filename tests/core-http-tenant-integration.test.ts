@@ -365,6 +365,32 @@ before(async () => {
         id: randomUUID(), workspace_id: workspaceId, actor_user_id: user.id, event_type: eventType,
         entity_type: entityType, entity_ref: entityRef, request_id: headers.get('x-request-id'),
       });
+      if (request.command === 'READ_PLAN_CATALOG') {
+        if (Object.keys(payload).length) return Response.json({ code:'VALIDATION_FAILED' }, { status:400 });
+        const catalog = database.rows('orkto_plan_price_versions').filter(row=>row.status==='approved').map(row=>({
+          plan_key:row.plan_key,version:row.version,currency:row.currency||'BRL',
+          entitlements:row.entitlements,price_is_public:row.price_is_public===true,
+          price_cents:row.price_is_public===true?row.price_cents:null,
+        }));
+        return ok({result:'READ',catalog});
+      }
+      if (request.command === 'PREPARE_WIA_T0') {
+        if(typeof payload.message!=='string'||!payload.message.trim()
+          ||Object.keys(payload).some(key=>key!=='message'))
+          return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        if(!/orçamentos abertos/i.test(payload.message))
+          return Response.json({code:'CONFIGURATION_REQUIRED'},{status:423});
+        const quotes=database.rows('quotes').filter(row=>row.workspace_id===workspaceId&&['pending','sent','viewed'].includes(row.status));
+        const sourceIds=quotes.map(row=>`quote:${row.id}`);
+        const run={id:randomUUID(),workspace_id:workspaceId,user_id:user.id,status:'succeeded',agent:'sales_agent',
+          provider:'none',model:'t0-deterministic',context_refs:sourceIds,summary:`Há ${quotes.length} orçamento(s) aberto(s).`};
+        database.rows('orkto_wia_runs').push(run);
+        database.rows('orkto_audit_log').push({id:randomUUID(),workspace_id:workspaceId,user_id:user.id,
+          event_type:'wia.decision.proposed',actor_type:'bot',actor_id:'wia',event_data:{run_id:run.id,path:'t0',provider:'none'}});
+        return ok({result:'COMPLETED',runId:run.id,serviceRunId:run.id,agent:'sales_agent',path:'t0',mode:'live',
+          decision:{action:'answer',messageDraft:run.summary,sourceIds,confidenceSignal:'high',requiresApproval:false,reasonCode:'t0_get_open_quotes'},
+          usage:{provider:'none',model:'t0-deterministic',taskType:'fast'},toolExecutions:[{toolName:'get_open_quotes',status:'succeeded',sourceIds}]});
+      }
       if (request.command === 'APPROVE_DRAFT_TASK' || request.command === 'REJECT_DRAFT_TASK') {
         if (!['owner','admin','manager'].includes(membership.role))
           return Response.json({code:'PERMISSION_DENIED'},{status:403});
@@ -802,6 +828,53 @@ async function api(base: string, token: string, path: string, init: RequestInit 
 
 function json(body: unknown): RequestInit { return { method: 'POST', body: JSON.stringify(body) }; }
 
+test('plan catalog uses membership-scoped Edge read and masks unpublished prices', async () => {
+  resetDatabase();
+  const version=database.rows('orkto_plan_price_versions').find(row=>row.plan_key==='pro')!;
+  version.price_cents=9900;
+  version.price_is_public=false;
+  const base=await serve(app);
+  const allowed=await api(base,CLIENT_TOKEN_A,'/api/plan/catalog');
+  assert.equal(allowed.status,200);
+  const body=await allowed.json() as { data:Array<{plan_key:string;price_cents:number|null}>;publicPricesApproved:boolean };
+  assert.equal(body.data.find(plan=>plan.plan_key==='pro')?.price_cents,null);
+  assert.equal(body.publicPricesApproved,false);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/plan/catalog',{
+    headers:{'x-orkto-workspace':WORKSPACE_B},
+  })).status,403);
+  assert.equal((await fetch(`${base}/api/plan/catalog`)).status,401);
+});
+
+test('staging WIA response comes from the trusted T0 Edge command and stays tenant-scoped', async () => {
+  resetDatabase();
+  const quoteId=randomUUID();
+  database.rows('quotes').push({id:quoteId,workspace_id:WORKSPACE_A,status:'pending',total:1});
+  const base=await serve(app);
+  const previousEnv=process.env.APP_ENV;
+  const previousUrl=process.env.VITE_SUPABASE_URL;
+  try {
+    process.env.APP_ENV='staging';
+    process.env.VITE_SUPABASE_URL='https://ghrjongiodziasupakrk.supabase.co';
+    const a=await api(base,CLIENT_TOKEN_A,'/api/wia/route-agent',json({message:'Mostre os orçamentos abertos'}));
+    assert.equal(a.status,200);
+    const result=await a.json() as Row;
+    assert.equal(result.usage.provider,'none');
+    assert.deepEqual(result.decision.sourceIds,[`quote:${quoteId}`]);
+    assert.equal(database.rows('orkto_wia_runs').at(-1)?.workspace_id,WORKSPACE_A);
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/wia/route-agent',{
+      ...json({message:'Mostre os orçamentos abertos'}),headers:{'x-orkto-workspace':WORKSPACE_B},
+    })).status,403);
+    const b=await api(base,CLIENT_TOKEN_B,'/api/wia/route-agent',json({message:'Mostre os orçamentos abertos'}));
+    assert.equal(b.status,200);
+    assert.deepEqual((await b.json() as Row).decision.sourceIds,[]);
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/wia/route-agent',json({message:'Escreva um texto livre'}))).status,423,
+      'without an approved model provider, unsupported prompts fail closed');
+  } finally {
+    if(previousEnv===undefined) delete process.env.APP_ENV; else process.env.APP_ENV=previousEnv;
+    if(previousUrl===undefined) delete process.env.VITE_SUPABASE_URL; else process.env.VITE_SUPABASE_URL=previousUrl;
+  }
+});
+
 test('demo, owner profile and public PIX safety gates reject unauthorized use', async () => {
   resetDatabase();
   const base = await serve(app);
@@ -1102,6 +1175,7 @@ test('optional customer write features fail closed in staging until each has a t
   try {
     const cases:Array<[string,RequestInit]> = [
       ['/api/memories',json({type:'fact',entityType:'customer',content:{note:'x'},provenance:{sourceRef:'x'},explicitlyConfirmed:true})],
+      ['/api/wia/decide',json({message:'Mostre os orçamentos abertos'})],
       ['/api/purchases',json({customerRef:randomUUID(),productName:'x',quantity:1,amountCents:1,purchasedAt:new Date().toISOString(),idempotencyKey:'optional-test-1'})],
       ['/api/imports/preview',json({source:'x.csv',entityType:'customers',rows:[{name:'x'}],mapping:{name:'name'}})],
       [`/api/automations/repurchase/${randomUUID()}/schedule`,json({confirm:true})],
@@ -1111,6 +1185,20 @@ test('optional customer write features fail closed in staging until each has a t
       assert.equal(response.status,423,path);
       assert.equal((await response.json() as Row).category,'FEATURE_DISABLED',path);
     }
+  } finally {
+    if(previous===undefined) delete process.env.APP_ENV; else process.env.APP_ENV=previous;
+  }
+});
+
+test('legacy WIA decision route fails closed when environment identity is missing', async () => {
+  resetDatabase();
+  const base=await serve(app);
+  const previous=process.env.APP_ENV;
+  delete process.env.APP_ENV;
+  try {
+    const response=await api(base,CLIENT_TOKEN_A,'/api/wia/decide',json({message:'Mostre os orçamentos abertos'}));
+    assert.equal(response.status,423);
+    assert.equal((await response.json() as Row).category,'FEATURE_DISABLED');
   } finally {
     if(previous===undefined) delete process.env.APP_ENV; else process.env.APP_ENV=previous;
   }

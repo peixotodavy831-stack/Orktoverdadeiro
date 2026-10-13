@@ -637,6 +637,9 @@ async function persistConversationSummary(database: any, input: { workspaceId:st
 }
 
 app.post('/api/wia/decide', authenticate, async (req, res) => {
+  if ((process.env.APP_ENV || '').trim().toLowerCase() !== 'development') {
+    return res.status(423).json({ error:'Use o fluxo WIA autorizado para este ambiente.', category:'FEATURE_DISABLED' });
+  }
   const parsed = wiaRequestSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'Mensagem inválida.' });
 

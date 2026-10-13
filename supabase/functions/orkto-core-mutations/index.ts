@@ -6,63 +6,17 @@ import { dealInput, dealPatchInput } from './_shared/deal-input.ts';
 import { quoteCreateInput, quotePatchInput, calculateQuoteMoney, quoteCustomerMatchesDeal } from './_shared/quote-input.ts';
 import { onboardingInput } from './_shared/profile-input.ts';
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './_shared/plan-access.ts';
+import { routeT0Request } from './_shared/wia-t0.ts';
+import { executeTrustedT0, t0Agent } from './_shared/wia-trusted.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
 const MAX_BODY_BYTES = 16_384;
-const WIA_AGENTS = new Set(['qualification_agent','sales_agent','objection_agent','followup_agent','recovery_agent','collection_agent','risk_agent','reporting_agent','customer_success_agent']);
-const WIA_ACTIONS = new Set(['answer','ask_clarification','create_draft','request_approval','handoff_to_human','record_optout']);
 
 function exactKeys(value: Record<string,unknown>, allowed: string[]) {
   return Object.keys(value).every(key => allowed.includes(key));
 }
 
-function validWiaCompletion(value: unknown): value is Record<string,unknown> {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  const body=value as Record<string,unknown>;
-  if (!exactKeys(body,['traceId','status','agent','errorCategory','contextRefs','path','mode','decision','usage','toolExecutions'])
-      || typeof body.traceId!=='string' || !UUID.test(body.traceId)
-      || typeof body.agent!=='string' || !WIA_AGENTS.has(body.agent)
-      || !['succeeded','failed'].includes(String(body.status))) return false;
-  if (body.status==='failed') return exactKeys(body,['traceId','status','agent','errorCategory'])
-    && typeof body.errorCategory==='string' && body.errorCategory.length>=1 && body.errorCategory.length<=100;
-  if (!Array.isArray(body.contextRefs) || body.contextRefs.length>30
-      || body.contextRefs.some(item=>typeof item!=='string'||item.length>200)
-      || !['t0','model'].includes(String(body.path)) || !['live','simulated'].includes(String(body.mode))) return false;
-  const decision=body.decision as Record<string,unknown> | null;
-  const usage=body.usage as Record<string,unknown> | null;
-  if (!decision || typeof decision!=='object' || Array.isArray(decision)
-      || !exactKeys(decision,['action','messageDraft','sourceIds','confidenceSignal','requiresApproval','reasonCode'])
-      || typeof decision.action!=='string' || !WIA_ACTIONS.has(decision.action)
-      || typeof decision.messageDraft!=='string' || decision.messageDraft.trim().length<1 || decision.messageDraft.length>4000
-      || !Array.isArray(decision.sourceIds) || decision.sourceIds.length>30
-      || decision.sourceIds.some(item=>typeof item!=='string'||item.length>200)
-      || !['low','medium','high'].includes(String(decision.confidenceSignal))
-      || typeof decision.requiresApproval!=='boolean'
-      || typeof decision.reasonCode!=='string' || !/^[a-z0-9_]{3,80}$/.test(decision.reasonCode)) return false;
-  const usageKeys=['provider','modelFamily','gateway','model','requestedModel','selectedModel','actualModel','taskType','fallbackUsed','fallbackReason','promptTokens','cachedInputTokens','completionTokens','totalTokens','latencyMs','status'];
-  if (!usage || typeof usage!=='object' || Array.isArray(usage) || !exactKeys(usage,usageKeys)
-      || !['fast','standard','deep'].includes(String(usage.taskType)) || usage.status!=='succeeded'
-      || typeof usage.fallbackUsed!=='boolean'
-      || ['provider','modelFamily','gateway','model','requestedModel','selectedModel','actualModel'].some(key=>typeof usage[key]!=='string'||(usage[key] as string).length>200)
-      || (usage.fallbackReason!==undefined && (typeof usage.fallbackReason!=='string'||usage.fallbackReason.length>200))
-      || ['promptTokens','cachedInputTokens','completionTokens','totalTokens','latencyMs'].some(key=>!Number.isInteger(usage[key])||(usage[key] as number)<0||(usage[key] as number)>10000000)) return false;
-  if (!Array.isArray(body.toolExecutions)||body.toolExecutions.length>20) return false;
-  return body.toolExecutions.every(item=>{
-    if(!item||typeof item!=='object'||Array.isArray(item)) return false;
-    const tool=item as Record<string,unknown>;
-    if(!exactKeys(tool,['toolName','status','sourceIds','durationMs','error'])
-      || typeof tool.toolName!=='string'||!/^[a-z0-9_]{2,80}$/.test(tool.toolName)
-      || !['succeeded','failed'].includes(String(tool.status))
-      || !Array.isArray(tool.sourceIds)||tool.sourceIds.length>100||tool.sourceIds.some(id=>typeof id!=='string'||id.length>200)
-      || !Number.isInteger(tool.durationMs)||(tool.durationMs as number)<0||(tool.durationMs as number)>3600000) return false;
-    if(tool.error===undefined) return true;
-    if(!tool.error||typeof tool.error!=='object'||Array.isArray(tool.error)) return false;
-    const error=tool.error as Record<string,unknown>;
-    return exactKeys(error,['code','message'])&&typeof error.code==='string'&&error.code.length<=100
-      && typeof error.message==='string'&&error.message.length<=500;
-  });
-}
 
 function response(status: number, code: string, requestId: string, data?: unknown, origin?: string) {
   const headers: Record<string,string> = {
@@ -90,6 +44,14 @@ async function fingerprint(value: unknown) {
 async function sha256Hex(value: string) {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+async function traceUuid(value: string) {
+  const hex = (await sha256Hex(value)).slice(0, 32).split('');
+  hex[12] = '4';
+  hex[16] = '8';
+  const compact = hex.join('');
+  return `${compact.slice(0,8)}-${compact.slice(8,12)}-${compact.slice(12,16)}-${compact.slice(16,20)}-${compact.slice(20)}`;
 }
 
 async function deterministicPublicToken(secret: string, workspaceId: string, quoteId: string, idempotencyKey: string) {
@@ -142,7 +104,14 @@ Deno.serve(async (req: Request) => {
     let functionName: string;
     let argumentsForCommand: Record<string,unknown>;
     let eventType: string;
-    if (command === 'COMPLETE_ONBOARDING') {
+    if (command === 'READ_PLAN_CATALOG') {
+      if (!suppliedPayload || typeof suppliedPayload !== 'object' || Array.isArray(suppliedPayload)
+          || Object.keys(suppliedPayload).length !== 0) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      canonical = {};
+      functionName = '';
+      eventType = '';
+      argumentsForCommand = {};
+    } else if (command === 'COMPLETE_ONBOARDING') {
       const parsed = onboardingInput.safeParse(suppliedPayload);
       if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       canonical = parsed.data;
@@ -412,21 +381,14 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = 'channel.send.configuration_required';
       argumentsForCommand = {};
-    } else if (command === 'START_WIA_RUN') {
-      const holder=suppliedPayload as {traceId?:unknown;agent?:unknown}|null;
-      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder as Record<string,unknown>,['traceId','agent'])
-        ||typeof holder.traceId!=='string'||!UUID.test(holder.traceId)||typeof holder.agent!=='string'||!WIA_AGENTS.has(holder.agent))
+    } else if (command === 'PREPARE_WIA_T0') {
+      const holder=suppliedPayload as {message?:unknown}|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)
+        ||!exactKeys(holder as Record<string,unknown>,['message'])
+        ||typeof holder.message!=='string'||holder.message.trim().length<1||holder.message.length>4000)
         return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
-      canonical={traceId:holder.traceId,agent:holder.agent};
-      functionName='orkto_wia_start_command';eventType='wia.run.started';
-      argumentsForCommand={p_trace_id:holder.traceId,p_agent:holder.agent};
-    } else if (command === 'COMPLETE_WIA_RUN') {
-      if(!validWiaCompletion(suppliedPayload)) return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
-      canonical=suppliedPayload;functionName='orkto_wia_complete_command';eventType='wia.run.completed';
-      const holder=suppliedPayload as Record<string,unknown>;
-      const payload=holder.status==='failed'?{errorCategory:holder.errorCategory}:{contextRefs:holder.contextRefs,path:holder.path,
-        mode:holder.mode,decision:holder.decision,usage:holder.usage,toolExecutions:holder.toolExecutions};
-      argumentsForCommand={p_trace_id:holder.traceId,p_agent:holder.agent,p_status:holder.status,p_payload:payload};
+      canonical={message:holder.message.trim()};
+      functionName='';eventType='wia.run.started';argumentsForCommand={};
     } else {
       return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
     }
@@ -440,6 +402,27 @@ Deno.serve(async (req: Request) => {
     if (membershipError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
     if (!membership || membership.status !== 'active') return response(403, 'WORKSPACE_ACCESS_DENIED', requestId, undefined, origin);
     if (!['owner','admin','manager','member'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'READ_PLAN_CATALOG') {
+      const now = new Date().toISOString();
+      const { data: versions, error: catalogError } = await admin.from('orkto_plan_price_versions')
+        .select('plan_key,price_cents,currency,price_is_public,entitlements,version,effective_from')
+        .eq('status','approved').lte('effective_from',now)
+        .or(`effective_until.is.null,effective_until.gt.${now}`)
+        .order('effective_from',{ascending:false}).limit(100);
+      if (catalogError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
+      const latest = new Map<string,Record<string,unknown>>();
+      const allowedPlans = new Set(['starter','pro','business','scale','enterprise','founders','legacy_standard']);
+      for (const version of versions || []) {
+        if (allowedPlans.has(version.plan_key) && !latest.has(version.plan_key)) latest.set(version.plan_key, version);
+      }
+      const catalog = [...latest.values()].map(version => ({
+        plan_key:version.plan_key, currency:version.currency, version:version.version,
+        entitlements:version.entitlements, price_is_public:version.price_is_public === true,
+        price_cents:version.price_is_public === true && typeof version.price_cents === 'number'
+          ? version.price_cents : null,
+      }));
+      return response(200, 'OK', requestId, { result:'READ', catalog }, origin);
+    }
     if (command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
       const conversationId = String(canonical.conversationId);
       const { data:conversation,error:conversationError } = await admin.from('orkto_conversations')
@@ -462,13 +445,65 @@ Deno.serve(async (req: Request) => {
         && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
 
     const plan = await loadWorkspacePlanAccess(admin, membership.workspace_id);
-    if (command !== 'COMPLETE_WIA_RUN' && (plan.configurationRequired || plan.readOnly)) return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
-    if (command === 'START_WIA_RUN') {
+    if (plan.configurationRequired || plan.readOnly) return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'PREPARE_WIA_T0') {
       if (!hasPlanFeature(plan,'wia')) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const limit=plan.entitlements.limits?.monthly_wia_runs;
       if (limit === undefined || (limit !== null && (!Number.isInteger(limit)||limit<0)))
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
-      argumentsForCommand={...argumentsForCommand,p_monthly_limit:limit};
+      const route=routeT0Request(String(canonical.message));
+      if (!route) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const agent=t0Agent(route.name);
+      const traceId=await traceUuid(`${membership.workspace_id}:${user.id}:${idempotencyKey}`);
+      const common={p_actor_user_id:user.id,p_workspace_id:membership.workspace_id,p_trace_id:traceId,
+        p_agent:agent,p_request_id:requestId};
+      const {count:recent,error:rateError}=await admin.from('orkto_wia_events')
+        .select('id',{count:'exact',head:true}).eq('workspace_id',membership.workspace_id)
+        .eq('actor_user_id',user.id).eq('event_type','wia.run.started')
+        .gte('occurred_at',new Date(Date.now()-60_000).toISOString());
+      if(rateError) return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if((recent||0)>=30) return response(429,'RATE_LIMITED',requestId,undefined,origin);
+      const {data:started,error:startError}=await admin.rpc('orkto_wia_start_command',{
+        ...common,p_monthly_limit:limit,
+      });
+      if(startError) return response(startError.message==='ORKTO_RATE_LIMITED'?429:503,
+        startError.message==='ORKTO_RATE_LIMITED'?'RATE_LIMITED':'INTERNAL_ERROR',requestId,undefined,origin);
+      const usage=(latencyMs:number)=>({provider:'none',modelFamily:'deterministic',gateway:'supabase-edge',
+        model:'t0-deterministic',requestedModel:'t0-deterministic',selectedModel:'t0-deterministic',
+        actualModel:'t0-deterministic',taskType:'fast',fallbackUsed:false,promptTokens:0,
+        cachedInputTokens:0,completionTokens:0,totalTokens:0,latencyMs,status:'succeeded'});
+      if(started?.result==='REPLAY' && started?.status==='succeeded') {
+        const [runResult,eventResult]=await Promise.all([
+          admin.from('orkto_wia_runs').select('id,summary,context_refs').eq('workspace_id',membership.workspace_id)
+            .eq('id',started.wia_run_id).eq('user_id',user.id).maybeSingle(),
+          admin.from('orkto_wia_events').select('payload').eq('workspace_id',membership.workspace_id)
+            .eq('run_id',started.wia_run_id).eq('event_type','wia.decision.prepared').limit(1).maybeSingle(),
+        ]);
+        if(runResult.error||eventResult.error||!runResult.data||!eventResult.data)
+          return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+        const sourceIds=Array.isArray(runResult.data.context_refs)?runResult.data.context_refs:[];
+        return response(200,'OK',requestId,{result:'REPLAY',traceId,runId:traceId,
+          serviceRunId:started.wia_run_id,agent,path:'t0',mode:'live',replayed:true,
+          decision:{action:eventResult.data.payload?.action||'answer',messageDraft:runResult.data.summary,
+            sourceIds,confidenceSignal:'high',requiresApproval:false,
+            reasonCode:eventResult.data.payload?.reason_code||`t0_${route.name}`},usage:usage(0),toolExecutions:[]},origin);
+      }
+      if(started?.result==='REPLAY' && started?.status!=='running') return response(409,'CONFLICT',requestId,undefined,origin);
+      let prepared;
+      try { prepared=await executeTrustedT0(admin,membership.workspace_id,route); }
+      catch {
+        await admin.rpc('orkto_wia_complete_command',{...common,p_status:'failed',p_payload:{errorCategory:'t0_query_failed'}});
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+      const resultUsage=usage(prepared.durationMs);
+      const {data:completed,error:completeError}=await admin.rpc('orkto_wia_complete_command',{
+        ...common,p_status:'succeeded',p_payload:{contextRefs:prepared.sourceIds,path:'t0',mode:'live',
+          decision:prepared.decision,usage:resultUsage,toolExecutions:prepared.toolExecutions},
+      });
+      if(completeError||!completed) return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:completed.result,traceId,runId:traceId,
+        serviceRunId:completed.wia_run_id,agent,path:'t0',mode:'live',decision:prepared.decision,
+        usage:resultUsage,toolExecutions:prepared.toolExecutions},origin);
     }
     if (command === 'CREATE_QUOTE' || command === 'UPDATE_QUOTE' || command === 'ARCHIVE_QUOTE'
         || command === 'PUBLISH_LIVE_QUOTE' || command === 'EXTEND_QUOTE_RETENTION') {
@@ -605,12 +640,11 @@ Deno.serve(async (req: Request) => {
     if ((count || 0) >= 30) return response(429, 'RATE_LIMITED', requestId, undefined, origin);
 
     const wiaDecision = command === 'APPROVE_WIA_ACTION' || command === 'REJECT_WIA_ACTION';
-    const wiaLifecycle = command === 'START_WIA_RUN' || command === 'COMPLETE_WIA_RUN';
     const { data, error } = await admin.rpc(functionName, {
       p_actor_user_id: user.id,
       p_workspace_id: membership.workspace_id,
       p_request_id: requestId,
-      ...(wiaDecision || wiaLifecycle ? {} : { p_idempotency_key: idempotencyKey,p_fingerprint: await fingerprint(canonical) }),
+      ...(wiaDecision ? {} : { p_idempotency_key: idempotencyKey,p_fingerprint: await fingerprint(canonical) }),
       ...argumentsForCommand,
     });
     if (error) {

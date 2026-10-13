@@ -1115,16 +1115,13 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     } catch (error) { failure(res,error,'Não foi possível revogar o convite.'); }
   });
 
-  app.get('/api/plan/catalog', authenticate, requireDb, async (_req, res) => {
-    try {
-      const now = new Date().toISOString();
-      const { data, error } = await db.from('orkto_plan_price_versions').select('plan_key,price_cents,currency,price_is_public,entitlements,version,effective_from,effective_until').eq('status','approved').lte('effective_from',now).or(`effective_until.is.null,effective_until.gt.${now}`).order('effective_from',{ascending:false}).limit(100);
-      if (error) throw error;
-      const latest = new Map<string,any>();
-      for (const version of data || []) if (!latest.has(version.plan_key)) latest.set(version.plan_key,version);
-      const catalog = [...latest.values()].map(plan => ({ ...plan, price_cents:plan.price_is_public && plan.price_cents !== null ? plan.price_cents : null }));
-      res.json({ data: catalog, catalogKeys:['starter','pro','business','scale','enterprise','founders','legacy_standard'], publicPricesApproved: catalog.some((plan: any) => plan.price_is_public && plan.price_cents !== null), pricingSource: 'versioned_assumptions' });
-    } catch (error) { failure(res,error,'Não foi possível carregar o catálogo de planos.'); }
+  app.get('/api/plan/catalog', authenticate, requireDb, async (req, res) => {
+    const context = await workspaceContext(req, res, db, false, true); if (!context) return;
+    const result = await invokeCoreMutation(req,res,context,'READ_PLAN_CATALOG',{});
+    if (!result) return;
+    const catalog = result.catalog || [];
+    res.json({ data: catalog, catalogKeys:['starter','pro','business','scale','enterprise','founders','legacy_standard'],
+      publicPricesApproved: catalog.some(plan => plan.price_is_public && plan.price_cents !== null), pricingSource: 'versioned_assumptions' });
   });
 
   app.get('/api/billing/current', authenticate, requireDb, async (req, res) => {
@@ -1213,6 +1210,13 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     // Gateway, including plan enforcement. Do not query plan state through the
     // shared public client before the gateway sees the authenticated request.
     const context = await workspaceContext(req, res, db, false, true); if (!context) return;
+    if (['staging','production'].includes((process.env.APP_ENV || '').trim().toLowerCase())) {
+      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_T0',{message:parsed.data.message});
+      if (!trusted) return;
+      return res.json({success:true,agent:trusted.agent,traceId:trusted.traceId,runId:trusted.runId,
+        serviceRunId:trusted.serviceRunId,path:trusted.path,mode:trusted.mode,replayed:trusted.replayed || false,
+        decision:trusted.decision,usage:trusted.usage,toolExecutions:trusted.toolExecutions || []});
+    }
     const requestDb = req.authenticatedSupabase || db;
     const agent = (await import('./orkto-core/full-operational.js')).routeSwarmAgent(parsed.data.message, parsed.data);
     const ownerId = context.ownerUserId;

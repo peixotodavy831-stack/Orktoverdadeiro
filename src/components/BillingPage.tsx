@@ -53,10 +53,10 @@ export default function BillingPage({ userProfile }: BillingPageProps) {
         fetch('/api/plan/catalog',{ headers }), fetch('/api/billing/current',{ headers }),
       ]);
       const [catalogPayload, currentPayload] = await Promise.all([catalogResponse.json(),currentResponse.json()]);
+      if (currentResponse.ok) setCurrent(currentPayload as BillingCurrent);
       if (!catalogResponse.ok) throw new Error(catalogPayload.error || 'Não foi possível carregar os planos.');
       if (!currentResponse.ok) throw new Error(currentPayload.error || 'Não foi possível carregar sua assinatura.');
       setCatalog((catalogPayload.data || []) as CatalogPlan[]);
-      setCurrent(currentPayload as BillingCurrent);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Não foi possível consultar o billing.');
     } finally { setLoading(false); }
@@ -90,7 +90,7 @@ export default function BillingPage({ userProfile }: BillingPageProps) {
 
       <section>
         <div className="mb-3"><h2 className="font-semibold">Catálogo ORKTO</h2><p className="mt-1 text-xs text-zinc-500">Preços só aparecem após aprovação pública. Troca de plano e checkout permanecem desativados; não há cobrança automática.</p></div>
-        {catalog.length === 0 && !loading ? <p className="rounded-xl border border-dashed border-zinc-300 p-4 text-xs text-zinc-500 dark:border-zinc-700">Catálogo versionado indisponível. Verifique se as migrations locais foram aplicadas.</p> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{PLAN_ORDER.map(key => {
+        {catalog.length === 0 && !loading ? <p className="rounded-xl border border-dashed border-zinc-300 p-4 text-xs text-zinc-500 dark:border-zinc-700">Catálogo de planos indisponível neste ambiente. Nenhum preço ou contratação pode ser confirmado nesta tela.</p> : <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{PLAN_ORDER.map(key => {
           const plan = catalog.find(item => item.plan_key === key);
           const features = Object.entries(plan?.entitlements?.features || {}).filter(([,enabled]) => enabled).map(([feature]) => FEATURE_NAMES[feature] || feature);
           const limit = plan?.entitlements?.limits?.active_proposals;

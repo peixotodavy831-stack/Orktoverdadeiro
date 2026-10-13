@@ -94,6 +94,27 @@ test('WIA preparation uses the explicit mutation lifecycle without a direct pers
   assert.doesNotMatch(route, /orkto_consume_plan_usage/);
 });
 
+test('plan catalog read is scoped by the Edge membership and does not grant direct table reads', async () => {
+  const route = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');
+  const edge = await readFile(resolve(process.cwd(), 'supabase/functions/orkto-core-mutations/index.ts'), 'utf8');
+  const catalog = route.slice(route.indexOf("app.get('/api/plan/catalog'"), route.indexOf("app.get('/api/billing/current'"));
+  assert.match(catalog, /workspaceContext\(req, res, db, false, true\)/);
+  assert.match(catalog, /'READ_PLAN_CATALOG'/);
+  assert.doesNotMatch(catalog, /db\.from\('orkto_plan_price_versions'\)/);
+  assert.ok(edge.indexOf("command === 'READ_PLAN_CATALOG'", edge.indexOf('membership.status')) > 0);
+  assert.match(edge, /price_is_public === true[\s\S]*?price_cents/);
+});
+
+test('staging WIA completion is computed inside Edge and caller-supplied provenance is rejected', async () => {
+  const route = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');
+  const edge = await readFile(resolve(process.cwd(), 'supabase/functions/orkto-core-mutations/index.ts'), 'utf8');
+  const section = route.slice(route.indexOf("app.post('/api/wia/route-agent'"), route.indexOf("app.get('/api/reports'"));
+  assert.match(section, /\['staging','production'\][\s\S]*?'PREPARE_WIA_T0'/);
+  assert.match(edge, /command === 'PREPARE_WIA_T0'/);
+  assert.match(edge, /executeTrustedT0\(admin,membership\.workspace_id,route\)/);
+  assert.doesNotMatch(edge, /command === 'COMPLETE_WIA_RUN'|command === 'START_WIA_RUN'/);
+});
+
 test('proposal publication and public decisions use explicit gateways without a direct persistence fallback', async () => {
   const core = await readFile(resolve(process.cwd(), 'backend/core-app.ts'), 'utf8');
   const operational = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');

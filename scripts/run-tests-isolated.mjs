@@ -23,6 +23,7 @@ const compile = spawnSync(process.execPath, [
   '--target', 'ES2022',
   '--module', 'ESNext',
   '--moduleResolution', 'Bundler',
+  '--rewriteRelativeImportExtensions',
   '--esModuleInterop',
   '--skipLibCheck',
   '--jsx', 'react-jsx',

@@ -15,7 +15,8 @@ export type CoreMutationCommand =
   | 'APPROVE_DRAFT_TASK' | 'REJECT_DRAFT_TASK'
   | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE' | 'EXTEND_QUOTE_RETENTION'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
-  | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN';
+  | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN'
+  | 'READ_PLAN_CATALOG' | 'PREPARE_WIA_T0';
 
 export type CoreMutationResult = {
   result: string;
@@ -40,6 +41,17 @@ export type CoreMutationResult = {
   live_quote?: { id: string; quote_ref: string; version: number; status: string; valid_until?: string; created_at?: string };
   token?: string;
   publicPath?: string;
+  catalog?: Array<{ plan_key: string; price_cents: number | null; currency: string; price_is_public: boolean; entitlements: unknown; version: number }>;
+  agent?: string;
+  traceId?: string;
+  runId?: string;
+  serviceRunId?: string;
+  path?: string;
+  mode?: string;
+  replayed?: boolean;
+  decision?: unknown;
+  usage?: unknown;
+  toolExecutions?: unknown[];
 };
 
 type Environment = Record<string, string | undefined>;

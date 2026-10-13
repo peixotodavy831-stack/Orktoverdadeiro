@@ -321,7 +321,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
             </h3>
             <span className="text-[10px] bg-emerald-500/10 text-emerald-500 font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 leading-none">
               <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              Live Sync ativa
+              Prévia local
             </span>
           </div>
 
@@ -440,7 +440,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
 
             {/* Simulated Smartphone Chat Preview Container */}
             <div className="flex flex-col">
-              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Live Preview no WhatsApp</label>
+              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Simulação da mensagem · nenhum envio</label>
               
               <div className="flex-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col shadow-xl">
                 {/* Simulated Header */}
@@ -512,7 +512,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
               <CreditCard className="w-5 h-5 text-orange-500" />
               Pix / Destaques Gerais
             </h3>
-            <p className="text-xs text-zinc-500">Insira a chave e instruções de pagamento padrão para aparecer no rodapé de cada boleto.</p>
+            <p className="text-xs text-zinc-500">Instruções de pagamento podem aparecer na proposta. Este campo não cria cobrança nem confirma pagamento.</p>
             
             <textarea
               rows={6}
@@ -530,10 +530,10 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
             <CreditCard className="w-5 h-5 text-orange-500" />
             Integração Asaas (Pagamentos)
           </h3>
-          <p className="text-xs text-zinc-500">Pagamentos processados automaticamente via Asaas. PIX, cartão de crédito e boleto disponíveis.</p>
-          <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-            <Check className="w-4 h-4 text-emerald-500 shrink-0" />
-            <p className="text-xs text-emerald-600 dark:text-emerald-400">Integração ativa — checkout com PIX e cartão habilitado</p>
+          <p className="text-xs text-zinc-500">O checkout e a cobrança automática dependem de configuração, validação comercial e ativação explícita.</p>
+          <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+            <CreditCard className="w-4 h-4 text-amber-500 shrink-0" />
+            <p className="text-xs text-amber-700 dark:text-amber-300">Checkout indisponível nesta versão; nenhuma cobrança será criada por esta tela.</p>
           </div>
         </div>
 
