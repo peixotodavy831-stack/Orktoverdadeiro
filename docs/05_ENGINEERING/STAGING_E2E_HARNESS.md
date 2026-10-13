@@ -22,7 +22,7 @@ Then run:
 npm run readiness:staging:auth-e2e
 ```
 
-The Auth runner verifies the staging key boundary, then authenticates with Vercel to bind the Preview URL to the staging project and exact SHA **before any synthetic mutation**. It uses the Supabase Auth Admin API to create/rotate only the two synthetic identities, prepares idempotent synthetic records, tests RLS-negative operations, then invokes Playwright in a child process. The child receives only the Preview URL, pinned public project identities and SHA, and short-lived synthetic email/password values. It does not receive the administrative key, public key, or unrelated inherited process environment. Passwords are never written to storage state, files, reports, or logs.
+The Auth runner verifies the staging key boundary, then authenticates with Vercel to bind the Preview URL to the staging project and exact SHA **before any synthetic mutation**. On Windows the Vercel child uses the system CA; the CLI `inspect` response omits SHA, so the runner checks SHA against metadata from the ID-scoped project deployment list. It uses the Supabase Auth Admin API to create/rotate only the two synthetic identities, prepares idempotent synthetic records, tests RLS-negative operations, then invokes Playwright in a child process. The child receives only the Preview URL, pinned public project identities and SHA, and short-lived synthetic email/password values. It does not receive the administrative key, public key, or unrelated inherited process environment. Passwords are never written to storage state, files, reports, or logs.
 
 ## Browser coverage and retained evidence
 

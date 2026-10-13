@@ -60,7 +60,7 @@ if (browserE2E) {
   const inspect = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
     ['inspect', parsedPreviewUrl.hostname, '--format=json'], {
       cwd: process.cwd(), encoding: 'utf8', shell: process.platform === 'win32', timeout: 60_000,
-      env: { ...process.env, ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
+      env: { ...process.env, NODE_USE_SYSTEM_CA: '1', ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
     });
   assert.equal(inspect.status, 0, 'Authenticated Vercel deployment inspection failed.');
   let deployment;
@@ -69,7 +69,7 @@ if (browserE2E) {
   const scopedList = spawnSync(process.platform === 'win32' ? 'vercel.cmd' : 'vercel',
     ['list', 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc', '--format=json', '--limit', '20'], {
       cwd: process.cwd(), encoding: 'utf8', shell: process.platform === 'win32', timeout: 60_000,
-      env: { ...process.env, ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
+      env: { ...process.env, NODE_USE_SYSTEM_CA: '1', ORKTO_STAGING_E2E_USER_A_PASSWORD: '', ORKTO_STAGING_E2E_USER_B_PASSWORD: '' },
     });
   assert.equal(scopedList.status, 0, 'Authenticated staging project deployment listing failed.');
   let scopedDeployments;

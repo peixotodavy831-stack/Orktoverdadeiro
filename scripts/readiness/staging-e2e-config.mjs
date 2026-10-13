@@ -73,16 +73,18 @@ export function validateStagingPreviewDeployment(previewUrl, deployment, project
   const deploymentUrl = deployment?.url;
   const actualHost = typeof deploymentUrl === 'string' ? deploymentUrl.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase() : '';
   const previewTarget = target => target === null || target === 'preview';
-  const inStagingList = Array.isArray(projectDeployments) && projectDeployments.some(item =>
+  const stagingListEntry = Array.isArray(projectDeployments) && projectDeployments.find(item =>
     item?.url?.toLowerCase() === expected.hostname.toLowerCase()
       && item?.name === 'orkto-staging' && item?.state === 'READY' && previewTarget(item?.target));
   const sourceSha = deployment?.gitSource?.sha || deployment?.meta?.githubCommitSha
-    || deployment?.meta?.gitlabCommitSha || deployment?.meta?.bitbucketCommitSha;
+    || deployment?.meta?.gitlabCommitSha || deployment?.meta?.bitbucketCommitSha
+    || stagingListEntry?.meta?.githubCommitSha || stagingListEntry?.meta?.gitlabCommitSha
+    || stagingListEntry?.meta?.bitbucketCommitSha;
   if (!/^[a-f0-9]{40}$/i.test(expectedSha || '') || String(sourceSha || '').toLowerCase() !== expectedSha.toLowerCase()) {
     return { ok: false, code: 'STAGING_PREVIEW_SHA_MISMATCH' };
   }
   if ((projectId && projectId !== STAGING_E2E_TARGET.vercelProjectId)
-    || (!projectId && !inStagingList)
+    || (!projectId && !stagingListEntry)
     || actualHost !== expected.hostname.toLowerCase()
     || !previewTarget(deployment?.target) || deployment?.readyState !== 'READY') {
     return { ok: false, code: 'STAGING_PREVIEW_IDENTITY_NOT_VERIFIED' };

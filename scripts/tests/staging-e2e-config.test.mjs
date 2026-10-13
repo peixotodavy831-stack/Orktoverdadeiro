@@ -46,6 +46,12 @@ test('E2E refuses credentials unless authenticated Vercel inspect binds URL to t
   assert.equal(check({...good,target:'preview'}).ok,true);
   assert.equal(check(good, [], 'b'.repeat(40)).code,'STAGING_PREVIEW_SHA_MISMATCH');
   assert.equal(check({...good,meta:{}}).code,'STAGING_PREVIEW_SHA_MISMATCH');
+  const cliInspect = { id:'dpl_staging', name:'orkto-staging', url:good.url, target:'preview', readyState:'READY' };
+  const cliList = [{ url:good.url, name:'orkto-staging', state:'READY', target:null,
+    meta:{githubCommitSha:valid.ORKTO_STAGING_EXPECTED_SHA} }];
+  assert.equal(check(cliInspect, cliList).ok, true, 'Vercel inspect omits SHA, scoped list supplies it');
+  assert.equal(check(cliInspect, [{...cliList[0],meta:{githubCommitSha:'b'.repeat(40)}}]).code,
+    'STAGING_PREVIEW_SHA_MISMATCH');
   assert.equal(check({ ...good, projectId:'prj_XiwDjfbGC8sq8L8zb59lcZA4HUny' }).ok, false);
   assert.equal(check({ ...good, projectId:'prj_XiwDjfbGC8sq8L8zb59lcZA4HUny' }, [
     { url:good.url, name:'orkto-staging', state:'READY', target:null },
