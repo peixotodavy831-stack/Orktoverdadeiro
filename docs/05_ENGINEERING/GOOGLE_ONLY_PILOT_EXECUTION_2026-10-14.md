@@ -2,7 +2,19 @@
 
 > **ESTADO: IMPLEMENTADO EM BRANCH / NÃO VALIDADO POR GOOGLE E2E / SEM GO DE PRODUÇÃO.** Esta nota sobrepõe estados históricos da pré-auditoria, mas não substitui a execução de testes finais.
 
-## Dados confirmados em leitura direta
+## Continuação verificada — 14/10/2026
+
+- A limpeza aprovada do staging terminou: 18 contas com marcador sintético confirmado foram removidas após checkpoint lógico tipado e verificado; uma conta sem proveniência comprovada foi preservada sem alteração. A identidade, sessões, direito de acesso e eventual vínculo legítimo dessa conta continuam **NOT_VERIFIABLE**. Não repetir a limpeza.
+- Supabase staging `ghrjongiodziasupakrk`: 43/43 migrations. Gate privado de admissão permanece habilitado e vazio; Auth Hooks `before_user_created` e `access_token_hook` aparecem ENABLED; Edge `orkto-core-mutations` v24 ACTIVE com `verify_jwt=true` e 12/12 arquivos locais equivalentes. Nenhuma mutação de produção.
+- A página de provedores Supabase não carregou além do skeleton nesta rechecagem. O último estado registrado foi Email OFF e Google OFF; toggles atuais são **NOT_VERIFIABLE**. Client ID/Secret OAuth e identidades Google aprovadas não foram fornecidos por um painel seguro; portanto não houve login Google real.
+- A implantação `dpl_3SSydodNz7mo35tREw5SNTctxAE7` no projeto `orkto-staging` é READY Preview, SHA `0adfd2ca3f57b6da428d0de5afb77ffb347540a4`, e contém somente documentação — não o runtime Google-only. A árvore local inclui correção do teste do gate de admissão, modo `--google-pilot` estritamente staging do runner e documentação; esses arquivos precisam de commit e CI antes de novo Preview.
+- Regressão local previamente registrada: 211/211 app + 56/56 tooling; lint/typecheck, builds isolados e smoke PASS. Testes focados do runner nesta continuação: 13/13 PASS e `--guard-only` confirmou `orkto-staging`/`ghrjongiodziasupakrk`. Atualização de contagens para o commit final depende da execução após estas alterações.
+- Bloqueios externos: configuração do Google Web OAuth e aprovação dos participantes do piloto. A conta remanescente requer decisão privada do proprietário após identificação. O painel Free informa proteção de senha vazada desativada; isso exige uma decisão de risco/plano antes de liberar login de senha, mas Google-only não deve permitir caminho de senha.
+- `READY_FOR_PRODUCTION_CANDIDATE=NO`; snapshot final não gerado. Produção permanece intocada.
+
+## Baseline anterior à limpeza — histórico, não estado vigente
+
+## Dados confirmados no preflight anterior (histórico)
 
 - PR de trabalho: [#2](https://github.com/peixotodavy831-stack/Orktoverdadeiro/pull/2), branch `production-readiness/google-only-pilot-preflight`.
 - SHA de referência antes desta nota: `9cc582e2c84933bab3602c8d3defb4ae853d2576`. O SHA candidato real deve ser obtido do head atualizado da PR após novos commits.

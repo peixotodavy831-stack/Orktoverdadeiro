@@ -1,6 +1,10 @@
-# Current evidence pointer
+# Current evidence pointer — 2026-10-14
 
-The current concise state is [../ORKTO_CURRENT_STATE.md](../ORKTO_CURRENT_STATE.md). Technical gate evidence is [READINESS_TECHNICAL_2026-10-13.md](READINESS_TECHNICAL_2026-10-13.md). Current app SHA c1660be / staging Preview dpl_DQ6hZVM5ia4TsKmCHK52Y69bAemq; ledger 41/41; exact CI PASS. Current-SHA authenticated suite BLOCKED until private runner execution; corrected five-case harness prepared, not remotely approved. Password breach protection remains a Free-plan owner/platform decision. Production untouched. READY_FOR_PRODUCTION_CANDIDATE=NO. Historical content follows.
+The concise state is [../ORKTO_CURRENT_STATE.md](../ORKTO_CURRENT_STATE.md). Current Google-only report: [GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md](GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md). Supabase staging `ghrjongiodziasupakrk` has 43/43 migrations, private admission gate enabled, Edge v24 and both pilot Auth Hooks enabled. Eighteen confirmed synthetic accounts were removed after a private typed checkpoint; one account with unverified origin remains unchanged. No real Google OAuth login has run.
+
+The Vercel dashboard identifies `dpl_3SSydodNz7mo35tREw5SNTctxAE7` as READY Preview for `orkto-staging`, but SHA `0adfd2c` is documentation-only. The Google-only runtime requires its own committed candidate and Preview. Local current evidence is 211/211 application and 56/56 tooling tests, with lint/typecheck and isolated frontend/server builds/smoke passing; latest code changes still need updated CI. Provider settings could not be freshly re-read because the dashboard returned a loading skeleton; last recorded state was Email OFF/Google OFF. The preserved account's identity and ability to sign in remain unverified. Production untouched. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
+All following content is historical and must not be used as current staging counts or release evidence.
 
 ---
 

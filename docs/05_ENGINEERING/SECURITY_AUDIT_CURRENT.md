@@ -1,8 +1,23 @@
-# Current security gate — 2026-10-14
+# Current security gate — 2026-10-14 — Google-only pilot
 
-Google-only pilot preparation is **BLOCKED_LEGACY_AUTH_TRANSITION**, not activated. Current read-only inventory found 19 password accounts, Email ON, Google OFF, no Auth Hook/admission policy, and active profile/workspace/owner provisioning triggers. Manual linking OFF does not prove automatic linking denied; PKCE is not configured in the current app. No runtime, Auth setting, migration, secret or production state changed. [Preflight, refreshed advisor counts, transition choices and exact validation criteria](GOOGLE_ONLY_PILOT_PREFLIGHT.md). Baseline evidence below is preserved; it does not verify a Google flow. Password-breach/SMTP gates remain applicable to legacy; no risk waiver or N/A declaration.
+**SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.** This status supersedes the dated preflight paragraphs below; they remain useful historical evidence only.
 
-App candidate `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, Preview `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`, only orkto-staging. Current matrix: [MVP_CLOSURE_2026-10-14.md](MVP_CLOSURE_2026-10-14.md). SECURITY_RELEASE_CHECKPOINT=BLOCKED, READY_FOR_PRODUCTION_CANDIDATE=NO.
+| Gate | State | Current evidence / limit |
+| --- | --- | --- |
+| Staging schema | PASS | Supabase `ghrjongiodziasupakrk`, ledger 43/43. CI PostgreSQL 17 replay/assertions passed through `9cc582e2`; new runner/deploy test changes need the updated CI run. |
+| Closed pilot admission | PASS for database enforcement; Google operation PENDING | Private pilot gate enabled; allowlist empty. Two Auth Hooks appear ENABLED. Edge `orkto-core-mutations` v24 ACTIVE, `verify_jwt=true`, 12/12 source parity. No Google login occurred. |
+| Synthetic cleanup | PASS with retained uncertainty | 18 confirmed synthetic accounts removed after a private typed checkpoint; normal FK/retention triggers remained active. One unclassified account and its data were preserved; its identity/access status is unverified. |
+| Google OAuth/PKCE | BLOCKED_OWNER_CONFIGURATION | Last verified provider state was Email OFF/Google OFF; current Supabase provider page returned a loading skeleton, so toggles could not be freshly re-read. No Google client credentials or participant approval available; no OAuth E2E claim. |
+| Auth API negatives | PASS | Six real staging Auth API negative requests denied password/signup/recovery/OTP/anonymous/invalid refresh paths using a publishable key; TLS validation remained enabled. These tests do not prove the real Google flow. |
+| Tenant/security regression | PASS_LOCAL / PARTIAL_REMOTE | Current local test log: app 211/211 and tooling 56/56; prior exact staging E2E 5/5 belongs to old `d693e2f`, not this code. Need current code Preview and Google A/B for release-level verification. |
+| Secrets | PASS for reviewed surfaces | Staging Preview env metadata previously showed no privileged/service-role/provider/billing/messaging secret names; no values were opened. Final scan must run after documentation/test updates. |
+| Preserved account | OPEN / owner identity review | Origin was not proven synthetic. It was not deleted, renamed, reset, or admitted. Do not assert its access is unaffected; Email is currently expected OFF and the Google identity is not configured. |
+| Supabase advisors | REVIEW | Staging read-only advisor findings: five private RLS-enabled tables without policies (owner-only private schema), four authenticated-callable SECURITY DEFINER helpers (expected narrow boolean membership/session helpers; anon denied, empty search_path). Leaked-password protection remains OFF on Free; performance warnings are review items, not blanket vulnerabilities. |
+| Production | PASS — untouched | No production project/database/Auth/secret mutation, payment, messaging, deploy, or migration performed. |
+
+Current deployment `dpl_3SSydodNz7mo35tREw5SNTctxAE7` is Preview/READY in `orkto-staging`, but SHA `0adfd2c` only adds docs and does not contain the Google-only runtime. The Google-only candidate still needs a new exact-SHA Preview, safe smoke, updated CI, final secret scan, and real Google E2E after the owner supplies OAuth credentials and approved participant identities. The dashboard recheck showed only a provider-settings loading skeleton; no setting was changed. [Evidence and operator steps](GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md).
+
+The rest of this file is preserved historical audit evidence. Do not read dated old counts as current.
 
 Latest private launcher result on that exact candidate with harness 72cc5e6: **5/5 PASS**, zero failed tests. Logout revocation, WIA/provenance/Inbox, complete core browser A/B through final network assertions, and public proposal publication/versioning/accept/reject/immutability all passed. Parent Auth/RLS A/B and negative-role phases PASS; direct INSERT/UPDATE/DELETE remain denied on all eight tested core tables. No product security control or app deployment changed. Post-cleanup SQL confirms zero scoped sessions/refresh tokens. Durable evidence: `evidence/auth-ab-d693e2f-pass.json`; previous failed attempt retained separately.
 

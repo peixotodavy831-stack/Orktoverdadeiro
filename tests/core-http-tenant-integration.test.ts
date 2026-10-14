@@ -35,6 +35,8 @@ function decodeIn(value: string): string[] {
 }
 
 class FakePostgrest {
+  pilotAccess: unknown = true;
+  pilotUnavailable = false;
   readonly tables = new Map<string, Row[]>();
   readonly requestAuthorization: Array<{ path: string; authorization: string | null }> = [];
   beforePatch?: (table: string, body: Row, filters: Filter[]) => void;
@@ -143,6 +145,10 @@ class FakePostgrest {
       authorization: new Headers(init.headers).get('authorization')
         || (input instanceof Request ? input.headers.get('authorization') : null),
     });
+    if (url.pathname === '/rest/v1/rpc/orkto_pilot_session_allowed') {
+      return this.pilotUnavailable ? Response.json({message:'private-provider-diagnostic'},{status:503})
+        : Response.json(this.pilotAccess);
+    }
     if (url.pathname === '/rest/v1/rpc/orkto_consume_plan_usage' && (init.method || 'GET').toUpperCase() === 'POST') {
       const args = typeof init.body === 'string' ? JSON.parse(init.body) : {};
       const rows = this.rows('orkto_plan_usage');
@@ -2214,4 +2220,34 @@ test('automatic message memory is idempotent, contextual in WIA and isolated by 
   assert.match(JSON.stringify(lastGeminiRequestContents),/oferecer alternativas de escopo sem inventar desconto/,'relevant workspace-level Replay memory is retrieved selectively without attaching it to an approximate customer name');
   assert.equal((await api(base,CLIENT_TOKEN_B,'/api/wia/decide',json({message:'Mostre a preferência do outro workspace',contextRefs:{customerId:customer.id}}))).status,404);
   assert.equal(database.rows('orkto_wia_memories').every(row=>row.workspace_id===WORKSPACE_A),true);
+});
+
+test('Google pilot API gate uses caller JWT and precedes invitations, tenancy and business writes', async () => {
+  resetDatabase();
+  const previous = process.env.ORKTO_AUTH_MODE;
+  const base = await serve(app);
+  try {
+    process.env.ORKTO_AUTH_MODE = 'google_pilot';
+    database.pilotAccess = false;
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/clients')).status,403);
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/team/invites/accept',{
+      method:'POST',body:JSON.stringify({token:'test-untrusted-invite'})})).status,403);
+    assert.equal((await api(base,'invalid-pilot-session','/api/clients')).status,401);
+    database.pilotUnavailable = true;
+    const unavailable = await api(base,CLIENT_TOKEN_A,'/api/clients');
+    assert.equal(unavailable.status,503);
+    assert.ok(!(await unavailable.text()).includes('private-provider-diagnostic'));
+    database.pilotUnavailable = false;
+    database.pilotAccess = true;
+    // Invalid invite input is rejected by the route after admission succeeded.
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/team/invites/accept',{
+      method:'POST',body:JSON.stringify({})})).status,400);
+    assert.ok(database.requestAuthorization.some(request =>
+      request.path==='/rest/v1/rpc/orkto_pilot_session_allowed'
+      && request.authorization===`Bearer ${CLIENT_TOKEN_A}`));
+  } finally {
+    database.pilotAccess = true; database.pilotUnavailable = false;
+    if(previous===undefined) delete process.env.ORKTO_AUTH_MODE;
+    else process.env.ORKTO_AUTH_MODE=previous;
+  }
 });

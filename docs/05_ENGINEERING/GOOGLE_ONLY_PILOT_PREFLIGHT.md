@@ -1,5 +1,7 @@
 # Piloto fechado Google-only — preflight de ativação
 
+> **HISTÓRICO SUPERSEDIDO:** este preflight descreve o estado anterior à autorização e à limpeza controlada do staging. Seus números de 19 contas/41 migrations, toggles de Auth, hooks e configuração de admissão não são o estado atual. Consulte [execução Google-only de 14/10](GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md) e [estado vigente](ORKTO_CURRENT_STATE.md). Preserve este registro como evidência histórica; não o use para decidir o estado atual.
+
 **14/10/2026 · Proposta, não ativada · STAGING NO-GO.**
 
 Baseline imutável: app `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, deployment `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`, [Preview de referência](https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app/). Branch de preparação: `production-readiness/google-only-pilot-preflight`, baseada em `bff22b7` (documentação posterior; runtime idêntico ao app validado). Esta PR contém ferramenta offline, testes e documentação; não implementa nem ativa o login Google-only.
