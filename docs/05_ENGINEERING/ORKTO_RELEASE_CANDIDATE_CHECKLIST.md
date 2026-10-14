@@ -1,8 +1,19 @@
 # Current checklist decision
 
-READY_FOR_PRODUCTION_CANDIDATE=NO. Use [the dated gate matrix](READINESS_TECHNICAL_2026-10-13.md) for PASS/FAIL/BLOCKED evidence. Existing checkboxes below are not silently marked complete. c1660be Preview and exact-SHA PostgreSQL 17 CI passed; local 198+43, build/lint/smoke and public HTTP/a11y/performance/correlation passed. Final Auth A/B/WIA/Inbox/public-token execution remains BLOCKED_PRIVATE_RUNNER_INPUT. Leaked-password defense remains BLOCKED_FREE_PLAN. Snapshot NOT GENERATED.
+`READY_FOR_PRODUCTION_CANDIDATE=NO`; snapshot final **NOT GENERATED**. Current exact candidate is `c9584feb52eca364100e95abcfef7037316c6147` / Preview `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D` in `orkto-staging`, READY/Preview.
 
-The previous accepted 2/2 run belongs to 65d5f8a; the later four-case run also used 65d5f8a because parameters were omitted and failed two harness assertions. These are preserved separately. Corrected five-case harness now defaults to c1660be. Staging recovery assessment/rebuild is documented with owner identity excluded and full disaster restore NOT RUN. Production backup/restore and GO/NO-GO require the separate production session; commercial/legal readiness and future UX work are not implied by technical checks.
+| Gate | Current status | Evidence / next condition |
+| --- | --- | --- |
+| Staging migrations | BLOCKED — 43/44 | Local migration 44 passes PostgreSQL 17 CI, but is not applied in staging. Use a supported authenticated migration path and recheck ledger/assertions. |
+| Google-only UI | PASS — fail-closed | Exact Preview has no password form; Google login is disabled and configuration-required. |
+| Google OAuth | BLOCKED_OWNER_CONFIGURATION | Supabase Google and Email providers are visibly OFF; Auth hooks are ENABLED. No Google client credentials or approved pilot identities. Redirect allowlist did not load. Real callback/PKCE/session E2E NOT RUN. |
+| Tenant/auth adversarial | NOT RUN on exact candidate | Synthetic password A/B cannot substitute for Google identity A/B. One origin-unknown staging account remains preserved. |
+| Vercel Preview secret metadata | PASS for reviewed names/scopes | Mode flags are Config, Preview-only, exact branch. No privileged/service-role/provider/billing/messaging secret names; values were not revealed. |
+| Health/readiness/observability | NOT_VERIFIABLE | Direct health/ready requests were blocked by browser/runner; no SSO bypass link was created; current deployment logs/analytics not validated. |
+| Local CI | PASS for c9584fe | 213/213 app + 57/57 readiness; lint/typecheck, builds, smoke, diff check, secret scan 387 files/zero findings. PostgreSQL 17 and deploy-boundary PR checks succeeded. |
+| Production | PASS — untouched | No production target, data, Auth, secret or service was changed. |
+
+The 5/5 E2E on `d693e2f` and prior password-based A/B runs are historical; neither proves Google-only on `c9584fe`. The Supabase Free leaked-password warning is not treated as fixed. Commercial/legal approval is a separate pilot gate; no payment, paid provider, public launch or production go-live is authorized by this technical status.
 
 ---
 

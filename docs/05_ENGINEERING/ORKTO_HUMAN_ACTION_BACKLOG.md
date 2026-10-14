@@ -1,4 +1,21 @@
-# Current unavoidable owner actions — SESSION_1_FINAL_STAGING — 2026-10-14
+# Current unavoidable owner actions — SESSION_1_FINAL_STAGING — 2026-10-14 (updated after c9584fe)
+
+Current verified state: PR #2 remains open/draft; current Preview `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D` is READY on `c9584fe` in `orkto-staging`; the two Google-only mode flags are Preview-only for the pilot branch. The login UI is fail-closed, Google and Email providers are OFF, and the Google OAuth flow has not run. Staging ledger is 43/44; production is untouched. The separately requested `dpl_3SSydodNz7mo35tREw5SNTctxAE7` is READY but stale on docs-only `0adfd2c`.
+
+| ID / priority | Why external action remains | Minimal action in the safe surface | Objective completion criterion |
+| --- | --- | --- | --- |
+| `PILOT-GOOGLE-OAUTH` / BLOCKED_OWNER_CONFIGURATION | No Google OAuth Web Client ID/Secret is available in an authorized secret store; the current staging provider is visibly OFF. | Owner creates/uses the Google Cloud Web OAuth client and configures it only in the Supabase **staging** Google provider panel. Authorized redirect URI: `https://ghrjongiodziasupakrk.supabase.co/auth/v1/callback`; add the exact Preview origin only to the approved redirect list after the redirect settings can be read. Do not send credentials in chat or commit them. | Supabase staging visibly enables Google with credentials; callback and redirect are exact; the Preview button becomes available; real authorized and unauthorized Google tests pass on the exact SHA. |
+| `PILOT-PARTICIPANTS` / BLOCKED_OWNER_APPROVAL | The pilot allowlist is empty; the agent must not choose people or grant owner/admin/workspace access for the owner. | Owner privately approves pilot identities and least-privilege workspace/role through the staging admission surface. | Approved identities sign in; an unapproved Google identity receives no operational workspace/session; A/B isolation passes. |
+| `STAGING-MIGRATION-44` / BLOCKED_AUTHENTICATED_MIGRATION_PATH | Staging is 43/44 and the runner has no authenticated, supported Supabase migration command. Applying SQL manually or repairing the ledger by hand is not a safe substitute. | Make an authenticated Supabase CLI/migration runner available for project `ghrjongiodziasupakrk`; run the exact pending migration after target/count/hash preflight, then post-migration assertions. Keep credentials in the secure local login flow, never in chat/files. | Supported migration path reports exactly 44/44; schema/security/Google pilot assertions pass on staging. |
+| `PRESERVED-STAGING-ACCOUNT` / REVIEW_REQUIRED | One Auth account lacks proven synthetic origin; it was not deleted, reset, linked, admitted, or otherwise changed. | Owner privately identifies the account and decides whether to preserve/quarantine/revoke it. Do not disclose its email/ID here. | Documented disposition; no legitimate access loss and no bypass of pilot admission. |
+
+The Supabase Free leaked-password warning is not represented as fixed. The Google-only UI has no password flow, but the provider toggle and direct Auth behavior must be rechecked after the provider configuration. Do not purchase a plan or accept residual risk automatically. Commercial/legal approvals remain a separate pilot-approval gate, not evidence of technical readiness. Keep all remaining human work in `SESSION_1_FINAL_STAGING`; production go-live is a separate, explicitly authorized session.
+
+---
+
+# Historical owner actions — pre-publication snapshot
+
+The block below is preserved for history only. Its c958 predecessor state, counts and deployment have been superseded by the status above.
 
 The authorization to migrate the staging Auth boundary and remove only confirmed synthetic accounts is **RESOLVED**. Never repeat cleanup. Current staging ledger is 43/43; 18 verified synthetic accounts were deleted after a private typed checkpoint; one account with unverified origin remains untouched. Production remains prohibited.
 

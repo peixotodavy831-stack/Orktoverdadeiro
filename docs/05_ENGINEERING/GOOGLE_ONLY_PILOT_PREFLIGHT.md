@@ -2,6 +2,15 @@
 
 > **HISTÓRICO SUPERSEDIDO:** este preflight descreve o estado anterior à autorização e à limpeza controlada do staging. Seus números de 19 contas/41 migrations, toggles de Auth, hooks e configuração de admissão não são o estado atual. Consulte [execução Google-only de 14/10](GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md) e [estado vigente](ORKTO_CURRENT_STATE.md). Preserve este registro como evidência histórica; não o use para decidir o estado atual.
 
+## Resultado vigente — candidato c9584fe
+
+- Preview `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D` em `orkto-staging`, READY, target Preview, SHA `c9584feb52eca364100e95abcfef7037316c6147`; UI Google-only fail-closed PASS (nenhum campo de senha; CTA Google desabilitado com configuração necessária).
+- Flags `VITE_ORKTO_AUTH_MODE` e `ORKTO_AUTH_MODE`: Config, Preview-only, branch `production-readiness/google-only-pilot-preflight`. Nenhum nome de segredo privilegiado aparece nos metadados atuais do Preview.
+- Deployment `dpl_3SSydodNz7mo35tREw5SNTctxAE7` verificado READY/Preview em `orkto-staging`, porém stale no SHA documental `0adfd2c`; não é o candidato atual. Supabase staging retorna ledger 43/44 e possui 44 SQLs locais. Google OFF, Email OFF, hooks `before_user_created` e `access_token_hook` ENABLED; proteção contra senhas vazadas OFF no plano Free. Callback Google exibido pelo painel: `https://ghrjongiodziasupakrk.supabase.co/auth/v1/callback`; URL allowlist/redirect settings não carregaram nesta inspeção.
+- OAuth real, participantes allowlisted, Auth A/B e health/readiness exatos: NOT RUN ou NOT_VERIFIABLE conforme detalhado na execução vigente. A URL e publishable key de runtime não foram abertas; Supabase target efetivo não é afirmado com base apenas em nomes de variáveis.
+- Regressão local e CI do SHA `c9584fe` PASS nos limites listados em [estado vigente](ORKTO_CURRENT_STATE.md); isso não substitui a migration remota nem o Google E2E.
+- `STAGING_GOOGLE_PILOT=NO_GO`; `READY_FOR_PRODUCTION_CANDIDATE=NO`; snapshot não gerado; produção intocada. Os checklists e evidências históricos abaixo permanecem preservados, sem representar aprovação atual.
+
 **14/10/2026 · Proposta, não ativada · STAGING NO-GO.**
 
 Baseline imutável: app `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, deployment `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`, [Preview de referência](https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app/). Branch de preparação: `production-readiness/google-only-pilot-preflight`, baseada em `bff22b7` (documentação posterior; runtime idêntico ao app validado). Esta PR contém ferramenta offline, testes e documentação; não implementa nem ativa o login Google-only.

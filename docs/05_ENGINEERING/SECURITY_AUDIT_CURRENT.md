@@ -2,6 +2,29 @@
 
 **SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.** This status supersedes the dated preflight paragraphs below; they remain useful historical evidence only.
 
+## Current evidence — Preview `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D` / `c9584fe`
+
+| Gate | State | Evidence / limit |
+| --- | --- | --- |
+| Deployment identity | PASS | Vercel project `orkto-staging` / `prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`, READY, target Preview, branch `production-readiness/google-only-pilot-preflight`, SHA `c9584feb52eca364100e95abcfef7037316c6147`. |
+| Google-only runtime mode | PASS for fail-closed UI; backend runtime only config-deployed | Both `VITE_ORKTO_AUTH_MODE` and `ORKTO_AUTH_MODE` are Config variables scoped only to Preview of the pilot branch. Login has no password field; Google button is disabled with configuration-required status. No OAuth request/login was executed. |
+| Preview secret boundary | PASS for metadata only | Vercel variable names/scopes were inspected without revealing values. No service-role/admin, billing, messaging or paid-provider secret name is present. No secret was added to Preview. |
+| Google provider / PKCE | BLOCKED_OWNER_CONFIGURATION | Current staging panel shows Google OFF and Email OFF; `before_user_created` and `access_token_hook` are ENABLED. No Google Client ID/Secret or approved identities are available. Callback is displayed, but effective redirect allowlist did not load. Authenticated Google A/B, callback, PKCE, session and revocation are NOT RUN on this candidate. |
+| Migration/schema parity | BLOCKED | Local migrations: 44. Staging read-only ledger: 43/44; app recovery-checkpoint relation returned 0 rows (not proof of platform backup/restore). `20261014160000_google_pilot_gate_fails_closed.sql` is not applied. PostgreSQL 17 CI passed on c9584fe, but this is not remote staging parity. No migration SQL or ledger repair was performed. |
+| Tenant/allowlist/Auth adversarial | NOT RUN on exact candidate | Prior staging cleanup removed 18 proven synthetic accounts; one origin-unknown account remains untouched. Pilot allowlist is empty. The Google-only runtime cannot authenticate synthetic password accounts; no real Google A/B or unauthorized-identity test occurred. |
+| Local regression and CI | PASS for code SHA | 213/213 application + 57/57 readiness; lint/typecheck, frontend/server build, smoke, diff check, 387-file secret scan with zero findings. PostgreSQL 17 run [38613833432](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38613833432) and deploy boundary run [38613833446](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38613833446) SUCCESS. |
+| Health/readiness and runtime observability | NOT_VERIFIABLE | Direct GET of `/api/health` and `/api/ready` raised `HttpRequestException` in the runner; no `_vercel_share` bypass was created. The deployment-scoped Vercel Logs query rendered no event rows in the available view, which is not evidence of no historical requests. Analytics/Speed Insights are not enabled. |
+| Synthetic cleanup | PASS with residual uncertainty | 18 verified synthetic accounts removed after a typed checkpoint. One account of unknown origin was preserved; identity/entitlement still requires private owner review. |
+| Production | PASS — untouched | No production project, database, Auth, secrets, deploy, migration, billing or messaging action was performed. |
+
+`STAGING_GOOGLE_PILOT=NO_GO`. Final security checkpoint, exact-SHA Google E2E, 44/44 staging ledger, health/readiness and runtime observability remain open. Snapshot was not generated.
+
+---
+
+## Historical checkpoint — before exact c9584fe Preview
+
+The following evidence predates the current Preview/configuration and is retained for history only; it does not close the current gates.
+
 | Gate | State | Current evidence / limit |
 | --- | --- | --- |
 | Staging schema | PASS | Supabase `ghrjongiodziasupakrk`, ledger 43/43. CI PostgreSQL 17 replay/assertions passed through `9cc582e2`; new runner/deploy test changes need the updated CI run. |
