@@ -16,7 +16,17 @@ Este documento substitui o cabeçalho de estado de 13/10, preservando suas evid�
 
 ## Defeitos corrigidos nesta execução
 
-### Retorno do launcher d693e2f — 14/10
+### Resultado vigente do launcher d693e2f — 5/5 PASS
+
+Reteste com harness `72cc5e6` no mesmo deployment: cinco casos PASS, zero falhas de teste. Logout 13,643 ms; WIA/proveniência/Inbox 27,786 ms; proposta pública 30,564 ms; health 487 ms; core A/B 76,928 ms dentro do timeout original de 90,000 ms. O processo Playwright inteiro levou 154,852 ms porque executa os cinco testes em sequência; não houve aumento de timeout nem retry automático.
+
+Auth/RLS A/B e negativos de role PASS no processo pai. Core alcançou browser B, negativos cross-tenant, gateway adversarial e FINAL_NETWORK_ASSERTIONS. INSERT/UPDATE/DELETE diretos foram negados nas oito tabelas protegidas. Publicação, replay, revogação de link obsoleto, aceite, snapshot imutável, recusa e decisão conflitante passaram. Nenhuma cobrança ou mensagem real foi executada.
+
+Cleanup PASS; SQL read-only confirmou zero sessões e refresh tokens dos dois usuários do runner. Zero HTTP 5xx. Há um evento de transporte ERR_ABORTED no POST logout após status 204 no caso core; o caso dedicado confirmou resposta de encerramento, estado local removido, refresh reutilizado rejeitado 400 e reload sem sessão. Não ocultar esse evento nem interpretar o aborto de transporte isolado como falha de revogação.
+
+Evidência completa preservada em `test-results/technical-gates-d693e2f/auth-ab-pass-20261014/`; resumo com hashes: [evidence/auth-ab-d693e2f-pass.json](evidence/auth-ab-d693e2f-pass.json). FINAL-STG-AUTH=RESOLVED. Não solicitar outra execução desse mesmo harness/candidato sem alteração relacionada. Senhas vazadas e entrega SMTP real continuam bloqueadas; aprovação comercial/jurídica é separada.
+
+### Histórico da primeira tentativa — 3/5
 
 O proprietário executou a URL/SHA corretos: 3/5 casos PASS (health, logout/revogação e WIA/proveniência/Inbox), 2 FAIL. Auth/RLS A/B e negativos de role do processo pai PASS; cleanup PASS, confirmado read-only com zero sessões/tokens dos dois usuários atuais. Browser B e adversariais finais do caso core não foram alcançados.
 
@@ -44,21 +54,21 @@ O proprietário executou a URL/SHA corretos: 3/5 casos PASS (health, logout/revo
 | Entrada Auth pública | PASS | Oito checks no SHA atual: landing → login, Google desativado oculto, senha/labels/autocomplete, recovery routing, responsivo 390/1440, foco, zero page errors. Não envia e-mail nem altera senha. |
 | Preview/headers/CORS | PASS | Health/ready 200 staging; nosniff/HSTS/request-ID; anônimo 401; origem hostil 403. URL/SEO noindex e sem referência de produção. |
 | Migrations/ledger | PASS | CI atual em PostgreSQL 17; staging read-only 41/41. SQL não mudou nesta execução. Schema/ledger detalhados em `READINESS_TECHNICAL_2026-10-13.md`. |
-| RLS/grants/Edge | PASS_REVIEW | Read-only atual: 61 tabelas públicas com RLS, zero grants INSERT/UPDATE/DELETE para anon/authenticated. Edge v23 e SQL não alterados; paridade de fonte/revisão anterior preservada. Teste HTTP autenticado atual ainda BLOCKED abaixo. |
+| RLS/grants/Edge | PASS no escopo verificado | Read-only: 61 tabelas públicas com RLS, zero grants INSERT/UPDATE/DELETE para anon/authenticated. Edge v23 e SQL não alterados. E2E atual passou own/foreign, helpers e DML direto negado nas oito tabelas cobertas. Não é prova de toda combinação possível de políticas. |
 | SECURITY DEFINER / RLS sem policy | PASS_REVIEW | Três helpers booleanos authenticated usam auth.uid, membership ativa e search_path vazio; anon negado. Outras funções privilegiadas service-only. Doze tabelas sem policy são service-only e não concedem SELECT/DML ao browser; não adicionar policy permissiva para silenciar advisor. |
 | Metadados de ambiente | PASS | Dez nomes somente Preview; nenhum service/admin/provider/billing/messaging secret. `env ls preview`, sem pull/decrypt. Readiness confirma staging e startup mantém ações externas/legais OFF. |
 | Secret/log hygiene | PASS no escopo varrido | Fonte, testes, scripts e bundles isolados sem finding na varredura desta execução. Diagnósticos limitados a classes e etapas; OIDC em memória e somente na origem Preview. Admin continua fora do browser/Vercel. |
 | Auditoria/observabilidade | PASS parcial | Estrutura de eventos/actor/workspace/resource/request-ID revisada. Novo request `5730efc1-aaf5-4383-8c22-24acc87787e0` aparece no log do deployment atual como `security.origin_denied`. Não equivale a cobertura autenticada completa. |
 | Logout | PASS current-SHA | Caso real d693e2f passou: encerramento, refresh revogado rejeitado 400 e retorno sem sessão. Causa histórica do antigo NETWORK_ERROR não foi atribuída sem correlação original. |
-| Auth A/B e isolamento HTTP | PASS parcial / E2E core FAIL | Auth/RLS A/B e negativos de role do pai passaram; core browser parou no seletor de cargo após reload, antes do browser B/adversariais finais. Harness corrigido localmente, repetição PENDING_PRIVATE_INPUT. |
+| Auth A/B e isolamento HTTP | PASS current-SHA | Runner pai Auth/RLS/role negatives e core browser A/B completo até FINAL_NETWORK_ASSERTIONS passaram no d693e2f. Nenhuma permissão ampliada para executar o teste. |
 | WIA/Inbox/proveniência | PASS current-SHA | Caso d693e2f de approval/rejection/replay, proveniência persistida, histórico tenant-scoped e decisões de rascunho Inbox passou. Não comprova envio externo, que continua OFF. |
-| Proposta pública | FAIL fixture; reteste PENDING | HTTP 400 correto para proposta sem catálogo no fixture. Harness agora cria serviço autorizado e preserva todos os testes de versionamento/aceite/recusa/imutabilidade. Esses passos posteriores ainda não foram executados remotamente. |
+| Proposta pública | PASS current-SHA | Fixture vinculado ao catálogo; publicação/replay, versões, link antigo revogado, aceite e replay, snapshot imutável, recusa e replay, decisão conflitante passaram. Sem pagamento/envio externo. |
 | Senhas vazadas | BLOCKED_BY_PLAN | Supabase Free: proteção desativada, Pro+ requerido. Mínimo 12 não substitui consulta de senhas comprometidas. Nenhum gasto ou waiver automático. |
 | E-mail de cadastro/recovery real | BLOCKED_EXTERNAL_CONFIG | Painel mostra ausência de custom SMTP. Serviço padrão restrito e limitado não comprova jornada de cliente. Exige domínio/remetente/provider aprovado e prova de entrega com destinatário autorizado. Não foi enviado e-mail real. |
-| Acessibilidade/performance | PASS público / BLOCKED autenticado | Nomes/foco/overflow/console públicos aprovados. Público atual response ~3009 ms, DOM ~3767 ms; 5 JS requests. Build entry 164 kB, Auth 21,92 kB, recovery 3,69 kB lazy; WebGL continua lazy. Não é Lighthouse completo nem evidência de carga empresarial. |
+| Acessibilidade/performance | PASS checks executados | Checks públicos e navegação core/mobile/tablet/light/dark autenticada passaram. Público response ~3009 ms, DOM ~3767 ms; 5 JS requests. Build entry 164 kB, Auth 21,92 kB, recovery 3,69 kB lazy; WebGL lazy. Não é auditoria WCAG completa, Lighthouse completo ou teste de carga empresarial. |
 | Advisors performance | REVIEW não bloqueador comprovado | 80 FK sem índice e 28 índices não utilizados INFO; uma policy auth_rls_initplan WARN. Sem gargalo medido; não criar DDL indiscriminado. |
 | Recovery/rollback | ASSESSED / restore total NOT RUN | Staging reconstruível por migrations/seed, identidade owner excluída, sem negócio não sintético identificado na avaliação anterior. CI valida reconstrução de schema. PITR/restore real completo e RTO não comprovados; não prometer RPO/RTO de produção. |
-| Security release checkpoint | BLOCKED | Core/proposta ainda não passaram a execução corrigida; senhas vazadas e jornada real de e-mail abertas. Logout e WIA/Inbox atuais agora têm evidência PASS. Nenhum achado foi encerrado aumentando grants. |
+| Security release checkpoint | BLOCKED | Auth/E2E core/propostas e WIA/Inbox atuais PASS; proteção contra senhas vazadas e confirmação/recovery com entrega real continuam abertas. Nenhum achado foi encerrado aumentando grants. |
 | Snapshot final | NOT RUN, inelegível | Sem snapshot oficial até gates obrigatórios estabilizados. Evidências locais não são snapshot de release. |
 
 ## Escopo comercial recuperado, sem reinvenção
@@ -73,11 +83,11 @@ Termos/Privacidade públicos antigos ainda não têm aprovação registrada e de
 
 Detalhes, local seguro, prioridades e critérios em `ORKTO_HUMAN_ACTION_BACKLOG.md`, SESSION_1_FINAL_STAGING. Sem perguntas durante a execução.
 
-1. Fornecer os dois inputs de staging no launcher mascarado (ou secret store de CI restrito já autorizado). O launcher agora aponta ao SHA/URL acima. Agente executará análise/fix/reteste após receber artefatos sanitizados; não enviar chaves pelo chat.
+1. **FINAL-STG-AUTH resolvido:** inputs privados fornecidos, cinco casos passaram e cleanup confirmado. Não há ação de reexecução pendente enquanto app/harness relevante permanecer igual.
 2. Decisão de conta/plano para proteção de senhas vazadas, sem aceite automático do risco. [Pro começa em US$25/mês](https://supabase.com/pricing); confirmar cobrança efetiva antes de contratar. [Password protection](https://supabase.com/docs/guides/auth/password-security). Hook de verificação de senha exige Teams/Enterprise; validação só no frontend seria contornável pela API Auth e não fecha o gate.
 3. Credencial/domínio de SMTP exclusivamente staging e destinatário de teste autorizado. [SMTP padrão](https://supabase.com/docs/guides/auth/auth-smtp) é restrito; [limites](https://supabase.com/docs/guides/auth/rate-limits) incluem 2 e-mails/hora no serviço embutido. Não copiar secret de produção.
 4. Separadamente, aprovar condições do piloto, entidade/suporte/privacidade e textos jurídicos antes de cliente real. Depois do candidato técnico: SESSION_2_PRODUCTION_GO_LIVE com revisão de backup/ambiente/migration e GO explícito. UX futuro não é gate desta tarefa.
 
-Depois: cinco casos autenticados do SHA atual → prova real de confirmação/recovery após SMTP → fechar checkpoint → snapshot com manifest/hashes/evidências. Nenhum novo deploy de app é necessário para documentação ou defaults do launcher. Se houver fix de runtime, novo SHA e revalidação obrigatória.
+Depois: prova real de confirmação/recovery após SMTP e decisão de proteção de senhas → fechar checkpoint → snapshot com manifest/hashes/evidências. Os cinco casos autenticados já passaram. Nenhum novo deploy de app é necessário para documentação. Se houver fix de runtime, novo SHA e revalidação obrigatória.
 
 **Decisão: implementação avançou com defeitos reais corrigidos; aprovação técnica final e comercialização permanecem bloqueadas pelas dependências nomeadas. Não declarar 100% nem aceitar risco em nome do proprietário.**

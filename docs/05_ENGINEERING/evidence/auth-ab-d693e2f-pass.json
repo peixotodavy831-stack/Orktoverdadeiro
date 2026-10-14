@@ -1,0 +1,343 @@
+{
+  "candidate_sha": "d693e2f8269759485713fba9c3c2b19f6e4fbc74",
+  "deployment": "dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o",
+  "harness_commit": "72cc5e6",
+  "status": "PASS",
+  "passed": 5,
+  "total": 5,
+  "tests": [
+    {
+      "id": "88d0287e51ec5268",
+      "status": "passed",
+      "phase": "LOGOUT_REVOCATION",
+      "duration_ms": 13643,
+      "timeout_ms": 90000
+    },
+    {
+      "id": "bb7fa347ebb5dfac",
+      "status": "passed",
+      "phase": "INBOX_DRAFT_DECISIONS",
+      "duration_ms": 27786,
+      "timeout_ms": 90000
+    },
+    {
+      "id": "5ddf8e166834c84c",
+      "status": "passed",
+      "phase": "PUBLIC_PROPOSAL_LIFECYCLE",
+      "duration_ms": 30564,
+      "timeout_ms": 90000
+    },
+    {
+      "id": "58e9a007c1108363",
+      "status": "passed",
+      "duration_ms": 487,
+      "timeout_ms": 90000
+    },
+    {
+      "id": "2f825717b5ab02ad",
+      "status": "passed",
+      "phase": "FINAL_NETWORK_ASSERTIONS",
+      "duration_ms": 76928,
+      "timeout_ms": 90000
+    }
+  ],
+  "runner_phases": [
+    {
+      "phase": "PREVIEW_IDENTITY",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "PREVIEW_IDENTITY",
+      "status": "passed",
+      "duration_ms": 9872
+    },
+    {
+      "phase": "STAGING_KEYS",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "STAGING_KEYS",
+      "status": "passed",
+      "duration_ms": 1086
+    },
+    {
+      "phase": "SYNTHETIC_USERS",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "SYNTHETIC_USERS",
+      "status": "passed",
+      "duration_ms": 525
+    },
+    {
+      "phase": "WORKSPACES",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "WORKSPACES",
+      "status": "passed",
+      "duration_ms": 1135
+    },
+    {
+      "phase": "FIXTURES_A",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "FIXTURES_A",
+      "status": "passed",
+      "duration_ms": 7597
+    },
+    {
+      "phase": "FIXTURES_B",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "FIXTURES_B",
+      "status": "passed",
+      "duration_ms": 5800
+    },
+    {
+      "phase": "AUTH_RLS_A",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "AUTH_RLS_A",
+      "status": "passed",
+      "duration_ms": 8737
+    },
+    {
+      "phase": "AUTH_RLS_B",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "AUTH_RLS_B",
+      "status": "passed",
+      "duration_ms": 6878
+    },
+    {
+      "phase": "GATEWAY_ROLE_NEGATIVES",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "GATEWAY_ROLE_NEGATIVES",
+      "status": "passed",
+      "duration_ms": 4077
+    },
+    {
+      "phase": "PLAYWRIGHT",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "PLAYWRIGHT",
+      "status": "passed",
+      "duration_ms": 154852
+    },
+    {
+      "phase": "PLAYWRIGHT_EXIT",
+      "status": 0,
+      "duration_ms": 154851,
+      "timeout_scope": "NONE"
+    },
+    {
+      "phase": "CLEANUP_A",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "CLEANUP_A",
+      "status": "passed",
+      "duration_ms": 766
+    },
+    {
+      "phase": "CLEANUP_B",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "CLEANUP_B",
+      "status": "passed",
+      "duration_ms": 542
+    }
+  ],
+  "cleanup": {
+    "runner": "PASS",
+    "sql_readback_sessions": 0,
+    "sql_readback_refresh_tokens": 0
+  },
+  "direct_writes": [
+    {
+      "table": "clients",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "orkto_contacts",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "services",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "orkto_deals",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "quotes",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "orkto_conversations",
+      "denials": [
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "orkto_messages",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    },
+    {
+      "table": "orkto_wia_actions",
+      "denials": [
+        {
+          "method": "POST",
+          "status": 403
+        },
+        {
+          "method": "PATCH",
+          "status": 403
+        },
+        {
+          "method": "DELETE",
+          "status": 403
+        }
+      ]
+    }
+  ],
+  "request_failures": [
+    {
+      "kind": "request",
+      "method": "POST",
+      "host": "STAGING_SUPABASE",
+      "route": "/auth/v1/logout",
+      "duration_ms": 216,
+      "status": 204,
+      "transport_code": "ERR_ABORTED",
+      "failure": "NETWORK_ERROR"
+    }
+  ],
+  "http_5xx": 0,
+  "artifact_hashes": [
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-ab-pass-20261014/runner.json",
+      "sha256": "1221ac2c77d54a2397edbf2bcf07eb71937c52f95d996fba45c54edd3abb61df"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-ab-pass-20261014/safe-results.json",
+      "sha256": "3635d3882d41328e1687c9605f9402d3f700f04c47ab38d47f9d4775515d5290"
+    }
+  ],
+  "scope": "Five exact-candidate cases only; no external send/payment, SMTP delivery or real password recovery claimed"
+}

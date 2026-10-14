@@ -198,12 +198,11 @@
     "deployment": "dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o"
   },
   "authenticated_e2e": {
-    "status": "FAIL",
-    "passed": 3,
+    "status": "PASS",
+    "passed": 5,
     "total": 5,
-    "corrected_harness": "PASS_LOCAL",
-    "corrected_remote_run": "PENDING",
-    "evidence": "auth-ab-d693e2f-attempt1.json"
+    "evidence": "auth-ab-d693e2f-pass.json",
+    "harness_commit": "72cc5e6"
   },
   "password_breach_control": "BLOCKED_BY_PLAN",
   "real_email_confirmation_recovery": "NOT_RUN_SMTP_REQUIRED",
