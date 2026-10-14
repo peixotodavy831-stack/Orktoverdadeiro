@@ -1,5 +1,16 @@
 # ORKTO — estado comprovado
 
+## Estado vigente — 14/10/2026
+
+- App `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, Preview `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o` READY exclusivamente `orkto-staging`: https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app/. Produção não alterada; zero deployment desse SHA no projeto de produção por leitura de metadados.
+- Corrigidos recovery de senha, confirmação de cadastro, provider Google desativado e pending/erros da recuperação. Mínimo de senha staging 12; Site URL/único callback apontam ao Preview atual. Nenhum secret movido para app/Preview.
+- PASS atual: 207 aplicação + 44 tooling, lint/typecheck, frontend/server build/smoke, diff check e secret scan. CI PostgreSQL 17 [38538394953](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38538394953) ambos jobs PASS. Read-only staging: 41/41 migrations, 61 tabelas RLS, zero DML browser, zero sessões/tokens dos dois usuários do runner.
+- Checks públicos do Preview e oito checks de entrada/cadastro/recovery/responsivo PASS; não incluem envio de e-mail ou reset real. Auth A/B/WIA/Inbox/proposta pública completos no SHA atual: BLOCKED_PRIVATE_RUNNER_INPUT. Baseline 65d5f8a preservado, não promovido a PASS atual.
+- BLOCKED: proteção de senhas vazadas no Free; custom SMTP ausente e entrega real não testada. Jurídico/preço/condições do piloto dependem de aprovação própria. Funcionalidades externas pagas/comunicação/PIX continuam OFF.
+- READY_FOR_PRODUCTION_CANDIDATE=NO; snapshot final NOT RUN. Matriz/evidências: [MVP_CLOSURE_2026-10-14.md](05_ENGINEERING/MVP_CLOSURE_2026-10-14.md). Intervenções reunidas em SESSION_1_FINAL_STAGING; go-live futuro separado. Não houve perguntas ao proprietário nesta execução.
+
+## Histórico — não substitui os resultados vigentes
+
 ## Fechamento técnico — candidato c1660be
 
 - Preview staging dpl_DQ6hZVM5ia4TsKmCHK52Y69bAemq READY, SHA c1660be6081da10fa8eda4c2afb4baccb51ed4fa; produção intocada. Health/ready, headers, CORS 403, request-ID/log correlacionado, metadata/SEO staging, acessibilidade pública/responsivo/performance PASS.

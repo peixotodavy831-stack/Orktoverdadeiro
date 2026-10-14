@@ -1,4 +1,8 @@
-# Current mutation matrix evidence — candidate c1660be
+# Current mutation matrix evidence — 2026-10-14
+
+Current app SHA `d693e2f8269759485713fba9c3c2b19f6e4fbc74` / Preview `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`. This change fixes Auth UI; gateway/Edge v23/41 SQL migrations are unchanged. 207+44 local tests and current PostgreSQL CI passed; fresh staging read-only check confirms zero anon/authenticated direct DML grants. The per-command matrix below remains the implementation contract, not exact-SHA remote execution proof. Five authenticated cases are prepared; current-SHA gateway/tenant/WIA/Inbox/proposal execution remains BLOCKED_PRIVATE_RUNNER_INPUT. See [MVP_CLOSURE_2026-10-14.md](MVP_CLOSURE_2026-10-14.md). No generic CRUD, permission widening or production change.
+
+## Historical mutation evidence — candidate c1660be
 
 Status: BLOCKED_CURRENT_SHA_AUTH_REVALIDATION. Full current gate matrix: [READINESS_TECHNICAL_2026-10-13.md](READINESS_TECHNICAL_2026-10-13.md). Backend/frontend/Edge/migration runtime has not changed after app commit c1660be. The current immutable Preview passed public probes; authenticated cases on that hostname have not run.
 

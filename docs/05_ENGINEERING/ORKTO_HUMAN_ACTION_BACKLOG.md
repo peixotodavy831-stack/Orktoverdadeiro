@@ -1,4 +1,25 @@
-# Current unavoidable owner actions — SESSION_1_FINAL_STAGING
+# Current unavoidable owner actions — SESSION_1_FINAL_STAGING — 2026-10-14
+
+Current candidate: `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`. [Current evidence/matrix](MVP_CLOSURE_2026-10-14.md). No questions were sent during the autonomous run. Production remains prohibited; no third session is created.
+
+| ID / priority | Unavoidable dependency and impact | Minimal owner action / safe location | Objective completion criterion |
+| --- | --- | --- | --- |
+| FINAL-STG-AUTH / HIGH | Private staging admin/public inputs are wiped at runner exit. Agent has no suitable secret store; dashboard login does not supply a runner key. Blocks exact-SHA A/B, WIA/Inbox/provenance, public proposal and final security evidence. | Execute the command below in private PowerShell, typing only staging keys into two masked prompts. Alternative: approved protected CI secret store scoped only to staging. Never chat, .env, frontend or Vercel Preview. | Artifact candidate SHA d693e2f, all 5 cases PASS, parent Auth/RLS/role phases PASS, cleanup PASS and zero scoped sessions/tokens. Fix/retest any genuine failure; no automatic readiness. |
+| FINAL-STG-PASSWORD / HIGH | Free plan disables authoritative leaked-password protection. Minimum 12 now enforced but does not close breach detection. Spending or risk-policy decision cannot be taken by agent. | Decide supported plan/control in Supabase account. Pro starts at US$25/month; verify actual bill before purchase. Hook alternative for password verification is Teams/Enterprise, not a free equivalent. Do not merely accept frontend validation as protection. | Setting operational plus negative test of known compromised password using synthetic input and approved gate decision. No automatic purchase, platform bypass or risk waiver. |
+| FINAL-STG-SMTP / HIGH for customer journey | Custom SMTP absent; default email service cannot prove public customer confirmation/recovery. Agent has no approved sender-domain/provider credential and must not copy production secret. | Choose/authorize sender domain/provider and test recipient; enter credential only in staging Auth SMTP secure panel/approved secret surface. Then allow restricted confirmation/recovery test to that recipient. | Actual confirmation email, login, recovery link to current Preview, password change and revocation tested; no credential-bearing artifact. Correct error/rate-limit behavior; server-confirmation stays ON. |
+| PILOT-COMMERCIAL-LEGAL / HIGH before customer | No approved public price/contracting entity/terms/support commitment. Existing price simulations and July HTMLs are not approval. | Approve pilot company, price or free pilot, duration, limits, support/contact, entity/privacy roles and legally reviewed text versions. Review existing `docs/06_BUSINESS/` and `docs/07_LEGAL/` drafts together. | Recorded owner/legal approval and matching published customer journey; no claim of external payments/delivery while OFF. Distinct from technical E2E approval. |
+
+Prepared command, no credentials on command line:
+
+~~~powershell
+& 'C:\Users\sobooa7iqytvqheo\Documents\Codex\Orktoverdeiro\scripts\readiness\run-staging-auth-secure.ps1' -PreviewUrl 'https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app/' -ExpectedSha 'd693e2f8269759485713fba9c3c2b19f6e4fbc74'
+~~~
+
+After those inputs: agent analyzes sanitized evidence, closes remaining mandatory assertions, generates one final snapshot only if eligible, and presents technical approval. SESSION_2_PRODUCTION_GO_LIVE is subsequent and requires explicit GO, production backup/environment/migration review, and historical Preview exposure/rotation risk decision where applicable. No production action is authorized here. UX redesign is not a readiness gate.
+
+---
+
+# Historical owner actions — c1660be
 
 No new human session is created. Current technical evidence: [READINESS_TECHNICAL_2026-10-13.md](READINESS_TECHNICAL_2026-10-13.md). Historical entries below remain historical when superseded here.
 

@@ -10,7 +10,7 @@ Os arquivos públicos existentes `public/termos.html` e `public/privacidade.html
 
 O fluxo de cadastro (`src/components/ui/sign-in-flow-1.tsx`) declara concordância com esses HTMLs ao criar uma conta. Portanto o bloqueio jurídico afeta a jornada de autoatendimento, mesmo que o checkout esteja desligado. O piloto não deve coletar aceite de cliente real com essa versão sem aprovação dos textos.
 
-**Revisão factual de 13/10/2026:** `index.html` carrega um script Umami com identificador público; a coleta efetiva, configuração de cookies e retenção ainda precisam de verificação operacional. Sentry está desabilitado em staging por código e condicionado a DSN fora de staging. Asaas/Resend não têm credenciais no Preview staging e as ações externas continuam desativadas. O pacote de redação para revisão está em `TERMS_PRIVACY_REVIEW_DRAFT_2026-10-13.md`. Nenhum texto público foi substituído nem recebeu aprovação jurídica nesta revisão.
+**Revisão factual atualizada em 14/10/2026:** `index.html` fonte inclui Umami, mas `scripts/render-public-url.mjs` remove esse script de todos os HTMLs de staging; sua presença no fonte não comprova coleta no Preview. Cookies/retenção e eventual configuração de produção não foram certificados. Sentry está desabilitado em staging por código e condicionado a DSN fora de staging. Asaas/Resend não têm credenciais no Preview staging e as ações externas continuam desativadas. O pacote de redação para revisão está em `TERMS_PRIVACY_REVIEW_DRAFT_2026-10-13.md`. Nenhum texto público foi substituído nem recebeu aprovação jurídica nesta revisão.
 
 ## Pacote a preparar e revisar
 

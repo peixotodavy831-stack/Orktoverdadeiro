@@ -1,4 +1,16 @@
-# Current security gate — technical closure
+# Current security gate — 2026-10-14
+
+App candidate `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, Preview `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`, only orkto-staging. Current matrix: [MVP_CLOSURE_2026-10-14.md](MVP_CLOSURE_2026-10-14.md). SECURITY_RELEASE_CHECKPOINT=BLOCKED, READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+Recovery verifies Auth identity before password update, distinguishes partial revocation and retries only logout. Signup confirmation is pending success, not authenticated success; disabled Google is hidden. Unit/UI tests and public exact-SHA checks passed. No backend/Edge/SQL privileges changed. 207 application + 44 tooling and PostgreSQL 17 CI 38538394953 passed. Fresh read-only staging counts: 41 migrations, 61 RLS tables, zero browser DML grants, zero current-runner sessions/refresh tokens. Preview env metadata has ten Preview-only names, no privileged/provider secrets; no decrypt/pull performed.
+
+Staging minimum password length is now 12, email confirmation remains ON, anonymous auth OFF. Leaked-password defense remains BLOCKED_FREE_PLAN. Custom SMTP absence is a real public signup/recovery dependency; no delivery or actual password reset was claimed from a UI harness. Current-SHA authenticated five-case suite still requires masked private runner inputs. No temporary public admin endpoint, token extraction or TLS bypass was introduced.
+
+Current request `5730efc1-aaf5-4383-8c22-24acc87787e0` correlates 403 to `security.origin_denied` in this deployment's log. Supabase aggregate 13–14 October found 22 logout POSTs, all 204 with request_id; this cannot prove the transport cause of the original uncorrelated NETWORK_ERROR. New-SHA revocation test remains mandatory. Advisor exceptions/performance and recovery limits below retain their explicit scopes. Production was not changed.
+
+---
+
+# Historical security gate — c1660be
 
 Current app candidate: c1660be6081da10fa8eda4c2afb4baccb51ed4fa / dpl_DQ6hZVM5ia4TsKmCHK52Y69bAemq (orkto-staging Preview). Formal matrix: [READINESS_TECHNICAL_2026-10-13.md](READINESS_TECHNICAL_2026-10-13.md). Runtime headers/CORS defects fixed and verified online; 41-migration CI and schema/ledger/grants/Edge review passed at their stated scopes. No broad privilege change. No production change.
 

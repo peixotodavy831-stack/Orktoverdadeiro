@@ -1,5 +1,7 @@
 # ORKTO — technical readiness checkpoint — 2026-10-13
 
+**Historical checkpoint.** Current app, test evidence and consolidated dependencies are in [MVP_CLOSURE_2026-10-14.md](MVP_CLOSURE_2026-10-14.md). Its d693e2f Preview replaces c1660be for new validation; retain the SHA-specific evidence below without treating it as current-SHA approval.
+
 Status: **IN PROGRESS / NOT APPROVED**. Production is outside this execution. Commercial/legal approval is a separate phase.
 
 ## Frozen evidence and candidate change

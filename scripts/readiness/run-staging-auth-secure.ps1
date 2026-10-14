@@ -1,7 +1,7 @@
 param(
     [string]$OidcDirectory = 'C:\Users\sobooa7iqytvqheo\Documents\Codex\Orktoverdeiro-deploy-6bc8adb',
-    [string]$PreviewUrl = 'https://orkto-staging-fl4uvx2qw-peixoto-s-projects1.vercel.app/',
-    [string]$ExpectedSha = 'c1660be6081da10fa8eda4c2afb4baccb51ed4fa'
+    [string]$PreviewUrl = 'https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app/',
+    [string]$ExpectedSha = 'd693e2f8269759485713fba9c3c2b19f6e4fbc74'
 )
 $ErrorActionPreference = 'Stop'
 if ($env:NODE_TLS_REJECT_UNAUTHORIZED -eq '0' -or $env:ORKTO_E2E_ALLOW_RUNNER_CA -eq '1') {

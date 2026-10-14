@@ -8,6 +8,8 @@ Uma empresa, um workspace e um operador proprietário. Convites e operação mul
 
 ## Pré-condições para convidar o primeiro cliente
 
+Atualização 14/10/2026: a implementação de confirmação/recovery foi corrigida e o Preview atual é d693e2f; falta validação autenticada nesse SHA. Custom SMTP está ausente no staging. Antes de prometer cadastro/recuperação a cliente, configurar remetente aprovado e comprovar entrega, confirmação e reset com destinatário autorizado. Não usar o serviço de e-mail padrão como prova de capacidade comercial. A matriz vigente é `docs/05_ENGINEERING/MVP_CLOSURE_2026-10-14.md`.
+
 1. Preview do commit candidato confirmado no projeto `orkto-staging`, com migrations e Edge Function compatíveis; Auth A/B, tenant isolation e E2E completos no mesmo deployment.
 2. Checkpoint de segurança fechado, incluindo proveniência WIA, autorização da matriz de mutações, RLS/grants, secrets, rate limits, falhas e auditoria. Nenhum achado crítico ou alto aberto.
 3. Runbook de deploy, rollback/forward-fix, backup/restore, suporte e resposta a incidente revisado. Evidência de recuperação compatível com o plano contratado.

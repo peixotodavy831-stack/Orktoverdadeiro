@@ -1,0 +1,250 @@
+{
+  "schema_version": 1,
+  "app_sha": "d693e2f8269759485713fba9c3c2b19f6e4fbc74",
+  "deployment": {
+    "id": "dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o",
+    "project_id": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+    "name": "orkto-staging",
+    "target": null,
+    "state": "READY",
+    "url": "https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app/"
+  },
+  "supabase": {
+    "ref": "ghrjongiodziasupakrk",
+    "migrations": 41,
+    "rls_public_tables": 61,
+    "browser_dml_grants": 0,
+    "runner_sessions": 0,
+    "runner_refresh_tokens": 0,
+    "minimum_password_length": 12,
+    "email_confirmation": true,
+    "anonymous_auth": false,
+    "custom_smtp": false
+  },
+  "ci": {
+    "run": 38538394953,
+    "status": "success",
+    "jobs": [
+      {
+        "id": 115766836356,
+        "kind": "legacy_41_security",
+        "status": "success"
+      },
+      {
+        "id": 115766836537,
+        "kind": "remote_like_pending_security",
+        "status": "success"
+      }
+    ]
+  },
+  "local": {
+    "application_tests": 207,
+    "tooling_tests": 44,
+    "failures": 0,
+    "typecheck": "PASS",
+    "frontend_build": "PASS",
+    "server_build": "PASS",
+    "smoke": "PASS",
+    "dist_preserved": true,
+    "secret_scan": {
+      "files": 399,
+      "findings": 0,
+      "status": "PASS"
+    },
+    "runner_focused_retest": {
+      "tests": 14,
+      "passed": 14,
+      "failed": 0
+    }
+  },
+  "public_probe": [
+    {
+      "test": "HEALTH",
+      "status": "PASS",
+      "http_status": 200
+    },
+    {
+      "test": "REQUEST_CORRELATION_HEADER",
+      "status": "PASS"
+    },
+    {
+      "test": "SECURITY_HEADERS",
+      "status": "PASS"
+    },
+    {
+      "test": "READINESS",
+      "status": "PASS",
+      "http_status": 200,
+      "environment": "staging"
+    },
+    {
+      "test": "REQUEST_CORRELATION_HEADER",
+      "status": "PASS"
+    },
+    {
+      "test": "SECURITY_HEADERS",
+      "status": "PASS"
+    },
+    {
+      "test": "ANONYMOUS_PRIVATE_ROUTE_DENIED",
+      "status": "PASS",
+      "http_status": 401
+    },
+    {
+      "test": "FOREIGN_ORIGIN_NOT_ALLOWED",
+      "status": "PASS",
+      "http_status": 403,
+      "request_id": "5730efc1-aaf5-4383-8c22-24acc87787e0"
+    },
+    {
+      "test": "STAGING_HTML_METADATA",
+      "status": "PASS"
+    },
+    {
+      "test": "PUBLIC_ACCESSIBLE_NAMES",
+      "status": "PASS",
+      "unnamed_controls": 0
+    },
+    {
+      "test": "PUBLIC_RESPONSIVE",
+      "status": "PASS",
+      "width": 390
+    },
+    {
+      "test": "PUBLIC_RESPONSIVE",
+      "status": "PASS",
+      "width": 768
+    },
+    {
+      "test": "PUBLIC_RESPONSIVE",
+      "status": "PASS",
+      "width": 1440
+    },
+    {
+      "test": "KEYBOARD_FOCUS",
+      "status": "PASS"
+    },
+    {
+      "test": "PUBLIC_CONSOLE",
+      "status": "PASS",
+      "errors": 0
+    },
+    {
+      "test": "PUBLIC_PERFORMANCE_BASELINE",
+      "status": "MEASURED",
+      "response_ms": 3009.199999988079,
+      "dom_ms": 3767.400000035763,
+      "transfer_bytes": 1220,
+      "javascript_requests": 5,
+      "javascript_duration_ms": 1658
+    }
+  ],
+  "auth_entry_probe": [
+    {
+      "test": "LOGIN_ENTRY",
+      "status": "PASS"
+    },
+    {
+      "test": "DISABLED_OAUTH_HIDDEN",
+      "status": "PASS"
+    },
+    {
+      "test": "SIGNUP_PASSWORD_SEMANTICS",
+      "status": "PASS"
+    },
+    {
+      "test": "RECOVERY_SCREEN_ROUTING",
+      "status": "PASS"
+    },
+    {
+      "test": "RECOVERY_RESPONSIVE",
+      "status": "PASS",
+      "width": 390
+    },
+    {
+      "test": "RECOVERY_RESPONSIVE",
+      "status": "PASS",
+      "width": 1440
+    },
+    {
+      "test": "RECOVERY_KEYBOARD",
+      "status": "PASS"
+    },
+    {
+      "test": "PUBLIC_APPLICATION_ERRORS",
+      "status": "PASS",
+      "count": 0
+    }
+  ],
+  "advisors": {
+    "rls_no_policy_service_only": 12,
+    "authenticated_boolean_definer_helpers": 3,
+    "performance": {
+      "missing_fk_indexes_info": 80,
+      "unused_indexes_info": 28,
+      "auth_rls_initplan_warn": 1
+    }
+  },
+  "logout_logs": {
+    "scope": "aggregate_2026-10-13T12Z_to_2026-10-14T08Z",
+    "post_logout": 22,
+    "status_204": 22,
+    "with_request_id": 22,
+    "original_network_error_cause": "NOT_PROVEN"
+  },
+  "observability": {
+    "request_id": "5730efc1-aaf5-4383-8c22-24acc87787e0",
+    "event": "security.origin_denied",
+    "deployment": "dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o"
+  },
+  "authenticated_e2e": "NOT_RUN_CURRENT_SHA_PRIVATE_INPUT_UNAVAILABLE",
+  "password_breach_control": "BLOCKED_BY_PLAN",
+  "real_email_confirmation_recovery": "NOT_RUN_SMTP_REQUIRED",
+  "security_release_checkpoint": "BLOCKED",
+  "snapshot": "NOT_RUN_NOT_ELIGIBLE",
+  "production_mutated": false,
+  "production_deployments_current_sha": 0,
+  "ready_for_production_candidate": false,
+  "artifact_hashes": [
+    {
+      "file": "test-results/mvp-closure-2026-10-14/full-tests.log",
+      "sha256": "80ee7ce8703f1753b984f09bfdf1e4b5a1915cd3a8b34211b5a79256daf72859"
+    },
+    {
+      "file": "test-results/mvp-closure-2026-10-14/build.log",
+      "sha256": "3617c2366f76127b3f0b6b0d99282acbff23e942f8bf8bfdd8fc9b66b368e1ca"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/public-preview.json",
+      "sha256": "523bb1686fb9035d751da48f30088d340cde4260294032d93260b0834c1d74de"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-entry.json",
+      "sha256": "294cff486f2e613dc47ce433415205403902d289012fede77ad2044fe8290899"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/recovery-390.png",
+      "sha256": "df3a488e32067281439af3b614a2de221557d74938a4a33b77f60c3fd2b925c4"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/recovery-1440.png",
+      "sha256": "a185f0012b568b2a88be29a418c3f4885773120afbd8ee906a36f915f1b6ad96"
+    },
+    {
+      "file": "test-results/mvp-closure-2026-10-14/staging-password-policy.png",
+      "sha256": "03be961297d7b3c8f82effd0cd12d827d10464fac2876233910b55cca28a8ccf"
+    },
+    {
+      "file": "test-results/mvp-closure-2026-10-14/staging-auth-callback.png",
+      "sha256": "62cadf7b140623d01205b8927a2e579c30c02ee92957f695dcaf785b1b45d631"
+    },
+    {
+      "file": "test-results/mvp-closure-2026-10-14/runner-focused.log",
+      "sha256": "e560dc8bffdf755f1070e7eb284f5d81eb9e9479854679f3b733ae2a3d70250e"
+    },
+    {
+      "file": "test-results/mvp-closure-2026-10-14/secret-scan.log",
+      "sha256": "08e234a4816bc5f4b7a32e80d3f0e7b655d15e45247d03b221751da799f0f8a4"
+    }
+  ]
+}
