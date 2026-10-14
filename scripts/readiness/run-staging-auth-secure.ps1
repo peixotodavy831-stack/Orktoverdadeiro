@@ -1,5 +1,7 @@
 param(
-    [string]$OidcDirectory = 'C:\Users\sobooa7iqytvqheo\Documents\Codex\Orktoverdeiro-deploy-6bc8adb'
+    [string]$OidcDirectory = 'C:\Users\sobooa7iqytvqheo\Documents\Codex\Orktoverdeiro-deploy-6bc8adb',
+    [string]$PreviewUrl = 'https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app/',
+    [string]$ExpectedSha = '65d5f8ac8284e495bd95d742172da11f6a25b782'
 )
 $ErrorActionPreference = 'Stop'
 if ($env:NODE_TLS_REJECT_UNAUTHORIZED -eq '0' -or $env:ORKTO_E2E_ALLOW_RUNNER_CA -eq '1') {
@@ -8,8 +10,9 @@ if ($env:NODE_TLS_REJECT_UNAUTHORIZED -eq '0' -or $env:ORKTO_E2E_ALLOW_RUNNER_CA
 if ($env:NODE_EXTRA_CA_CERTS -and (-not [IO.Path]::IsPathRooted($env:NODE_EXTRA_CA_CERTS) -or -not (Test-Path -LiteralPath $env:NODE_EXTRA_CA_CERTS -PathType Leaf))) {
     throw 'TRUSTED_CA_FILE_REQUIRED'
 }
-$candidateUrl = 'https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app/'
-$candidateSha = '65d5f8ac8284e495bd95d742172da11f6a25b782'
+$candidateUrl = $PreviewUrl
+$candidateSha = $ExpectedSha
+if ($candidateSha -notmatch '^[a-f0-9]{40}$' -or $candidateUrl -notmatch '^https://orkto-staging-[a-z0-9-]+\.vercel\.app/?$') { throw 'EXACT_STAGING_CANDIDATE_REQUIRED' }
 $projectId = 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc'
 $stagingRef = 'ghrjongiodziasupakrk'
 $link = Get-Content -LiteralPath (Join-Path $OidcDirectory '.vercel/project.json') -Raw | ConvertFrom-Json

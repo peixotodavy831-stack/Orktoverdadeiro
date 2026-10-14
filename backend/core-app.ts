@@ -67,6 +67,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Public probes return before the remaining API stack. Apply the same headers
+// to their success and failure responses, including database-unavailable cases.
+app.use('/api', helmet());
+
 app.get("/api/health", (_req, res) => {
   res.status(200).json({ status: "ok", service: "orkto" });
 });
@@ -126,14 +130,20 @@ const allowedOrigins = process.env.APP_ENV === 'staging'
       ...configuredOrigins,
     ];
 
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  if (origin && !allowedOrigins.includes(origin)) {
+    logStructured('warn', 'security.origin_denied', { requestId: req.requestId });
+    return res.status(403).json({ error: 'Origem não permitida.', category: 'origin_not_allowed', requestId: req.requestId });
+  }
+  next();
+});
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) callback(null, true);
     else callback(new Error('Não permitido por CORS'));
   }, credentials: true,
 }));
-
-app.use('/api', helmet());
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, max: 200,

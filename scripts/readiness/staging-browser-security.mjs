@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { isAbsolute, join } from 'node:path';
+import { sanitizeTrace, safeResults } from './staging-diagnostics.mjs';
 
 export function browserTlsEnvironment(env) {
   if (env.NODE_TLS_REJECT_UNAUTHORIZED === '0' || env.ORKTO_E2E_ALLOW_RUNNER_CA === '1') {
@@ -25,6 +26,11 @@ export function buildStagingBrowserEnvironment(parent, previewAccess) {
   }
   Object.assign(child, { CI: '1', ORKTO_STAGING_E2E: '1', ORKTO_STAGING_VERCEL_PROJECT_ID: 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc',
     ORKTO_STAGING_SUPABASE_REF: 'ghrjongiodziasupakrk' }, previewAccess, browserTlsEnvironment(parent));
+  for (const name of ['ORKTO_STAGING_FIXTURE_RUN_ID', 'ORKTO_STAGING_FIXTURE_A_ACTION_ID', 'ORKTO_STAGING_FIXTURE_A_REJECT_ID',
+    'ORKTO_STAGING_FIXTURE_B_ACTION_ID', 'ORKTO_STAGING_FIXTURE_A_APPROVAL_ID', 'ORKTO_STAGING_FIXTURE_B_APPROVAL_ID']) {
+    const value = parent[name];
+    if (value && (name.endsWith('RUN_ID') ? /^[a-f0-9]{12}$/.test(value) : /^[a-f0-9-]{36}$/i.test(value))) child[name] = value;
+  }
   return child;
 }
 
@@ -48,7 +54,10 @@ export function redactSecrets(input, secrets = []) {
 
 export function errorClass(error) {
   const text = String(error?.message ?? error ?? '');
+  if (['TLS_CERTIFICATE_ERROR', 'LOCATOR_AMBIGUOUS', 'TIMEOUT', 'ASSERTION_FAILED', 'TEST_ERROR'].includes(text)) return text;
   if (/certificate|CERT_|self.signed|unable to verify/i.test(text)) return 'TLS_CERTIFICATE_ERROR';
+  // Playwright includes the configured Timeout even when ambiguity fails immediately.
+  if (/strict mode violation|resolved to \d+ elements/i.test(text)) return 'LOCATOR_AMBIGUOUS';
   if (/timeout|timed out/i.test(text)) return 'TIMEOUT';
   if (/expect\(|AssertionError|toBe|toEqual/i.test(text)) return 'ASSERTION_FAILED';
   return 'TEST_ERROR';
@@ -68,6 +77,11 @@ export function sanitizeArtifacts(root, secrets = []) {
         writeFileSync(file, JSON.stringify({ status: ['passed', 'failed', 'interrupted'].includes(value.status) ? value.status : 'unknown',
           failedTests: Array.isArray(value.failedTests) ? value.failedTests.filter(id => /^[a-f0-9-]{8,100}$/i.test(id)) : [] }));
       } catch { rmSync(file); }
+    } else if (entry.name === 'safe-results.json') {
+      try { writeFileSync(file, JSON.stringify(safeResults(JSON.parse(readFileSync(file, 'utf8'))), null, 2)); }
+      catch { rmSync(file); }
+    } else if (entry.name.endsWith('.zip')) {
+      try { sanitizeTrace(file); } catch { rmSync(file); }
     } else if (/\.(md|txt|log)$/.test(entry.name)) {
       writeFileSync(file, 'ERROR_CONTEXT_WITHHELD: consult safe test ID, status and error class in runner output.\n');
     } else { rmSync(file); }

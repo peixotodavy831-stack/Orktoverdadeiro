@@ -14,7 +14,7 @@ afterEach(async () => {
   servers.clear();
 });
 
-async function request(app: Express, path: string): Promise<Response> {
+async function request(app: Express, path: string, init?: RequestInit): Promise<Response> {
   const server = createServer(app);
   servers.add(server);
   await new Promise<void>((resolve, reject) => {
@@ -23,8 +23,28 @@ async function request(app: Express, path: string): Promise<Response> {
   });
 
   const { port } = server.address() as AddressInfo;
-  return fetch(`http://127.0.0.1:${port}${path}`);
+  return fetch(`http://127.0.0.1:${port}${path}`, init);
 }
+
+test('public health and readiness responses retain API security headers', async () => {
+  const app = createApiApp({ env: {} });
+  for (const path of ['/api/health', '/api/ready', '/api/hermes/health']) {
+    const response = await request(app, path);
+    assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+    assert.ok(response.headers.get('strict-transport-security'));
+    assert.ok(response.headers.get('x-request-id'));
+  }
+});
+
+test('untrusted CORS origin is denied explicitly without a server error or disclosure', async () => {
+  const response = await request(createApiApp({ env: {} }), '/api/clients', { headers: { Origin: 'https://attacker.invalid' } });
+  assert.equal(response.status, 403);
+  assert.equal(response.headers.get('access-control-allow-origin'), null);
+  const body = await response.json();
+  assert.equal(body.category, 'origin_not_allowed');
+  assert.equal('stack' in body, false);
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff');
+});
 
 test('mock routes are disabled when the explicit flag is absent', async () => {
   const app = createApiApp({ env: {} });

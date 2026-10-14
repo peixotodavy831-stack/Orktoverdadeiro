@@ -1,11 +1,28 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { createHash, randomBytes } from 'node:crypto';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
 import { stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
 import { browserTlsEnvironment, buildStagingBrowserEnvironment, errorClass, sanitizeArtifacts, secretValues } from './staging-browser-security.mjs';
+import { runSafePlaywright } from './staging-playwright-process.mjs';
+
+const runnerPhases = [];
+const runnerResultsRoot = fileURLToPath(new URL('../../test-results/', import.meta.url));
+function emitPhase(record) {
+  runnerPhases.push(record);
+  mkdirSync(runnerResultsRoot, { recursive: true });
+  writeFileSync(resolve(runnerResultsRoot, 'staging-runner.json'), JSON.stringify({ candidate_sha: /^[a-f0-9]{40}$/i.test(process.env.ORKTO_STAGING_EXPECTED_SHA || '') ? process.env.ORKTO_STAGING_EXPECTED_SHA : '', phases: runnerPhases }, null, 2));
+  console.log(JSON.stringify(record));
+}
+async function measuredPhase(phase, run) {
+  const start = performance.now();
+  emitPhase({ phase, status: 'start', duration_ms: 0 });
+  try { const result = await run(); const status = result && Object.hasOwn(result, 'status') && result.status !== 0 ? 'failed' : 'passed'; emitPhase({ phase, status, duration_ms: Math.round(performance.now() - start) }); return result; }
+  catch (error) { emitPhase({ phase, status: 'failed', duration_ms: Math.round(performance.now() - start), errors: [errorClass(error)] }); throw error; }
+}
 
 // Never let Node serialize assertion actual/expected objects or provider errors
 // containing credentials from the administrative parent process.
@@ -62,6 +79,7 @@ const browserE2E = process.argv.includes('--browser-e2e');
 let previewUrl;
 let previewAccess;
 if (browserE2E) {
+  await measuredPhase('PREVIEW_IDENTITY', async () => {
   const targetConfig = validateStagingE2ETargetConfig(process.env);
   assert.equal(targetConfig.ok, true, `Browser E2E target rejected: ${targetConfig.code}`);
   previewUrl = targetConfig.baseURL;
@@ -89,15 +107,19 @@ if (browserE2E) {
   catch { throw new Error('Authenticated staging project deployment listing returned invalid JSON.'); }
   const identity = validateStagingPreviewDeployment(previewUrl, deployment, scopedDeployments, process.env.ORKTO_STAGING_EXPECTED_SHA);
   assert.equal(identity.ok, true, identity.code);
+  });
 }
 
 const admin = createClient(url, adminKey, { auth: { persistSession: false, autoRefreshToken: false } });
+await measuredPhase('STAGING_KEYS', async () => {
 const publicProbe = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: publicKey } });
 assert.equal(publicProbe.status, 200, 'staging publishable key must be accepted by staging Auth');
 const { error: adminError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1 });
 assert.equal(adminError, null, 'staging Admin API must accept only the project-bound admin key');
+});
 
 const fixtureTag = 'orkto-staging-auth-ab-v03';
+const fixtureRunId = randomBytes(6).toString('hex');
 const emailFor = (label) => `user-${label.toLowerCase()}@staging.synthetic`;
 const freshPassword = () => `${randomBytes(48).toString('base64url')}Aa9!`;
 const throwOnError = (label, { error }) => {
@@ -249,20 +271,27 @@ async function ensureFixture(user) {
     context_refs: [{ type: 'customer', id: clientId }, { type: 'deal', id: dealId }],
     summary: `${fixtureTag}: deterministic local-only WIA test context`,
   }, `WIA context ${user.label}`);
-  const actionId = await upsertBy('orkto_wia_actions', { workspace_id: workspaceId, idempotency_key: `${fixtureTag}-${suffix}-approval` }, {
-    workspace_id: workspaceId, run_id: runId, action_type: 'prepare_followup',
-    payload: { conversation_id: conversationId, draft: 'Synthetic approval fixture; never sent externally.' },
-    rationale: fixtureTag, risk_level: 'medium', confidence: 1,
+  const actionId = await upsertBy('orkto_wia_actions', { workspace_id: workspaceId, idempotency_key: `${fixtureTag}-${fixtureRunId}-${suffix}-approval` }, {
+    workspace_id: workspaceId, run_id: runId, action_type: 'create_task',
+    payload: { title: `Synthetic internal task ${user.label}`, description: 'Readiness only; no external effect.', customerRef: clientId },
+    rationale: `${fixtureTag}:${user.label}:${fixtureRunId}:approve`, risk_level: 'medium', confidence: 1,
     status: 'awaiting_approval', requires_approval: true,
-    idempotency_key: `${fixtureTag}-${suffix}-approval`, created_by: user.userId,
+    idempotency_key: `${fixtureTag}-${fixtureRunId}-${suffix}-approval`, created_by: user.userId,
   }, `Approval action ${user.label}`);
-  const approvalId = await upsertBy('orkto_approval_tasks', { workspace_id: workspaceId, trace_id: `${fixtureTag}-${suffix}-approval` }, {
+  const rejectActionId = await upsertBy('orkto_wia_actions', { workspace_id: workspaceId, idempotency_key: `${fixtureTag}-${fixtureRunId}-${suffix}-rejection` }, {
+    workspace_id: workspaceId, run_id: runId, action_type: 'create_task',
+    payload: { title: `Synthetic rejected task ${user.label}`, description: 'Must never be executed.' },
+    rationale: `${fixtureTag}:${user.label}:${fixtureRunId}:reject`, risk_level: 'medium', confidence: 1,
+    status: 'awaiting_approval', requires_approval: true,
+    idempotency_key: `${fixtureTag}-${fixtureRunId}-${suffix}-rejection`, created_by: user.userId,
+  }, `Rejection action ${user.label}`);
+  const approvalId = await upsertBy('orkto_approval_tasks', { workspace_id: workspaceId, trace_id: `${fixtureTag}-${fixtureRunId}-${suffix}-approval` }, {
     workspace_id: workspaceId, conversation_id: conversationId,
     task_type: 'response_suggestion', bot_name: 'WIA',
     proposed_content: 'Synthetic approval fixture; never sent externally.',
     proposed_action: { action_id: actionId }, reason: fixtureTag,
     policy_applied: 'staging-only-no-external-send', status: 'pending',
-    trace_id: `${fixtureTag}-${suffix}-approval`,
+    trace_id: `${fixtureTag}-${fixtureRunId}-${suffix}-approval`,
   }, `Approval ${user.label}`);
   const auditId = await upsertBy('orkto_audit_log', { workspace_id: workspaceId, trace_id: `${fixtureTag}-${suffix}-audit` }, {
     workspace_id: workspaceId, user_id: user.userId, conversation_id: conversationId,
@@ -273,7 +302,7 @@ async function ensureFixture(user) {
 
   return {
     workspaceId, clientId, serviceId, contactId, dealId, quoteId, proposalId,
-    conversationId, messageId, runId, actionId, approvalId, auditId,
+    conversationId, messageId, runId, actionId, rejectActionId, approvalId, auditId,
     sentinelId: await upsertBy('clients', { workspace_id: workspaceId, phone: `${phone.slice(0, -1)}9` }, {
       user_id: user.userId, workspace_id: workspaceId,
       name: `Isolation Sentinel ${user.label}`, phone: `${phone.slice(0, -1)}9`,
@@ -370,11 +399,13 @@ async function assertCompositeRelationsRejectForeignIds(user, other) {
   }
 }
 
-const rawUsers = await Promise.all([ensureSyntheticUser('A'), ensureSyntheticUser('B')]);
-const users = await Promise.all(rawUsers.map(async (user) => ({ ...user, ...(await ensureWorkspace(user)) })));
-  for (const user of users) Object.assign(user, await ensureFixture(user));
+const rawUsers = await measuredPhase('SYNTHETIC_USERS', () => Promise.all([ensureSyntheticUser('A'), ensureSyntheticUser('B')]));
+try {
+const users = await measuredPhase('WORKSPACES', () => Promise.all(rawUsers.map(async (user) => ({ ...user, ...(await ensureWorkspace(user)) }))));
+  for (const user of users) Object.assign(user, await measuredPhase(`FIXTURES_${user.label}`, () => ensureFixture(user)));
 
 for (const user of users) {
+  await measuredPhase(`AUTH_RLS_${user.label}`, async () => {
   user.client = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const login = await user.client.auth.signInWithPassword({ email: user.email, password: user.password });
   assert.equal(login.error, null, `Auth login ${user.label}`);
@@ -392,9 +423,41 @@ for (const user of users) {
   const { error: signOutError } = await user.client.auth.signOut();
   assert.equal(signOutError, null, `Sign-out ${user.label}`);
   assert.equal((await user.client.auth.getUser()).data.user, null, `Session cleared ${user.label}`);
+  });
 }
 
 if (browserE2E) {
+  await measuredPhase('GATEWAY_ROLE_NEGATIVES', async () => {
+    const subject = users[1];
+    const member = admin.from('orkto_workspace_members');
+    const original = await member.select('role,status').eq('workspace_id', subject.workspaceId).eq('user_id', subject.userId).single();
+    throwOnError('Synthetic membership read', original);
+    assert.equal(original.data.role, 'owner'); assert.equal(original.data.status, 'active');
+    const auth = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const login = await auth.auth.signInWithPassword({ email: subject.email, password: subject.password });
+    assert.equal(login.error, null); assert.equal(login.data.user?.id, subject.userId);
+    const invoke = async (workspaceId, command, payload) => {
+      const response = await fetch(url + '/functions/v1/orkto-core-mutations', {
+        method: 'POST', headers: { apikey: publicKey, Authorization: `Bearer ${login.data.session.access_token}`,
+          'content-type': 'application/json', 'x-orkto-workspace': workspaceId, 'x-idempotency-key': randomBytes(16).toString('hex') },
+        body: JSON.stringify({ command, payload }), signal: AbortSignal.timeout(10000),
+      });
+      return response.status;
+    };
+    try {
+      assert.equal(await invoke(users[0].workspaceId, 'APPROVE_WIA_ACTION', { actionId: users[0].actionId, confirm: true }), 403);
+      throwOnError('Suspend synthetic membership', await member.update({ status: 'suspended' }).eq('workspace_id', subject.workspaceId).eq('user_id', subject.userId));
+      assert.equal(await invoke(subject.workspaceId, 'APPROVE_WIA_ACTION', { actionId: subject.actionId, confirm: true }), 403);
+      throwOnError('Demote synthetic membership', await member.update({ status: 'active', role: 'member' }).eq('workspace_id', subject.workspaceId).eq('user_id', subject.userId));
+      assert.equal(await invoke(subject.workspaceId, 'APPROVE_WIA_ACTION', { actionId: subject.actionId, confirm: true }), 403);
+      assert.equal(await invoke(subject.workspaceId, 'APPROVE_WIA_ACTION', { actionId: subject.actionId, confirm: true, role: 'owner' }), 400);
+    } finally {
+      throwOnError('Restore synthetic membership', await member.update(original.data).eq('workspace_id', subject.workspaceId).eq('user_id', subject.userId));
+      const restored = await member.select('role,status').eq('workspace_id', subject.workspaceId).eq('user_id', subject.userId).single();
+      throwOnError('Verify synthetic membership restore', restored); assert.deepEqual(restored.data, original.data);
+      const signout = await auth.auth.signOut({ scope: 'global' }); assert.equal(signout.error, null);
+    }
+  });
   const e2eConfig = validateStagingE2EConfig({
     ...process.env,
     ORKTO_STAGING_E2E_USER_A_EMAIL: rawUsers[0].email,
@@ -417,47 +480,45 @@ if (browserE2E) {
     ORKTO_STAGING_E2E_USER_A_PASSWORD: rawUsers[0].password,
     ORKTO_STAGING_E2E_USER_B_EMAIL: rawUsers[1].email,
     ORKTO_STAGING_E2E_USER_B_PASSWORD: rawUsers[1].password,
+    ORKTO_STAGING_FIXTURE_RUN_ID: fixtureRunId,
+    ORKTO_STAGING_FIXTURE_A_ACTION_ID: users[0].actionId,
+    ORKTO_STAGING_FIXTURE_A_REJECT_ID: users[0].rejectActionId,
+    ORKTO_STAGING_FIXTURE_B_ACTION_ID: users[1].actionId,
+    ORKTO_STAGING_FIXTURE_A_APPROVAL_ID: users[0].approvalId,
+    ORKTO_STAGING_FIXTURE_B_APPROVAL_ID: users[1].approvalId,
   }, previewAccess.values);
   const sourceRoot = fileURLToPath(new URL('../../', import.meta.url));
   const playwrightCli = resolve(sourceRoot, 'node_modules', '@playwright', 'test', 'cli.js');
   console.log(`PLAYWRIGHT_TLS_SYSTEM_CA=${browserEnv.NODE_USE_SYSTEM_CA === '1'} EXTRA_CA=${Boolean(browserEnv.NODE_EXTRA_CA_CERTS)}`);
   let browserRun;
   try {
-    browserRun = spawnSync(process.execPath, [playwrightCli, 'test', '--config=playwright.config.ts', 'tests/e2e/staging.spec.ts'], {
-      cwd: sourceRoot, env: browserEnv, stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 15 * 60 * 1000,
-    });
-    // Forward only reporter-generated status records. Raw Playwright diagnostics
-    // can include HTTP headers and are never forwarded, even on process crashes.
-    for (const line of String(browserRun.stdout || '').split(/\r?\n/)) {
-      if (!line.startsWith('ORKTO_SAFE_RESULT ')) continue;
-      try {
-        const record = JSON.parse(line.slice('ORKTO_SAFE_RESULT '.length));
-        const statuses = ['passed', 'failed', 'timedOut', 'skipped', 'interrupted', 'runner_error'];
-        const errors = ['TLS_CERTIFICATE_ERROR', 'TIMEOUT', 'ASSERTION_FAILED', 'TEST_ERROR'];
-        if (statuses.includes(record.status) && (record.id === undefined || /^[a-f0-9]{16}$/.test(record.id))
-          && Array.isArray(record.errors) && record.errors.every(code => errors.includes(code))) {
-          console.log(JSON.stringify({ id: record.id, status: record.status, errors: record.errors }));
-        }
-      } catch { /* never forward unstructured output */ }
-    }
+    browserRun = await measuredPhase('PLAYWRIGHT', () => runSafePlaywright(process.execPath, [playwrightCli, 'test', '--config=playwright.config.ts', 'tests/e2e/staging.spec.ts', 'tests/e2e/staging-release.spec.ts'], {
+      cwd: sourceRoot, env: browserEnv, timeout: 15 * 60 * 1000,
+    }));
+    emitPhase({ phase: 'PLAYWRIGHT_EXIT', status: browserRun.status, duration_ms: browserRun.duration_ms, timeout_scope: browserRun.timeout_scope });
   } finally {
     sanitizeArtifacts(resolve(sourceRoot, 'test-results/staging-e2e'), [...secretValues(process.env), ...secretValues(browserEnv)]);
-    // A failed browser request can leave a synthetic session active. Establish
-    // a fresh synthetic session in the parent and revoke all its refresh sessions.
-    let cleanupFailed = false;
-    for (const user of rawUsers) {
-      const cleanup = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
-      const login = await cleanup.auth.signInWithPassword({ email: user.email, password: user.password });
-      if (login.error || login.data.user?.id !== user.userId) { cleanupFailed = true; continue; }
-      const signedOut = await cleanup.auth.signOut({ scope: 'global' });
-      if (signedOut.error) cleanupFailed = true;
-    }
-    if (cleanupFailed) throw new Error('SYNTHETIC_SESSION_CLEANUP_FAILED');
-    console.log('SYNTHETIC_SESSION_CLEANUP=PASS');
   }
-  if (browserRun.error) throw new Error(`Playwright staging E2E could not start (${browserRun.error.code || 'runner error'}).`);
+  if (browserRun.errorCode) throw new Error('PLAYWRIGHT_PROCESS_START_FAILED');
+  if (browserRun.timedOut) throw new Error('RUNNER_PROCESS_TIMEOUT');
   assert.equal(browserRun.signal, null, 'Playwright staging E2E was terminated unexpectedly.');
   assert.equal(browserRun.status, 0, 'Playwright staging E2E failed. Review only sanitized test output; credentials are never printed.');
+}
+} finally {
+  // Cover failures before Playwright too, including fixture and RLS assertions.
+  // Attempt both users even if one cleanup fails; never report partial cleanup as PASS.
+  let cleanupFailed = false;
+  for (const user of rawUsers) {
+    await measuredPhase(`CLEANUP_${user.label}`, async () => {
+      const cleanup = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+      const login = await cleanup.auth.signInWithPassword({ email: user.email, password: user.password });
+      if (login.error || login.data.user?.id !== user.userId) throw new Error('SYNTHETIC_CLEANUP_AUTH_FAILED');
+      const signedOut = await cleanup.auth.signOut({ scope: 'global' });
+      if (signedOut.error) throw new Error('SYNTHETIC_CLEANUP_SIGNOUT_FAILED');
+    }).catch(() => { cleanupFailed = true; });
+  }
+  if (cleanupFailed) throw new Error('SYNTHETIC_SESSION_CLEANUP_FAILED');
+  console.log('SYNTHETIC_SESSION_CLEANUP=PASS');
 }
 
 console.log(process.argv.includes('--browser-e2e')

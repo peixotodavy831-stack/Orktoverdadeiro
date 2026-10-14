@@ -13,8 +13,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: [['./scripts/readiness/staging-safe-reporter.mjs']],
   outputDir: 'test-results/staging-e2e',
-  // Traces can contain Authorization headers and browser storage. Keep them
-  // disabled until a reviewed redaction pipeline exists.
+  // Only a sanitized action/network timeline survives the reporter/parent.
   use: {
     baseURL: validated.baseURL,
     browserName: 'chromium',
@@ -22,7 +21,7 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     colorScheme: 'light',
     screenshot: 'off',
-    trace: 'off',
+    trace: { mode: 'retain-on-failure', screenshots: false, snapshots: false, sources: false },
     video: 'off',
     actionTimeout: 15_000,
     navigationTimeout: 30_000,
