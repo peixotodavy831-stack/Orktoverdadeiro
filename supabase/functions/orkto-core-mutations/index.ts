@@ -394,7 +394,10 @@ Deno.serve(async (req: Request) => {
       return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
     }
 
-    const userClient = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const userClient = createClient(url, publicKey, {
+      global: { headers: { Authorization: bearer } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
     const { data: { user }, error: authError } = await userClient.auth.getUser(bearer.slice(7));
     if (authError || !user) return response(401, 'AUTH_REQUIRED', requestId, undefined, origin);
     const pilotAccess = await verifyPilotSession(userClient);
