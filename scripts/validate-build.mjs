@@ -29,6 +29,8 @@ const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => /^(
 Object.assign(env, {
   ORKTO_READINESS_ISOLATED_BUILD: '1', ORKTO_READINESS_ENV_DIR: scratch,
   APP_ENV: 'staging', VITE_APP_ENV: 'staging',
+  ORKTO_AUTH_MODE: process.env.ORKTO_READINESS_GOOGLE_PILOT === '1' ? 'google_pilot' : '',
+  VITE_ORKTO_AUTH_MODE: process.env.ORKTO_READINESS_GOOGLE_PILOT === '1' ? 'google_pilot' : '',
   APP_URL: 'https://orkto-staging.invalid', PUBLIC_SITE_URL: 'https://orkto-staging.invalid',
   VITE_SUPABASE_URL: 'https://ghrjongiodziasupakrk.supabase.co',
   VITE_SUPABASE_ANON_KEY: publicPlaceholder,

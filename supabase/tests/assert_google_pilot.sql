@@ -14,9 +14,9 @@ insert into auth.identities(user_id,provider,provider_id) values
 insert into auth.sessions(id,user_id) values
 ('92000000-0000-4000-8000-000000000001','91000000-0000-4000-8000-000000000001'),
 ('92000000-0000-4000-8000-000000000002','91000000-0000-4000-8000-000000000002');
-insert into public.clients(user_id,workspace_id,name) values
-('91000000-0000-4000-8000-000000000001','91000000-0000-4000-8000-000000000001','Pilot A synthetic'),
-('91000000-0000-4000-8000-000000000002','91000000-0000-4000-8000-000000000002','Pilot B synthetic');
+insert into public.clients(user_id,workspace_id,name,phone) values
+('91000000-0000-4000-8000-000000000001','91000000-0000-4000-8000-000000000001','Pilot A synthetic','+550000000001'),
+('91000000-0000-4000-8000-000000000002','91000000-0000-4000-8000-000000000002','Pilot B synthetic','+550000000002');
 
 do $$ begin
   begin
@@ -76,7 +76,7 @@ do $$ begin
     or public.orkto_is_workspace_member('91000000-0000-4000-8000-000000000002') then
     raise exception 'Cross-tenant isolation failed';
   end if;
-  begin insert into public.clients(user_id,workspace_id,name) values(auth.uid(),auth.uid(),'Forbidden direct');
+  begin insert into public.clients(user_id,workspace_id,name,phone) values(auth.uid(),auth.uid(),'Forbidden direct','+550000000003');
     raise exception 'Direct INSERT accepted'; exception when insufficient_privilege then null; end;
   begin update public.clients set name='Forbidden direct' where user_id=auth.uid();
     raise exception 'Direct UPDATE accepted'; exception when insufficient_privilege then null; end;
