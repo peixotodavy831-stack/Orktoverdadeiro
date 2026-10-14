@@ -7,12 +7,18 @@ on:
     paths:
       - 'scripts/readiness/deploy-staging.mjs'
       - 'scripts/tests/deploy-staging.test.mjs'
+      - 'scripts/readiness/google-pilot-preflight.mjs'
+      - 'scripts/tests/google-pilot-preflight.test.mjs'
+      - 'docs/05_ENGINEERING/evidence/google-pilot-inventory-*.json'
       - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
   pull_request:
     paths:
       - 'scripts/readiness/deploy-staging.mjs'
       - 'scripts/tests/deploy-staging.test.mjs'
+      - 'scripts/readiness/google-pilot-preflight.mjs'
+      - 'scripts/tests/google-pilot-preflight.test.mjs'
+      - 'docs/05_ENGINEERING/evidence/google-pilot-inventory-*.json'
       - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
   workflow_dispatch:
@@ -32,5 +38,5 @@ jobs:
         with:
           node-version: '22.x'
           package-manager-cache: false
-      - name: Verify staging deploy boundary
-        run: node --test scripts/tests/deploy-staging.test.mjs
+      - name: Verify staging deploy boundary and Google pilot preflight
+        run: node --test scripts/tests/deploy-staging.test.mjs scripts/tests/google-pilot-preflight.test.mjs
