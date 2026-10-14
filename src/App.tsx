@@ -43,6 +43,7 @@ import { MobileNavigation } from './product/navigation/mobile-navigation';
 
 // Client proposal view (public, no auth)
 import ClientProposalView from './components/ClientProposalView';
+import { hasRecoveryCallback, signUpOutcome, type SignUpOutcome } from './lib/auth-flows';
 
 // Lazy-loaded pages (code-split)
 const Auth = lazy(() => import('./components/Auth'));
@@ -63,6 +64,7 @@ const GraphPage = lazy(() => import('./components/GraphPage'));
 const FinanceDashboard = lazy(() => import('./components/internal/FinanceDashboard'));
 const CollectionPage = lazy(() => import('./components/CollectionPage'));
 const LiveQuoteView = lazy(() => import('./components/LiveQuoteView'));
+const PasswordRecovery = lazy(() => import('./components/PasswordRecovery'));
 const WrappedPublicView = lazy(() => import('./components/WrappedPublicView'));
 
 function PageFallback() {
@@ -185,6 +187,10 @@ export default function App() {
   // Auth & Profile state
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [recoveringPassword, setRecoveringPassword] = useState(() => {
+    try { return hasRecoveryCallback(window.location.hash) || sessionStorage.getItem('orkto_password_recovery') === '1'; }
+    catch { return hasRecoveryCallback(window.location.hash); }
+  });
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const activeUserIdRef = useRef<string | null>(null);
   const dataRequestIdRef = useRef(0);
@@ -224,7 +230,12 @@ export default function App() {
       .catch(err => console.error('[ORKTO] getSession error:', err))
       .finally(() => setAuthLoading(false));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        try { sessionStorage.setItem('orkto_password_recovery', '1'); } catch { /* screen still works without storage */ }
+        setRecoveringPassword(true);
+        return;
+      }
       if (session?.user) {
         const u = session.user;
         setAuthIdentity(u.id);
@@ -682,20 +693,23 @@ export default function App() {
     }
   };
 
-  const handleSignUp = async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
+  const handleSignUp = async (email: string, password: string, name: string): Promise<SignUpOutcome> => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: name.trim() } },
+      options: { data: { full_name: name.trim() }, emailRedirectTo: window.location.origin },
     });
     if (error) throw error;
-    // Auto-login after signup (works if email confirmation is disabled)
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-    if (signInError) {
-      // Email confirmation required — user needs to confirm first
-      throw new Error('Conta criada! Verifique seu e-mail para confirmar o acesso.');
-    }
+    // Confirmation is a successful pending state, not a failed password login.
+    return signUpOutcome(data);
   };
+
+  if (recoveringPassword) {
+    return <Suspense fallback={<PageFallback />}><PasswordRecovery onComplete={() => {
+      try { sessionStorage.removeItem('orkto_password_recovery'); } catch { /* no secret persisted */ }
+      setRecoveringPassword(false); setCurrentView('auth');
+    }} /></Suspense>;
+  }
 
   if (publicWrappedToken) {
     return <Suspense fallback={<div className="min-h-screen bg-[#0b0b0b] p-8 text-center text-white/60">Carregando ORKTO Wrapped…</div>}><WrappedPublicView token={publicWrappedToken} /></Suspense>;

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import OrktoLogo from "../OrktoLogo";
+import { validateNewPassword, type SignUpOutcome } from '../../lib/auth-flows';
 
 function detectWebGL2(): boolean {
   try {
@@ -21,7 +22,7 @@ export function cn(...classes: string[]) {
 interface SignInPageProps {
   className?: string;
   onSignInSuccess: () => void;
-  onSignUp?: (email: string, password: string, name: string) => Promise<void>;
+  onSignUp?: (email: string, password: string, name: string) => Promise<SignUpOutcome>;
   onDemoLogin?: () => Promise<void>;
   onAuthenticate?: (email: string, password: string) => Promise<{ error?: string }>;
 }
@@ -88,9 +89,23 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
   const [authError, setAuthError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [signupName, setSignupName] = useState("");
+  const [signupPendingConfirmation, setSignupPendingConfirmation] = useState(false);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
   const [arrowSliding, setArrowSliding] = useState(false);
   const [hasWebGL2] = useState(() => detectWebGL2());
   const [canvasReady, setCanvasReady] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const url = import.meta.env.VITE_SUPABASE_URL;
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    fetch(`${url}/auth/v1/settings`, { headers: { apikey: key }, signal: controller.signal })
+      .then(async response => response.ok ? response.json() : null)
+      .then(settings => { if (!controller.signal.aborted) setGoogleEnabled(settings?.external?.google === true); })
+      .catch(() => { /* Email remains usable; unavailable providers stay hidden. */ });
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     if (!hasWebGL2) return;
@@ -141,7 +156,8 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
 
   const handleResetSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!resetEmail) return;
+    if (!resetEmail || isSubmitting) return;
+    setIsSubmitting(true); setAuthError('');
     try {
       const { supabase } = await import('../../lib/supabase');
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
@@ -158,7 +174,7 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
       }, 4000);
     } catch {
       setAuthError('Erro ao enviar link de recuperação.');
-    }
+    } finally { setIsSubmitting(false); }
   };
 
   const handleBackClick = () => {
@@ -300,7 +316,8 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                         <span>Explorar demonstração</span>
                       </button>}
 
-                      {/* Login Google configurado no Supabase */}
+                      {googleEnabled && <>
+                      {/* Only display an OAuth provider confirmed enabled by Auth. */}
                         <button
                           onClick={async () => {
                             try {
@@ -327,6 +344,7 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                           </svg>
                           <span>Entrar com Google</span>
                         </button>
+                      </>}
 
                       <p className="text-[10px] text-zinc-600 pt-2">
                         Precisa de ajuda? <a href="mailto:ola@orkto.co" className="text-zinc-400 hover:text-[#FF9F1C] transition-colors">ola@orkto.co</a>
@@ -377,14 +395,16 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                     </div>
 
                     {resetSent ? (
-                      <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-3xl text-sm font-semibold leading-normal animate-pulse">
-                        Link enviado! Verifique sua caixa de entrada nos próximos instantes. Redirecionando...
+                      <div role="status" className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-3xl text-sm font-semibold leading-normal">
+                        Se o endereço estiver cadastrado, você receberá um link para redefinir sua senha. Verifique também o spam.
                       </div>
                     ) : (
                       <form onSubmit={handleResetSubmit} className="space-y-4">
                         <div className="relative">
                           <input 
                             type="email" 
+                            aria-label="E-mail para recuperação"
+                            autoComplete="email"
                             placeholder="seu@email.com"
                             value={resetEmail}
                             onChange={(e) => setResetEmail(e.target.value)}
@@ -403,13 +423,15 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                           </button>
                           <button
                             type="submit"
+                            disabled={isSubmitting}
                             className="flex-1 py-3 bg-[#FF9F1C] text-black hover:opacity-90 rounded-full font-bold text-xs transition-all shadow-lg active:scale-95"
                           >
-                            Enviar Link de Acesso
+                            {isSubmitting ? 'Enviando…' : 'Enviar Link de Acesso'}
                           </button>
                         </div>
                       </form>
                     )}
+                    {authError && <p role="alert" className="text-sm text-red-300">{authError}</p>}
                   </motion.div>
                 ) : step === "signup" ? (
                   <motion.div
@@ -437,15 +459,18 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                         setAuthError('Preencha todos os campos');
                         return;
                       }
-                      if (password.length < 6) {
-                        setAuthError('A senha deve ter no mínimo 6 caracteres');
+                      const passwordError = validateNewPassword(password, password);
+                      if (passwordError) {
+                        setAuthError(passwordError);
                         return;
                       }
                       setIsSubmitting(true);
                       setAuthError('');
                       try {
                         if (onSignUp) {
-                          await onSignUp(email, password, signupName);
+                          const outcome = await onSignUp(email, password, signupName);
+                          setPassword('');
+                          if (outcome.confirmationRequired) { setSignupPendingConfirmation(true); return; }
                         }
                         setReverseCanvasVisible(true);
                         setTimeout(() => { setInitialCanvasVisible(false); }, 50);
@@ -482,12 +507,15 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                       <div className="relative">
                         <input
                           type="password"
-                          placeholder="Sua senha (mín. 6 caracteres)"
+                          placeholder="Sua senha (mín. 12 caracteres)"
+                          aria-label="Senha para criar conta"
+                          autoComplete="new-password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           className="w-full backdrop-blur-[2px] bg-zinc-900/50 text-white border border-zinc-800 rounded-full py-4 px-6 focus:outline-none focus:border focus:border-[#FF9F1C]/50 focus:ring-1 focus:ring-[#FF9F1C]/30 text-center text-sm font-medium"
                           required
-                          minLength={6}
+                          minLength={12}
+                          maxLength={256}
                         />
                       </div>
 
@@ -522,7 +550,9 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                         </div>
                       </div>
 
-                      {/* Cadastro Google configurado no Supabase */}
+                      {signupPendingConfirmation && <p role="status" className="text-sm text-emerald-300">Se o cadastro puder ser concluído, você receberá um e-mail de confirmação. Verifique sua caixa de entrada e o spam antes de entrar.</p>}
+                      {googleEnabled && <>
+                      {/* Only display an OAuth provider confirmed enabled by Auth. */}
                         <button
                           onClick={async () => {
                             try {
@@ -549,6 +579,7 @@ export const SignInPage = ({ className, onSignInSuccess, onSignUp, onDemoLogin, 
                           </svg>
                           <span>Cadastrar com Google</span>
                         </button>
+                      </>}
 
                     <p className="text-[10px] text-zinc-500">
                       Ao criar uma conta, você concorda com nossos <a href="/termos.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Termos</a> e <a href="/privacidade.html" target="_blank" className="underline text-zinc-400 hover:text-white transition-colors">Privacidade</a>.
