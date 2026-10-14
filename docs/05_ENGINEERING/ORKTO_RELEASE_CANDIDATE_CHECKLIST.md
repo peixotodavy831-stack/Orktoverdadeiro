@@ -4,7 +4,7 @@
 
 | Gate | Current status | Evidence / next condition |
 | --- | --- | --- |
-| Staging migrations | BLOCKED — 43/44 | Local migration 44 passes PostgreSQL 17 CI, but is not applied in staging. Use a supported authenticated migration path and recheck ledger/assertions. |
+| Staging migrations | BLOCKED — 43/44 | Read-only SQL Editor query returned 43 ledger entries; latest is `20261014152518`. Local pending migration 44 is `20261014160000_google_pilot_gate_fails_closed.sql`, SHA-256 `20FFABFB627B8BD30BB36FB2F2E1F00BD862840F3E12FC8DD63BC47309E21D7D`. It passes PostgreSQL 17 CI but is not applied remotely. Use a supported authenticated migration path, then recheck ledger and assertions. |
 | Google-only UI | PASS — fail-closed | Exact Preview has no password form; Google login is disabled and configuration-required. |
 | Google OAuth | BLOCKED_OWNER_CONFIGURATION | Supabase Google and Email providers are visibly OFF; Auth hooks are ENABLED. No Google client credentials or approved pilot identities. Redirect allowlist did not load. Real callback/PKCE/session E2E NOT RUN. |
 | Tenant/auth adversarial | NOT RUN on exact candidate | Synthetic password A/B cannot substitute for Google identity A/B. One origin-unknown staging account remains preserved. |
