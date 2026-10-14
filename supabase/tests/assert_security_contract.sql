@@ -86,7 +86,7 @@ do $$ declare f record; expected_browser boolean; function_count integer := 0; b
     where n.nspname='public'
   loop
     function_count := function_count+1;
-    expected_browser := f.proname=any(array['orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches']);
+    expected_browser := f.proname=any(array['orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches','orkto_pilot_session_allowed']);
     if f.owner<>'postgres' or has_function_privilege('anon',f.oid,'EXECUTE')
        or has_function_privilege('authenticated',f.oid,'EXECUTE')<>expected_browser
        or not has_function_privilege('service_role',f.oid,'EXECUTE') then

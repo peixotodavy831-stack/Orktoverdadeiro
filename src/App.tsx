@@ -44,6 +44,8 @@ import { MobileNavigation } from './product/navigation/mobile-navigation';
 // Client proposal view (public, no auth)
 import ClientProposalView from './components/ClientProposalView';
 import { hasRecoveryCallback, signUpOutcome, type SignUpOutcome } from './lib/auth-flows';
+import { cleanOAuthCallback, googleCallbackMessage, isGooglePilot } from './lib/google-pilot';
+import { verifyPilotSession } from '../supabase/functions/orkto-core-mutations/_shared/pilot-access';
 
 // Lazy-loaded pages (code-split)
 const Auth = lazy(() => import('./components/Auth'));
@@ -187,6 +189,7 @@ export default function App() {
   // Auth & Profile state
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [pilotAuthError, setPilotAuthError] = useState(() => googleCallbackMessage(window.location.href));
   const [recoveringPassword, setRecoveringPassword] = useState(() => {
     try { return hasRecoveryCallback(window.location.hash) || sessionStorage.getItem('orkto_password_recovery') === '1'; }
     catch { return hasRecoveryCallback(window.location.hash); }
@@ -216,26 +219,24 @@ export default function App() {
 
   // Listen for Supabase auth state changes on mount
   useEffect(() => {
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        if (session?.user) {
-          const u = session.user;
-          setAuthIdentity(u.id);
-          setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
-          setAccessToken(session.access_token);
-          setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
-          loadUserProfile(u.id, u);
+    let active = true;
+    let generation = 0;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const pilot = isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE);
+    const applySession = async (session: any) => {
+      const version = ++generation;
+      if (session?.user && pilot) {
+        const access = await verifyPilotSession(supabase);
+        if (!active || version !== generation) return;
+        if (access !== 'allowed') {
+          setPilotAuthError(access === 'denied' ? 'Sua conta não tem acesso ativo ao piloto.' : 'Não foi possível verificar o acesso. Entre novamente.');
+          setAuthIdentity(null); setUser(null); setAccessToken(null); setCurrentView('auth');
+          setAuthLoading(false);
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+          return;
         }
-      })
-      .catch(err => console.error('[ORKTO] getSession error:', err))
-      .finally(() => setAuthLoading(false));
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        try { sessionStorage.setItem('orkto_password_recovery', '1'); } catch { /* screen still works without storage */ }
-        setRecoveringPassword(true);
-        return;
       }
+      if (!active || version !== generation) return;
       if (session?.user) {
         const u = session.user;
         setAuthIdentity(u.id);
@@ -249,9 +250,25 @@ export default function App() {
         setAccessToken(null);
         setCurrentView(current => resolveSignedOutView(current));
       }
+      setAuthLoading(false);
+    };
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (error && pilot && active) setPilotAuthError('Não foi possível validar o retorno do Google. Inicie uma nova entrada.');
+        return applySession(error ? null : data.session);
+      })
+      .catch(() => { if (active) { setPilotAuthError('Não foi possível validar a sessão. Entre novamente.'); return applySession(null); } })
+      .finally(() => { if (pilot && active) window.history.replaceState(null, '', cleanOAuthCallback(window.location.href)); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && !pilot) {
+        try { sessionStorage.setItem('orkto_password_recovery', '1'); } catch { /* no secret persisted */ }
+        setRecoveringPassword(true); return;
+      }
+      // Leave the Auth lock before making a JWT-bearing RPC or signOut call.
+      const timer = setTimeout(() => { timers.delete(timer); void applySession(session); }, 0);
+      timers.add(timer);
     });
-
-    return () => subscription.unsubscribe();
+    return () => { active = false; generation++; timers.forEach(clearTimeout); subscription.unsubscribe(); };
   }, []);
 
   const loadUserProfile = async (uid: string, authUser?: any) => {
@@ -682,6 +699,7 @@ export default function App() {
 
   // Authenticate and return result (used by password step before showing success screen)
   const handleAuthenticate = async (email: string, password: string): Promise<{ error?: string }> => {
+    if (isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)) return { error: 'Utilize sua conta Google autorizada.' };
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
@@ -694,6 +712,7 @@ export default function App() {
   };
 
   const handleSignUp = async (email: string, password: string, name: string): Promise<SignUpOutcome> => {
+    if (isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)) throw new Error('PILOT_GOOGLE_ONLY');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -704,7 +723,7 @@ export default function App() {
     return signUpOutcome(data);
   };
 
-  if (recoveringPassword) {
+  if (recoveringPassword && !isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)) {
     return <Suspense fallback={<PageFallback />}><PasswordRecovery onComplete={() => {
       try { sessionStorage.removeItem('orkto_password_recovery'); } catch { /* no secret persisted */ }
       setRecoveringPassword(false); setCurrentView('auth');
@@ -1176,6 +1195,7 @@ export default function App() {
           onDemoLogin={handleDemoSignInSuccess}
           onAuthenticate={handleAuthenticate}
           isLoading={false}
+          initialAuthError={pilotAuthError}
         />
       </Suspense>
       {toast && (

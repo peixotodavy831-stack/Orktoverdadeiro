@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { verifyPilotSession } from './_shared/pilot-access.ts';
 import { clientInput } from './_shared/client-input.ts';
 import { contactInput, contactPatchInput } from './_shared/contact-input.ts';
 import { serviceInput } from './_shared/service-input.ts';
@@ -396,6 +397,9 @@ Deno.serve(async (req: Request) => {
     const userClient = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: { user }, error: authError } = await userClient.auth.getUser(bearer.slice(7));
     if (authError || !user) return response(401, 'AUTH_REQUIRED', requestId, undefined, origin);
+    const pilotAccess = await verifyPilotSession(userClient);
+    if (pilotAccess !== 'allowed') return response(pilotAccess === 'unavailable' ? 503 : 403,
+      pilotAccess === 'unavailable' ? 'INTERNAL_ERROR' : 'PERMISSION_DENIED', requestId, undefined, origin);
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: membership, error: membershipError } = await admin.from('orkto_workspace_members')
       .select('workspace_id,role,status').eq('workspace_id', workspaceId).eq('user_id', user.id).maybeSingle();

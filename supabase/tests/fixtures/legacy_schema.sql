@@ -12,7 +12,19 @@ do $$ begin
 exception when duplicate_object then null; end $$;
 grant usage on schema public,auth,storage to anon,authenticated,service_role;
 
-create table if not exists auth.users (id uuid primary key, email text);
+do $$ begin create role supabase_auth_admin nologin; exception when duplicate_object then null; end $$;
+create table if not exists auth.users (id uuid primary key, email text,
+  encrypted_password text, raw_app_meta_data jsonb default '{}'::jsonb,
+  email_change text, raw_user_meta_data jsonb default '{}'::jsonb);
+create table if not exists auth.identities (id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade, provider text, provider_id text);
+create table if not exists auth.sessions (id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade, not_after timestamptz);
+create table if not exists auth.refresh_tokens (id bigint generated always as identity,
+  user_id text, session_id uuid references auth.sessions(id) on delete cascade);
+create or replace function auth.jwt() returns jsonb language sql stable as $$
+  select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb
+$$;
 create or replace function auth.uid() returns uuid language sql stable as $$
   select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
 $$;

@@ -4,6 +4,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
+import { verifyPilotSession } from '../supabase/functions/orkto-core-mutations/_shared/pilot-access.ts';
 import dotenv from "dotenv";
 import { z } from "zod";
 import cors from "cors";
@@ -255,6 +256,12 @@ async function authenticate(req, res, next) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   requestDb?.useAuthenticatedClient(req.authenticatedSupabase);
+  if (process.env.ORKTO_AUTH_MODE === 'google_pilot') {
+    const pilotAccess = await verifyPilotSession(req.authenticatedSupabase);
+    if (pilotAccess !== 'allowed') return res.status(pilotAccess === 'unavailable' ? 503 : 403)
+      .json({ error: 'Acesso ao piloto indisponível ou não autorizado.',
+        category: pilotAccess === 'unavailable' ? 'pilot_access_unavailable' : 'pilot_access_denied' });
+  }
   // Invitation acceptance is the only authenticated path available before a
   // user belongs to any workspace. Its high-entropy token, verified session
   // email, and compare-and-set invite claim establish the target workspace.
