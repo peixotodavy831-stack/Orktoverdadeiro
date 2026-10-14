@@ -2,7 +2,7 @@
 
 ## Estado vigente — 14/10/2026 — Google-only pilot
 
-- Branch `production-readiness/google-only-pilot-preflight`; PR [#2](https://github.com/peixotodavy831-stack/Orktoverdadeiro/pull/2) aberta, draft e não mergeada. Head de código publicado: `c9584feb52eca364100e95abcfef7037316c6147`.
+- Branch `production-readiness/google-only-pilot-preflight`; PR [#2](https://github.com/peixotodavy831-stack/Orktoverdadeiro/pull/2) aberta, draft e não mergeada. HEAD atual é `409dcf61d374e47bdb109deebcbe7a1e6358b465` (documentação); último commit executável e publicado é `c9584feb52eca364100e95abcfef7037316c6147`. Nenhum novo deployment foi criado para o commit somente documental.
 - Preview exato: `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D`, projeto `orkto-staging` (`prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc`), READY, target Preview, branch acima, SHA `c9584fe`. URL: `https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/`. A landing e a tela de login abriram nesse deployment.
 - Vercel: `VITE_ORKTO_AUTH_MODE` e `ORKTO_AUTH_MODE` foram adicionadas como configurações não secretas, somente Preview da branch do piloto. Nenhum valor secreto foi aberto. A lista de nomes/scope do Preview não contém service-role/admin, billing, messaging ou provider secret. Produção Vercel não foi alterada.
 - Auth no Preview exato: **PASS para fail-closed UI** — sem campo de senha, aviso de convite aprovado, botão Google desabilitado e “Configuração de autenticação necessária”. Isso confirma o modo fechado, mas **não** comprova OAuth real. GET direto de `/api/health` e `/api/ready` foi bloqueado pelo navegador (`ERR_BLOCKED_BY_CLIENT`) e falhou no runner; health/readiness são **NOT_VERIFIABLE**. Nenhum link SSO temporário foi criado.
@@ -11,6 +11,7 @@
 - Limpeza autorizada: 18 contas com marcador sintético confirmado foram removidas após checkpoint lógico verificado; uma conta de origem desconhecida foi preservada sem alteração. Sua identidade e direito de acesso continuam **NOT_VERIFIABLE**.
 - Regressão para o código `c9584fe`: `npm run test:all` 213/213 aplicação + 57/57 readiness, lint/typecheck, build frontend/server, smoke, `git diff --check` e secret scan (387 arquivos, zero findings) PASS. CI PostgreSQL 17 [38613833432](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38613833432) e deploy boundary [38613833446](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38613833446) SUCCESS. Esses resultados não substituem o OAuth E2E nem o ledger 44/44.
 - `READY_FOR_PRODUCTION_CANDIDATE=NO`, `STAGING_GOOGLE_PILOT=NO_GO`; security checkpoint, migration 44 no staging, OAuth Google A/B e snapshot final permanecem pendentes. Produção continua intocada.
+- O conteúdo da PR #2 continua desatualizado: atualização pelo conector GitHub retornou HTTP 403 e `gh auth status` confirmou token inválido; a documentação atual já foi commitada e enviada à branch. Não foi tentado contorno pelo navegador.
 
 Detalhes e matriz com evidências: [execução Google-only](05_ENGINEERING/GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md), [auditoria de segurança atualizada](05_ENGINEERING/SECURITY_AUDIT_CURRENT.md), [ações humanas restantes](05_ENGINEERING/ORKTO_HUMAN_ACTION_BACKLOG.md). O conteúdo abaixo foi preservado como histórico e não representa o estado remoto atual.
 
