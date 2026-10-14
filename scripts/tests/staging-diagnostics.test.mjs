@@ -20,6 +20,19 @@ test('route diagnostics discard query tokens, identifiers and unknown route cont
   assert.ok(!JSON.stringify(safeResults({ tests: [{ id: 'a'.repeat(16), status: 'failed', errors: ['private-error'], password: 'private-password' }] })).includes('private'));
 });
 
+test('request diagnostics classify only the configured exact Preview as staging', () => {
+  const previous = process.env.ORKTO_STAGING_PREVIEW_URL;
+  try {
+    process.env.ORKTO_STAGING_PREVIEW_URL = 'https://orkto-staging-current-candidate.vercel.app/';
+    assert.equal(safeRoute('https://orkto-staging-current-candidate.vercel.app/api/clients').host, 'STAGING_PREVIEW');
+    assert.equal(safeRoute('https://orkto-staging-another.vercel.app/api/clients').host, 'OTHER');
+    assert.equal(safeRoute('https://qneqljlphgkptebsaonb.supabase.co/api/clients').host, 'OTHER');
+  } finally {
+    if (previous === undefined) delete process.env.ORKTO_STAGING_PREVIEW_URL;
+    else process.env.ORKTO_STAGING_PREVIEW_URL = previous;
+  }
+});
+
 test('trace sanitizer retains timelines without request headers, bodies, resources or opaque values', () => {
   const temp = mkdtempSync(join(tmpdir(), 'orkto-safe-trace-'));
   try {

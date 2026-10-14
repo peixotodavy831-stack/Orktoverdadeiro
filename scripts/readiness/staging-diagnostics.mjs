@@ -6,7 +6,7 @@ export const STAGES = ['AUTH_A', 'AUTH_B', 'A_WORKSPACE_INBOX', 'A_CLIENT_CONTAC
   'B_WORKSPACE_ISOLATION', 'B_CLIENTS', 'AUTH_A_REFRESH', 'GATEWAY_ADVERSARIAL', 'FINAL_NETWORK_ASSERTIONS',
   'LOGOUT_REVOCATION', 'WIA_APPROVAL_REJECTION', 'WIA_TRUSTED_PROVENANCE', 'INBOX_DRAFT_DECISIONS',
   'PUBLIC_PROPOSAL_LIFECYCLE'];
-export function safeRoute(input, base = 'https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app') {
+export function safeRoute(input, base = process.env.ORKTO_STAGING_PREVIEW_URL || 'https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app') {
   try {
     const url = new URL(input, base);
     const host = url.hostname === 'ghrjongiodziasupakrk.supabase.co' ? 'STAGING_SUPABASE'

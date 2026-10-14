@@ -1,0 +1,212 @@
+{
+  "candidate_sha": "d693e2f8269759485713fba9c3c2b19f6e4fbc74",
+  "total": 5,
+  "passed": 3,
+  "failed": 2,
+  "tests": [
+    {
+      "id": "88d0287e51ec5268",
+      "status": "passed",
+      "errors": [],
+      "phase": "LOGOUT_REVOCATION",
+      "line": 18,
+      "duration_ms": 13144
+    },
+    {
+      "id": "bb7fa347ebb5dfac",
+      "status": "passed",
+      "errors": [],
+      "phase": "INBOX_DRAFT_DECISIONS",
+      "line": 18,
+      "duration_ms": 24564
+    },
+    {
+      "id": "5ddf8e166834c84c",
+      "status": "failed",
+      "errors": [
+        "ASSERTION_FAILED"
+      ],
+      "phase": "PUBLIC_PROPOSAL_LIFECYCLE",
+      "line": 138,
+      "duration_ms": 7809
+    },
+    {
+      "id": "58e9a007c1108363",
+      "status": "passed",
+      "errors": [],
+      "line": 18,
+      "duration_ms": 553
+    },
+    {
+      "id": "2f825717b5ab02ad",
+      "status": "failed",
+      "errors": [
+        "LOCATOR_AMBIGUOUS"
+      ],
+      "phase": "A_CLIENT_CONTACT",
+      "line": 274,
+      "duration_ms": 23419
+    }
+  ],
+  "runner_phases": [
+    {
+      "phase": "PREVIEW_IDENTITY",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "PREVIEW_IDENTITY",
+      "status": "passed",
+      "duration_ms": 10277
+    },
+    {
+      "phase": "STAGING_KEYS",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "STAGING_KEYS",
+      "status": "passed",
+      "duration_ms": 1058
+    },
+    {
+      "phase": "SYNTHETIC_USERS",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "SYNTHETIC_USERS",
+      "status": "passed",
+      "duration_ms": 559
+    },
+    {
+      "phase": "WORKSPACES",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "WORKSPACES",
+      "status": "passed",
+      "duration_ms": 8460
+    },
+    {
+      "phase": "FIXTURES_A",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "FIXTURES_A",
+      "status": "passed",
+      "duration_ms": 7009
+    },
+    {
+      "phase": "FIXTURES_B",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "FIXTURES_B",
+      "status": "passed",
+      "duration_ms": 5496
+    },
+    {
+      "phase": "AUTH_RLS_A",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "AUTH_RLS_A",
+      "status": "passed",
+      "duration_ms": 7900
+    },
+    {
+      "phase": "AUTH_RLS_B",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "AUTH_RLS_B",
+      "status": "passed",
+      "duration_ms": 7527
+    },
+    {
+      "phase": "GATEWAY_ROLE_NEGATIVES",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "GATEWAY_ROLE_NEGATIVES",
+      "status": "passed",
+      "duration_ms": 4198
+    },
+    {
+      "phase": "PLAYWRIGHT",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "PLAYWRIGHT",
+      "status": "failed",
+      "duration_ms": 79072
+    },
+    {
+      "phase": "PLAYWRIGHT_EXIT",
+      "status": 1,
+      "duration_ms": 79070,
+      "timeout_scope": "NONE"
+    },
+    {
+      "phase": "CLEANUP_A",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "CLEANUP_A",
+      "status": "passed",
+      "duration_ms": 846
+    },
+    {
+      "phase": "CLEANUP_B",
+      "status": "start",
+      "duration_ms": 0
+    },
+    {
+      "phase": "CLEANUP_B",
+      "status": "passed",
+      "duration_ms": 537
+    }
+  ],
+  "cleanup_readback": {
+    "sessions": 0,
+    "refresh_tokens": 0
+  },
+  "diagnosis": {
+    "proposal": "SYNTHETIC_ITEM_MISSING_CATALOG_LINK",
+    "contact": "POST_RELOAD_ROLE_LOCATOR_NOT_SCOPED",
+    "host_label": "STALE_DEFAULT_PREVIEW_ORIGIN"
+  },
+  "local_correction_tests": {
+    "passed": 7,
+    "failed": 0
+  },
+  "corrected_remote_execution": "NOT_RUN",
+  "runtime_changed": false,
+  "artifact_hashes": [
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-ab-attempt-20261014/contact-reload-trace.zip",
+      "sha256": "1da09db16ffac475c84246ee6bd6921391317d00b0de65e929077a6883ee314d"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-ab-attempt-20261014/public-proposal-trace.zip",
+      "sha256": "2e15f0538c7c3a19c8e36981e8fbac30e6a7fb2b311a15472974330112dd4154"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-ab-attempt-20261014/runner.json",
+      "sha256": "4e2e5c6be8f8eb6a710285cdf03aa4a04c24c2526b093218ec27da9855788e4c"
+    },
+    {
+      "file": "test-results/technical-gates-d693e2f/auth-ab-attempt-20261014/safe-results.json",
+      "sha256": "4fb6f7257ebf90412fce9845c167140e4c33a743e22917ebb6a91b5e94e4f1a7"
+    }
+  ]
+}

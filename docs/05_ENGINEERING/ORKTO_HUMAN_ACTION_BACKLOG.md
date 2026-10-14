@@ -2,6 +2,8 @@
 
 Current candidate: `d693e2f8269759485713fba9c3c2b19f6e4fbc74`, `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`. [Current evidence/matrix](MVP_CLOSURE_2026-10-14.md). No questions were sent during the autonomous run. Production remains prohibited; no third session is created.
 
+Update after owner execution: correct SHA, 3/5 PASS; logout/WIA/Inbox and parent Auth/RLS/role negatives passed. The two remaining cases failed on invalid proposal fixture and ambiguous post-reload selector. Both harness corrections passed focused tests. FINAL-STG-AUTH now means repeat the same command with the corrected harness; no new deployment or app SHA required. Private keys were erased again after cleanup and remain unavailable to the agent. Current zero sessions/tokens confirmed read-only.
+
 | ID / priority | Unavoidable dependency and impact | Minimal owner action / safe location | Objective completion criterion |
 | --- | --- | --- | --- |
 | FINAL-STG-AUTH / HIGH | Private staging admin/public inputs are wiped at runner exit. Agent has no suitable secret store; dashboard login does not supply a runner key. Blocks exact-SHA A/B, WIA/Inbox/provenance, public proposal and final security evidence. | Execute the command below in private PowerShell, typing only staging keys into two masked prompts. Alternative: approved protected CI secret store scoped only to staging. Never chat, .env, frontend or Vercel Preview. | Artifact candidate SHA d693e2f, all 5 cases PASS, parent Auth/RLS/role phases PASS, cleanup PASS and zero scoped sessions/tokens. Fix/retest any genuine failure; no automatic readiness. |

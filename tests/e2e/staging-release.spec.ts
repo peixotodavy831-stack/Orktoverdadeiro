@@ -1,6 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 import { test, checkpoint } from '../../scripts/readiness/staging-safe-test';
 import { observeRequest } from '../../scripts/readiness/staging-observed-request';
+import { catalogBackedQuoteInput } from './staging-fixtures';
 
 const authOrigin = 'https://ghrjongiodziasupakrk.supabase.co';
 function required(name: string) { const value = process.env[name]; if (!value) throw new Error('STAGING_RELEASE_INPUT_REQUIRED'); return value; }
@@ -122,11 +123,18 @@ test('synthetic public proposals preserve versioning, acceptance, rejection and 
   checkpoint('PUBLIC_PROPOSAL_LIFECYCLE');
   const api = observeRequest(page.request);
   const headers = { ...accessHeaders(), Authorization: session.bearer };
+  const catalog = { name: `Synthetic release service ${crypto.randomUUID()}`, unitPrice: 1 };
+  const catalogResponse = await api.post('/api/catalog', {
+    headers: { ...headers, 'x-idempotency-key': crypto.randomUUID() },
+    data: { ...catalog, description: 'Synthetic release only; no external effect', category: 'Serviço' },
+  });
+  expect(catalogResponse.status()).toBe(201);
+  const catalogId = (await catalogResponse.json())?.data?.id as string;
+  expect(catalogId).toMatch(/^[a-f0-9-]{36}$/i);
   const createQuote = async () => {
     const response = await api.post('/api/quotes', {
       headers: { ...headers, 'x-idempotency-key': crypto.randomUUID() },
-      data: { clientName: `Synthetic release ${crypto.randomUUID()}`, clientPhone: '+5500000088892',
-        items: [{ name: 'Synthetic service - no external effect', quantity: 1, unitPrice: 1, discount: 0 }] },
+      data: catalogBackedQuoteInput({ ...catalog, id: catalogId }, `Synthetic release ${crypto.randomUUID()}`),
     });
     expect(response.status()).toBe(201);
     const body = await response.json(); expect(body.id).toMatch(/^[a-f0-9-]{36}$/i); return body.id as string;

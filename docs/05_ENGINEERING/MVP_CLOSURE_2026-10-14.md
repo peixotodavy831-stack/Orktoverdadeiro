@@ -16,6 +16,17 @@ Este documento substitui o cabeçalho de estado de 13/10, preservando suas evid�
 
 ## Defeitos corrigidos nesta execução
 
+### Retorno do launcher d693e2f — 14/10
+
+O proprietário executou a URL/SHA corretos: 3/5 casos PASS (health, logout/revogação e WIA/proveniência/Inbox), 2 FAIL. Auth/RLS A/B e negativos de role do processo pai PASS; cleanup PASS, confirmado read-only com zero sessões/tokens dos dois usuários atuais. Browser B e adversariais finais do caso core não foram alcançados.
+
+- Publicação: o fixture usou linha manual sem catalogItemId. A função SQL exige vínculo com serviço do workspace e conferência de nome/preço. SQL read-only encontrou exatamente uma proposta sintética recente desse teste e ela não tinha o vínculo. Corrigido o harness para criar o serviço pelo gateway e usá-lo nas duas propostas, sem relaxar SQL/Edge/grants.
+- Contatos: o selector após reload procurava Decisor no diálogo inteiro. Corrigido para a linha do contato único recém-criado, mantendo count=1 e a verificação do cargo após reload. Reprodução local com dois homônimos e reload real PASS.
+- O rótulo OTHER nos logs vinha de um hostname antigo fixo no diagnóstico; agora usa a origem exata configurada e continua distinguindo outros hosts.
+- Sete testes focados PASS; a execução remota corrigida permanece PENDING. App/deployment/41 migrations não mudaram. Evidência completa preservada em `test-results/technical-gates-d693e2f/auth-ab-attempt-20261014/` e resumo durável em `evidence/auth-ab-d693e2f-attempt1.json`.
+
+### Correções anteriores do app
+
 1. Recuperação de senha recebia a sessão, mas não apresentava formulário de atualização. Agora há tela lazy para `PASSWORD_RECOVERY`, confirmação da identidade via Auth, política mínima, atualização e revogação global antes de sucesso. Marcador local/URL seleciona apenas a tela; não autoriza nenhuma escrita. Falha após a atualização oferece somente retry da revogação, sem repetir a alteração.
 2. Cadastro com confirmação de e-mail era tratado como falha após tentativa indevida de login automático. Agora é um estado pendente explícito, limpa o campo de senha e não abre o produto como se estivesse autenticado.
 3. Botão Google era apresentado com o provider desativado. Agora só aparece se o endpoint público de configurações Auth confirmar habilitação. Falha na consulta mantém o botão oculto e não impede e-mail/senha.
@@ -38,15 +49,16 @@ Este documento substitui o cabeçalho de estado de 13/10, preservando suas evid�
 | Metadados de ambiente | PASS | Dez nomes somente Preview; nenhum service/admin/provider/billing/messaging secret. `env ls preview`, sem pull/decrypt. Readiness confirma staging e startup mantém ações externas/legais OFF. |
 | Secret/log hygiene | PASS no escopo varrido | Fonte, testes, scripts e bundles isolados sem finding na varredura desta execução. Diagnósticos limitados a classes e etapas; OIDC em memória e somente na origem Preview. Admin continua fora do browser/Vercel. |
 | Auditoria/observabilidade | PASS parcial | Estrutura de eventos/actor/workspace/resource/request-ID revisada. Novo request `5730efc1-aaf5-4383-8c22-24acc87787e0` aparece no log do deployment atual como `security.origin_denied`. Não equivale a cobertura autenticada completa. |
-| Logout | BLOCKED current-SHA | Baseline 65d5f8a teve logout 204, refresh revogado rejeitado 400 e reload sem sessão. Logs Auth agregados 13–14/10: 22 POST /logout, todos 204 com request_id. Não é possível atribuir a causa exata do antigo NETWORK_ERROR sem correlação original. Repetição atual obrigatória. |
-| Auth A/B e isolamento HTTP | BLOCKED_PRIVATE_INPUT | Runner preparado e baseline preservado; faltam chaves staging no processo privado. Dashboard autenticado não substitui secret store. Read-only atual: zero sessões e refresh tokens dos dois usuários do runner. |
-| WIA/Inbox/proposta pública | BLOCKED exact-SHA E2E | Cinco casos preparados, incluindo approval/rejection/replay, proveniência persistida versus trace, histórico tenant-scoped, recibo sem falsa entrega e ciclo público de proposta/versionamento/imutabilidade. Não executar não é PASS. |
+| Logout | PASS current-SHA | Caso real d693e2f passou: encerramento, refresh revogado rejeitado 400 e retorno sem sessão. Causa histórica do antigo NETWORK_ERROR não foi atribuída sem correlação original. |
+| Auth A/B e isolamento HTTP | PASS parcial / E2E core FAIL | Auth/RLS A/B e negativos de role do pai passaram; core browser parou no seletor de cargo após reload, antes do browser B/adversariais finais. Harness corrigido localmente, repetição PENDING_PRIVATE_INPUT. |
+| WIA/Inbox/proveniência | PASS current-SHA | Caso d693e2f de approval/rejection/replay, proveniência persistida, histórico tenant-scoped e decisões de rascunho Inbox passou. Não comprova envio externo, que continua OFF. |
+| Proposta pública | FAIL fixture; reteste PENDING | HTTP 400 correto para proposta sem catálogo no fixture. Harness agora cria serviço autorizado e preserva todos os testes de versionamento/aceite/recusa/imutabilidade. Esses passos posteriores ainda não foram executados remotamente. |
 | Senhas vazadas | BLOCKED_BY_PLAN | Supabase Free: proteção desativada, Pro+ requerido. Mínimo 12 não substitui consulta de senhas comprometidas. Nenhum gasto ou waiver automático. |
 | E-mail de cadastro/recovery real | BLOCKED_EXTERNAL_CONFIG | Painel mostra ausência de custom SMTP. Serviço padrão restrito e limitado não comprova jornada de cliente. Exige domínio/remetente/provider aprovado e prova de entrega com destinatário autorizado. Não foi enviado e-mail real. |
 | Acessibilidade/performance | PASS público / BLOCKED autenticado | Nomes/foco/overflow/console públicos aprovados. Público atual response ~3009 ms, DOM ~3767 ms; 5 JS requests. Build entry 164 kB, Auth 21,92 kB, recovery 3,69 kB lazy; WebGL continua lazy. Não é Lighthouse completo nem evidência de carga empresarial. |
 | Advisors performance | REVIEW não bloqueador comprovado | 80 FK sem índice e 28 índices não utilizados INFO; uma policy auth_rls_initplan WARN. Sem gargalo medido; não criar DDL indiscriminado. |
 | Recovery/rollback | ASSESSED / restore total NOT RUN | Staging reconstruível por migrations/seed, identidade owner excluída, sem negócio não sintético identificado na avaliação anterior. CI valida reconstrução de schema. PITR/restore real completo e RTO não comprovados; não prometer RPO/RTO de produção. |
-| Security release checkpoint | BLOCKED | Dependências de Auth/E2E do SHA atual, senhas vazadas e jornada real de e-mail ainda abertas. Nenhum achado foi encerrado aumentando grants. |
+| Security release checkpoint | BLOCKED | Core/proposta ainda não passaram a execução corrigida; senhas vazadas e jornada real de e-mail abertas. Logout e WIA/Inbox atuais agora têm evidência PASS. Nenhum achado foi encerrado aumentando grants. |
 | Snapshot final | NOT RUN, inelegível | Sem snapshot oficial até gates obrigatórios estabilizados. Evidências locais não são snapshot de release. |
 
 ## Escopo comercial recuperado, sem reinvenção

@@ -1,5 +1,7 @@
 # Current mutation matrix evidence — 2026-10-14
 
+Latest d693e2f run: parent Auth/RLS A/B and negative-role phases PASS; WIA approval/rejection, provenance and Inbox draft decisions PASS. Core contact CREATE/UPDATE returned 201/200 but its post-reload assertion was ambiguous; browser B/adversarial remainder was not reached. Public publication correctly denied a fixture without catalog linkage. Harness corrections passed seven focused tests; full remote repeat PENDING. No gateway/grant/runtime change.
+
 Current app SHA `d693e2f8269759485713fba9c3c2b19f6e4fbc74` / Preview `dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o`. This change fixes Auth UI; gateway/Edge v23/41 SQL migrations are unchanged. 207+44 local tests and current PostgreSQL CI passed; fresh staging read-only check confirms zero anon/authenticated direct DML grants. The per-command matrix below remains the implementation contract, not exact-SHA remote execution proof. Five authenticated cases are prepared; current-SHA gateway/tenant/WIA/Inbox/proposal execution remains BLOCKED_PRIVATE_RUNNER_INPUT. See [MVP_CLOSURE_2026-10-14.md](MVP_CLOSURE_2026-10-14.md). No generic CRUD, permission widening or production change.
 
 ## Historical mutation evidence — candidate c1660be

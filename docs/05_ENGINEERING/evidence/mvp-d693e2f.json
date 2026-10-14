@@ -197,7 +197,14 @@
     "event": "security.origin_denied",
     "deployment": "dpl_6eWYnHtaNeU9Pph2g46FMBDSmw6o"
   },
-  "authenticated_e2e": "NOT_RUN_CURRENT_SHA_PRIVATE_INPUT_UNAVAILABLE",
+  "authenticated_e2e": {
+    "status": "FAIL",
+    "passed": 3,
+    "total": 5,
+    "corrected_harness": "PASS_LOCAL",
+    "corrected_remote_run": "PENDING",
+    "evidence": "auth-ab-d693e2f-attempt1.json"
+  },
   "password_breach_control": "BLOCKED_BY_PLAN",
   "real_email_confirmation_recovery": "NOT_RUN_SMTP_REQUIRED",
   "security_release_checkpoint": "BLOCKED",

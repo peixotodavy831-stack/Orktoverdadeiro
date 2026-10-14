@@ -4,6 +4,7 @@ import { syntheticIdentityGroup } from '../../scripts/readiness/staging-e2e-conf
 import { observeRequest } from '../../scripts/readiness/staging-observed-request';
 import { safeRoute } from '../../scripts/readiness/staging-diagnostics.mjs';
 import { errorClass } from '../../scripts/readiness/staging-browser-security.mjs';
+import { contactRowByCreatedName } from './staging-fixtures';
 
 const productionHosts = new Set([
   'orkto.vercel.app', 'orkto.co', 'www.orkto.co', 'orkto.com.br',
@@ -259,7 +260,7 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
     clientDialog.getByRole('button',{name:'Salvar contato'}).click(),
   ]);
   expect(updatedContactResponse.status(),'browser UPDATE_CONTACT must use the gateway').toBe(200);
-  const editedContactRow = clientDialog.getByRole('listitem').filter({ hasText: createdContactName });
+  const editedContactRow = contactRowByCreatedName(clientDialog, createdContactName);
   await expect(editedContactRow).toHaveCount(1);
   await expect(editedContactRow.getByText(/Decisor/)).toBeVisible();
   await clientDialog.getByRole('button',{name:'Fechar detalhes do cliente'}).click();
@@ -271,7 +272,9 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
   const reloadedClientRowA=page.getByRole('row', { name: /Customer A Synthetic/ }).first();
   await expect(reloadedClientRowA).toBeVisible();
   await reloadedClientRowA.getByRole('button',{name:'Histórico'}).click();
-  await expect(page.getByRole('dialog',{name:/Detalhes de Customer A Synthetic/}).getByText(/Decisor/)).toBeVisible();
+  const reloadedContactRow = contactRowByCreatedName(page.getByRole('dialog',{name:/Detalhes de Customer A Synthetic/}), createdContactName);
+  await expect(reloadedContactRow).toHaveCount(1);
+  await expect(reloadedContactRow.getByText(/Decisor/)).toBeVisible();
   await page.getByRole('button',{name:'Fechar detalhes do cliente'}).click();
 
   checkpoint('A_NAVIGATION');
