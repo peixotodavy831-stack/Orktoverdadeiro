@@ -3,8 +3,11 @@
 begin;
 do $$ begin
   if orkto_pilot_private.is_enabled() then raise exception 'Pilot gate fixture must start disabled'; end if;
-  if public.orkto_pilot_session_allowed() then
-    raise exception 'Disabled pilot gate granted a session';
+  if not public.orkto_pilot_session_allowed() then
+    raise exception 'Disabled pilot gate changed the legacy RLS pass-through';
+  end if;
+  if public.orkto_google_pilot_session_allowed() then
+    raise exception 'Disabled pilot gate granted a Google pilot session';
   end if;
 end $$;
 update orkto_pilot_private.configuration set enabled=true;
@@ -77,6 +80,7 @@ select set_config('request.jwt.claims','{"session_id":"92000000-0000-4000-8000-0
 set local role authenticated;
 do $$ begin
   if not public.orkto_pilot_session_allowed() then raise exception 'Allowed OAuth session denied'; end if;
+  if not public.orkto_google_pilot_session_allowed() then raise exception 'Allowed Google pilot session denied'; end if;
   if (select count(*) from public.clients where name='Pilot A synthetic')<>1
     or (select count(*) from public.clients where name='Pilot B synthetic')<>0
     or public.orkto_is_workspace_member('91000000-0000-4000-8000-000000000002') then

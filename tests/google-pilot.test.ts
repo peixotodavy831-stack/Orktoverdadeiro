@@ -20,7 +20,7 @@ test('callbacks disclose only bounded messages, strip codes/tokens and retain un
 });
 test('caller-JWT gate accepts only an explicit true and fails closed on errors or malformed results', async () => {
   for (const data of [false,null,{},'true',1]) assert.equal(await verifyPilotSession({rpc:async name=>{
-    assert.equal(name,'orkto_pilot_session_allowed'); return {data,error:null}; }}),'denied');
+    assert.equal(name,'orkto_google_pilot_session_allowed'); return {data,error:null}; }}),'denied');
   assert.equal(await verifyPilotSession({rpc:async()=>({data:true,error:null})}),'allowed');
   assert.equal(await verifyPilotSession({rpc:async()=>({data:true,error:{message:'private-marker'}})}),'unavailable');
   assert.equal(await verifyPilotSession({rpc:async()=>{throw new Error('private-marker');}}),'unavailable');

@@ -69,7 +69,7 @@ begin
     definer_count := definer_count + 1;
     if f.proname not in (
       'orkto_is_workspace_member','orkto_is_workspace_admin','orkto_provision_workspace_for_profile',
-      'orkto_provision_profile_for_auth_user','orkto_pilot_session_allowed',
+      'orkto_provision_profile_for_auth_user','orkto_pilot_session_allowed','orkto_google_pilot_session_allowed',
       'orkto_legacy_owner_matches','orkto_create_default_workspace_trial','orkto_consume_plan_usage',
       'orkto_claim_payment_intent','orkto_finish_payment_intent','orkto_apply_payment_intent_provider_event','orkto_claim_payment_webhook_event',
       'orkto_finish_payment_webhook_event','orkto_reserve_channel_send','orkto_mark_channel_send',
@@ -91,7 +91,7 @@ begin
     if has_function_privilege('anon', f.oid, 'EXECUTE') then
       raise exception 'SECURITY DEFINER routine % is executable by anon', f.proname;
     end if;
-    if f.proname in ('orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches','orkto_pilot_session_allowed') then
+    if f.proname in ('orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches','orkto_pilot_session_allowed','orkto_google_pilot_session_allowed') then
       if not has_function_privilege('authenticated', f.oid, 'EXECUTE') then
         raise exception 'Workspace authorization helper % is unavailable to authenticated RLS policies', f.proname;
       end if;
@@ -102,7 +102,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> (36 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
+  if definer_count <> (37 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;

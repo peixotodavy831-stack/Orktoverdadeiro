@@ -5,7 +5,7 @@
  */
 export async function verifyPilotSession(client) {
   try {
-    const result = await client.rpc('orkto_pilot_session_allowed');
+    const result = await client.rpc('orkto_google_pilot_session_allowed');
     if (result.error) return 'unavailable';
     return result.data === true ? 'allowed' : 'denied';
   } catch {

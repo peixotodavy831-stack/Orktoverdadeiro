@@ -145,7 +145,7 @@ class FakePostgrest {
       authorization: new Headers(init.headers).get('authorization')
         || (input instanceof Request ? input.headers.get('authorization') : null),
     });
-    if (url.pathname === '/rest/v1/rpc/orkto_pilot_session_allowed') {
+    if (url.pathname === '/rest/v1/rpc/orkto_google_pilot_session_allowed') {
       return this.pilotUnavailable ? Response.json({message:'private-provider-diagnostic'},{status:503})
         : Response.json(this.pilotAccess);
     }
@@ -2243,7 +2243,7 @@ test('Google pilot API gate uses caller JWT and precedes invitations, tenancy an
     assert.equal((await api(base,CLIENT_TOKEN_A,'/api/team/invites/accept',{
       method:'POST',body:JSON.stringify({})})).status,400);
     assert.ok(database.requestAuthorization.some(request =>
-      request.path==='/rest/v1/rpc/orkto_pilot_session_allowed'
+      request.path==='/rest/v1/rpc/orkto_google_pilot_session_allowed'
       && request.authorization===`Bearer ${CLIENT_TOKEN_A}`));
   } finally {
     database.pilotAccess = true; database.pilotUnavailable = false;

@@ -20,9 +20,9 @@ test('observed staging inventory blocks activation and preserves legacy access',
   assert.deepEqual(result.actionsPerformed, []);
 });
 
-test('pilot session RPC denies access while the database admission gate is disabled', () => {
-  assert.match(failClosedMigration, /if not orkto_pilot_private\.is_enabled\(\) then return false; end if;/);
-  assert.doesNotMatch(failClosedMigration, /if not orkto_pilot_private\.is_enabled\(\) then return true; end if;/);
+test('Google pilot RPC denies access while the admission gate is disabled without changing legacy RLS', () => {
+  assert.match(failClosedMigration, /orkto_google_pilot_session_allowed\(\)[\s\S]*?if not orkto_pilot_private\.is_enabled\(\) then return false; end if;/);
+  assert.match(failClosedMigration, /orkto_pilot_session_allowed\(\)[\s\S]*?if not orkto_pilot_private\.is_enabled\(\) then return true; end if;/);
 });
 
 test('hiding password UI or enabling Google cannot prove Google-only Auth', () => {
