@@ -1,7 +1,7 @@
 param(
     [string]$OidcDirectory = 'C:\Users\sobooa7iqytvqheo\Documents\Codex\Orktoverdeiro-deploy-6bc8adb',
-    [string]$PreviewUrl = 'https://orkto-staging-fgfh3m49v-peixoto-s-projects1.vercel.app/',
-    [string]$ExpectedSha = '65d5f8ac8284e495bd95d742172da11f6a25b782'
+    [string]$PreviewUrl = 'https://orkto-staging-fl4uvx2qw-peixoto-s-projects1.vercel.app/',
+    [string]$ExpectedSha = 'c1660be6081da10fa8eda4c2afb4baccb51ed4fa'
 )
 $ErrorActionPreference = 'Stop'
 if ($env:NODE_TLS_REJECT_UNAUTHORIZED -eq '0' -or $env:ORKTO_E2E_ALLOW_RUNNER_CA -eq '1') {
@@ -13,6 +13,7 @@ if ($env:NODE_EXTRA_CA_CERTS -and (-not [IO.Path]::IsPathRooted($env:NODE_EXTRA_
 $candidateUrl = $PreviewUrl
 $candidateSha = $ExpectedSha
 if ($candidateSha -notmatch '^[a-f0-9]{40}$' -or $candidateUrl -notmatch '^https://orkto-staging-[a-z0-9-]+\.vercel\.app/?$') { throw 'EXACT_STAGING_CANDIDATE_REQUIRED' }
+Write-Output ('STAGING_CANDIDATE_SHA=' + $candidateSha)
 $projectId = 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc'
 $stagingRef = 'ghrjongiodziasupakrk'
 $link = Get-Content -LiteralPath (Join-Path $OidcDirectory '.vercel/project.json') -Raw | ConvertFrom-Json

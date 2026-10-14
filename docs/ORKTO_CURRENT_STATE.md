@@ -1,4 +1,20 @@
-# ORKTO Current State
+# ORKTO — estado comprovado
+
+## Fechamento técnico — candidato c1660be
+
+- Preview staging dpl_DQ6hZVM5ia4TsKmCHK52Y69bAemq READY, SHA c1660be6081da10fa8eda4c2afb4baccb51ed4fa; produção intocada. Health/ready, headers, CORS 403, request-ID/log correlacionado, metadata/SEO staging, acessibilidade pública/responsivo/performance PASS.
+- Staging 41/41; schema/ledger/grants/Edge revisados; CI PostgreSQL 17 do SHA atual 38502775304 PASS nos dois replays. Preview sem service-role/provider/billing/messaging secret por nomes/scopes; valores não abertos.
+- Local runtime: 198 aplicação + 43 tooling, lint/typecheck, frontend/server build e smoke PASS. Correções posteriores são somente no harness/documentação; runtime do c1660be preservado.
+- Baseline 65d5f8a 2/2 PASS preservado. Última execução ampliada usou esse SHA antigo porque os parâmetros foram omitidos: 2/4 PASS, falhas de seletor de cargo homônimo e ID trace versus serviceRunId; corrigidas no harness. Logout real 204/revogação de refresh PASS nessa execução; não prova SHA novo. SQL confirma usuários atuais A/B com zero sessões/tokens e owner/active restaurado.
+- Harness corrigido preparado: cinco casos, incluindo WIA/Inbox/proveniência e ciclo público de proposta/versionamento/aceite/recusa/imutabilidade. Descoberta/typecheck PASS; execução autenticada atual BLOCKED_PRIVATE_RUNNER_INPUT. Launcher agora aponta por padrão para c1660be e mostra o SHA antes dos prompts.
+- Callback Auth staging corrigido para o Preview atual; hostname obsoleto removido. Recovery de staging avaliado por rebuild/seed sintético, identidade do proprietário excluída; full disaster restore NOT RUN/RTO não medido. Senhas vazadas BLOCKED_FREE_PLAN, sem upgrade/aceitação de risco automática.
+- READY_FOR_PRODUCTION_CANDIDATE=NO. Snapshot final NÃO GERADO. Matriz: [READINESS_TECHNICAL_2026-10-13.md](05_ENGINEERING/READINESS_TECHNICAL_2026-10-13.md). Somente duas dependências atuais do proprietário reunidas em [SESSION_1_FINAL_STAGING](05_ENGINEERING/ORKTO_HUMAN_ACTION_BACKLOG.md). Comercial/jurídico e futuro UX separados da aprovação técnica.
+
+## Histórico preservado
+
+## Atualização de execução — 2026-10-13 — diagnóstico do runner A/B
+
+No mesmo candidato `65d5f8a` / `dpl_6oqdS1C4pkSNHAN3fLEvoNz8yPZf`, a primeira repetição falhou na visibilidade de um contato homônimo após POST 201/GET 200: três nomes iguais tornavam o locator ambíguo; o reporter classificava a menção ao timeout configurado como TIMEOUT. Corrigidos identidade única da operação no teste, classificação, checkpoints/durações, requisições sanitizadas e traces de falha sanitizados/arquivados. A segunda repetição pelo launcher privado: suíte configurada **2/2 PASS**, Auth/RLS A/B **PASS**, cenário principal 70,407 ms dentro dos 90,000 ms originais, Playwright exit 0. INSERT/UPDATE/DELETE diretos foram negados (403) nas oito tabelas protegidas exercitadas; IDs estrangeiros e workspace spoofing negados. Limpeza **PASS** e SQL read-only confirmou zero sessões/refresh tokens A/B. Um request de logout Supabase sem resposta permanece registrado (NETWORK_ERROR/status 0; causa de transporte não verificada); UI logout passou e limpeza global foi comprovada. Testes focados **26/26 PASS**, typecheck e scan de segredos **PASS**. Deployment e produção sem alterações. Evidência: [STAGING_RUNNER_TIMEOUT_2026-10-13.md](STAGING_RUNNER_TIMEOUT_2026-10-13.md). `READY_FOR_PRODUCTION_CANDIDATE=NO`: esta suíte não substitui os gates restantes de produto e checkpoint formal de segurança. Os blocos abaixo são históricos; a política vigente permite apenas timelines sanitizadas de falha, sem snapshots/screenshots/video.
 
 ## Atualização de execução — 2026-10-13 — TLS e contenção de logs E2E
 

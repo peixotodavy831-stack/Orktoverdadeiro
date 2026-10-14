@@ -1,0 +1,106 @@
+{
+  "verified_at": "2026-10-14T02:54:12.045Z",
+  "sha": "c1660be6081da10fa8eda4c2afb4baccb51ed4fa",
+  "deployment": "dpl_DQ6hZVM5ia4TsKmCHK52Y69bAemq",
+  "url": "https://orkto-staging-fl4uvx2qw-peixoto-s-projects1.vercel.app",
+  "project": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "target": "preview",
+  "ledger": 41,
+  "ci": {
+    "id": 38502775304,
+    "legacy": "PASS_41_OF_41",
+    "remote_like": "PASS_34_PENDING"
+  },
+  "local": {
+    "application": 198,
+    "tooling": 43,
+    "tls_diagnostics": 9,
+    "deploy_guard": 12,
+    "lint_typecheck": "PASS",
+    "build_server_smoke": "PASS",
+    "secret_scan": {
+      "files": 350,
+      "findings": 0
+    },
+    "final_regression": {
+      "application": {
+        "passed": 198,
+        "total": 198
+      },
+      "tooling": {
+        "passed": 43,
+        "total": 43
+      },
+      "exit_code": 0
+    },
+    "expanded_trace_audit": {
+      "zip_files": 5,
+      "entries": 25,
+      "violations": 0
+    },
+    "test_discovery": {
+      "cases": 5,
+      "status": "PASS_DISCOVERY_ONLY"
+    }
+  },
+  "observability": {
+    "event": "security.origin_denied",
+    "request_id": "93584dc2-ece7-4a2c-87ad-af6fe2dac692",
+    "remote_log_correlated": true
+  },
+  "recovery": {
+    "scoped_tables_checked": 54,
+    "invalid_counts": 0,
+    "non_synthetic_account_rows": {
+      "orkto_workspaces": 1,
+      "orkto_workspace_members": 1,
+      "orkto_workspace_subscriptions": 1
+    },
+    "non_synthetic_profiles": 1,
+    "non_synthetic_external_billing_refs": 0,
+    "storage_objects": 0,
+    "asaas_webhook_events": 0,
+    "payment_webhook_events": 0,
+    "collective_memory": 0,
+    "legacy_tony_conversations": 0,
+    "legacy_tony_memories": 0,
+    "seed_plans": 7,
+    "full_restore_tested": false
+  },
+  "auth_callbacks": {
+    "site_url": "https://orkto-staging-fl4uvx2qw-peixoto-s-projects1.vercel.app",
+    "redirect_urls_count": 1,
+    "obsolete_removed": true
+  },
+  "authenticated_release": "BLOCKED_PRIVATE_INPUT_NOT_RUN_ON_CURRENT_SHA",
+  "password_breach_defense": "BLOCKED_FREE_PLAN",
+  "production_touched": false,
+  "owner_run_actual_sha": "65d5f8ac8284e495bd95d742172da11f6a25b782",
+  "owner_extended_run": {
+    "passed": 2,
+    "total": 4,
+    "role_negatives": "PASS",
+    "logout_acknowledged": 204,
+    "revoked_refresh": 400,
+    "harness_failures": [
+      "CONTACT_ROLE_LABEL_AMBIGUOUS",
+      "WIA_TRACE_ID_USED_FOR_ROW_LOOKUP"
+    ],
+    "corrections": "LOCAL_NOT_REMOTELY_RETESTED"
+  },
+  "current_runner_cleanup": {
+    "users": 2,
+    "sessions": 0,
+    "refresh_tokens": 0,
+    "owner_memberships_not_restored": 0
+  },
+  "prepared_tests": 5,
+  "ready_for_production_candidate": false,
+  "evidence_hashes": {
+    "public-preview.json": "e88ce10d19b7b1b0b20c11f35914302f01f9cd8c8836216d5a0c84cff547ec7c",
+    "verification-summary.json": "1551cda96afdd6376a468337772ce721360ef79313c3e26721589a8dc4c364ac",
+    "trace-audit.json": "3cf436d183ea397869b7e03230b7104d746116b7b622605d5e4534ac848f8b70",
+    "bounded-history-secret-scan.json": "ed6f565e98302e2c4c2756a8ec638e61d52b47d441f969906e5d144021f83f36",
+    "final-local-ci.log": "ede694e6687b40b9df974223b164419b98af94be0afd0bc690e5e9cbe63c07ef"
+  }
+}

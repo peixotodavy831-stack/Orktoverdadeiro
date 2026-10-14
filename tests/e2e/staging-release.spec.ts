@@ -93,10 +93,16 @@ test('WIA browser approval/rejection, provenance, replay and Inbox decisions sta
   const repeated = await api.post('/api/wia/route-agent', { headers: prepareHeaders, data: { message: 'Quais orçamentos estão abertos?' } });
   expect(repeated.status()).toBe(200); const repeatedBody = await repeated.json();
   expect(repeatedBody.replayed).toBe(true); expect(repeatedBody.runId).toBe(result.runId);
-  const history = await api.get(`/api/wia/history?runId=${result.runId}`, { headers: headersA });
+  // The orchestration runId is the trace UUID; history is keyed by the durable
+  // database row exposed as serviceRunId. Verify both identities explicitly.
+  expect(result.serviceRunId).toMatch(/^[a-f0-9-]{36}$/i);
+  expect(repeatedBody.serviceRunId).toBe(result.serviceRunId);
+  const history = await api.get(`/api/wia/history?runId=${result.serviceRunId}`, { headers: headersA });
   expect(history.status()).toBe(200); const historyBody = await history.json();
   expect(historyBody.data).toHaveLength(1); expect(historyBody.data[0].actorUserId).toBe(session.userId);
-  const foreignHistory = await api.get(`/api/wia/history?runId=${result.runId}`, { headers: headersB });
+  expect(historyBody.data[0].id).toBe(result.serviceRunId);
+  expect(historyBody.data[0].traceId).toBe(result.traceId);
+  const foreignHistory = await api.get(`/api/wia/history?runId=${result.serviceRunId}`, { headers: headersB });
   expect(foreignHistory.status()).toBe(200); expect((await foreignHistory.json()).data).toHaveLength(0);
 
   checkpoint('INBOX_DRAFT_DECISIONS');
@@ -109,4 +115,68 @@ test('WIA browser approval/rejection, provenance, replay and Inbox decisions sta
   expect(acceptedAgain.status()).toBe(200); expect((await acceptedAgain.json()).idempotentReplay).toBe(true);
   const denied = await api.post(`/api/approval-tasks/${approvalB}/reject`, { headers: headersB, data: { reason: 'Synthetic release check' } });
   expect(denied.status()).toBe(200); expect((await denied.json()).task.status).toBe('rejected');
+});
+
+test('synthetic public proposals preserve versioning, acceptance, rejection and immutable accepted terms', async ({ page }) => {
+  const session = await loginBrowser(page, 'A');
+  checkpoint('PUBLIC_PROPOSAL_LIFECYCLE');
+  const api = observeRequest(page.request);
+  const headers = { ...accessHeaders(), Authorization: session.bearer };
+  const createQuote = async () => {
+    const response = await api.post('/api/quotes', {
+      headers: { ...headers, 'x-idempotency-key': crypto.randomUUID() },
+      data: { clientName: `Synthetic release ${crypto.randomUUID()}`, clientPhone: '+5500000088892',
+        items: [{ name: 'Synthetic service - no external effect', quantity: 1, unitPrice: 1, discount: 0 }] },
+    });
+    expect(response.status()).toBe(201);
+    const body = await response.json(); expect(body.id).toMatch(/^[a-f0-9-]{36}$/i); return body.id as string;
+  };
+  const publish = async (id: string) => {
+    const key = crypto.randomUUID();
+    const options = { headers: { ...headers, 'x-idempotency-key': key }, data: {} };
+    const response = await api.post(`/api/live-quotes/from-quote/${id}`, options);
+    expect(response.status()).toBe(201); const body = await response.json();
+    expect(body.token).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    expect(body.publicPath).toBe(`/proposta-viva/${body.token}`);
+    const replay = await api.post(`/api/live-quotes/from-quote/${id}`, options);
+    expect(replay.status()).toBe(200); const replayBody = await replay.json();
+    expect(replayBody.idempotentReplay).toBe(true); expect(replayBody.data.id).toBe(body.data.id);
+    expect(replayBody.token).toBe(body.token);
+    return body;
+  };
+  const id = await createQuote();
+  const first = await publish(id);
+  const detail = await api.get(`/api/quotes/detail/${id}`, { headers }); expect(detail.status()).toBe(200);
+  const source = await detail.json(); expect(source.status).toBe('pending'); expect(source.sent_at).toBeFalsy();
+  const edit = await api.put(`/api/quotes/${id}`, { headers: { ...headers, 'x-idempotency-key': crypto.randomUUID() }, data: { notes: 'Updated synthetic terms' } });
+  expect(edit.status()).toBe(200);
+  const obsolete = await api.get(`/api/public/live-quotes/${first.token}`, { headers: accessHeaders() });
+  expect(obsolete.status()).toBe(404);
+  const current = await publish(id); expect(current.data.version).toBeGreaterThan(first.data.version);
+  await page.goto(current.publicPath);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await page.getByLabel('Seu nome para registrar o aceite').fill('Synthetic readiness customer');
+  const accepted = page.waitForResponse(response => new URL(response.url()).pathname === `/api/public/live-quotes/${current.token}/accept`);
+  await page.getByRole('button', { name: 'Aceitar proposta', exact: true }).click();
+  expect((await accepted).status()).toBe(200);
+  await expect(page.getByRole('status')).toContainText('Aceite registrado');
+  const snapshot = await api.get(`/api/public/live-quotes/${current.token}`, { headers: accessHeaders() });
+  expect(snapshot.status()).toBe(200); const acceptedVersion = await snapshot.json(); expect(acceptedVersion.status).toBe('accepted');
+  const repeat = await api.post(`/api/public/live-quotes/${current.token}/accept`, { headers: accessHeaders(), data: { customerName: 'Synthetic readiness customer' } });
+  expect(repeat.status()).toBe(200); expect((await repeat.json()).idempotentReplay).toBe(true);
+  const immutable = await api.put(`/api/quotes/${id}`, { headers: { ...headers, 'x-idempotency-key': crypto.randomUUID() }, data: { notes: 'Must not change accepted terms' } });
+  expect(immutable.status()).toBe(409);
+  const after = await api.get(`/api/public/live-quotes/${current.token}`, { headers: accessHeaders() });
+  expect((await after.json()).snapshot).toEqual(acceptedVersion.snapshot);
+  const rejectedQuoteId = await createQuote(); const rejectedLink = await publish(rejectedQuoteId);
+  await page.goto(rejectedLink.publicPath);
+  page.once('dialog', dialog => dialog.accept());
+  const rejected = page.waitForResponse(response => new URL(response.url()).pathname === `/api/public/live-quotes/${rejectedLink.token}/reject`);
+  await page.getByRole('button', { name: 'Recusar proposta', exact: true }).click();
+  expect((await rejected).status()).toBe(200);
+  await expect(page.getByRole('status')).toContainText('Recusa registrada');
+  const replayRejection = await api.post(`/api/public/live-quotes/${rejectedLink.token}/reject`, { headers: accessHeaders(), data: {} });
+  expect(replayRejection.status()).toBe(200); expect((await replayRejection.json()).idempotentReplay).toBe(true);
+  const conflict = await api.post(`/api/public/live-quotes/${rejectedLink.token}/accept`, { headers: accessHeaders(), data: { customerName: 'Synthetic readiness customer' } });
+  expect(conflict.status()).toBe(409);
 });

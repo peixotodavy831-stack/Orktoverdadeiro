@@ -1,4 +1,16 @@
+# Próxima execução preparada — c1660be
+
+O wrapper agora usa por padrão https://orkto-staging-fl4uvx2qw-peixoto-s-projects1.vercel.app/ e SHA c1660be6081da10fa8eda4c2afb4baccb51ed4fa; mostra o SHA antes dos prompts privados. A versão corrigida tem cinco casos. Chaves entram somente nos prompts mascarados, permanecem no processo administrativo e são apagadas ao sair; não entram no browser ou Vercel Preview. TLS permanece verificado; OIDC é novo e em memória.
+
+A execução ampliada anterior usou 65d5f8a porque o comando omitiu parâmetros e falhou em duas assertions do harness. Elas foram corrigidas (list item único e serviceRunId persistido). Logout/revogação e role negatives passaram no candidato antigo; isso não aprova o novo. A prova 2/2 original continua preservada. O launcher pronto ainda requer entrada privada pelo proprietário, pois o agente não dispõe dessas chaves. Comando completo e decisão de senhas vazadas: [backlog consolidado](05_ENGINEERING/ORKTO_HUMAN_ACTION_BACKLOG.md).
+
+---
+
 # Staging E2E access — 2026-10-13
+
+## Current follow-up: authenticated runner executed
+
+The owner supplied staging credentials privately to the masked launcher. The first measured browser test failed on an ambiguous contact-name locator after successful contact creation; it was incorrectly labelled TIMEOUT. After correcting operation identity and classification, the same-candidate repeat passed **both configured browser tests (2/2)**: health/readiness and Auth A/B/navigation/mutations/isolation. The main scenario took 70,407 ms without changing the 90 s limit. Parent Auth/RLS A/B and cleanup passed; independent staging SQL confirmed zero sessions/refresh tokens. A browser Supabase logout network failure remains in the diagnostics, with transport cause unverified; final global revocation was verified separately. See [the measured diagnosis and final evidence](STAGING_RUNNER_TIMEOUT_2026-10-13.md). Failure traces retain sanitized timelines only; disabled-trace/admin-blocked descriptions below record earlier states. This does not approve every product or release-security gate.
 
 ## Follow-up: TLS and credential containment
 

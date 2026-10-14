@@ -259,7 +259,9 @@ test('real Auth A/B, tenant-visible records, navigation, refresh, logout and res
     clientDialog.getByRole('button',{name:'Salvar contato'}).click(),
   ]);
   expect(updatedContactResponse.status(),'browser UPDATE_CONTACT must use the gateway').toBe(200);
-  await expect(clientDialog.getByText(/Decisor/)).toBeVisible();
+  const editedContactRow = clientDialog.getByRole('listitem').filter({ hasText: createdContactName });
+  await expect(editedContactRow).toHaveCount(1);
+  await expect(editedContactRow.getByText(/Decisor/)).toBeVisible();
   await clientDialog.getByRole('button',{name:'Fechar detalhes do cliente'}).click();
   await capture(page, 'a-clients-desktop-1440.png');
   await page.reload();

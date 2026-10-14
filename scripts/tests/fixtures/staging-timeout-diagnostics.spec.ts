@@ -29,9 +29,12 @@ test('seeded and created contact display names cause strict-mode ambiguity, not 
 test('unique per-operation name selects the created contact and its edit control', async ({ page }) => {
   checkpoint('A_CLIENT_CONTACT');
   const createdContactName = `Contact A Synthetic ${crypto.randomUUID()}`;
-  await page.setContent(`<div role="dialog"><p>Contact A Synthetic</p><p>Contact A Synthetic</p><p>${createdContactName}</p><button aria-label="Editar contato ${createdContactName}">Edit</button></div>`);
+  await page.setContent(`<div role="dialog"><ul><li>Contact A Synthetic<p>Decisor</p></li><li>Contact A Synthetic<p>Decisor</p></li><li><p>${createdContactName}</p><p>Decisor</p><button aria-label="Editar contato ${createdContactName}">Edit</button></li></ul></div>`);
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByText(createdContactName, { exact: true })).toHaveCount(1);
   await expect(dialog.getByText(createdContactName, { exact: true })).toBeVisible();
   await dialog.getByRole('button', { name: `Editar contato ${createdContactName}`, exact: true }).click();
+  const edited = dialog.getByRole('listitem').filter({ hasText: createdContactName });
+  await expect(edited).toHaveCount(1);
+  await expect(edited.getByText('Decisor', { exact: true })).toBeVisible();
 });

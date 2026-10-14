@@ -1,0 +1,19 @@
+{
+  "candidate_sha": "65d5f8ac8284e495bd95d742172da11f6a25b782",
+  "full_report_sha256": "39084ffb09a904e5e582c495ade48a750fdf3fa08c91d3f730f1baf0e2ed51c8",
+  "tests": [
+    {
+      "id": "58e9a007c1108363",
+      "status": "passed",
+      "duration_ms": 1062,
+      "errors": []
+    },
+    {
+      "id": "2f825717b5ab02ad",
+      "status": "passed",
+      "duration_ms": 70407,
+      "errors": []
+    }
+  ],
+  "scope": "accepted historical 2/2 baseline; not approval of c1660be"
+}

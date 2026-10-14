@@ -1,3 +1,26 @@
+# Current mutation matrix evidence — candidate c1660be
+
+Status: BLOCKED_CURRENT_SHA_AUTH_REVALIDATION. Full current gate matrix: [READINESS_TECHNICAL_2026-10-13.md](READINESS_TECHNICAL_2026-10-13.md). Backend/frontend/Edge/migration runtime has not changed after app commit c1660be. The current immutable Preview passed public probes; authenticated cases on that hostname have not run.
+
+| Domain/action | Current boundary | Auth / tenant / permission | Audit / idempotency | Direct browser DML | Evidence status |
+| --- | --- | --- | --- | --- | --- |
+| Clients CREATE/UPDATE/ARCHIVE | Explicit Core Edge commands + service-only RPC | JWT, active membership, own IDs; archive owner/admin | Atomic events; request/fingerprint | DENY | Local + earlier staging PASS; current SHA BLOCKED |
+| Contacts CREATE/UPDATE | Explicit commands; client workspace checked | JWT/member/own contact + customer | Atomic events, replay | DENY | Baseline browser PASS; repeated role-label selector fixed; current SHA BLOCKED |
+| Catalog CREATE/UPDATE/ARCHIVE | Explicit commands | JWT/member/own item; archive owner/admin | Atomic events, replay | DENY | Baseline gateway A/B PASS; current SHA BLOCKED |
+| Deals CREATE/UPDATE/CLOSE/ARCHIVE | Explicit commands with terminal guards | JWT/member/own IDs; archive restricted | Atomic events; terminal replay/conflict | DENY | Baseline gateway A/B PASS; current SHA BLOCKED |
+| Quotes CREATE/UPDATE/ARCHIVE/EXTEND | Explicit commands, repricing/plan/immutable acceptance | JWT/member/own quote, foreign catalog/client denied | Atomic events; key/fingerprint, expected expiry | DENY | SQL/CI + baseline API PASS for covered paths; exact Preview retention UI NOT RUN |
+| Live Quote PUBLISH | PUBLISH_LIVE_QUOTE | JWT/member/plan/own Quote | Atomic version, token hash, replay; no delivery claimed | DENY | Local/SQL + ancestor staging PASS; current SHA lifecycle BLOCKED |
+| Public proposal READ/ACCEPT/REJECT | Token-scoped public Edge function + service-only RPC | Capability hash, validity/current version/terminal guards | Atomic audit; duplicate idempotency | DENY | Five-case suite includes browser accept/reject and immutability; NOT RUN current SHA |
+| Inbox READ/STATUS/PRIORITY | Explicit commands | JWT/member/own conversation | Atomic events and replay | DENY | Baseline A/B PASS; current SHA BLOCKED |
+| Inbox draft APPROVE/REJECT | Explicit command, no provider send | JWT/owner-admin-manager/own task | Atomic audit/replay; CONFIGURATION_REQUIRED | DENY | Local + earlier SQL PASS; latest extended run did not reach it; current SHA BLOCKED |
+| WIA PREPARE_T0 and internal APPROVE/REJECT | Trusted deterministic Edge execution; arbitrary START/COMPLETE not allowed | JWT/active membership/role + tenant IDs; authoritative query | Durable run/event/tool provenance, internal task replay | DENY | Baseline extended decisions/replay/foreign negatives PASS; trace-vs-row harness error fixed; current SHA BLOCKED |
+| Imports/memory/purchases/repurchase optional writes | UI OFF and server fail-closed | No privileged fallback | No external effect claimed | DENY | Local HTTP feature gates + baseline staging 423 PASS |
+| Billing/PIX/messaging/paid provider | Disabled/configuration required | No real external activation | Durable SQL assertions; no live charge/send proof claimed | DENY | FEATURE_OFF, not an operational integration PASS |
+
+Older rows below describe earlier implementation stages. In particular historical generic-backend/public-proposal and START/COMPLETE pending entries do not override the current explicit Edge architecture or prove final-SHA execution.
+
+---
+
 # ORKTO core mutation matrix
 
 ## Preview final — 2026-10-13

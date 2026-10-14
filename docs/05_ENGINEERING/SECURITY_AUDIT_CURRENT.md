@@ -1,3 +1,13 @@
+# Current security gate — technical closure
+
+Current app candidate: c1660be6081da10fa8eda4c2afb4baccb51ed4fa / dpl_DQ6hZVM5ia4TsKmCHK52Y69bAemq (orkto-staging Preview). Formal matrix: [READINESS_TECHNICAL_2026-10-13.md](READINESS_TECHNICAL_2026-10-13.md). Runtime headers/CORS defects fixed and verified online; 41-migration CI and schema/ledger/grants/Edge review passed at their stated scopes. No broad privilege change. No production change.
+
+SECURITY_RELEASE_CHECKPOINT=BLOCKED: corrected exact-SHA authenticated flow has not run; password breach protection requires an owner/platform decision on Free. Historical baseline 65d5f8a 2/2 PASS remains intact. Later extended 65d5f8a run had two harness failures now corrected; not a PASS and not current-SHA evidence. Logout revocation passed there, and post-cleanup SQL found the runner A/B with zero sessions/tokens and restored owner/active membership. Public-token lifecycle is prepared, not remotely verified on c1660be.
+
+Advisor exceptions: 12 no-policy tables deny browser SELECT/DML; three authenticated SECURITY DEFINER helpers return membership booleans constrained by auth.uid()/active status/empty search_path, deny anon, and other privileged routines remain service-only. No finding was hidden by granting access. Performance warnings remain workload review items. Raw provider/token diagnostics are withheld and traces sanitized. The historical sections below are evidence for their named candidates only.
+
+---
+
 # ORKTO Security Audit Current
 
 ## 2026-10-13 — Preview final `6099a2c` e limites do checkpoint
