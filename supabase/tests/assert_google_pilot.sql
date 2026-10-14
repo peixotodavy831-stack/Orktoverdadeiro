@@ -1,6 +1,12 @@
 -- Disposable PostgreSQL 17 ONLY: synthetic Auth records simulate verified
 -- provider state; these are NOT evidence of an actual Google OAuth login.
 begin;
+do $$ begin
+  if orkto_pilot_private.is_enabled() then raise exception 'Pilot gate fixture must start disabled'; end if;
+  if public.orkto_pilot_session_allowed() then
+    raise exception 'Disabled pilot gate granted a session';
+  end if;
+end $$;
 update orkto_pilot_private.configuration set enabled=true;
 insert into orkto_pilot_private.admissions(email_sha256,create_workspace,member_role,expires_at,approved_by)
 select encode(sha256(convert_to(email,'UTF8')),'hex'),true,'owner',now()+interval '1 day','CI_SYNTHETIC'

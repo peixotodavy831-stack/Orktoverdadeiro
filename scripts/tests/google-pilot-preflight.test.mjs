@@ -9,6 +9,7 @@ import { evaluateGooglePilotPreflight as evaluate } from '../readiness/google-pi
 
 const inventoryPath = new URL('../../docs/05_ENGINEERING/evidence/google-pilot-inventory-2026-10-14.json', import.meta.url);
 const observed = JSON.parse(readFileSync(inventoryPath, 'utf8'));
+const failClosedMigration = readFileSync(new URL('../../supabase/migrations/20261014160000_google_pilot_gate_fails_closed.sql', import.meta.url), 'utf8');
 
 test('observed staging inventory blocks activation and preserves legacy access', () => {
   const result = evaluate(observed);
@@ -17,6 +18,11 @@ test('observed staging inventory blocks activation and preserves legacy access',
   assert.ok(result.blockers.includes('LEGACY_AUTH_TRANSITION_REQUIRED'));
   assert.ok(result.blockers.includes('UNAPPROVED_WORKSPACE_PROVISIONING_RISK'));
   assert.deepEqual(result.actionsPerformed, []);
+});
+
+test('pilot session RPC denies access while the database admission gate is disabled', () => {
+  assert.match(failClosedMigration, /if not orkto_pilot_private\.is_enabled\(\) then return false; end if;/);
+  assert.doesNotMatch(failClosedMigration, /if not orkto_pilot_private\.is_enabled\(\) then return true; end if;/);
 });
 
 test('hiding password UI or enabling Google cannot prove Google-only Auth', () => {
