@@ -135,6 +135,8 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   const productionConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.production.json',import.meta.url)),'utf8'));
   assert.deepEqual(defaultConfig,stagingConfig);
   assert.equal(stagingConfig.buildCommand,'vite build && node scripts/render-public-url.mjs');
+  assert.equal(defaultConfig.functions?.['api/server.ts']?.includeFiles,
+    'supabase/functions/orkto-core-mutations/_shared/pilot-access.mjs');
   const {crons,...productionWithoutCrons}=productionConfig;
   assert.deepEqual(productionWithoutCrons,defaultConfig);
   assert.equal(defaultConfig.crons,undefined);

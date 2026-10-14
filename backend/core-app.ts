@@ -4,7 +4,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
-import { verifyPilotSession } from '../supabase/functions/orkto-core-mutations/_shared/pilot-access.ts';
+import { verifyPilotSession } from '../supabase/functions/orkto-core-mutations/_shared/pilot-access.mjs';
 import dotenv from "dotenv";
 import { z } from "zod";
 import cors from "cors";
