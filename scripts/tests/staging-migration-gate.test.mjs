@@ -7,7 +7,7 @@ const capture = { capturedAt: new Date(now - 1000).toISOString(), source:{projec
 const ledger = (count, includeRequired = false) => ({ migrations:Array.from({length:count},(_,index)=>({version:String(20260905000000 + index).padStart(14,'0'),name:`migration_${index}`})).map((item,index)=>includeRequired && index === 17 ? {...item,version:'20261003154759',name:MIGRATION_18_NAME} : includeRequired && index >= 18 && index < 18 + CORE_MUTATION_MIGRATION_NAMES.length ? {...item,version:String(20261004000000 + index),name:CORE_MUTATION_MIGRATION_NAMES[index-18]} : item) });
 
 test('17-migration staging capture is not treated as a validated app schema', () => {
-  assert.equal(TARGET_MIGRATION_COUNT, 42);
+  assert.equal(TARGET_MIGRATION_COUNT, 43);
   const result = evaluateStagingMigrationGate({ capture, ledger:ledger(17), now });
   assert.equal(result.status,'STAGING_SCHEMA_OUTDATED');
   assert.equal(result.expected,TARGET_MIGRATION_COUNT);

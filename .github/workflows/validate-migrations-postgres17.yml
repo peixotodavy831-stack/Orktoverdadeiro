@@ -46,7 +46,7 @@ concurrency:
 
 jobs:
   replay:
-    name: Legacy fixture + 42 migrations + assertions
+    name: Legacy fixture + 43 migrations + assertions
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
@@ -102,10 +102,12 @@ jobs:
 
       - name: Replay fixture and migrations
         shell: bash
-        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 42 --security-assertion supabase/tests/assert_security_contract.sql
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 43 --security-assertion supabase/tests/assert_security_contract.sql
 
       - name: Google pilot adversarial SQL (disposable only)
-        run: psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
+        run: |
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
 
       - name: Capture PostgreSQL service log
         if: always()
@@ -170,14 +172,16 @@ jobs:
         run: |
           node scripts/validate-migrations.mjs \
             --target ci \
-            --expected-count 42 \
+            --expected-count 43 \
             --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
             --start-after 20260923225648 \
             --pre-assertion supabase/tests/assert_remote_upgrade.sql \
             --security-assertion supabase/tests/assert_security_contract.sql \
             --evidence-dir "$RUNNER_TEMP/orkto-security-evidence"
       - name: Google pilot adversarial SQL (disposable only)
-        run: psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
+        run: |
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
 
       - name: Upload security evidence
         if: always()
