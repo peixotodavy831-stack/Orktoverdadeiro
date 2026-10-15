@@ -115,7 +115,7 @@ export default function TodayV2Page({
   ), [deals.data]);
   const approvalActions = useMemo(() => wia.data.filter(action => action.status === 'awaiting_approval'), [wia.data]);
   const attentionCountReady = !dataLoading && !dataError && inbox.status === 'success' && deals.status === 'success' && wia.status === 'success';
-  const displayName = user?.displayName?.trim().split(/\s+/)[0] || userProfile?.companyName || 'Olá';
+  const displayName = (userProfile?.displayName?.trim() || user?.displayName?.trim())?.split(/\s+/)[0];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const dateLabel = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -127,7 +127,7 @@ export default function TodayV2Page({
 
   return (
     <div className="orkto-product orkto-today mx-auto min-h-full w-full max-w-[1600px] space-y-7 px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-8">
-      <PageHeader eyebrow={dateLabel} title={`${greeting}, ${displayName}`} description="Veja o que precisa de atenção e escolha o próximo passo." actions={<button type="button" onClick={handleRetryAll} aria-label="Atualizar Hoje" className="flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><RefreshCw size={15} />Atualizar</button>} />
+      <PageHeader eyebrow={dateLabel} title={displayName ? `${greeting}, ${displayName}` : greeting} description="Veja o que precisa de atenção e escolha o próximo passo." actions={<button type="button" onClick={handleRetryAll} aria-label="Atualizar Hoje" className="flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><RefreshCw size={15} />Atualizar</button>} />
 
       <section aria-labelledby="today-attention-title" className="space-y-3">
         <div className="flex items-end justify-between gap-3">

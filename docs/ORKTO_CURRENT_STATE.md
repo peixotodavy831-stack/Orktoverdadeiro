@@ -1,5 +1,13 @@
 # ORKTO — estado comprovado
 
+## Ajustes de UI solicitados — 15/10/2026
+
+- Onboarding preserva 10 atuações e inclui Outros com texto obrigatório de até 100 caracteres; o texto real é enviado no campo profession pelo gateway existente. Emoji removido de Oficina Mecânica. Campo com label associado e foco visível.
+- Ícones compartilhados corrigidos: Hoje/sol nascente, Inbox/conversa, Relatórios/documento com gráfico e Negócios/seta sem círculo. Saudação Hoje prioriza nome salvo no perfil; nome/horário/data já eram dinâmicos, descrição permanece fixa.
+- Aviso Asaas indisponível removido das configurações gerais por escolha explícita do proprietário. Integração/cobrança não ativada.
+- Lint/typecheck PASS; build frontend Google/server e smoke PASS; dist original preservado. Secret scan: 396 arquivos/0 findings. Revisão local isolada confirmou Outros, campo obrigatório, digitação de Consultor Financeiro sem ocultar no prefixo e retorno às opções existentes. Nenhum dado staging alterado pela revisão. Preview atualizado ainda não publicado neste checkpoint.
+- Bloqueio Vercel anterior diagnosticado no painel: e-mail automático do Windows não corresponde à conta Git. Próximo commit usa a identidade já presente nos commits aprovados; histórico não reescrito.
+
 ## Estado vigente — 15/10/2026 — login Google do proprietário validado
 
 - **LOGIN_GOOGLE_OWNER=PASS_REAL**: seleção da conta Google, callback Supabase, onboarding e shell Hoje abriram no Preview c9584fe; sessão persistiu após reload. Nenhum formulário de onboarding foi preenchido e nenhum dado comercial foi alterado para o teste.

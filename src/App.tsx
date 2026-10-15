@@ -38,6 +38,7 @@ import { resolveSignedOutView } from './lib/auth-navigation';
 // Core UI Modules (kept as static — always needed)
 import LandingPage from './components/LandingPage';
 import OrktoLogo from './components/OrktoLogo';
+import ProfessionField from './components/ProfessionField';
 import { DesktopSidebar } from './product/navigation/desktop-sidebar';
 import { MobileNavigation } from './product/navigation/mobile-navigation';
 
@@ -588,6 +589,10 @@ export default function App() {
 
   const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!onboardProfession.trim()) {
+      showToast('Informe sua profissão ou atuação para continuar.', 'error');
+      return;
+    }
     setOnboardSubmitting(true);
 
     try {
@@ -601,7 +606,7 @@ export default function App() {
         whatsapp_number: onboardPhone,
         address: onboardAddress,
         payment_info: onboardPix,
-        profession: onboardProfession,
+        profession: onboardProfession.trim(),
         brand_name: onboardBrandName || onboardBusinessName,
         brand_tone: onboardBrandTone,
         quote_color: onboardQuoteColor,
@@ -631,7 +636,7 @@ export default function App() {
         whatsappNumber: onboardPhone,
         address: onboardAddress,
         paymentInfo: onboardPix,
-        profession: onboardProfession,
+        profession: onboardProfession.trim(),
         brandName: onboardBrandName || onboardBusinessName,
         brandTone: onboardBrandTone,
         quoteColor: onboardQuoteColor,
@@ -1351,26 +1356,7 @@ export default function App() {
 
                   <div className="space-y-3.5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Sua Profissão / Atuação *</label>
-                        <select
-                          value={onboardProfession}
-                          onChange={(e) => setOnboardProfession(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none"
-                          required
-                        >
-                          <option value="Oficina">🛞 Oficina Mecânica</option>
-                          <option value="Serviços Gerais">Serviços Gerais</option>
-                          <option value="Advogado">Advogado</option>
-                          <option value="Arquiteto">Arquiteto</option>
-                          <option value="Consultor">Consultor</option>
-                          <option value="Designer">Designer</option>
-                          <option value="Eletricista">Eletricista</option>
-                          <option value="Manutenção">Manutenção</option>
-                          <option value="Marcenaria">Marcenaria</option>
-                          <option value="Construção">Construção & Reformas</option>
-                        </select>
-                      </div>
+                      <ProfessionField value={onboardProfession} onChange={setOnboardProfession} />
 
                       <div>
                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Tom de voz do orçamento *</label>
