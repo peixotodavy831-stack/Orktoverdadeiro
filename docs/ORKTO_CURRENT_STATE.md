@@ -1,5 +1,12 @@
 # ORKTO — estado comprovado
 
+## Hoje e navegação — vidro fosco — 15/10/2026
+
+- Escopo confirmado pelo proprietário: somente Hoje e navegação lateral, com organização inspirada na referência e material translúcido. Preservadas demais telas, APIs, auth, gateway e banco.
+- Hoje reorganiza os mesmos feeds: saudação/resumo, acesso WIA, atenção e atividade lado a lado no desktop, atalhos abaixo. Métricas só usam dados recebidos; sem gráficos, percentuais ou atividade inventada. Estados de erro/permissão/configuração/vazio preservados.
+- CSS isolado em today-glass.css: vidro claro/escuro, bordas sutis, fundo contextual, fallback sem backdrop-filter e preferência de transparência reduzida. Navegação móvel existente preservada; em 390px documento e viewport mediram 390px, sem overflow horizontal.
+- Verificação local: lint/typecheck PASS; frontend/server build e smoke PASS em output descartável Yq7F0S, dist anterior preservado; secret scan 399 arquivos/zero findings. Revisão visual local dos temas claro/escuro e mobile feita com harness rotulado como fixture. Revisão independente estática ship, sem testes/browser pelo revisor. Nenhum E2E completo de produto repetido. Publicação staging pendente neste checkpoint; produção intocada.
+
 ## Ajustes de UI solicitados — 15/10/2026
 
 - Onboarding preserva 10 atuações e inclui Outros com texto obrigatório de até 100 caracteres; o texto real é enviado no campo profession pelo gateway existente. Emoji removido de Oficina Mecânica. Campo com label associado e foco visível.

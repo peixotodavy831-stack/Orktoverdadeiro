@@ -1228,7 +1228,7 @@ export default function App() {
   // AUTHENTICATED MANAGER PANEL OR ONBOARDING IF INCOMPLETE
   return (
     <>
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 font-sans selection:bg-orange-100 selection:text-orange-950 relative overflow-hidden transition-all duration-300">
+    <div className="orkto-glass-shell flex h-screen bg-zinc-50 dark:bg-zinc-950 font-sans selection:bg-orange-100 selection:text-orange-950 relative overflow-hidden transition-all duration-300">
 
       {/* Onboarding Assistant Overlay modal */}
       <AnimatePresence>

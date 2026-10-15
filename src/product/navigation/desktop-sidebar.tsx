@@ -30,7 +30,7 @@ export function DesktopSidebar({
 }: DesktopSidebarProps) {
   const activeId = getActiveNavigationId(currentView);
   return (
-    <aside style={{ width: collapsed ? 'var(--orkto-shell-sidebar-compact)' : 'var(--orkto-shell-sidebar)' }} className="relative hidden h-dvh shrink-0 flex-col border-r orkto-product-border orkto-product-surface transition-[width] duration-200 lg:flex" aria-label="Navegação principal">
+    <aside style={{ width: collapsed ? 'var(--orkto-shell-sidebar-compact)' : 'var(--orkto-shell-sidebar)' }} className="orkto-sidebar-glass relative hidden h-dvh shrink-0 flex-col border-r orkto-product-border orkto-product-surface transition-[width] duration-200 lg:flex" aria-label="Navegação principal">
       <div className="flex min-h-16 shrink-0 items-center justify-between border-b px-4 orkto-product-border">
         <button type="button" onClick={() => onNavigate('dashboard')} className="flex min-h-11 items-center gap-2 rounded-lg text-left" aria-label="ORKTO, ir para Hoje">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl font-semibold" style={{ background: 'var(--orkto-brand)', color: 'var(--orkto-brand-on-fill)' }}>O</span>

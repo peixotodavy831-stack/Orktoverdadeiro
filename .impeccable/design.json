@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T21:11:10.3717790Z",
+  "title": "Design System: ORKTO — extensão Hoje e navegação",
+  "extensions": {
+    "colorMeta": {
+      "brand": {
+        "displayName": "Laranja ORKTO",
+        "role": "primary"
+      },
+      "glass-canvas-light": {
+        "displayName": "Canvas frio claro",
+        "role": "neutral"
+      },
+      "glass-canvas-dark": {
+        "displayName": "Canvas frio escuro",
+        "role": "neutral"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "purpose": "Título principal da tela Hoje.",
+        "displayName": "Chamada de Hoje"
+      }
+    },
+    "shadows": [
+      {
+        "purpose": "Sombra ambiente dos painéis em tema claro.",
+        "name": "glass-light",
+        "value": "0 12px 32px rgba(55, 42, 26, .07)"
+      },
+      {
+        "purpose": "Sombra ambiente dos painéis em tema escuro.",
+        "name": "glass-dark",
+        "value": "0 14px 36px rgba(0, 0, 0, .22)"
+      }
+    ],
+    "motion": [
+      {
+        "purpose": "Transição incumbente de largura da navegação; movimento reduzido é tratado em tokens.css.",
+        "name": "sidebar-width",
+        "value": "200ms"
+      }
+    ],
+    "breakpoints": [
+      {
+        "value": "640px",
+        "name": "sm"
+      },
+      {
+        "purpose": "Limite máximo para empilhamento operacional.",
+        "name": "today-operation-stack",
+        "value": "767px"
+      },
+      {
+        "value": "1024px",
+        "name": "desktop-sidebar"
+      },
+      {
+        "purpose": "Limite máximo para topo em uma coluna.",
+        "name": "today-hero-stack",
+        "value": "1199px"
+      },
+      {
+        "value": "1280px",
+        "name": "sidebar-wide"
+      }
+    ]
+  },
+  "components": [
+    {
+      "css": ".ds-primary{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;border:0;border-radius:10px;padding:10px 16px;background:var(--orkto-brand);color:var(--orkto-brand-on-fill);font-size:12px;font-weight:650;font-family:Inter,ui-sans-serif,system-ui,sans-serif;}.ds-primary:hover{background:var(--orkto-brand-hover);}.ds-primary:focus-visible{outline:2px solid var(--orkto-focus);outline-offset:2px;}",
+      "name": "Ação principal",
+      "description": "Acesso WIA ou criação de proposta; a amostra não executa ações.",
+      "html": "<button class=\"ds-primary\" type=\"button\">Criar proposta</button>",
+      "refersTo": "button-primary",
+      "kind": "button"
+    },
+    {
+      "css": ".ds-secondary{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:10px 14px;border:1px solid var(--orkto-glass-edge);border-radius:10px;font-size:12px;font-weight:550;background:transparent;color:var(--orkto-text-primary);font-family:Inter,ui-sans-serif,system-ui,sans-serif;}.ds-secondary:hover{background:color-mix(in srgb,var(--orkto-text-primary) 6%,transparent);}.ds-secondary:focus-visible{outline:2px solid var(--orkto-focus);outline-offset:2px;}",
+      "name": "Ação secundária",
+      "description": "Navegação operacional secundária.",
+      "html": "<button class=\"ds-secondary\" type=\"button\">Ver negócios</button>",
+      "refersTo": "button-secondary",
+      "kind": "button"
+    },
+    {
+      "css": ".ds-refresh{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:8px 10px;border:1px solid var(--orkto-glass-edge);border-radius:10px;color:var(--orkto-text-secondary);background:var(--orkto-glass-fill);font-size:11px;font-family:Inter,ui-sans-serif,system-ui,sans-serif;}.ds-refresh:hover{background:color-mix(in srgb,var(--orkto-text-primary) 6%,transparent);}.ds-refresh:focus-visible{outline:2px solid var(--orkto-focus);outline-offset:2px;}",
+      "name": "Atualizar Hoje",
+      "description": "Controle de atualização visualmente discreto.",
+      "html": "<button class=\"ds-refresh\" type=\"button\">Atualizar</button>",
+      "refersTo": "button-refresh",
+      "kind": "button"
+    },
+    {
+      "css": ".ds-panel{padding:20px;border:1px solid var(--orkto-glass-edge);border-radius:16px;color:var(--orkto-text-primary);background:linear-gradient(145deg,var(--orkto-glass-highlight),transparent 36%),var(--orkto-glass-fill);box-shadow:var(--orkto-glass-shadow);backdrop-filter:blur(18px) saturate(125%);-webkit-backdrop-filter:blur(18px) saturate(125%);font-family:Inter,ui-sans-serif,system-ui,sans-serif;}.ds-panel h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.015em;}.ds-panel p{color:var(--orkto-text-secondary);font-size:12px;line-height:1.6;}@supports not (backdrop-filter:blur(1px)){.ds-panel{background:var(--orkto-surface-1);}}@media(prefers-reduced-transparency:reduce){.ds-panel{background:var(--orkto-surface-1);backdrop-filter:none;-webkit-backdrop-filter:none;}}",
+      "name": "Painel fosco",
+      "description": "Material dos blocos de Hoje; texto da amostra é apenas rótulo.",
+      "html": "<section class=\"ds-panel\"><h2>Atividade da WIA</h2><p>Ações registradas no seu workspace</p></section>",
+      "refersTo": "glass-panel",
+      "kind": "card"
+    },
+    {
+      "css": ".ds-nav{padding:18px 12px;border:1px solid var(--orkto-glass-edge);border-radius:18px;background:linear-gradient(165deg,var(--orkto-glass-highlight),transparent 25%),var(--orkto-glass-fill);backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);font-family:Inter,ui-sans-serif,system-ui,sans-serif;}.ds-nav button{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding:0 12px;border:1px solid transparent;border-radius:8px;color:var(--orkto-text-secondary);background:transparent;text-align:left;font-size:13px;font-family:Inter,ui-sans-serif,system-ui,sans-serif;}.ds-nav button[aria-current=page]{font-weight:600;border-color:color-mix(in srgb,var(--orkto-brand) 42%,transparent);background:linear-gradient(115deg,color-mix(in srgb,var(--orkto-brand) 15%,transparent),transparent);color:var(--orkto-brand-text);}.ds-nav button:not(:disabled):hover{background-color:color-mix(in srgb,var(--orkto-text-primary) 5%,transparent);}.ds-nav button:disabled{opacity:.55;cursor:not-allowed;}.ds-nav button:focus-visible{outline:2px solid var(--orkto-focus);outline-offset:2px;}@supports not (backdrop-filter:blur(1px)){.ds-nav{background:var(--orkto-surface-1);}}@media(prefers-reduced-transparency:reduce){.ds-nav{background:var(--orkto-surface-1);backdrop-filter:none;-webkit-backdrop-filter:none;}}",
+      "name": "Navegação lateral",
+      "description": "Amostra dos estados selecionado e indisponível; não substitui configuração de navegação.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Módulos\"><button type=\"button\" aria-current=\"page\">Hoje</button><button type=\"button\" disabled>Em breve</button></nav>",
+      "refersTo": "sidebar",
+      "kind": "nav"
+    }
+  ],
+  "narrative": {
+    "keyCharacteristics": [
+      "Vidro fosco com bordas sutis e destaque laranja.",
+      "Hierarquia entre contexto, métricas, atenção e atividade.",
+      "Temas claro e escuro, com superfície opaca alternativa."
+    ],
+    "donts": [
+      "Don't promover esta extensão a um redesenho global das demais telas.",
+      "Don't preencher métricas com KPIs fictícios ou transformar indisponibilidade em zero confirmado.",
+      "Don't interpretar o ornamento da WIA como atividade, execução ou entrega confirmada."
+    ],
+    "dos": [
+      "Do aplicar o vidro somente a Hoje e à navegação lateral desktop compartilhada.",
+      "Do preservar marca laranja, dados reais, callbacks e estados operacionais existentes.",
+      "Do manter contraste textual, foco visível e alternativa opaca do material."
+    ],
+    "overview": "Este documento registra a extensão implementada em Hoje e na navegação lateral compartilhada do desktop. O material translúcido e a organização em blocos mantêm a identidade laranja do ORKTO e a leitura operacional. Não estabelece um redesenho global das demais telas.\n\nA fonte geral continua sendo `src/product/design/tokens.css`. A extensão está em `src/product/design/today-glass.css`, aplicada por `src/product/screens/today-v2-page.tsx` e `src/product/navigation/desktop-sidebar.tsx`. Esta captura foi extraída do código; não houve validação visual em navegador nesta documentação.",
+    "rules": [],
+    "northStar": "Vidro fosco operacional"
+  }
+}
