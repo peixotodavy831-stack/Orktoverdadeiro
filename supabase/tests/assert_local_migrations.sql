@@ -49,6 +49,7 @@ begin
     'public.orkto_create_quote_command(uuid,uuid,text,uuid,text,jsonb,integer)',
     'public.orkto_set_conversation_priority_command(uuid,uuid,uuid,text,text,uuid,text)',
     'public.orkto_complete_onboarding_command(uuid,uuid,text,uuid,text,jsonb)',
+    'public.orkto_update_self_profile_command(uuid,uuid,text,uuid,text,text)',
     'public.orkto_inbox_state_command(uuid,uuid,text,uuid,text,text,uuid,text)',
     'public.orkto_archive_quote_command(uuid,uuid,uuid,text,uuid,text)',
     'public.orkto_update_quote_command(uuid,uuid,uuid,timestamptz,jsonb,text,uuid,text)',
