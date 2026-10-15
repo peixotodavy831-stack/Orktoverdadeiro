@@ -115,7 +115,10 @@ export default function TodayV2Page({
   ), [deals.data]);
   const approvalActions = useMemo(() => wia.data.filter(action => action.status === 'awaiting_approval'), [wia.data]);
   const attentionCountReady = !dataLoading && !dataError && inbox.status === 'success' && deals.status === 'success' && wia.status === 'success';
-  const displayName = (userProfile?.displayName?.trim() || user?.displayName?.trim())?.split(/\s+/)[0];
+  const savedName = userProfile?.displayName?.trim();
+  const emailAlias = userProfile?.email?.split('@')[0];
+  const preferredName = savedName && savedName !== emailAlias && !savedName.includes('@') ? savedName : undefined;
+  const displayName = (preferredName || user?.displayName?.trim())?.split(/\s+/)[0];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const dateLabel = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
