@@ -1,5 +1,12 @@
 # ORKTO — estado comprovado
 
+## Refinamento UX/UI com referências — 15/10/2026
+
+- Escopo solicitado: elevar UX/UI preservando cores/identidade ORKTO. Referências consultadas: Linear (consistência/calma/padrão de ações), Intercom Inbox (contexto e priorização), NN/g (hierarquia/contraste). Não constitui ranking universal de melhores sites nem aprovação de usabilidade por clientes.
+- Sidebar prioriza recursos disponíveis; indisponíveis ficam identificados em disclosure nativo Próximos recursos. Cabeçalho recolhido evita sobreposição entre logo e toggle. Rodapé identifica conta/workspace com dados existentes.
+- Hoje: ações existentes criar proposta/ver negócios junto ao cabeçalho, resumo em faixa desktop/2 colunas móvel, WIA compacta, estados vazios com orientação e callbacks reais. Leitura, foco, cabeçalhos e superfícies compartilhadas refinados em product-refinement.css; prioridade Inbox traduzida somente na apresentação (contratos/filtros inalterados). Laranja #FF5A00, carvão, creme e vidro preservados.
+- Evidência local: lint/typecheck PASS; revisão estática independente sem blockers no diff inicial. Harness rotulado fixture: Hoje com conteúdo/estados vazios, claro/escuro desktop; Hoje claro e Inbox escuro em 390px (viewport/documento 390/390, sem overflow horizontal). Disclosure abre e mostra itens indisponíveis. Colapso funcional não testado no harness, cujo callback é no-op. Nenhum dado real escrito. Build final sV4R7h frontend Google/server e smoke PASS; scan 402 arquivos/zero findings; Preview aguarda conclusão; E2E completo não executado nesta alteração visual.
+- Produção intocada. READY_FOR_PRODUCTION_CANDIDATE continua NO.
 ## Marca de três laços — 15/10/2026
 
 - Proprietário forneceu PNG do símbolo laranja. Criada adaptação de contorno vetorial transparente, sem fundo/halo; não é arquivo vetorial original. Lettering artístico da prancha não reproduzido: nome usa fonte existente.

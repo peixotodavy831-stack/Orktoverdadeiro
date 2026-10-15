@@ -1,4 +1,4 @@
-import { PanelLeftClose, PanelLeftOpen, Sun, Moon } from 'lucide-react';
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, Sun, Moon } from 'lucide-react';
 import { OrktoIcon } from '../icons/orkto-icon';
 import OrktoLogo from '../../components/OrktoLogo';
 import { getActiveNavigationId, primaryNavigation, secondaryNavigation } from './navigation-config';
@@ -30,9 +30,10 @@ export function DesktopSidebar({
   onSignOut,
 }: DesktopSidebarProps) {
   const activeId = getActiveNavigationId(currentView);
+  const upcoming = [...primaryNavigation.flatMap(section => section.items), ...secondaryNavigation].filter(item => item.availability !== 'available' || !item.view);
   return (
     <aside style={{ width: collapsed ? 'var(--orkto-shell-sidebar-compact)' : 'var(--orkto-shell-sidebar)' }} className="orkto-sidebar-glass relative hidden h-dvh shrink-0 flex-col border-r orkto-product-border orkto-product-surface transition-[width] duration-200 lg:flex" aria-label="Navegação principal">
-      <div className="flex min-h-16 shrink-0 items-center justify-between border-b px-4 orkto-product-border">
+      <div className={`orkto-sidebar-brand flex min-h-16 shrink-0 items-center border-b orkto-product-border ${collapsed ? 'flex-col gap-1 px-2 py-3' : 'justify-between px-4'}`}>
         <button type="button" onClick={() => onNavigate('dashboard')} className="flex min-h-11 items-center gap-2 rounded-lg text-left" aria-label="ORKTO, ir para Hoje">
           <OrktoLogo size="sm" onlyO={collapsed} darkMode={darkMode} />
         </button>
@@ -43,7 +44,7 @@ export function DesktopSidebar({
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4" aria-label="Módulos">
         <div className="space-y-5">
-          {primaryNavigation.map(section => (
+          {primaryNavigation.map(section => ({ ...section, items: section.items.filter(item => item.availability === 'available' && item.view) })).filter(section => section.items.length > 0).map(section => (
             <section key={section.label} aria-label={section.label}>
               {!collapsed && <h2 className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">{section.label}</h2>}
               <ul className="space-y-1">
@@ -81,16 +82,14 @@ export function DesktopSidebar({
             </button>
           </section>}
 
-          <section aria-label="Conta e ajuda">
-            {!collapsed && <h2 className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Conta / secundário</h2>}
-            <ul className="space-y-1">
-              {secondaryNavigation.map(item => <li key={item.id}>
-                <button type="button" disabled className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[13px] orkto-product-muted opacity-60 ${collapsed ? 'justify-center px-0' : ''}`} aria-label={collapsed ? item.label : undefined} title={`${item.label} — ${item.hint || 'Indisponível'}`}>
-                  <OrktoIcon name={item.icon} size={20} />{!collapsed && <><span className="min-w-0 flex-1 truncate">{item.label}</span><span className="text-[10px] orkto-product-subtle">Em breve</span></>}
-                </button>
+          {!collapsed && <details className="orkto-upcoming">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between rounded-lg px-3 text-xs orkto-product-muted">Próximos recursos <ChevronDown size={14} aria-hidden="true" /></summary>
+            <ul className="space-y-1 pt-1" aria-label="Recursos ainda indisponíveis">
+              {upcoming.map(item => <li key={item.id} className="flex min-h-10 items-center gap-3 px-3 text-xs orkto-product-subtle" title={item.hint}>
+                <OrktoIcon name={item.icon} size={17} /><span className="flex-1">{item.label}</span><span className="text-[10px]">Em breve</span>
               </li>)}
             </ul>
-          </section>
+          </details>}
         </div>
       </nav>
 
@@ -99,7 +98,10 @@ export function DesktopSidebar({
           <button type="button" onClick={() => onThemeChange(false)} aria-pressed={!darkMode} title="Modo claro" className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md px-2 text-xs ${!darkMode ? 'orkto-product-nav-active' : 'orkto-product-muted hover:orkto-product-surface'}`}><Sun size={16} />{!collapsed && 'Claro'}</button>
           <button type="button" onClick={() => onThemeChange(true)} aria-pressed={darkMode} title="Modo escuro" className={`flex min-h-10 flex-1 items-center justify-center gap-2 rounded-md px-2 text-xs ${darkMode ? 'orkto-product-nav-active' : 'orkto-product-muted hover:orkto-product-surface'}`}><Moon size={16} />{!collapsed && 'Escuro'}</button>
         </div>
-        {!collapsed && <div className="mb-2 truncate px-2 text-xs font-medium" title={companyName || userName || 'Conta'}>{companyName || userName || 'Conta'}</div>}
+        {!collapsed && <div className="orkto-workspace-identity mb-2 flex min-w-0 items-center gap-2.5 px-2 py-2">
+          <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold orkto-product-surface-muted">{(userName || companyName || 'O').trim().slice(0, 1).toLocaleUpperCase('pt-BR')}</span>
+          <div className="min-w-0"><p className="truncate text-xs font-semibold">{userName || 'Sua conta'}</p><p className="mt-0.5 truncate text-[11px] orkto-product-subtle" title={companyName || 'Seu workspace'}>{companyName || 'Seu workspace'}</p></div>
+        </div>}
         <button type="button" onClick={onSignOut} className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[13px] orkto-product-muted hover:orkto-product-surface-muted ${collapsed ? 'justify-center px-0' : ''}`} aria-label={collapsed ? 'Sair' : undefined} title={collapsed ? 'Sair' : undefined}>
           <OrktoIcon name="signout" size={20} />{!collapsed && 'Sair'}
         </button>
