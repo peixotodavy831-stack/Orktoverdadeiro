@@ -1,5 +1,11 @@
 # ORKTO — estado comprovado
 
+## Marca de três laços — 15/10/2026
+
+- Proprietário forneceu PNG do símbolo laranja. Criada adaptação de contorno vetorial transparente, sem fundo/halo; não é arquivo vetorial original. Lettering artístico da prancha não reproduzido: nome usa fonte existente.
+- OrktoLogo compartilhado atualizado e integrado à sidebar expandida/recolhida; instâncias existentes em login, landing, cabeçalho móvel e carregamento recebem a marca. Favicon/ícones usam o mesmo símbolo. Vidro e lógica preservados.
+- PASS local: lint/typecheck; build frontend/server e smoke em wsazar; scan 402 arquivos/zero findings; diff check. Preview visual isolado do SVG claro/escuro observado. Não houve E2E completo nem mutação no banco. Produção intocada.
+- Candidato da logo: 664acf7c9a2b06069042143da4ac046ba0f48c02. Preview READY em https://orkto-staging-aeudklwix-peixoto-s-projects1.vercel.app/, guard confirmou projeto orkto-staging/Supabase staging. CI PostgreSQL17 38812801213 e deploy boundary 38812801569 SUCCESS. Landing e login renderizados no candidato publicado. Callback staging exato cadastrado.
 ## Material de vidro nas telas internas — 15/10/2026
 
 - Novo escopo do proprietário: estender vidro fosco a toda a aplicação autenticada. Camada compartilhada product-glass.css cobre superfícies semânticas e painéis neutros legados, campos, tabelas, Inbox, menus e diálogos. Layout, handlers, regras, cores de status e botões preservados; landing/login/proposta pública fora do escopo.
