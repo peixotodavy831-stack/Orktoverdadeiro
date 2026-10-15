@@ -132,3 +132,6 @@ A extensão usa `glass-panel` nos blocos, `sidebar` na navegação flutuante e `
 - Don't aplicar esta camada ao login público, landing ou páginas públicas de proposta, nem substituir cores de estado e botões por vidro.
 - Don't preencher métricas com KPIs fictícios ou transformar indisponibilidade em zero confirmado.
 - Don't interpretar o ornamento da WIA como atividade, execução ou entrega confirmada.
+
+### Símbolo ORKTO — 15/10/2026
+Símbolo de três laços fornecido pelo proprietário, adaptado por contorno em SVG transparente #FF5A00 (public/brand/orkto-symbol.svg). O PNG original possui fundo preto e halo; a adaptação limpa é destinada à interface. OrktoLogo centraliza símbolo/nome, sem halo e sem registro de marca presumido. Nome usa tipografia existente: não substitui o lettering artístico da prancha, cujo arquivo vetorial não foi fornecido. Símbolo compacto na navegação recolhida/mobile; lockup nas demais instâncias. Favicon/ícones usam o mesmo contorno. Vidro, funções e tokens de ações preservados.

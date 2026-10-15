@@ -1,5 +1,6 @@
 import { PanelLeftClose, PanelLeftOpen, Sun, Moon } from 'lucide-react';
 import { OrktoIcon } from '../icons/orkto-icon';
+import OrktoLogo from '../../components/OrktoLogo';
 import { getActiveNavigationId, primaryNavigation, secondaryNavigation } from './navigation-config';
 import type { ProductView } from '../types';
 
@@ -33,8 +34,7 @@ export function DesktopSidebar({
     <aside style={{ width: collapsed ? 'var(--orkto-shell-sidebar-compact)' : 'var(--orkto-shell-sidebar)' }} className="orkto-sidebar-glass relative hidden h-dvh shrink-0 flex-col border-r orkto-product-border orkto-product-surface transition-[width] duration-200 lg:flex" aria-label="Navegação principal">
       <div className="flex min-h-16 shrink-0 items-center justify-between border-b px-4 orkto-product-border">
         <button type="button" onClick={() => onNavigate('dashboard')} className="flex min-h-11 items-center gap-2 rounded-lg text-left" aria-label="ORKTO, ir para Hoje">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl font-semibold" style={{ background: 'var(--orkto-brand)', color: 'var(--orkto-brand-on-fill)' }}>O</span>
-          {!collapsed && <span className="text-sm font-semibold tracking-[0.12em]">ORKTO</span>}
+          <OrktoLogo size="sm" onlyO={collapsed} darkMode={darkMode} />
         </button>
         <button type="button" onClick={() => onCollapsedChange(!collapsed)} className="flex h-10 w-10 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted" aria-label={collapsed ? 'Expandir navegação' : 'Recolher navegação'} title={collapsed ? 'Expandir navegação' : 'Recolher navegação'}>
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
