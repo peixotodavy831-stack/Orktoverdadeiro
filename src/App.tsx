@@ -38,6 +38,7 @@ import { resolveSignedOutView } from './lib/auth-navigation';
 // Core UI Modules (kept as static — always needed)
 import LandingPage from './components/LandingPage';
 import OrktoLogo from './components/OrktoLogo';
+import BrandLoading from './components/BrandLoading';
 import ProfessionField from './components/ProfessionField';
 import { DesktopSidebar } from './product/navigation/desktop-sidebar';
 import { MobileNavigation } from './product/navigation/mobile-navigation';
@@ -72,17 +73,7 @@ const PasswordRecovery = lazy(() => import('./components/PasswordRecovery'));
 const WrappedPublicView = lazy(() => import('./components/WrappedPublicView'));
 
 function PageFallback() {
-  return (
-    <div className="flex items-center justify-center min-h-[60vh] text-zinc-500 text-xs font-bold uppercase tracking-widest">
-      <div className="flex flex-col items-center gap-4 rounded-3xl border border-zinc-200 bg-white px-8 py-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
-        <div className="relative h-9 w-9">
-          <div className="absolute inset-0 rounded-full border-2 border-zinc-200 dark:border-zinc-800" />
-          <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-[#FF9F1C]" />
-        </div>
-        Preparando sua tela...
-      </div>
-    </div>
-  );
+  return <BrandLoading />;
 }
 
 async function requestWorkspaceApi(path: string, init: RequestInit = {}): Promise<any> {
@@ -745,19 +736,7 @@ export default function App() {
   }
 
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white font-sans">
-        <div className="text-center space-y-8 animate-pulse">
-          <OrktoLogo size="lg" showSlogan={true} />
-          <div className="space-y-2 max-w-xs mx-auto">
-            <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-              <div className="h-full w-2/3 rounded-full bg-brand-orange animate-infinite-loading" style={{ backgroundColor: '#FF9F1C', width: '40%' }} />
-            </div>
-            <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">Preparando sua ORKTO...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <BrandLoading fullScreen />;
   }
 
   // PROPOSAL VIEW (/p/{slug})

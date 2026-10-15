@@ -137,7 +137,7 @@ A extensão usa `glass-panel` nos blocos, `sidebar` na navegação flutuante e `
 - Do manter contraste textual, foco visível e alternativa opaca do material.
 
 ### Don't
-- Don't aplicar esta camada ao login público, landing ou páginas públicas de proposta, nem substituir cores de estado e botões por vidro.
+- Don't aplicar indiscriminadamente a camada interna à landing ou propostas públicas, nem substituir cores de estado e botões por vidro. O login possui material próprio conforme seção Acesso abaixo.
 - Don't preencher métricas com KPIs fictícios ou transformar indisponibilidade em zero confirmado.
 - Don't interpretar o ornamento da WIA como atividade, execução ou entrega confirmada.
 
@@ -146,3 +146,6 @@ Símbolo de três laços fornecido pelo proprietário, adaptado por contorno em 
 
 ### Perfil pessoal
 Perfil é uma tela operacional própria, disponível em desktop e menu móvel. Dois grupos: dados pessoais (nome editável/e-mail somente leitura/foto Google) e contexto de segurança/empresa. Campos, foco, status e vidro reutilizam tokens existentes. Edição de nome é confirmada pelo gateway, com chave estável para repetir a mesma tentativa; identidade Google, senha, plano e papel não são campos editáveis.
+
+### Acesso e carregamento
+O login Google usa carvão, lettering oficial branco, símbolo laranja e um painel de vidro fosco. Desktop separa a introdução do formulário; mobile empilha sem ornamento. A entrada com Google permanece única, com estados de verificação, indisponibilidade e erro, convite obrigatório e links jurídicos de consulta. Sem alterações de autenticação, autorização ou consentimento. Carregamento HTML inicial, autenticação e Suspense usam a marca atual. Animações respeitam movimento reduzido e o painel oferece fundo opaco sem suporte a blur ou com transparência reduzida.
