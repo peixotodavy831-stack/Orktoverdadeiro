@@ -3,10 +3,10 @@
 ## Ajustes de UI solicitados — 15/10/2026
 
 - Onboarding preserva 10 atuações e inclui Outros com texto obrigatório de até 100 caracteres; o texto real é enviado no campo profession pelo gateway existente. Emoji removido de Oficina Mecânica. Campo com label associado e foco visível.
-- Ícones compartilhados corrigidos: Hoje/sol nascente, Inbox/conversa, Relatórios/documento com gráfico e Negócios/seta sem círculo. Saudação Hoje prioriza nome salvo no perfil; nome/horário/data já eram dinâmicos, descrição permanece fixa.
+- Ícones compartilhados corrigidos: Hoje/sol nascente, Inbox/conversa, Relatórios/documento com gráfico e Negócios/seta sem círculo. Saudação Hoje prioriza nome salvo no perfil quando não for um apelido automático de e-mail; nome/horário/data já eram dinâmicos, descrição permanece fixa.
 - Aviso Asaas indisponível removido das configurações gerais por escolha explícita do proprietário. Integração/cobrança não ativada.
-- Lint/typecheck PASS; build frontend Google/server e smoke PASS; dist original preservado. Secret scan: 396 arquivos/0 findings. Revisão local isolada confirmou Outros, campo obrigatório, digitação de Consultor Financeiro sem ocultar no prefixo e retorno às opções existentes. Nenhum dado staging alterado pela revisão. Preview atualizado ainda não publicado neste checkpoint.
-- Bloqueio Vercel anterior diagnosticado no painel: e-mail automático do Windows não corresponde à conta Git. Próximo commit usa a identidade já presente nos commits aprovados; histórico não reescrito.
+- Lint/typecheck PASS; build frontend Google/server e smoke PASS; dist original preservado. Secret scan: 396 arquivos/0 findings. Revisão local isolada confirmou Outros, campo obrigatório, digitação de Consultor Financeiro sem ocultar no prefixo e retorno às opções existentes. Nenhum dado staging alterado pela revisão. Preview final publicado e READY: 3f257d36bde6f8d2d9404d234a0443eaca45cd07 / dpl_BJYiTDdYDCoNFYSns2KnjqgrADKK / https://orkto-staging-4a5p8j69q-peixoto-s-projects1.vercel.app/. Login Google real PASS nesse SHA; saudação com nome pessoal confirmada; Configurações aberta e zero ocorrências do aviso Asaas. OAuth recebeu apenas redirect exato do novo staging, sem wildcard. Não houve reexecução do E2E completo de produto.
+- Bloqueio Vercel anterior diagnosticado no painel: e-mail automático do Windows não corresponde à conta Git. Novos commits usam a identidade já presente nos commits aprovados; histórico não reescrito. CI do SHA 3f257d3: PostgreSQL17 run 38803508902 e deploy boundary 38803508898 SUCCESS. Produção intocada.
 
 ## Estado vigente — 15/10/2026 — login Google do proprietário validado
 
