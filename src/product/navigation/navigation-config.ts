@@ -41,12 +41,12 @@ export const primaryNavigation: NavigationSection[] = [
       { id: 'team', label: 'Equipe', icon: 'team', availability: 'not_available', hint: 'A tela de equipe ainda não está disponível neste checkout.' },
       { id: 'billing', label: 'Plano & Cobrança', icon: 'billing', view: 'billing', availability: 'available' },
       { id: 'settings', label: 'Configurações', icon: 'settings', view: 'settings', availability: 'available' },
+      { id: 'profile', label: 'Perfil', icon: 'profile', view: 'profile', availability: 'available' },
     ],
   },
 ];
 
 export const secondaryNavigation: NavigationItem[] = [
-  { id: 'profile', label: 'Perfil', icon: 'profile', availability: 'not_available', hint: 'A página de perfil ainda não está disponível neste checkout.' },
   { id: 'audit', label: 'Auditoria', icon: 'audit', availability: 'not_available', hint: 'A visualização de auditoria ainda não está disponível nesta tela.' },
   { id: 'help', label: 'Ajuda', icon: 'help', availability: 'not_available', hint: 'Central de ajuda indisponível nesta versão.' },
 ];

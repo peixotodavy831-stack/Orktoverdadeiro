@@ -56,6 +56,7 @@ const QuoteDetail = lazy(() => import('./components/QuoteDetail'));
 const ClientsPage = lazy(() => import('./components/ClientsPage'));
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const ProfilePage = lazy(() => import('./product/screens/profile-page'));
 const BillingPage = lazy(() => import('./components/BillingPage'));
 const ReportsPage = lazy(() => import('./components/ReportsPage'));
 const QuotesPage = lazy(() => import('./components/QuotesPage'));
@@ -164,7 +165,7 @@ export default function App() {
   });
 
   // Navigation & Viewing states
-  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
+  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'profile' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
   const [startClientCreate, setStartClientCreate] = useState(false);
   const [startDealCreate, setStartDealCreate] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
@@ -1534,7 +1535,7 @@ export default function App() {
         darkMode={darkMode}
         onThemeChange={setDarkMode}
         companyName={userProfile?.companyName}
-        userName={user?.displayName}
+        userName={userProfile?.displayName || user?.displayName}
         isInternalAdmin={Boolean(userProfile?.isFounder)}
         onSignOut={() => { void handleSignOut(); }}
       />
@@ -1800,6 +1801,22 @@ export default function App() {
                      setServices(current => current.filter(i => i.id !== deletedId));
                    }}
                 />
+                </Suspense>
+              </motion.div>
+            )}
+
+            {currentView === 'profile' && (
+              <motion.div key="profilePage" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
+                <Suspense fallback={<PageFallback />}>
+                  <ProfilePage profile={userProfile} account={user} onOpenSettings={() => setCurrentView('settings')}
+                    onSignOut={() => { void handleSignOut(); }}
+                    onSave={async (displayName, idempotencyKey) => {
+                      const result = await requestWorkspaceApi('/api/account/profile', { method: 'PATCH', headers: { 'x-idempotency-key': idempotencyKey }, body: JSON.stringify({ displayName }) });
+                      const savedName = result?.data?.displayName;
+                      if (typeof savedName !== 'string') throw new Error('Não foi possível confirmar o perfil.');
+                      setUserProfile(current => current ? { ...current, displayName: savedName } : current);
+                      return savedName;
+                    }} />
                 </Suspense>
               </motion.div>
             )}

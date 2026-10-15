@@ -1,5 +1,11 @@
 # ORKTO — estado comprovado
 
+## Perfil pessoal — 15/10/2026
+
+- Pedido corrigido pelo proprietário: implementar o item Perfil da conta. Nova tela com nome de exibição editável, foto/e-mail Google somente leitura, segurança Google, logout e contexto da empresa. Perfil habilitado no desktop/mobile; configurações comerciais permanecem separadas.
+- UPDATE_SELF_PROFILE aceita somente displayName; API/Edge derivam ator e workspace da autenticação/vínculo ativo. RPC restrita a service_role altera apenas profiles.display_name do próprio ator, com auditoria e idempotência atômicas; sem grants de escrita ao browser. Papel/plano/e-mail/identidade não editáveis. Nome pessoal independente de bloqueio comercial do plano; demais comandos mantêm gate existente.
+- Local PASS: 3 testes de input; 34 regressões HTTP de auth/tenant (tentativa em sandbox falhou por fetch localhost, repetição com localhost permitido passou); lint/typecheck; build frontend/server e smoke SgJDxd; secret scan 405 arquivos/zero findings. Revisão estática independente sem blocker. Fixture local Perfil desktop/móvel sem overflow e feedback de salvar observado; não prova persistência remota.
+- Migration 45 e Edge novos: PENDING CI/staging. Preview do Perfil: PENDING. Produção intocada; READY_FOR_PRODUCTION_CANDIDATE=NO.
 ## Refinamento UX/UI com referências — 15/10/2026
 
 - Escopo solicitado: elevar UX/UI preservando cores/identidade ORKTO. Referências consultadas: Linear (consistência/calma/padrão de ações), Intercom Inbox (contexto e priorização), NN/g (hierarquia/contraste). Não constitui ranking universal de melhores sites nem aprovação de usabilidade por clientes.

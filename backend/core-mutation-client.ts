@@ -8,7 +8,7 @@ const PRODUCTION_PROJECT_ID = 'prj_XiwDjfbGC8sq8L8zb59lcZA4HUny';
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
 
 export type CoreMutationCommand =
-  | 'COMPLETE_ONBOARDING' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'ARCHIVE_CLIENT'
+  | 'COMPLETE_ONBOARDING' | 'UPDATE_SELF_PROFILE' | 'CREATE_CLIENT' | 'UPDATE_CLIENT' | 'ARCHIVE_CLIENT'
   | 'CREATE_CONTACT' | 'UPDATE_CONTACT'
   | 'CREATE_CATALOG_ITEM' | 'UPDATE_CATALOG_ITEM' | 'ARCHIVE_CATALOG_ITEM'
   | 'CREATE_DEAL' | 'UPDATE_DEAL' | 'CLOSE_DEAL' | 'ARCHIVE_DEAL' | 'APPROVE_WIA_ACTION' | 'REJECT_WIA_ACTION'
@@ -20,7 +20,7 @@ export type CoreMutationCommand =
 
 export type CoreMutationResult = {
   result: string;
-  profile?: { id: string };
+  profile?: { id: string; display_name?: string };
   client?: unknown;
   client_id?: string;
   contact?: unknown;

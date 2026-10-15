@@ -19,7 +19,7 @@ import { ProviderConfigurationError } from './wiaos/model-router.js';
 import { registerOperationalRoutes } from './operational-routes.js';
 import { invokeCoreMutation } from './core-mutation-client.js';
 import { quoteCreateInput } from './orkto-core/quote-input.js';
-import { onboardingInput } from './orkto-core/profile-input.js';
+import { onboardingInput, personalProfileInput } from './orkto-core/profile-input.js';
 import { deriveMessageMemoryCandidates, routeSwarmAgent } from './orkto-core/full-operational.js';
 import { prepareResponseDraft } from './wiaos/response-pipeline.js';
 import { scheduleRepurchaseCandidate } from './orkto-core/repurchase-scheduler.js';
@@ -1000,6 +1000,18 @@ app.get('/api/wia/history', authenticate, async (req, res) => {
     console.error('[WIA] audit_history_unavailable', { workspaceId, code });
     return res.status(503).json({ error: 'Não foi possível recuperar o histórico operacional.', category: code === '42P01' || code === 'PGRST205' ? 'schema_not_applied' : 'persistence_unavailable' });
   }
+});
+
+app.patch('/api/account/profile', authenticate, async (req, res) => {
+  const parsed = personalProfileInput.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Informe um nome entre 1 e 100 caracteres, sem caracteres de controle.', category: 'VALIDATION_FAILED' });
+  const result = await invokeCoreMutation(req, res,
+    { id: requireTenantContext(req).workspaceId }, 'UPDATE_SELF_PROFILE', parsed.data);
+  if (!result) return;
+  if (result.profile?.id !== requireTenantContext(req).userId || typeof result.profile.display_name !== 'string') {
+    return res.status(503).json({ error: 'Não foi possível confirmar a atualização do perfil.', category: 'mutation_gateway_unavailable' });
+  }
+  return res.json({ data: { displayName: result.profile.display_name } });
 });
 
 app.put('/api/profile', authenticate, async (req, res) => {

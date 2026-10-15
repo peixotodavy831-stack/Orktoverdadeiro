@@ -143,3 +143,6 @@ A extensão usa `glass-panel` nos blocos, `sidebar` na navegação flutuante e `
 
 ### Símbolo ORKTO — 15/10/2026
 Símbolo de três laços fornecido pelo proprietário, adaptado por contorno em SVG transparente #FF5A00 (public/brand/orkto-symbol.svg). O PNG original possui fundo preto e halo; a adaptação limpa é destinada à interface. OrktoLogo centraliza símbolo/nome, sem halo e sem registro de marca presumido. Nome usa tipografia existente: não substitui o lettering artístico da prancha, cujo arquivo vetorial não foi fornecido. Símbolo compacto na navegação recolhida/mobile; lockup nas demais instâncias. Favicon/ícones usam o mesmo contorno. Vidro, funções e tokens de ações preservados.
+
+### Perfil pessoal
+Perfil é uma tela operacional própria, disponível em desktop e menu móvel. Dois grupos: dados pessoais (nome editável/e-mail somente leitura/foto Google) e contexto de segurança/empresa. Campos, foco, status e vidro reutilizam tokens existentes. Edição de nome é confirmada pelo gateway, com chave estável para repetir a mesma tentativa; identidade Google, senha, plano e papel não são campos editáveis.

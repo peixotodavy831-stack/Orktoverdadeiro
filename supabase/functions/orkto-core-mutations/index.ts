@@ -5,7 +5,7 @@ import { contactInput, contactPatchInput } from './_shared/contact-input.ts';
 import { serviceInput } from './_shared/service-input.ts';
 import { dealInput, dealPatchInput } from './_shared/deal-input.ts';
 import { quoteCreateInput, quotePatchInput, calculateQuoteMoney, quoteCustomerMatchesDeal } from './_shared/quote-input.ts';
-import { onboardingInput } from './_shared/profile-input.ts';
+import { onboardingInput, personalProfileInput } from './_shared/profile-input.ts';
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './_shared/plan-access.ts';
 import { routeT0Request } from './_shared/wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './_shared/wia-trusted.ts';
@@ -112,6 +112,13 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = '';
       argumentsForCommand = {};
+    } else if (command === 'UPDATE_SELF_PROFILE') {
+      const parsed = personalProfileInput.safeParse(suppliedPayload);
+      if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      canonical = parsed.data;
+      functionName = 'orkto_update_self_profile_command';
+      eventType = 'profile.personal_updated';
+      argumentsForCommand = { p_display_name: parsed.data.displayName };
     } else if (command === 'COMPLETE_ONBOARDING') {
       const parsed = onboardingInput.safeParse(suppliedPayload);
       if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
@@ -452,7 +459,9 @@ Deno.serve(async (req: Request) => {
         && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
 
     const plan = await loadWorkspacePlanAccess(admin, membership.workspace_id);
-    if (plan.configurationRequired || plan.readOnly) return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    // A personal display name is independent of the workspace's commercial entitlement.
+    // All business commands keep the existing read-only/configuration guard.
+    if ((plan.configurationRequired || plan.readOnly) && command !== 'UPDATE_SELF_PROFILE') return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
     if (command === 'PREPARE_WIA_T0') {
       if (!hasPlanFeature(plan,'wia')) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const limit=plan.entitlements.limits?.monthly_wia_runs;

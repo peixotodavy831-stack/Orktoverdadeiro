@@ -12,6 +12,7 @@ export type ProductView =
   | 'clients'
   | 'services'
   | 'settings'
+  | 'profile'
   | 'analytics'
   | 'billing'
   | 'conversations'
