@@ -1,5 +1,19 @@
 # ORKTO — estado comprovado
 
+## Estado vigente — 15/10/2026 — Google-only fechado
+
+- **BLOCKED_EXTERNAL_OWNER_ACCESS · FINALIZADO=NO · READY_FOR_PRODUCTION_CANDIDATE=NO.** Google OAuth real/E2E A/B ainda NOT RUN; snapshot final não gerado. Produção intocada.
+- Código executável c9584feb52eca364100e95abcfef7037316c6147; Preview dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D, READY/Preview em orkto-staging. [Abrir Preview](https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/). Atualizações atuais são tooling/evidência, sem mudança do runtime.
+- **44/44 migrations staging reconciliadas**: nome google_pilot_gate_fails_closed; remoto 20261015163447 corresponde ao arquivo local 20261014160000 por hash SQL normalizado e corpos exatos das duas funções. Não reaplicada nem editado ledger. CI PostgreSQL 17 e deploy boundary no 91e6041 SUCCESS.
+- Site URL e redirect exato do Preview corrigidos no Supabase staging. Request /auth/v1/settings observado em ghrjongiodziasupakrk.supabase.co. Google OFF, Email OFF, linking/anonymous OFF; UI Google-only desabilitada/configuração necessária. Allowlist 0, identidades Google 0, uma conta de origem desconhecida preservada; sessões/refresh tokens 0.
+- Checkpoint lógico 1 verificado / 57 linhas protegido; disaster restore atual NOT RUN. Metadados Vercel: 12 nomes Preview, nenhum nome de credencial privilegiada. Valores não abertos.
+- Correções locais: preflight centraliza target 44; runner de senha recusa Google-only/Email OFF antes de criar usuários. Readiness tools 24/24 e Google local 3/3 PASS. Regressão completa c9584fe já datada (213 app + 57 tooling, lint/build/smoke); não substitui OAuth real.
+- Google Cloud autenticado seleciona orkto-502600, mas falha ao carregar clientes OAuth e formulário; nenhuma credencial configurada. Participantes/roles precisam de aprovação privada. GitHub PR metadata update retorna 403; texto corrigido preparado. Health/readiness/CORS/observabilidade da aplicação permanecem sem prova: HTTP sem sessão recebe 302 Vercel e navegação aos endpoints bloqueada, sem bypass.
+
+Matriz, hashes, testes e intervenção externa consolidada: [fechamento vigente](05_ENGINEERING/GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md). [Evidência agregada](05_ENGINEERING/evidence/google-pilot-staging-2026-10-15.json).
+
+## Histórico de 14/10 — supersedido
+
 ## Estado vigente — 14/10/2026 — Google-only pilot
 
 - Branch `production-readiness/google-only-pilot-preflight`; PR [#2](https://github.com/peixotodavy831-stack/Orktoverdadeiro/pull/2) aberta, draft e não mergeada. Os commits documentais `e09ab2f` e `6a9ebf5` foram publicados; o código executável publicado continua `c9584feb52eca364100e95abcfef7037316c6147`. No commit `6a9ebf5`, PostgreSQL 17 passou (44 migrations na fixture legacy e baseline Supabase-like com pending migrations/assertions) e deploy boundary passou. Nenhum deployment novo foi identificado para essas alterações documentais.

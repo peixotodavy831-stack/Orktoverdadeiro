@@ -1,3 +1,9 @@
+# Current evidence pointer — 2026-10-15
+
+Current state: [../ORKTO_CURRENT_STATE.md](../ORKTO_CURRENT_STATE.md). Authoritative gate matrix: [GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md](GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md). Staging 44/44 reconciled, migration 44 not reapplied. Runtime c9584fe / Preview dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D unchanged. CI 91e6041 passed. Google OFF, admissions 0; real OAuth/A-B E2E NOT RUN. Current Site URL/redirect corrected; no privileged Preview variable names. One origin-unknown account and checkpoint preserved. BLOCKED_EXTERNAL_OWNER_ACCESS; no snapshot or production approval.
+
+## Historical pointer — superseded
+
 # Current evidence pointer — 2026-10-14
 
 The concise state is [../ORKTO_CURRENT_STATE.md](../ORKTO_CURRENT_STATE.md). Current Google-only report: [GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md](GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md). Supabase staging `ghrjongiodziasupakrk` has 43/43 migrations, private admission gate enabled, Edge v24 and both pilot Auth Hooks enabled. Eighteen confirmed synthetic accounts were removed after a private typed checkpoint; one account with unverified origin remains unchanged. No real Google OAuth login has run.

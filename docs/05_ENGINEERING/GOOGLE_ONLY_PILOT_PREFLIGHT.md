@@ -1,3 +1,5 @@
+> **HISTÓRICO SUPERSEDIDO EM 15/10/2026.** A migration 44 já está aplicada e reconciliada (44/44). [Estado vigente e evidências](GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md). Não tratar as pendências antigas abaixo como instrução para reaplicar migration ou recriar contas. A menção histórica ao modo --google-pilot do launcher é incorreta: o launcher é de senha e agora recusa Google-only.
+
 # Piloto fechado Google-only — preflight de ativação
 
 > **HISTÓRICO SUPERSEDIDO:** este preflight descreve o estado anterior à autorização e à limpeza controlada do staging. Seus números de 19 contas/41 migrations, toggles de Auth, hooks e configuração de admissão não são o estado atual. Consulte [execução Google-only de 14/10](GOOGLE_ONLY_PILOT_EXECUTION_2026-10-14.md) e [estado vigente](ORKTO_CURRENT_STATE.md). Preserve este registro como evidência histórica; não o use para decidir o estado atual.

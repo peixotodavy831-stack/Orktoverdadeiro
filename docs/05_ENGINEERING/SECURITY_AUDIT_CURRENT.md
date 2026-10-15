@@ -1,3 +1,26 @@
+# Current security gate — 2026-10-15 — Google-only pilot
+
+**SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+Current evidence and limits: [closure matrix](GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md), [sanitized SQL/config](evidence/google-pilot-staging-2026-10-15.json), [HTTP without SSO bypass](evidence/google-pilot-public-2026-10-15.json).
+
+| Gate | State | Evidence / remaining proof |
+| --- | --- | --- |
+| Migration 44 / narrow session RPC grants | PASS | 44 unique ledger versions; no duplicate logical name; normalized SQL and exact bodies match local. Both functions boolean/no arguments, stable SECURITY DEFINER with empty search_path; anon/PUBLIC denied, authenticated/service_role allowed. Strict RPC without JWT false. No grant broadened. |
+| Private pilot tables | PASS_STRUCTURAL | Five private RLS tables have no policies, no anon/authenticated data grants; schema USAGE denied to browser roles. Default-deny is deliberate. Does not substitute Google A/B tests. |
+| Admission / role safety | PASS_LOCAL; REMOTE_GOOGLE_NOT_RUN | Gate enabled, admissions 0; CI disposable Google adversarial assertions PASS. Google OFF; no owner-approved identities. |
+| PKCE / linking / refresh / revocation | BLOCKED_EXTERNAL_OWNER_ACCESS | Implemented/tests available; real Google flow NOT RUN. Manual linking and anonymous OFF; no assumption that automatic linking is proven safe. |
+| Preview | PASS_IDENTITY / PARTIAL_RUNTIME | c9584fe READY/Preview in staging; root/login open, request Auth settings targets staging. Google disabled/configuration-required UI PASS. Site URL/current exact redirect corrected, former exact staging redirect retained. |
+| Secrets | PASS_METADATA / PASS_SCAN | Twelve Preview variable names inspected; no privileged/admin/provider secret names; no values read. Final scan: 392 files, zero findings/blockers. Metadata alone does not prove the whole client bundle. |
+| Health / headers / CORS / observability | BLOCKED_AUTHENTICATED_PREVIEW_ACCESS | Normal CLI HTTP sees 302 Vercel protection; normal browser endpoint navigation blocked. No bypass generated. Need app response and correlation evidence. |
+| Recovery / preserved account | PASS_PRESENCE; RESTORE_NOT_RUN | 1 verified checkpoint / 57 protected rows; 1 user preserved, zero sessions/refresh tokens. No identity/account/reset/admission mutation. Not a full restore proof. |
+| Password breach warning | REVIEW_GOOGLE_ONLY | Email OFF and runner refuses password creation; warning not fixed or waived. Google-only operational negative/session/linking tests required before NOT_APPLICABLE classification. No paid plan required by assumption. |
+| Production | PASS_UNTOUCHED | No production action; no paid provider, charge, real message or go-live. |
+
+Only tooling changed this session: target 44 alignment and legacy password-runner guard. 24/24 readiness-tools plus 3/3 Google app tests PASS; PostgreSQL17/deploy-boundary on 91e6041 SUCCESS. Existing c9584fe full local regression remains dated evidence for identical app runtime. Real current Google E2E/security checkpoint remain blocked; no final snapshot.
+
+## Historical security gate — 2026-10-14 — superseded
+
 # Current security gate — 2026-10-14 — Google-only pilot
 
 **SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.** This status supersedes the dated preflight paragraphs below; they remain useful historical evidence only.

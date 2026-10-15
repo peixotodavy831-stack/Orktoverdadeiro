@@ -3,6 +3,16 @@ export const STAGING_E2E_TARGET = Object.freeze({
   supabaseRef: 'ghrjongiodziasupakrk',
 });
 
+// The historical password harness must never recreate password accounts in a
+// Google-only project. Inspect live Auth settings before any administrative write.
+export function validatePasswordRunnerMode(settings, env = {}) {
+  if (env.ORKTO_AUTH_MODE === 'google_pilot' || env.VITE_ORKTO_AUTH_MODE === 'google_pilot'
+    || settings?.external?.email !== true) {
+    return { ok: false, code: 'PASSWORD_RUNNER_INCOMPATIBLE_WITH_AUTH_MODE' };
+  }
+  return { ok: true, code: 'PASSWORD_RUNNER_AUTH_MODE_VALID' };
+}
+
 export function syntheticIdentityGroup(email, label) {
   const normalized = String(email || '').toLowerCase();
   if (normalized === `user-${label.toLowerCase()}@staging.synthetic`) return 'legacy';

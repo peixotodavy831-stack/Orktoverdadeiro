@@ -1,3 +1,19 @@
+# Current unavoidable owner actions — SESSION_1_FINAL_STAGING — 2026-10-15
+
+Migration 44 is **RESOLVED / 44/44 RECONCILED**; do not apply it again. Site URL/current redirect fixed. Runtime c9584fe remains READY Preview, but Google OAuth real NOT RUN. No service-role placement in Vercel and no paid plan/purchase requested. Production remains prohibited.
+
+| ID | Exact external dependency | Minimal owner action | Completion |
+| --- | --- | --- | --- |
+| PILOT-GOOGLE-OAUTH | Google Cloud owner session exists, project orkto-502600 selected, but OAuth client lists/form fail to load. Supabase Google OFF. | Resolve Google console/account permission/transport; select/create Web client; callback https://ghrjongiodziasupakrk.supabase.co/auth/v1/callback, scopes openid email profile. Enter/submit credentials personally only in staging provider panel (computer-use credential handoff requirement). | Google enabled and current Preview real callback/PKCE/login works. |
+| PILOT-PARTICIPANTS | Allowlist 0; agent cannot authorize people/roles. | Privately approve Google identities A/B and negative test identity, separate workspaces and minimum roles; complete Google sign-in/consent where required. | Authenticated Google tenant/negative/revocation/core tests PASS. |
+| PRESERVED-STAGING-ACCOUNT | One account origin unknown; no change authorized. | Privately establish identity/disposition; do not delete/reset/link/admit by assumption. | Reviewed disposition and no unintended access impact. |
+| PREVIEW-ENDPOINT-ACCESS | Root opens in normal browser, but app endpoints blocked; no-session probes receive 302. | Provide authorized normal session/runner access to exact staging deployment without disabling SSO or sharing credentials. | Health/ready, headers/CORS and correlated app logs verified. |
+| PR-2-METADATA | Current integration update returned 403; browser GitHub logged out. | Restore PR write permission or apply [prepared PR body](GOOGLE_ONLY_PR2_UPDATE.md). | PR title/body reflect migration44 applied/current evidence; remain draft, no merge. |
+
+[One consolidated workflow and evidence](GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md). All remaining work stays in this session. SESSION_2_PRODUCTION_GO_LIVE requires future explicit authorization; legal/commercial approvals are not replaced by technical tests.
+
+## Historical backlog — 14/10 superseded
+
 # Current unavoidable owner actions — SESSION_1_FINAL_STAGING — 2026-10-14 (updated after c9584fe)
 
 Current verified state: PR #2 remains open/draft; current Preview `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D` is READY on `c9584fe` in `orkto-staging`; the two Google-only mode flags are Preview-only for the pilot branch. The login UI is fail-closed, Google and Email providers are OFF, and the Google OAuth flow has not run. A read-only SQL Editor query on staging returned ledger 43, latest version `20261014152518`; local migration 44 is `20261014160000_google_pilot_gate_fails_closed.sql`, SHA-256 `20FFABFB627B8BD30BB36FB2F2E1F00BD862840F3E12FC8DD63BC47309E21D7D`. Production is untouched. The separately requested `dpl_3SSydodNz7mo35tREw5SNTctxAE7` is READY but stale on docs-only `0adfd2c`.

@@ -1,3 +1,25 @@
+# Current checklist decision — 2026-10-15
+
+**BLOCKED_EXTERNAL_OWNER_ACCESS; READY_FOR_PRODUCTION_CANDIDATE=NO; SNAPSHOT=NOT_GENERATED.** Runtime c9584fe / dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D remains unchanged.
+
+| Mandatory gate | Current status | Evidence / completion condition |
+| --- | --- | --- |
+| 44 migrations reconciled | PASS | Remote 20261015163447 maps to local 20261014160000_google_pilot_gate_fails_closed.sql by content/function hashes; no duplicate. |
+| CI / focused tooling | PASS | PostgreSQL17 + deploy boundary 91e6041 SUCCESS; readiness 24/24, Google local 3/3. |
+| Runtime target / exact redirect / closed UI | PASS_SCOPE | Auth settings request observed on staging; exact Preview Site URL and redirect persisted; disabled Google-only CTA. |
+| Preview secret metadata | PASS_METADATA | 12 names; no privileged secret names; values never opened. |
+| Google provider / approved cohort | BLOCKED_EXTERNAL_OWNER_ACCESS | Google OFF; Google Cloud credential APIs fail to load; allowlist empty and owner must approve identities/roles. |
+| Real Google PKCE/session/logout/revocation/linking / tenant A-B / core E2E | NOT RUN | Required on exact candidate after provider/cohort; old password E2E cannot substitute. |
+| Health/headers/CORS/log correlation | BLOCKED_AUTHENTICATED_PREVIEW_ACCESS | No-session 302 protection response; app endpoints inaccessible through normal browser, no bypass. |
+| Security release checkpoint | BLOCKED | Structural/local controls reviewed; authenticated Google and app-traffic gates remain open. |
+| Recovery | PASS_PRESENCE / NOT RUN_RESTORE | Verified checkpoint 1 / 57 rows; full restore not executed. Preserved account unchanged. |
+| PR metadata | BLOCKED_GITHUB_WRITE_PERMISSION | API 403; browser logged out; corrected body prepared. |
+| Production | PASS_UNTOUCHED | No production authorization/action. |
+
+[Full evidence and one grouped owner action](GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md). Commercial/legal approvals remain separate. Snapshot only after required technical gates, no inferred readiness.
+
+## Historical checklist decision — superseded
+
 # Current checklist decision
 
 `READY_FOR_PRODUCTION_CANDIDATE=NO`; snapshot final **NOT GENERATED**. Current exact candidate is `c9584feb52eca364100e95abcfef7037316c6147` / Preview `dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D` in `orkto-staging`, READY/Preview.
