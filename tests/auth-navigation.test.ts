@@ -12,3 +12,10 @@ test('session loss redirects every protected module to the public landing', () =
     assert.equal(resolveSignedOutView(protectedView), 'landing', protectedView);
   }
 });
+
+test('an authentication failure stays on login so its safe error is not hidden by the landing', () => {
+  for (const currentView of ['landing', 'auth', 'dashboard', 'clients']) {
+    assert.equal(resolveSignedOutView(currentView, true), 'auth', currentView);
+  }
+  assert.equal(resolveSignedOutView('landing', false), 'landing');
+});

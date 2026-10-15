@@ -163,7 +163,7 @@ export default function App() {
   });
 
   // Navigation & Viewing states
-    const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
   const [startClientCreate, setStartClientCreate] = useState(false);
   const [startDealCreate, setStartDealCreate] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
@@ -223,7 +223,7 @@ export default function App() {
     let generation = 0;
     const timers = new Set<ReturnType<typeof setTimeout>>();
     const pilot = isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE);
-    const applySession = async (session: any) => {
+    const applySession = async (session: any, authFailed = false) => {
       const version = ++generation;
       if (session?.user && pilot) {
         const access = await verifyPilotSession(supabase);
@@ -248,16 +248,16 @@ export default function App() {
         setAuthIdentity(null);
         setUser(null);
         setAccessToken(null);
-        setCurrentView(current => resolveSignedOutView(current));
+        setCurrentView(current => resolveSignedOutView(current, authFailed));
       }
       setAuthLoading(false);
     };
     supabase.auth.getSession()
       .then(({ data, error }) => {
         if (error && pilot && active) setPilotAuthError('Não foi possível validar o retorno do Google. Inicie uma nova entrada.');
-        return applySession(error ? null : data.session);
+        return applySession(error ? null : data.session, pilot && Boolean(error));
       })
-      .catch(() => { if (active) { setPilotAuthError('Não foi possível validar a sessão. Entre novamente.'); return applySession(null); } })
+      .catch(() => { if (active) { setPilotAuthError('Não foi possível validar a sessão. Entre novamente.'); return applySession(null, pilot); } })
       .finally(() => { if (pilot && active) window.history.replaceState(null, '', cleanOAuthCallback(window.location.href)); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY' && !pilot) {

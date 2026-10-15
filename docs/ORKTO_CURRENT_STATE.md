@@ -1,5 +1,13 @@
 # ORKTO — estado comprovado
 
+## Atualização de login — 15/10/2026, após configuração externa Google
+
+- Google agora está configurado no Supabase staging; botão Google habilitado no Preview c9584fe, cliente Web existente com callback/origem staging corretos. O estado Google OFF abaixo passou a ser histórico.
+- Login real chega ao Google e retorna, mas o banco recusa com ORKTO_PILOT_IDENTITY_LINK_DENIED (log de callback 16:24:06). Conta selecionada: 1 usuário existente, credencial de senha, profile e membership preservados, zero identidade Google e zero admissões. Nenhum identificador pessoal exportado.
+- Proprietário confirmou que a conta preservada é sua e autorizou transição Google-only/admissão por 30 dias, mantendo ID/empresa/dados/role. Procedimento estreito preparado, ainda NÃO EXECUTADO; nenhuma migration nova ou permissão ampliada.
+- Corrigido localmente retorno OAuth com erro que voltava à landing e escondia o motivo. 6/6 testes focados e typecheck PASS. SQL de transição será validado nos dois replays CI antes de execução humana da etapa de credencial.
+- Evidência: [diagnóstico do login](05_ENGINEERING/evidence/google-login-diagnosis-2026-10-15.json). Google E2E autenticado e readiness continuam NO/PENDING. Produção intocada; não houve redesenho do login.
+
 ## Estado vigente — 15/10/2026 — Google-only fechado
 
 - **BLOCKED_EXTERNAL_OWNER_ACCESS · FINALIZADO=NO · READY_FOR_PRODUCTION_CANDIDATE=NO.** Google OAuth real/E2E A/B ainda NOT RUN; snapshot final não gerado. Produção intocada.

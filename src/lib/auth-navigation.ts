@@ -1,3 +1,3 @@
-export function resolveSignedOutView(currentView: string): 'landing' | 'auth' {
-  return currentView === 'auth' ? 'auth' : 'landing';
+export function resolveSignedOutView(currentView: string, authFailed = false): 'landing' | 'auth' {
+  return authFailed || currentView === 'auth' ? 'auth' : 'landing';
 }

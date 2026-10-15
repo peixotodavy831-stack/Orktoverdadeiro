@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-15",
+  "scope": "STAGING_ONLY",
+  "supabaseRef": "ghrjongiodziasupakrk",
+  "runtimeSha": "c9584feb52eca364100e95abcfef7037316c6147",
+  "observations": {
+    "googleConfigured": true,
+    "previewGoogleButtonEnabled": true,
+    "googleClientCallbackMatchesStaging": true,
+    "googleAccountSelectionReached": true,
+    "authenticatedAppSession": "NOT_ESTABLISHED",
+    "databaseFailure": "ORKTO_PILOT_IDENTITY_LINK_DENIED",
+    "callbackLogLocalTime": "2026-10-15 16:24:06",
+    "admissions": 0,
+    "matchingExistingUser": 1,
+    "matchingGoogleIdentity": 0,
+    "existingPasswordCredential": true,
+    "existingProfile": 1,
+    "activeMemberships": 1
+  },
+  "ownerDecision": {
+    "accountOwnershipConfirmed": true,
+    "googleOnlyTransitionApproved": true,
+    "admissionDays": 30,
+    "preserveUserWorkspaceDataAndRole": true
+  },
+  "changes": {
+    "callbackErrorRouting": "LOCAL_FOCUSED_TESTS_PASS",
+    "ownerTransitionSql": "PREPARED_NOT_EXECUTED",
+    "schemaMigrationAdded": false
+  },
+  "tests": {
+    "authNavigationAndGooglePilot": "6/6_PASS",
+    "typecheck": "PASS",
+    "postgresTransition": "PENDING_CI"
+  },
+  "sensitiveDataExported": false,
+  "productionTouched": false,
+  "readiness": "NO"
+}

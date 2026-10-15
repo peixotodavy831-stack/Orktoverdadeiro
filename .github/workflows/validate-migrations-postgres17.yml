@@ -108,6 +108,7 @@ jobs:
         run: |
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
 
       - name: Capture PostgreSQL service log
         if: always()
@@ -182,6 +183,7 @@ jobs:
         run: |
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
 
       - name: Upload security evidence
         if: always()
