@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { evaluateStagingMigrationGate, MIGRATION_18_NAME, CORE_MUTATION_MIGRATION_NAMES, STAGING_PROJECT_REF, TARGET_MIGRATION_COUNT } from '../readiness/staging-migration-gate.mjs';
+import { evaluateStagingMigrationGate, MIGRATION_18_NAME, CORE_MUTATION_MIGRATION_NAMES, MIGRATION_44_NAME, STAGING_PROJECT_REF, TARGET_MIGRATION_COUNT } from '../readiness/staging-migration-gate.mjs';
 
 const now = Date.parse('2026-09-28T12:00:00.000Z');
 const capture = { capturedAt: new Date(now - 1000).toISOString(), source:{projectRef:STAGING_PROJECT_REF}, rowDataExported:false, migrationSqlExported:false };
-const ledger = (count, includeRequired = false) => ({ migrations:Array.from({length:count},(_,index)=>({version:String(20260905000000 + index).padStart(14,'0'),name:`migration_${index}`})).map((item,index)=>includeRequired && index === 17 ? {...item,version:'20261003154759',name:MIGRATION_18_NAME} : includeRequired && index >= 18 && index < 18 + CORE_MUTATION_MIGRATION_NAMES.length ? {...item,version:String(20261004000000 + index),name:CORE_MUTATION_MIGRATION_NAMES[index-18]} : item) });
+const ledger = (count, includeRequired = false) => ({ migrations:Array.from({length:count},(_,index)=>({version:String(20260905000000 + index).padStart(14,'0'),name:`migration_${index}`})).map((item,index)=>includeRequired && index === 17 ? {...item,version:'20261003154759',name:MIGRATION_18_NAME} : includeRequired && index >= 18 && index < 18 + CORE_MUTATION_MIGRATION_NAMES.length ? {...item,version:String(20261004000000 + index),name:CORE_MUTATION_MIGRATION_NAMES[index-18]} : includeRequired && index === count - 1 ? {...item,version:'20261015163447',name:MIGRATION_44_NAME} : item) });
 
 test('17-migration staging capture is not treated as a validated app schema', () => {
-  assert.equal(TARGET_MIGRATION_COUNT, 43);
+  assert.equal(TARGET_MIGRATION_COUNT, 44);
   const result = evaluateStagingMigrationGate({ capture, ledger:ledger(17), now });
   assert.equal(result.status,'STAGING_SCHEMA_OUTDATED');
   assert.equal(result.expected,TARGET_MIGRATION_COUNT);
@@ -35,4 +35,14 @@ test('missing, stale, production, duplicate and malformed ledger evidence fails 
   assert.equal(evaluateStagingMigrationGate({ capture:{...capture,source:{projectRef:'qneqljlphgkptebsaonb'}},ledger:ledger(TARGET_MIGRATION_COUNT,true),now }).code,'STAGING_ENVIRONMENT_MISMATCH');
   assert.equal(evaluateStagingMigrationGate({ capture,ledger:{migrations:[{version:'20260928130000'},{version:'20260928130000'}]},now }).code,'REMOTE_LEDGER_INVALID');
   assert.equal(evaluateStagingMigrationGate({ capture,ledger:ledger(TARGET_MIGRATION_COUNT,false),now }).code,'MIGRATION_LEDGER_DIVERGENT');
+});
+
+
+test('Google pilot migration 44 has exactly one logical occurrence irrespective of applied timestamp', () => {
+  const rows = ledger(TARGET_MIGRATION_COUNT, true);
+  assert.equal(evaluateStagingMigrationGate({ capture, ledger:rows, now }).status, 'PASS');
+  const missing = { migrations: rows.migrations.map((item) => item.name === MIGRATION_44_NAME ? { ...item, name: 'other_migration' } : item) };
+  assert.equal(evaluateStagingMigrationGate({ capture, ledger:missing, now }).code, 'MIGRATION_LEDGER_DIVERGENT');
+  const duplicate = { migrations: rows.migrations.map((item,index) => index === 0 ? { ...item, name: MIGRATION_44_NAME } : item) };
+  assert.equal(evaluateStagingMigrationGate({ capture, ledger:duplicate, now }).code, 'MIGRATION_LEDGER_DIVERGENT');
 });
