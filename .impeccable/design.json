@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-15T21:11:10.3717790Z",
-  "title": "Design System: ORKTO — extensão Hoje e navegação",
+  "generatedAt": "2026-10-15T21:32:07.8668236Z",
+  "title": "Design System: ORKTO — material interno em vidro fosco",
   "extensions": {
     "colorMeta": {
       "brand": {
@@ -65,7 +65,14 @@
         "value": "1280px",
         "name": "sidebar-wide"
       }
-    ]
+    ],
+    "material": {
+      "layering": "Painéis elegíveis: blur(16px) saturate(125%). Aninhamento: sem blur/sombra adicionais. Ancestres de fixed/dialog: sem filtro. Elevados: blur(20px) saturate(120%).",
+      "source": "src/product/design/product-glass.css",
+      "fallback": "Sem backdrop-filter ou com transparência reduzida: tokens de superfície opaca. Impressão: branco, sem sombra/filtro.",
+      "scope": ".orkto-glass-shell na aplicação autenticada; sem layout/backend.",
+      "history": "Primeira etapa Hoje/sidebar documentada anteriormente; ampliação interna capturada por leitura de CSS, sem nova alegação de build/staging/E2E."
+    }
   },
   "components": [
     {
@@ -107,25 +114,39 @@
       "html": "<nav class=\"ds-nav\" aria-label=\"Módulos\"><button type=\"button\" aria-current=\"page\">Hoje</button><button type=\"button\" disabled>Em breve</button></nav>",
       "refersTo": "sidebar",
       "kind": "nav"
+    },
+    {
+      "name": "Campo interno",
+      "kind": "input",
+      "description": "Material de inputs, textareas e selects elegíveis; conserva dimensões e raios incumbentes.",
+      "html": "<label class=\"ds-field-label\">Nome <input class=\"ds-field\" placeholder=\"Nome\" /></label>",
+      "css": ".ds-field-label{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--orkto-text-primary);}.ds-field{background:var(--orkto-glass-control);border:1px solid var(--orkto-glass-edge);color:var(--orkto-text-primary);font:inherit;}.ds-field::placeholder{color:var(--orkto-text-secondary);opacity:.85;}.ds-field:focus-visible{outline:2px solid var(--orkto-focus);outline-offset:2px;}@supports not(backdrop-filter:blur(1px)){.ds-field{background:var(--orkto-surface-1);}}@media(prefers-reduced-transparency:reduce){.ds-field{background:var(--orkto-surface-1);}}"
+    },
+    {
+      "name": "Material de painel interno",
+      "kind": "card",
+      "description": "Amostra de material; dimensões e formas pertencem a cada componente existente. Não colocar blur sobre contêiner de fixed/dialog.",
+      "html": "<section class=\"ds-internal\">Superfície interna</section>",
+      "css": ".ds-internal{font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--orkto-text-primary);border:1px solid var(--orkto-glass-edge);background:linear-gradient(145deg,var(--orkto-glass-highlight),transparent 42%),var(--orkto-glass-fill);box-shadow:var(--orkto-glass-shadow);backdrop-filter:blur(16px) saturate(125%);-webkit-backdrop-filter:blur(16px) saturate(125%);}.ds-internal .ds-internal{backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;}@supports not(backdrop-filter:blur(1px)){.ds-internal{background:var(--orkto-surface-1);}}@media(prefers-reduced-transparency:reduce){.ds-internal{background:var(--orkto-surface-1);backdrop-filter:none;-webkit-backdrop-filter:none;}}"
     }
   ],
   "narrative": {
     "keyCharacteristics": [
       "Vidro fosco com bordas sutis e destaque laranja.",
-      "Hierarquia entre contexto, métricas, atenção e atividade.",
+      "Material compartilhado sem mudar a organização funcional das telas.",
       "Temas claro e escuro, com superfície opaca alternativa."
     ],
     "donts": [
-      "Don't promover esta extensão a um redesenho global das demais telas.",
+      "Don't aplicar esta camada ao login público, landing ou páginas públicas de proposta, nem substituir cores de estado e botões por vidro.",
       "Don't preencher métricas com KPIs fictícios ou transformar indisponibilidade em zero confirmado.",
       "Don't interpretar o ornamento da WIA como atividade, execução ou entrega confirmada."
     ],
     "dos": [
-      "Do aplicar o vidro somente a Hoje e à navegação lateral desktop compartilhada.",
+      "Do aplicar o material dentro do shell autenticado, preservando os layouts existentes e evitando blur aninhado.",
       "Do preservar marca laranja, dados reais, callbacks e estados operacionais existentes.",
       "Do manter contraste textual, foco visível e alternativa opaca do material."
     ],
-    "overview": "Este documento registra a extensão implementada em Hoje e na navegação lateral compartilhada do desktop. O material translúcido e a organização em blocos mantêm a identidade laranja do ORKTO e a leitura operacional. Não estabelece um redesenho global das demais telas.\n\nA fonte geral continua sendo `src/product/design/tokens.css`. A extensão está em `src/product/design/today-glass.css`, aplicada por `src/product/screens/today-v2-page.tsx` e `src/product/navigation/desktop-sidebar.tsx`. Esta captura foi extraída do código; não houve validação visual em navegador nesta documentação.",
+    "overview": "O vidro fosco começou em Hoje e na navegação lateral desktop; após a ampliação solicitada pelo usuário, o material também cobre a aplicação interna autenticada. A camada inclui superfícies semânticas compartilhadas, painéis neutros legados com borda, formulários, diálogos, cabeçalhos de tabela, Inbox e dock móvel. Preserva a identidade laranja, as cores de estado, os botões e a organização funcional existente. Login público, landing e páginas públicas de proposta ficam fora desse escopo.\n\n`src/product/design/tokens.css` continua como fonte geral. `src/product/design/today-glass.css` conserva a composição de Hoje/sidebar; `src/product/design/product-glass.css` estende somente o material sob `.orkto-glass-shell`, sem alterar layout ou backend. Histórico: a primeira etapa teve revisão visual clara/escura e em 390px no harness local de fixtures, conforme registro anterior. Esta ampliação foi documentada por leitura do CSS; não constitui verificação de build, staging ou E2E autenticado.",
     "rules": [],
     "northStar": "Vidro fosco operacional"
   }

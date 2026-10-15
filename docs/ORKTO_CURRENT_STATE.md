@@ -1,5 +1,11 @@
 # ORKTO — estado comprovado
 
+## Material de vidro nas telas internas — 15/10/2026
+
+- Novo escopo do proprietário: estender vidro fosco a toda a aplicação autenticada. Camada compartilhada product-glass.css cobre superfícies semânticas e painéis neutros legados, campos, tabelas, Inbox, menus e diálogos. Layout, handlers, regras, cores de status e botões preservados; landing/login/proposta pública fora do escopo.
+- Evita blur aninhado e containing block acima de diálogos fixos; fallback opaco para falta de suporte/transparência reduzida e impressão sem filtros.
+- Local PASS: lint/typecheck, frontend Google/server build e smoke (output descartável OhQMmB, dist preservado), secret scan 400 arquivos/zero findings. Revisão visual local rotulada fixture: Settings escuro, modal Novo Cliente escuro, Catálogo claro, Inbox e WIA escuros; nenhuma gravação de dados. Revisão independente estática resolveu dois problemas de especificidade nos fallbacks/blur aninhado. Nenhum E2E completo repetido por esta mudança CSS.
+- Preview desta extensão: PENDING. Produção intocada; não altera READY_FOR_PRODUCTION_CANDIDATE=NO.
 ## Hoje e navegação — vidro fosco — 15/10/2026
 
 - Escopo confirmado pelo proprietário: somente Hoje e navegação lateral, com organização inspirada na referência e material translúcido. Preservadas demais telas, APIs, auth, gateway e banco.

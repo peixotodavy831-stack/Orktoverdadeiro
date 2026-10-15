@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 @import "./product/design/tokens.css";
 @import "./product/design/today-glass.css";
+@import "./product/design/product-glass.css";
 @source not "../.tmp-safe-build-*/**";
 
 @variant dark (&:where(.dark, .dark *));
