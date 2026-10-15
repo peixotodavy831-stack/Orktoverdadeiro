@@ -2,7 +2,7 @@
 
 | Domain/action | Read path | Write path | Auth / permission | Audit / idempotent | Direct table write | Evidence |
 | --- | --- | --- | --- | --- | --- | --- |
-| Personal display name UPDATE_SELF_PROFILE | Own profile under RLS + Auth identity | PATCH /api/account/profile → explicit Edge command → service-only RPC | Verified JWT/pilot session, active membership; actor derived server-side; no foreign identity field | Atomic profile.personal_updated, request/fingerprint/key; no names in audit payload | DENY | Input tests + HTTP regression PASS; PostgreSQL/remote validation PENDING |
+| Personal display name UPDATE_SELF_PROFILE | Own profile under RLS + Auth identity | PATCH /api/account/profile → explicit Edge command → service-only RPC | Verified JWT/pilot session, active membership; actor derived server-side; no foreign identity field | Atomic profile.personal_updated, request/fingerprint/key; no names in audit payload | DENY | 3 input tests + 34 existing HTTP regressions PASS; 2 PostgreSQL CI baselines + personal SQL negatives PASS; staging RPC rollback checks PASS; browser read PASS, owner HTTP save NOT RUN |
 
 Only display_name is writable. Email/Google identity/photo/roles/plans/company are excluded. Any supported active member can edit their own name; a read-only commercial plan does not prevent this personal operation. Business command plan gates remain unchanged.
 # Current mutation matrix evidence — 2026-10-14
