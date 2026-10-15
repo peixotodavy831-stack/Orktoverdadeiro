@@ -8,6 +8,51 @@
     "previewGoogleButtonEnabled": true,
     "googleClientCallbackMatchesStaging": true,
     "googleAccountSelectionReached": true,
+    "authenticatedAppSession": "PASS_REAL_GOOGLE_OWNER",
+    "sessionAfterReload": "PASS",
+    "onboardingVisible": true,
+    "todayShellVisible": true,
+    "matchedAccount": 1,
+    "passwordDisabled": true,
+    "activeAdmissionValid30Days": true,
+    "sameUserOwner": true,
+    "googleIdentities": 1,
+    "sessions": 1
+  },
+  "ownerDecision": {
+    "accountOwnershipConfirmed": true,
+    "googleOnlyTransitionApproved": true,
+    "admissionDays": 30,
+    "preserveUserWorkspaceDataAndRole": true
+  },
+  "changes": {
+    "callbackErrorRouting": "LOCAL_FOCUSED_TESTS_PASS",
+    "ownerTransitionSql": "EXECUTED_BY_OWNER_VERIFIED_READ_ONLY",
+    "schemaMigrationAdded": false
+  },
+  "tests": {
+    "authNavigationAndGooglePilot": "6/6_PASS",
+    "typecheck": "PASS",
+    "postgresTransition": "PASS_BOTH_POSTGRES17_CI_JOBS",
+    "postgresCiRun": 38795824835,
+    "deployBoundary": "PASS",
+    "frontendBuild": "PASS_GOOGLE_MODE",
+    "serverBuild": "PASS",
+    "smoke": "PASS_RETRY_SAME_BUILD_AFTER_INITIAL_RUNNER_TIMEOUT",
+    "secretScan": {
+      "files": 395,
+      "findings": 0,
+      "status": "PASS"
+    }
+  },
+  "sensitiveDataExported": false,
+  "productionTouched": false,
+  "readiness": "NO",
+  "historicalFailure": {
+    "googleConfigured": true,
+    "previewGoogleButtonEnabled": true,
+    "googleClientCallbackMatchesStaging": true,
+    "googleAccountSelectionReached": true,
     "authenticatedAppSession": "NOT_ESTABLISHED",
     "databaseFailure": "ORKTO_PILOT_IDENTITY_LINK_DENIED",
     "callbackLogLocalTime": "2026-10-15 16:24:06",
@@ -18,23 +63,19 @@
     "existingProfile": 1,
     "activeMemberships": 1
   },
-  "ownerDecision": {
-    "accountOwnershipConfirmed": true,
-    "googleOnlyTransitionApproved": true,
-    "admissionDays": 30,
-    "preserveUserWorkspaceDataAndRole": true
+  "deployment": {
+    "validatedRuntimeSha": "c9584feb52eca364100e95abcfef7037316c6147",
+    "validatedPreview": "https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/",
+    "callbackErrorFixSha": "468fd5b68c120e5b8eda34e246f4665821da6231",
+    "callbackErrorFixDeploymentId": "dpl_5G3JDEVDKqjoEj6yCTGZLb4bZJAk",
+    "callbackErrorFixDeploymentState": "BLOCKED",
+    "cliOutcome": "TIMEOUT_AFTER_UPLOAD",
+    "notUsedAsValidationEvidence": true
   },
-  "changes": {
-    "callbackErrorRouting": "LOCAL_FOCUSED_TESTS_PASS",
-    "ownerTransitionSql": "PREPARED_NOT_EXECUTED",
-    "schemaMigrationAdded": false
-  },
-  "tests": {
-    "authNavigationAndGooglePilot": "6/6_PASS",
-    "typecheck": "PASS",
-    "postgresTransition": "PENDING_CI"
-  },
-  "sensitiveDataExported": false,
-  "productionTouched": false,
-  "readiness": "NO"
+  "scopeLimitations": [
+    "Google A/B E2E not executed",
+    "Owner onboarding not filled or completed",
+    "No business data mutated for this login check",
+    "Callback error routing fix not deployed READY"
+  ]
 }

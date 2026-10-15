@@ -1,5 +1,18 @@
 # ORKTO — estado comprovado
 
+## Estado vigente — 15/10/2026 — login Google do proprietário validado
+
+- **LOGIN_GOOGLE_OWNER=PASS_REAL**: seleção da conta Google, callback Supabase, onboarding e shell Hoje abriram no Preview c9584fe; sessão persistiu após reload. Nenhum formulário de onboarding foi preenchido e nenhum dado comercial foi alterado para o teste.
+- Proprietário confirmou a conta preservada e executou pessoalmente o SQL estreito autorizado por 30 dias. Verificação SQL read-only: 1 conta correspondente, senha desativada=true, admissão ativa/válida por 30 dias=true, mesmo usuário/owner=true; após OAuth, 1 identidade Google e 1 sessão. ID/empresa/roles existentes preservados pelo procedimento validado.
+- Causa do bloqueio anterior: Google inicialmente OFF; após configuração externa, a conta antiga com senha e sem admissão era negada por ORKTO_PILOT_IDENTITY_LINK_DENIED. A admissão explícita e a transição da mesma conta resolveram o login, sem abrir o piloto a outros usuários nem ampliar grants. Email/password, linking manual e anonymous continuam OFF.
+- Runtime efetivamente validado: c9584feb52eca364100e95abcfef7037316c6147, [Preview staging autenticado](https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/), dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D. **44/44 migrations**; não houve migration nova nesta correção.
+- Código 468fd5b68c120e5b8eda34e246f4665821da6231 adiciona transição operacional/teste e mantém erros OAuth na tela de login. PostgreSQL 17: ambos os jobs CI PASS (run 38795824835); deploy boundary PASS; 6/6 focados e lint/typecheck PASS; frontend Google/server builds PASS. Smoke PASS na repetição contra o mesmo build após timeout inicial do runner.
+- Tentativa de publicar esse código: upload concluído, CLI TIMEOUT e deployment dpl_5G3JDEVDKqjoEj6yCTGZLb4bZJAk verificado BLOCKED. Não é Preview validado; não substitui o c9584fe e a correção de apresentação de erro permanece não publicada. Nenhum deploy duplicado criado. Secret scan final: 395 arquivos, zero findings (PASS).
+- **READY_FOR_PRODUCTION_CANDIDATE=NO**: login de uma conta não substitui Google A/B, E2E completo ou checkpoint final. Produção intocada; snapshot final não gerado. Não houve redesenho do login.
+- Evidência: [diagnóstico atualizado](05_ENGINEERING/evidence/google-login-diagnosis-2026-10-15.json). Blocos abaixo são históricos.
+
+## Histórico inicial de 15/10/2026 — supersedido
+
 ## Atualização de login — 15/10/2026, após configuração externa Google
 
 - Google agora está configurado no Supabase staging; botão Google habilitado no Preview c9584fe, cliente Web existente com callback/origem staging corretos. O estado Google OFF abaixo passou a ser histórico.
@@ -8,7 +21,7 @@
 - Corrigido localmente retorno OAuth com erro que voltava à landing e escondia o motivo. 6/6 testes focados e typecheck PASS. SQL de transição será validado nos dois replays CI antes de execução humana da etapa de credencial.
 - Evidência: [diagnóstico do login](05_ENGINEERING/evidence/google-login-diagnosis-2026-10-15.json). Google E2E autenticado e readiness continuam NO/PENDING. Produção intocada; não houve redesenho do login.
 
-## Estado vigente — 15/10/2026 — Google-only fechado
+## Histórico anterior de 15/10/2026 — supersedido pelo estado acima
 
 - **BLOCKED_EXTERNAL_OWNER_ACCESS · FINALIZADO=NO · READY_FOR_PRODUCTION_CANDIDATE=NO.** Google OAuth real/E2E A/B ainda NOT RUN; snapshot final não gerado. Produção intocada.
 - Código executável c9584feb52eca364100e95abcfef7037316c6147; Preview dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D, READY/Preview em orkto-staging. [Abrir Preview](https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/). Atualizações atuais são tooling/evidência, sem mudança do runtime.
