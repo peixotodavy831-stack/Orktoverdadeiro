@@ -1,5 +1,5 @@
 begin;
-do $$ declare count_plans integer; wid uuid; uid uuid; reserved jsonb; request_id uuid; begin
+do $$ declare count_plans integer; wid uuid; uid uuid; reserved jsonb; request_id uuid; binding jsonb; outcome text; began timestamptz:=now(); begin
  select count(*) into count_plans from public.orkto_plan_catalog where commercial_available;
  if count_plans<>5 then raise exception 'Five offers required'; end if;
  if exists(select 1 from public.orkto_plan_catalog where commercial_available and
@@ -18,6 +18,23 @@ do $$ declare count_plans integer; wid uuid; uid uuid; reserved jsonb; request_i
  if reserved->>'reason'<>'limit_reached' then raise exception 'Quota bypass'; end if;
  request_id:=public.orkto_request_commercial_proposal(wid,uid,'proposal-test-001','Synthetic Enterprise request');
  if request_id is distinct from public.orkto_request_commercial_proposal(wid,uid,'proposal-test-001','Synthetic Enterprise request') then raise exception 'Duplicate request'; end if;
+ insert into public.orkto_billing_customers(workspace_id,provider,environment,customer_ref,approved_by)
+ values(wid,'asaas','sandbox','cus_fixture_ci',uid);
+ binding:=public.orkto_begin_sandbox_subscription(wid,uid,'sandbox-test-001','starter','cus_fixture_ci');
+ if binding->>'created'<>'true' then raise exception 'Sandbox reservation failed'; end if;
+ if not exists(select 1 from public.orkto_workspace_subscriptions s join public.orkto_billing_bindings b on b.subscription_id=s.id
+ where b.id=(binding->>'bindingId')::uuid and s.billing_pending and s.status='suspended') then raise exception 'Unpaid reservation granted access'; end if;
+ update public.orkto_billing_bindings set provider_subscription_id='sub_fixture_ci',creation_state='created' where id=(binding->>'bindingId')::uuid;
+ outcome:=public.orkto_reconcile_subscription((binding->>'bindingId')::uuid,'payment-event-ci','sub_fixture_ci',7990,'BRL','confirmed',began,began+interval '30 days',began);
+ if outcome<>'APPLIED' then raise exception 'Reconciliation failed'; end if;
+ outcome:=public.orkto_reconcile_subscription((binding->>'bindingId')::uuid,'payment-event-ci','sub_fixture_ci',7990,'BRL','confirmed',began,began+interval '30 days',began);
+ if outcome<>'REPLAY' then raise exception 'Duplicate payment was not replayed'; end if;
+ if not exists(select 1 from public.orkto_workspace_subscriptions s join public.orkto_billing_bindings b on b.subscription_id=s.id
+ where b.id=(binding->>'bindingId')::uuid and not s.billing_pending and s.status='active') then raise exception 'Confirmed reservation not activated'; end if;
+ begin
+ perform public.orkto_reconcile_subscription((binding->>'bindingId')::uuid,'wrong-price-ci','sub_fixture_ci',1,'BRL','confirmed',began,began+interval '30 days',began);
+ raise exception 'Invalid amount accepted';
+ exception when raise_exception then if SQLERRM<>'BILLING_RECONCILIATION_INVALID' then raise; end if; end;
  begin
  update public.orkto_plan_price_versions set price_cents=1 where plan_key='starter' and version=2;
  raise exception 'Price mutation accepted'; exception when check_violation then null; end;
