@@ -403,6 +403,11 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
       const activePlan = payment.user_id ? profileByUser.get(payment.user_id) : null;
       if (payment.user_id && !String(payment.payment_id || '').startsWith('checkout:')
         && activePlan && activePlan.plan !== 'free' && !latestPaymentByUser.has(payment.user_id)) {
+        const paidAt=new Date(payment.confirmed_at);
+        if(!Number.isFinite(paidAt.getTime())||paidAt.getTime()>Date.now())continue;
+        const coveredUntil=new Date(paidAt);
+        coveredUntil.setUTCMonth(coveredUntil.getUTCMonth()+(activePlan.period==='annual'?12:1));
+        if(coveredUntil.getTime()<=Date.now())continue;
         const periodDivisor = activePlan.period === 'annual' ? 12 : 1;
         latestPaymentByUser.set(payment.user_id, Math.round(Number(payment.amount || 0) * 100 / periodDivisor));
       }

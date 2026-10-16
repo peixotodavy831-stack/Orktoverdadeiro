@@ -53,6 +53,7 @@ end $$;
 create trigger orkto_pulso_policy_audited after insert or update on public.orkto_pulso_policies
 for each row execute function public.orkto_audit_pulso_policy();
 revoke all on function public.orkto_audit_pulso_policy() from public,anon,authenticated;
+grant execute on function public.orkto_audit_pulso_policy() to service_role;
 create table public.orkto_pulso_ledger(
  id uuid primary key default gen_random_uuid(),workspace_id uuid not null references public.orkto_workspaces(id),
  period_start date not null,request_key text not null,policy_version integer not null,
@@ -140,7 +141,7 @@ begin
  select * into previous from public.orkto_subscription_events where binding_id=p_binding_id and event_key=p_event_key;
  if found then
   if previous.amount_cents<>p_amount_cents or previous.financial_status<>p_financial_status or previous.period_start<>p_period_start
-   or previous.period_end<>p_period_end or previous.observed_at<>p_observed_at or previous.currency<>p_currency then raise exception 'BILLING_EVENT_CONFLICT'; end if;
+   or previous.period_end<>p_period_end or previous.currency<>p_currency then raise exception 'BILLING_EVENT_CONFLICT'; end if;
   return 'REPLAY';
  end if;
  insert into public.orkto_subscription_events(binding_id,event_key,observed_at,financial_status,period_start,period_end,amount_cents,currency)
@@ -170,7 +171,7 @@ revoke all on function public.orkto_reserve_pulso(uuid,text,text),public.orkto_f
  public.orkto_reconcile_subscription(uuid,text,text,bigint,text,text,timestamptz,timestamptz,timestamptz),
  public.orkto_preserve_price_version() from public,anon,authenticated;
 grant execute on function public.orkto_reserve_pulso(uuid,text,text),public.orkto_finish_pulso(uuid,text,text,jsonb),
- public.orkto_reconcile_subscription(uuid,text,text,bigint,text,text,timestamptz,timestamptz,timestamptz) to service_role;
+ public.orkto_reconcile_subscription(uuid,text,text,bigint,text,text,timestamptz,timestamptz,timestamptz),public.orkto_preserve_price_version() to service_role;
 
 create function public.orkto_request_commercial_proposal(p_workspace_id uuid,p_actor_id uuid,p_key text,p_requirements text)
 returns uuid language plpgsql set search_path='' as $$

@@ -4,6 +4,7 @@ import { canCreateCheckout } from './subscription-policy.ts';
 export interface SubscriptionProcessor {
   create(input:{customerRef:string;bindingId:string;planKey:string;priceVersion:number;priceCents:number;nextDueDate:string}):Promise<{providerId:string;state:'pending'}>;
   read(providerId:string):Promise<{providerId:string;status:string;valueCents:number;customerRef:string;bindingId:string}>;
+  payment(paymentId:string):Promise<{id:string;subscriptionId:string;customerRef:string;valueCents:number;status:string;dueDate:string}>;
 }
 /** Sandbox only. Credentials are injected server-side; no production endpoint exists here. */
 export function asaasSandbox(env:Record<string,string|undefined>,send:typeof fetch=fetch):SubscriptionProcessor {
@@ -19,6 +20,13 @@ export function asaasSandbox(env:Record<string,string|undefined>,send:typeof fet
     try{return JSON.parse(raw);}catch{throw new Error('BILLING_PROVIDER_INVALID');}
   }
   return {
+    async payment(id) {
+      if(!/^pay_[A-Za-z0-9_-]{1,100}$/.test(id))throw new Error('BILLING_INVALID_REQUEST');
+      const row=await request(`/payments/${id}`);
+      if(row.id!==id||typeof row.subscription!=='string'||typeof row.customer!=='string'||!Number.isFinite(row.value)
+        ||typeof row.status!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(row.dueDate))throw new Error('BILLING_PROVIDER_INVALID');
+      return {id,subscriptionId:row.subscription,customerRef:row.customer,valueCents:Math.round(row.value*100),status:row.status,dueDate:row.dueDate};
+    },
     async create(input) {
       if(!validateCommercialPrice(input.planKey,input.priceCents,input.priceVersion)||!commercialPlan(input.planKey)
         ||!/^cus_[A-Za-z0-9_-]{1,100}$/.test(input.customerRef)||!/^\d{4}-\d{2}-\d{2}$/.test(input.nextDueDate)
