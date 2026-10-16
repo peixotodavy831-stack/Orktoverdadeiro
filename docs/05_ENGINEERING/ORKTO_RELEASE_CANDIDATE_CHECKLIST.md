@@ -1,3 +1,7 @@
+## Homologação atual do runtime 4506803 — 16/10/2026
+
+[Matriz de homologação por fase](STAGING_HOMOLOGATION_4506803_2026-10-16.md): Google A, redirect, reload, logout e Enterprise real PASS; B aprovado mas login pendente. Secrets externos ausentes; backup gerenciado não incluído no Free; ciclo nativo Asaas precisa implementação/política. READY_FOR_PRODUCTION_CANDIDATE=NO. Esta atualização prevalece sobre os checkpoints abaixo.
+
 # Current checklist decision — billing staging 16/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** Runtime `45068033a3b41f7fb170ca174408dc5fd1ba53fa`, [Preview g8jxnq6ye](https://orkto-staging-g8jxnq6ye-peixoto-s-projects1.vercel.app/), READY/Preview. Remote staging 49 migrations, Edge core v29 + billing webhook v1. Public gates and Google-only entry PASS; current-candidate authenticated E2E and external provider/recovery gates remain open. [Current canonical matrix](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md).

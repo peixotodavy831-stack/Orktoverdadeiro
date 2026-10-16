@@ -2,6 +2,8 @@
 
 Estado: `READY_FOR_PRODUCTION_CANDIDATE=NO`. PR #2 permanece draft. Nenhum merge, deploy de produção, cobrança, envio real ou chamada paga de IA foi realizado.
 
+**Homologação posterior no mesmo runtime 4506803:** [matriz atual por fase e procedimentos externos](STAGING_HOMOLOGATION_4506803_2026-10-16.md). Redirect, Google A real, reload, logout/remoção de sessões e Enterprise persistido/idempotência/quota/auditoria passaram. Identidade B/workspace owner por 30 dias foram explicitamente aprovados; falta login direto. Secrets customizados ausentes e backup gerenciado indisponível no Free confirmados. Ciclo nativo de cancelamento Asaas também exige implementação/política; não é somente credencial ausente. A matriz posterior prevalece sobre as limitações históricas abaixo.
+
 ## Escopo e estado real
 
 A auditoria partiu do HEAD `d3946bcafb339d0a315cae2ba9834b7ed41da649`, com checks PostgreSQL 17 e boundary aprovados. O Preview anteriormente validado continua sendo `ee3b3b3d45decb208d7ccf927bb25f429a64af04` em `https://orkto-staging-nlwxxb8o0-peixoto-s-projects1.vercel.app/`. O smoke Google nesse Preview é evidência histórica preservada.
@@ -73,7 +75,7 @@ CI mais recente para a migration final: [run 38924771423](https://github.com/pei
 | Cinco planos/preços/categorias | PASS | Contrato compartilhado, migration versionada e testes locais. |
 | Enterprise sem preço fixo | PASS | Interface e política rejeitam ativação com valor fictício. |
 | Solicitação Enterprise persistida | PASS | RPC testada em PostgreSQL; role, quota diária, idempotência e auditoria. UI local encaminha para login e formulário autenticado. |
-| Solicitação Enterprise no novo Preview | PARTIAL / NOT_TESTED_AUTHENTICATED | CTA conserva intenção e abre Google; persistência real após login não foi executada no novo candidato. |
+| Solicitação Enterprise no novo Preview | PASS | Fluxo autenticado real, repetição sem duplicação, cinco registros/eventos e sexta tentativa negada; relatório posterior vincula evidências. |
 | Pulso, saldo e bloqueio | PASS | Testes unitários e SQL, reserva atômica e vínculo ao plano. Nenhuma franquia real aprovada. |
 | Custos e tarifas | PASS | Testes locais de fornecedor, tokens, versão, validade e custo desconhecido. |
 | Central Econômica | PASS | Cálculos/contratos locais e tipos. Valores financeiros reais não foram inventados. |
@@ -81,8 +83,8 @@ CI mais recente para a migration final: [run 38924771423](https://github.com/pei
 | Asaas adaptador/reconciliação | PASS | Fixtures locais; PostgreSQL comprova reserva pendente, ativação, replay e rejeição de preço incorreto. |
 | Asaas sandbox real | BLOCKED_EXTERNAL | Faltam credencial sandbox, customer aprovado e webhook; nenhuma chamada ao fornecedor foi feita. |
 | Asaas cobrança real | BLOCKED_EXTERNAL | Ativação comercial e jurídica não autorizada; checkout OFF. |
-| Google do proprietário | PASS | Smoke histórico exato `ee3b3b3`: login, callback, reload, Hoje/Auditoria e logout. |
-| Google A/B completo | BLOCKED_EXTERNAL | Falta segunda identidade/empresa/papel aprovados e autenticação real dessa conta. |
+| Google do proprietário | PASS_SCOPE | No 4506803: login/callback, Hoje/billing, reload, logout e remoção de sessões. Refresh/expiração/replay ainda não testados. |
+| Google A/B completo | BLOCKED_EXTERNAL | Segunda identidade e owner em workspace novo isolado por 30 dias aprovados; login Google B ainda requer participação direta. |
 | Expiração/refresh/revogação Google no novo código | NOT_TESTED | Obrigatório no novo candidato; evidência antiga não substitui. |
 | Gemini estrutural | PASS | Limites, allowlist, erros, proveniência, Pulso e modelo configurável testados com fixtures. |
 | Gemini real | BLOCKED_EXTERNAL | Sem chave/allowlist/franquia/tarifa aprovadas e sem autorização de chamada paga. |

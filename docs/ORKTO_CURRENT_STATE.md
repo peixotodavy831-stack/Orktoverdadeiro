@@ -1,3 +1,7 @@
+## Homologação atual do runtime 4506803 — 16/10/2026
+
+[Matriz de homologação por fase](05_ENGINEERING/STAGING_HOMOLOGATION_4506803_2026-10-16.md): Google A, redirect, reload, logout e Enterprise real PASS; B aprovado mas login pendente. Secrets externos ausentes; backup gerenciado não incluído no Free; ciclo nativo Asaas precisa implementação/política. READY_FOR_PRODUCTION_CANDIDATE=NO. Esta atualização prevalece sobre os checkpoints abaixo.
+
 # Estado atual — billing e Pulso, 16/10/2026
 
 Matriz canônica: [fechamento operacional e billing](05_ENGINEERING/OPERATIONAL_BILLING_CLOSURE_2026-10-16.md). Preview g8jxnq6ye / SHA 4506803 READY, staging 49 migrations, core Edge v29, billing v1. Cinco planos, Central Econômica, Pulso e billing sandbox implementados; 275 testes app + 61 readiness PASS, lint/build/CI PASS. Probes públicos e Google-only/PKCE PASS. Google A/B e homologação externa/recuperação ainda pendentes. Produção intocada; READY_FOR_PRODUCTION_CANDIDATE=NO.

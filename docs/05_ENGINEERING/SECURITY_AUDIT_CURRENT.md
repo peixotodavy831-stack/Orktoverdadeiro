@@ -1,3 +1,7 @@
+## Homologação atual do runtime 4506803 — 16/10/2026
+
+[Matriz de homologação por fase](STAGING_HOMOLOGATION_4506803_2026-10-16.md): Google A, redirect, reload, logout e Enterprise real PASS; B aprovado mas login pendente. Secrets externos ausentes; backup gerenciado não incluído no Free; ciclo nativo Asaas precisa implementação/política. READY_FOR_PRODUCTION_CANDIDATE=NO. Esta atualização prevalece sobre os checkpoints abaixo.
+
 # Current security gate — 2026-10-16 — billing and Pulso
 
 **SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.** Current matrix: [operational billing closure](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md). Previous checkpoints below are historical.
