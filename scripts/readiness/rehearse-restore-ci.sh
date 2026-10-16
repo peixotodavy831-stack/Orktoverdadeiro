@@ -20,7 +20,7 @@ docker exec "$container" createdb -U postgres orkto_restore_rehearsal
 docker exec -i "$container" pg_restore -U postgres -d orkto_restore_rehearsal --exit-on-error < "$evidence/disposable-backup.dump"
 PGDATABASE=orkto_restore_rehearsal psql --no-psqlrc -Atf "$evidence/counts.sql" > "$evidence/restored-counts.txt"
 diff -u "$evidence/source-counts.txt" "$evidence/restored-counts.txt"
-PGDATABASE=orkto_restore_rehearsal psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_security_contract.sql > "$evidence/restored-security.txt"
+PGDATABASE=orkto_restore_rehearsal psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_restored_integrity.sql > "$evidence/restored-security.txt"
 PGDATABASE=orkto_restore_rehearsal psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_commercial_billing.sql > "$evidence/restored-billing.txt"
 printf '{"scope":"disposable_synthetic_postgresql17","status":"PASS","rpoSnapshotRowsLost":0,"restoreSeconds":%s,"managedStagingRestore":"NOT_TESTED","production":"UNTOUCHED"}\n' "$(( $(date +%s) - began ))" > "$evidence/result.json"
 # Dump contains synthetic fixtures only; artifact includes checksum/counts/result, not the dump.

@@ -18,7 +18,7 @@ Deno.serve(async req=>{
   if(Number(req.headers.get('content-length')||0)>32768)return reply(413,'INVALID_EVENT');
   const raw=await req.text();if(new TextEncoder().encode(raw).length>32768)return reply(413,'INVALID_EVENT');
   let event;try{event=JSON.parse(raw);}catch{return reply(400,'INVALID_EVENT');}
-  if(typeof event.id!=='string'||!/^[a-zA-Z0-9_-]{8,200}$/.test(event.id)||typeof event.event!=='string'
+  if(typeof event.id!=='string'||!/^[a-zA-Z0-9_&-]{8,240}$/.test(event.id)||typeof event.event!=='string'
     ||!/^PAYMENT_[A-Z_]{1,80}$/.test(event.event)||typeof event.payment?.id!=='string')return reply(400,'INVALID_EVENT');
   const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw)))].map(v=>v.toString(16).padStart(2,'0')).join('');
   const url=Deno.env.get('SUPABASE_URL')!,key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
