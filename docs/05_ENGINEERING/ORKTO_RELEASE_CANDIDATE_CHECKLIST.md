@@ -1,4 +1,10 @@
-# Current checklist decision — 2026-10-15
+# Current checklist decision — 2026-10-16
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** O candidato executável atual é `ee3b3b3d45decb208d7ccf927bb25f429a64af04`, Preview `orkto-staging-nlwxxb8o0-peixoto-s-projects1.vercel.app`, deployment `8NBPFoE284DdCkJNGiWWjdXomQZN`. As 48 migrations estão reconciliadas e o CI PostgreSQL 17 passou. O redirect OAuth ainda retorna ao Preview antigo; por isso Google E2E e A/B real continuam obrigatoriamente abertos.
+
+[Matriz canônica, evidências e ações restantes](MVP_OPERATIONAL_CLOSURE_2026-10-16.md).
+
+## Historical checklist decision — 2026-10-15 (superseded)
 
 **BLOCKED_EXTERNAL_OWNER_ACCESS; READY_FOR_PRODUCTION_CANDIDATE=NO; SNAPSHOT=NOT_GENERATED.** Runtime c9584fe / dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D remains unchanged.
 
