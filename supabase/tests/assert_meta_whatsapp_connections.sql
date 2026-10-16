@@ -4,7 +4,7 @@ begin;
 
 do $$
 declare
-  table_name text;
+  v_table_name text;
   fn regprocedure;
   definition text;
   connection_id uuid := '47474747-4747-4747-8747-474747474747';
@@ -13,17 +13,17 @@ declare
   third_claim record;
   finished boolean;
 begin
-  foreach table_name in array array[
+  foreach v_table_name in array array[
     'orkto_channel_connections','orkto_whatsapp_controls','orkto_whatsapp_rate_cards',
     'orkto_whatsapp_webhook_events','orkto_whatsapp_usage_events'
   ] loop
-    if not (select relrowsecurity from pg_class where oid=format('public.%I',table_name)::regclass) then
-      raise exception 'RLS missing on public.%',table_name;
+    if not (select relrowsecurity from pg_class where oid=format('public.%I',v_table_name)::regclass) then
+      raise exception 'RLS missing on public.%',v_table_name;
     end if;
-    if has_table_privilege('anon',format('public.%I',table_name),'SELECT')
-      or has_table_privilege('authenticated',format('public.%I',table_name),'SELECT')
-      or not has_table_privilege('service_role',format('public.%I',table_name),'SELECT') then
-      raise exception 'WhatsApp table privilege mismatch on public.%',table_name;
+    if has_table_privilege('anon',format('public.%I',v_table_name),'SELECT')
+      or has_table_privilege('authenticated',format('public.%I',v_table_name),'SELECT')
+      or not has_table_privilege('service_role',format('public.%I',v_table_name),'SELECT') then
+      raise exception 'WhatsApp table privilege mismatch on public.%',v_table_name;
     end if;
   end loop;
 
