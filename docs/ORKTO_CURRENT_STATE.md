@@ -1,3 +1,10 @@
+## Equipe, Auditoria, Ajuda e landing — implementação em 15/10/2026
+
+- Equipe: consulta de até 200 vínculos e 100 convites existentes; convites visíveis só para owner/admin. Cliente JWT/RLS por requisição e workspace ativo explícito. Sem consultas a perfis de outras contas. Interface somente leitura; criação de convites, gestão de papéis e remoção de pessoas continuam PENDING até gateway próprio e validação de segurança. Nenhuma nova autorização automática de piloto.
+- Auditoria: endpoint GET /api/audit, owner/admin, duas fontes persistidas (orkto_wia_events e orkto_audit_log), até 100 eventos recentes. Campos selecionados explicitamente; payload/event_data omitidos, referência de entidade limitada a UUID. Cache private/no-store; erro genérico e filtros locais identificados. Nenhuma migration ou alteração de RLS/grants.
+- Ajuda: guias pesquisáveis, atalhos aos módulos, orientação para acesso, permissões e falhas. Sem canal de suporte inventado ou envio automático.
+- Landing: pesquisa Linear, Intercom e NN/g documentada em ORKTO_LANDING_RESEARCH_2026-10-15.md. Identidade aprovada e capacidades reais do piloto preservadas; demonstração fictícia rotulada e CTAs existentes.
+- Status local: lint/typecheck PASS; frontend isolado Google-only e backend bundle PASS. Guard de build inicialmente recusou configuração local incompleta; o build passou após preencher APP_URL fictício, fingerprint do placeholder e flags OFF, sem relaxar o guard. Revisão de Equipe desktop e Auditoria/Ajuda móvel em fixture identificada, sem banco, PASS para renderização/busca e ausência de overflow. Publicação e revisão autenticada do candidato ainda PENDING neste registro. E2E autenticado e testes adversariais destas novas consultas NOT RUN. Evidências históricas não substituem esta validação. READY_FOR_PRODUCTION_CANDIDATE=NO; produção intocada.
 # ORKTO — estado comprovado
 
 ## Perfil pessoal — 15/10/2026

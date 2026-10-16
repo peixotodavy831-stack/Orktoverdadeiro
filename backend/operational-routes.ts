@@ -1035,15 +1035,40 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.get('/api/team', authenticate, requireDb, async (req, res) => {
-    const context = await workspaceContext(req, res, db); if (!context) return;
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    const readDb = req.authenticatedSupabase || db;
+    res.setHeader('Cache-Control','private, no-store');
     try {
       const [members, invites] = await Promise.all([
-        db.from('orkto_workspace_members').select('user_id,role,status,joined_at').eq('workspace_id',context.id).order('created_at',{ascending:true}),
-        db.from('orkto_workspace_invites').select('id,email,role,status,expires_at,created_at').eq('workspace_id',context.id).eq('status','invited').order('created_at',{ascending:false}),
+        readDb.from('orkto_workspace_members').select('user_id,role,status,joined_at').eq('workspace_id',context.id).order('created_at',{ascending:true}).limit(200),
+        ['owner','admin'].includes(context.role)
+          ? readDb.from('orkto_workspace_invites').select('id,email,role,status,expires_at,created_at').eq('workspace_id',context.id).eq('status','invited').order('created_at',{ascending:false}).limit(100)
+          : Promise.resolve({data:[],error:null}),
       ]);
       if (members.error) throw members.error; if (invites.error) throw invites.error;
-      res.json({ members: members.data || [], invites: invites.data || [], currentRole: context.role });
+      res.json({ members: members.data || [], invites: invites.data || [], currentRole: context.role, currentUserId:req.user?.id, memberLimit:200, inviteLimit:100, invitationsEditable:false });
     } catch (error) { failure(res,error,'Não foi possível carregar a equipe.'); }
+  });
+
+  // Read-only metadata, explicitly tenant-scoped and RLS-bound. Never return
+  // payload/event_data: those may contain customer content or sensitive data.
+  app.get('/api/audit', authenticate, requireDb, async (req, res) => {
+    const context = await workspaceContext(req,res,db,false); if (!context) return;
+    if (!['owner','admin'].includes(context.role)) return res.status(403).json({error:'A auditoria está disponível para proprietário e administrador.',category:'permission_denied'});
+    const readDb = req.authenticatedSupabase || db;
+    res.setHeader('Cache-Control','private, no-store');
+    try {
+      const [core, legacy] = await Promise.all([
+        readDb.from('orkto_wia_events').select('id,event_type,source,entity_type,entity_ref,actor_user_id,occurred_at').eq('workspace_id',context.id).order('occurred_at',{ascending:false}).limit(100),
+        readDb.from('orkto_audit_log').select('id,event_type,actor_type,created_at').eq('workspace_id',context.id).order('created_at',{ascending:false}).limit(100),
+      ]);
+      if (core.error) throw core.error; if (legacy.error) throw legacy.error;
+      const events = [
+        ...(core.data || []).map((event:any)=>({id:`core:${event.id}`,eventType:event.event_type,source:event.source,entityType:event.entity_type,entityRef:/^[0-9a-f-]{36}$/i.test(event.entity_ref||'')?event.entity_ref:null,actorId:event.actor_user_id,occurredAt:event.occurred_at})),
+        ...(legacy.data || []).map((event:any)=>({id:`audit:${event.id}`,eventType:event.event_type,source:event.actor_type,entityType:null,entityRef:null,actorId:null,occurredAt:event.created_at})),
+      ].sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt) || a.id.localeCompare(b.id)).slice(0,100);
+      return res.json({data:events,limit:100,scope:'workspace',metadataOnly:true});
+    } catch { return res.status(503).json({error:'Não foi possível consultar os registros de auditoria.',category:'persistence_unavailable'}); }
   });
 
   app.post('/api/team/invites', authenticate, requireDb, async (req, res) => {

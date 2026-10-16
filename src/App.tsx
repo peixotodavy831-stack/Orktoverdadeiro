@@ -58,6 +58,7 @@ const ClientsPage = lazy(() => import('./components/ClientsPage'));
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
 const ProfilePage = lazy(() => import('./product/screens/profile-page'));
+const ManagementPage = lazy(() => import('./product/screens/management-page'));
 const BillingPage = lazy(() => import('./components/BillingPage'));
 const ReportsPage = lazy(() => import('./components/ReportsPage'));
 const QuotesPage = lazy(() => import('./components/QuotesPage'));
@@ -88,7 +89,7 @@ async function requestWorkspaceApi(path: string, init: RequestInit = {}): Promis
     },
   });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'Não foi possível salvar os dados do workspace.');
+  if (!response.ok) throw Object.assign(new Error(payload?.error || 'Não foi possível concluir a operação do workspace.'), { status:response.status });
   return payload;
 }
 
@@ -156,7 +157,7 @@ export default function App() {
   });
 
   // Navigation & Viewing states
-  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'profile' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
+  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'profile' | 'team' | 'audit' | 'help' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
   const [startClientCreate, setStartClientCreate] = useState(false);
   const [startDealCreate, setStartDealCreate] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
@@ -1782,6 +1783,10 @@ export default function App() {
                 />
                 </Suspense>
               </motion.div>
+            )}
+
+            {(currentView === 'team' || currentView === 'audit' || currentView === 'help') && (
+              <Suspense fallback={<PageFallback />}><ManagementPage key={currentView} view={currentView} request={requestWorkspaceApi} onNavigate={setCurrentView} accountName={userProfile?.displayName || user.displayName} /></Suspense>
             )}
 
             {currentView === 'profile' && (

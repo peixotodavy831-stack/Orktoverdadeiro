@@ -38,7 +38,7 @@ export const primaryNavigation: NavigationSection[] = [
     label: 'Gestão',
     items: [
       { id: 'integrations', label: 'Integrações', icon: 'integrations', availability: 'not_available', hint: 'O centro de integrações ainda não está disponível neste checkout.' },
-      { id: 'team', label: 'Equipe', icon: 'team', availability: 'not_available', hint: 'A tela de equipe ainda não está disponível neste checkout.' },
+      { id: 'team', label: 'Equipe', icon: 'team', view: 'team', availability: 'available' },
       { id: 'billing', label: 'Plano & Cobrança', icon: 'billing', view: 'billing', availability: 'available' },
       { id: 'settings', label: 'Configurações', icon: 'settings', view: 'settings', availability: 'available' },
       { id: 'profile', label: 'Perfil', icon: 'profile', view: 'profile', availability: 'available' },
@@ -47,8 +47,8 @@ export const primaryNavigation: NavigationSection[] = [
 ];
 
 export const secondaryNavigation: NavigationItem[] = [
-  { id: 'audit', label: 'Auditoria', icon: 'audit', availability: 'not_available', hint: 'A visualização de auditoria ainda não está disponível nesta tela.' },
-  { id: 'help', label: 'Ajuda', icon: 'help', availability: 'not_available', hint: 'Central de ajuda indisponível nesta versão.' },
+  { id: 'audit', label: 'Auditoria', icon: 'audit', view: 'audit', availability: 'available' },
+  { id: 'help', label: 'Ajuda', icon: 'help', view: 'help', availability: 'available' },
 ];
 
 export const getActiveNavigationId = (view: string) => {

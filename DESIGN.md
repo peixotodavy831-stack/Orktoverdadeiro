@@ -149,3 +149,9 @@ Perfil é uma tela operacional própria, disponível em desktop e menu móvel. D
 
 ### Acesso e carregamento
 O login Google usa carvão, lettering oficial branco, símbolo laranja e um painel de vidro fosco. Desktop separa a introdução do formulário; mobile empilha sem ornamento. A entrada com Google permanece única, com estados de verificação, indisponibilidade e erro, convite obrigatório e links jurídicos de consulta. Sem alterações de autenticação, autorização ou consentimento. Carregamento HTML inicial, autenticação e Suspense usam a marca atual. Animações respeitam movimento reduzido e o painel oferece fundo opaco sem suporte a blur ou com transparência reduzida.
+
+### Equipe, Auditoria e Ajuda
+Superfícies Operate seguem o material interno: cabeçalho semântico, busca acessível, listas responsivas e estados reais de carregamento, vazio, falha e acesso restrito. Equipe é consulta de vínculos e papéis existentes; não habilita convites, troca de papel ou remoção. Auditoria mostra até 100 eventos recentes, metadados sem payload, para owner/admin do workspace ativo. Ajuda é local, pesquisável, com disclosures e navegação funcional aos módulos.
+
+### Landing pública — pesquisa aplicada
+Modo Persuade, mesma identidade do login e shell. Propósito explícito, fluxo cliente/negócio/proposta e uma demonstração rotulada com dados fictícios. Fundo carvão, lettering branco, laranja de marca e encerramento em creme. CTAs correspondem ao piloto fechado e à demonstração existente; nenhuma promessa de canais, pagamentos ou contratação ativa. Referências e decisões: docs/05_ENGINEERING/ORKTO_LANDING_RESEARCH_2026-10-15.md.

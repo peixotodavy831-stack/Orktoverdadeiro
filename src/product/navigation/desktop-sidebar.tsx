@@ -74,6 +74,8 @@ export function DesktopSidebar({
             </section>
           ))}
 
+          <section aria-label="Suporte e controle"><ul className="space-y-1">{secondaryNavigation.filter(item=>item.availability==='available'&&item.view).map(item=><li key={item.id}><button type="button" onClick={()=>item.view&&onNavigate(item.view)} aria-current={currentView===item.view?'page':undefined} aria-label={collapsed?item.label:undefined} title={collapsed?item.label:undefined} className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[13px] ${collapsed?'justify-center px-0':''} ${currentView===item.view?'orkto-product-nav-active font-semibold':'orkto-product-muted hover:orkto-product-surface-muted'}`}><OrktoIcon name={item.icon} size={20} />{!collapsed&&item.label}</button></li>)}</ul></section>
+
           {isInternalAdmin && <section aria-label="Administração interna">
             {!collapsed && <h2 className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Interno</h2>}
             <button type="button" onClick={() => onNavigate('internal_finance')} aria-current={currentView === 'internal_finance' ? 'page' : undefined} aria-label={collapsed ? 'Financeiro ORKTO / POK' : undefined} title={collapsed ? 'Financeiro ORKTO / POK' : undefined} className={`relative flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[13px] ${collapsed ? 'justify-center px-0' : ''} ${currentView === 'internal_finance' ? 'orkto-product-nav-active font-semibold' : 'orkto-product-muted hover:orkto-product-surface-muted'}`}>
