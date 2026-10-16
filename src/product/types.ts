@@ -16,6 +16,7 @@ export type ProductView =
   | 'team'
   | 'audit'
   | 'help'
+  | 'integrations'
   | 'analytics'
   | 'billing'
   | 'conversations'

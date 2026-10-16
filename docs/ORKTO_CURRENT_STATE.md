@@ -1,3 +1,12 @@
+## Missão operacional + WhatsApp — 16/10/2026
+
+- Checkpoint detalhado: docs/05_ENGINEERING/ORKTO_OPERATIONAL_WHATSAPP_CHECKPOINT_2026-10-16.md.
+- Sidebar compactada, Gestão expansível, logo empresarial/foto Google com fallback. Nova tela de estado de Integrações; nenhuma conexão externa ativada.
+- Billing/current corrigido para usar JWT/RLS do usuário. Contratação online continua não disponível: preços rascunho, checkout desligado e integração não concluída. Não marcar pedido de assinatura como PASS.
+- Gemini: adaptador existente, teste isolado de uma solicitação sintética preparado. Guard final mantém chave proibida no Preview; WIA segura do staging continua T0 na Edge. Gemini live NOT RUN e integração conversacional confiável PENDING.
+- Meta: normalizador de assinatura HMAC e binding por número/WABA + estimador de tarifas versionadas implementados e testados localmente, ainda sem endpoint/persistência oficial, Embedded Signup ou envio. WhatsApp real NOT RUN.
+- Local: tipos e build Google/backend/smoke PASS; HTTP 37/37 + financeiro 14/14 PASS; 53 testes focados 53/53 PASS no guard final. Secret scan 422 arquivos/0 findings PASS. Revisão visual e publicação do novo candidato PENDING neste checkpoint.
+- E2E A/B deste candidato NOT RUN. Sem migrations ou alterações em produção. READY_FOR_PRODUCTION_CANDIDATE=NO.
 ## Equipe, Auditoria, Ajuda e landing — implementação em 15/10/2026
 
 - Equipe: consulta de até 200 vínculos e 100 convites existentes; convites visíveis só para owner/admin. Cliente JWT/RLS por requisição e workspace ativo explícito. Sem consultas a perfis de outras contas. Interface somente leitura; criação de convites, gestão de papéis e remoção de pessoas continuam PENDING até gateway próprio e validação de segurança. Nenhuma nova autorização automática de piloto.

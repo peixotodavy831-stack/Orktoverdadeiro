@@ -20,6 +20,7 @@ import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './billi
 import { accountingAdapterRegistry, type AccountingSaleExport } from './accounting/accounting-adapter.js';
 import { invokeCoreMutation } from './core-mutation-client.js';
 import { invokePublicProposal } from './public-proposal-client.js';
+import { createModelRegistry } from './wiaos/model-registry.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -266,6 +267,15 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if (!db) { res.status(503).json({ error: 'Banco de dados indisponível.', category: 'configuration_error' }); return; }
     next();
   };
+
+  app.get('/api/integrations/status', authenticate, requireDb, async (req,res)=>{
+    const context=await workspaceContext(req,res,db,false);if(!context)return;
+    res.setHeader('Cache-Control','private, no-store');
+    try {
+      const model=createModelRegistry(process.env).standard;
+      return res.json({data:{wia:{provider:model.provider,model:model.modelId,state:model.enabled?'configured_not_verified':'configuration_required',testingOnly:model.purpose==='development-testing'},whatsapp:{state:'implementation_pending',connected:false,coexistence:'not_verified'},billing:{state:'configuration_required',checkoutEnabled:false},canManage:['owner','admin'].includes(context.role)}});
+    } catch {return res.status(503).json({error:'Não foi possível consultar as integrações.',category:'configuration_required'});}
+  });
 
   app.get('/api/operational/workspace', authenticate, requireDb, async (req, res) => {
     const context = await workspaceContext(req, res, db);
@@ -1150,15 +1160,17 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.get('/api/billing/current', authenticate, requireDb, async (req, res) => {
-    const context = await workspaceContext(req, res, db); if (!context) return;
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    const readDb=req.authenticatedSupabase||db;
+    res.setHeader('Cache-Control','private, no-store');
     try {
       const [workspace, subscription, usage] = await Promise.all([
-        db.from('orkto_workspaces').select('plan_key,subscription_status').eq('id',context.id).maybeSingle(),
-        db.from('orkto_workspace_subscriptions').select('plan_key,status,trial_ends_at,current_period_start,current_period_end,cancel_at_period_end').eq('workspace_id',context.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
-        db.from('orkto_plan_usage').select('feature_key,quantity,period_start').eq('workspace_id',context.id).order('period_start',{ascending:false}).limit(100),
+        readDb.from('orkto_workspaces').select('plan_key,subscription_status').eq('id',context.id).maybeSingle(),
+        readDb.from('orkto_workspace_subscriptions').select('plan_key,status,trial_ends_at,current_period_start,current_period_end,cancel_at_period_end').eq('workspace_id',context.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
+        readDb.from('orkto_plan_usage').select('feature_key,quantity,period_start').eq('workspace_id',context.id).order('period_start',{ascending:false}).limit(100),
       ]);
       if (workspace.error) throw workspace.error; if (subscription.error) throw subscription.error; if (usage.error) throw usage.error;
-      const access = await loadWorkspacePlanAccess(db,context.id);
+      const access = await loadWorkspacePlanAccess(readDb,context.id);
       res.json({ subscription: subscription.data, workspacePlan: access.planKey, status: access.status, trialEndsAt:access.trialEndsAt, readOnly:access.readOnly, configurationRequired:access.configurationRequired, entitlements:access.entitlements, effectivePriceVersion:access.effectivePriceVersion, usage: usage.data || [], checkout: 'not_configured', pricesPublic:access.publicPriceApproved });
     } catch (error) { failure(res,error,'Não foi possível carregar o plano e o uso.'); }
   });

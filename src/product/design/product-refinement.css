@@ -44,8 +44,11 @@
   outline-offset: 3px;
 }
 .orkto-sidebar-glass { box-shadow: none; }
-.orkto-sidebar-glass nav { padding-top: 16px; }
-.orkto-sidebar-glass nav > div { gap: 22px; display: flex; flex-direction: column; }
+.orkto-sidebar-glass nav { padding-block: 8px; }
+.orkto-sidebar-glass nav > div { gap: 10px; display: flex; flex-direction: column; }
+.orkto-sidebar-glass nav section > h2 { margin-bottom: 4px; }
+.orkto-sidebar-glass nav ul > li + li { margin-top: 2px; }
+.orkto-sidebar-glass nav button { min-height: 36px; }
 .orkto-sidebar-glass nav h2 { font-size: 10px; letter-spacing: .09em; }
 .orkto-sidebar-glass nav button { font-size: 13px; }
 .orkto-sidebar-glass nav button > svg { width: 18px; height: 18px; }

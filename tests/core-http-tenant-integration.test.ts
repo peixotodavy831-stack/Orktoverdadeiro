@@ -834,6 +834,38 @@ async function api(base: string, token: string, path: string, init: RequestInit 
 
 function json(body: unknown): RequestInit { return { method: 'POST', body: JSON.stringify(body) }; }
 
+test('workspace audit restricts role, tenant and payload projection',async()=>{
+  resetDatabase();
+  database.set('orkto_wia_events',[
+    {id:randomUUID(),workspace_id:WORKSPACE_A,event_type:'client.created',source:'user',actor_user_id:USER_A,entity_type:'client',entity_ref:'sensitive-non-uuid-reference',payload:{private:'never-expose-content'},occurred_at:'2026-10-16T12:00:00Z'},
+    {id:randomUUID(),workspace_id:WORKSPACE_B,event_type:'foreign.secret',source:'user',occurred_at:'2026-10-16T12:00:00Z'},
+  ]);
+  database.set('orkto_audit_log',[]);
+  const base=await serve(app);
+  const response=await api(base,CLIENT_TOKEN_A,'/api/audit');assert.equal(response.status,200);
+  const text=await response.text();assert.ok(text.includes('client.created'));assert.ok(!text.includes('never-expose-content'));assert.ok(!text.includes('sensitive-non-uuid-reference'));assert.ok(!text.includes('foreign.secret'));
+  assert.equal(response.headers.get('cache-control'),'private, no-store');
+  assert.equal((await api(base,CLIENT_TOKEN_A_RECIPIENT,'/api/audit')).status,403);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/audit',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+  assert.equal((await fetch(`${base}/api/audit`)).status,401);
+});
+
+test('billing reads keep the staging caller JWT and reject foreign workspace',async()=>{
+  resetDatabase();const base=await serve(app);const previous=process.env.APP_ENV;
+  try{process.env.APP_ENV='staging';const response=await api(base,CLIENT_TOKEN_A,'/api/billing/current');assert.equal(response.status,200);
+    const reads=database.requestAuthorization.filter(item=>['/rest/v1/orkto_workspaces','/rest/v1/orkto_workspace_subscriptions','/rest/v1/orkto_plan_usage'].includes(item.path));
+    assert.ok(reads.length>=3);assert.ok(reads.every(item=>item.authorization===`Bearer ${CLIENT_TOKEN_A}`));
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/billing/current',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+  }finally{if(previous===undefined)delete process.env.APP_ENV;else process.env.APP_ENV=previous;}
+});
+
+test('integration status never claims external activation or exposes keys',async()=>{
+  resetDatabase();const base=await serve(app);const response=await api(base,CLIENT_TOKEN_A,'/api/integrations/status');assert.equal(response.status,200);
+  const payload=await response.json() as {data:{whatsapp:{connected:boolean};billing:{checkoutEnabled:boolean}}};assert.equal(payload.data.whatsapp.connected,false);assert.equal(payload.data.billing.checkoutEnabled,false);
+  assert.ok(!JSON.stringify(payload).includes('apiKey'));
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/integrations/status',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+});
+
 test('plan catalog uses membership-scoped Edge read and masks unpublished prices', async () => {
   resetDatabase();
   const version=database.rows('orkto_plan_price_versions').find(row=>row.plan_key==='pro')!;

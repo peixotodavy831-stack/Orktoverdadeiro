@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {estimateWhatsAppCost,type WhatsAppRateCard}from'../backend/channels/whatsapp-pricing.js';
+const card:WhatsAppRateCard={version:'synthetic-v1',country:'BR',currency:'BRL',category:'service',effectiveFrom:'2026-10-01T00:00:00Z',effectiveUntil:null,unitPriceMicros:1000,freeMessages:2,reviewed:true,sourceUrl:'https://example.invalid/synthetic'};
+const input={cards:[card],country:'BR',currency:'BRL',category:'service' as const,at:'2026-10-16T12:00:00Z',count:5,alreadyUsed:1};
+test('versioned estimate applies configured remaining allowance without declaring reconciliation',()=>{const value=estimateWhatsAppCost(input);assert.equal(value.estimatedCostMicros,4000);if(value.status==='ESTIMATED'){assert.equal(value.freeMessagesApplied,1);assert.equal(value.reconciled,false);}});
+test('missing unreviewed ambiguous expired and currency-mismatched tariffs stay unknown',()=>{for(const cards of [[],[{...card,reviewed:false}],[card,card],[{...card,effectiveUntil:'2026-10-02T00:00:00Z'}],[{...card,currency:'USD'}]])assert.equal(estimateWhatsAppCost({...input,cards}).status,'RATE_CONFIGURATION_REQUIRED');});
+test('negative and unsafe values are rejected',()=>{assert.throws(()=>estimateWhatsAppCost({...input,count:-1}));assert.throws(()=>estimateWhatsAppCost({...input,cards:[{...card,unitPriceMicros:Number.MAX_SAFE_INTEGER}]}));});
