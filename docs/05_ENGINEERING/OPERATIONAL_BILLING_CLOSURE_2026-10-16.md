@@ -2,6 +2,8 @@
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz vigente](STAGING_HOMOLOGATION_A2A3651_2026-10-16.md): runtime a2a3651319196ffc56813992f705692d368ef967 / Preview az36qohmo READY; staging DB50/core Edge30/webhook2. Google B real e persistência após reload comprovados também no candidato a2a3651; contexto RLS SQL aprovado, transporte A/B e replay/expiração natural ainda não executados. Lifecycle nativo Asaas implementado e validado com fixtures/CI; fornecedor real e política de término de acesso bloqueados externamente. Regressão 285/285 + 61/61, billing focado19/19, lint/Edge/build/CI/secret scan PASS. Redirect exato salvo após confirmação específica; lista 16→17 e Site URL preservada. Produção intocada e PR #2 sem merge.
 
+Revisão final de pré-requisitos em 16/10/2026 22:11 UTC: executor Google A/B incompatível/indisponível (BLOCKED_EXTERNAL); testes HTTP e tokens NOT_TESTED. Consulta staging confirmou zero customers sandbox aprovados e zero secrets personalizados. Asaas real permanece BLOCKED_EXTERNAL; notificações do fornecedor NOT_TESTED. Nenhum código, permissão, flag ou configuração cloud alterado nesta rodada. Roteiro restante na matriz vigente; os PASS abaixo são históricos e não foram repetidos.
+
 ## Checkpoints anteriores — históricos
 # ORKTO — fechamento operacional, economia e billing
 

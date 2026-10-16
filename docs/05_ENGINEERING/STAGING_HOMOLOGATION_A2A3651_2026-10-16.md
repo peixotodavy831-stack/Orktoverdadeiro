@@ -13,6 +13,27 @@
 
 ## Matriz de gates
 
+### Rodada final de pré-requisitos — 16/10/2026, 22:11 UTC
+
+Inspeção de código e consultas administrativas somente de leitura, com runtime de referência a2a3651 e source documental b06b29c. Não houve novo login, migration, deploy, chamada de fornecedor nem repetição dos testes aprovados. [Evidência desta rodada](evidence/final-security-billing-prerequisites-a2a3651.json) e [roteiro dos casos ainda não executados](FINAL_SECURITY_BILLING_EXECUTION_A2A3651.md).
+
+| Gate restante / inspeção | Estado | Ambiente / SHA | Evidência atual |
+| --- | --- | --- | --- |
+| Executor Google A/B compatível | BLOCKED_EXTERNAL | Source b06b29c, runtime alvo a2a3651 | Launcher existente usa senha e possui guarda contra Google-only. IAB disponível não fornece executor de transporte em dois contextos Google isolados. Launcher legado não executado. Não criadas outras contas/workspaces. |
+| A/B HTTP bidirecional, RLS/API/Edge/PostgREST | NOT_TESTED | Alvo a2a3651; não executado | Depende do executor acima; provas SQL e login/reload anteriores preservados, sem simulação HTTP. |
+| Refresh/rotação, expiração natural, revogação e replay | NOT_TESTED | Alvo a2a3651; não executado | Nenhum JWT/refresh token extraído ou guardado. Não se alterou TTL nem relógio. |
+| Configuração Asaas real sandbox | BLOCKED_EXTERNAL | Supabase staging ghrjongiodziasupakrk | Consulta atual: zero customers aprovados/bindings/comandos/eventos. Painel confirma zero secrets personalizados. Nenhuma flag habilitada. |
+| Notificações Asaas externas desativadas | NOT_TESTED | Conta/customer externos não disponibilizados | Não foi possível conferir no fornecedor; ausência de credencial não prova notificações OFF. |
+| Casos reais de assinatura/pagamento/webhook | NOT_TESTED | Alvo a2a3651; nenhum request Asaas | Casos B01–B13 no roteiro. Fixtures e CI anteriores não substituem processamento sandbox real. |
+| Política comercial de término de acesso | BLOCKED_EXTERNAL | a2a3651 preservado | Aprovação comercial ainda pendente; nenhuma política semeada ou timing inventado. |
+| Catálogo comercial remoto | PASS | Consulta SQL staging 22:11 UTC, vinculada ao alvo a2a3651 | Exatamente cinco ofertas: Start7990/Pro14990/Business29990/Scale59990 centavos BRL, Enterprise sem valor fixo. |
+| Gemini/Meta/Pulso reais | BLOCKED_EXTERNAL | Configuração staging | Zero secrets personalizados, políticas Pulso e tarifas. Provider/tier/permissões ainda não verificados; nenhuma inferência/mensagem executada. |
+| Recuperação real | BLOCKED_EXTERNAL | Escopo externo preservado | Destino privado, credencial, RPO/RTO e restore isolado pendentes. Prova CI anterior preservada; recursos gerenciados não reensaiados. |
+
+Nenhum FAIL novo constatado; os casos bloqueados/não executados não foram aprovados. **READY_FOR_PRODUCTION_CANDIDATE=NO.** A intervenção Asaas solicitada restringe-se a identificar conta/customer de teste, conferir notificações e cadastrar credenciais diretamente no secret store, nunca no chat. Aprovações de B, workspace e redirect continuam resolvidas.
+
+### Resultados anteriores preservados por SHA
+
 PASS qualifica somente o escopo descrito. Não significa aprovação de toda a fase. `NOT_TESTED` significa que a execução não ocorreu; não existe aprovação por inferência.
 
 | Gate | Estado | SHA / ambiente realmente executado | Evidência e limite |
