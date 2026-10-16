@@ -301,7 +301,7 @@ async function authenticate(req, res, next) {
 
 const financeTransactionSchema = z.object({
   transactionType: z.enum(['revenue', 'expense']),
-  category: z.enum(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'other']),
+  category: z.enum(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'support', 'marketing', 'administrative', 'extraordinary', 'other']),
   basis: z.enum(['actual', 'normalized']),
   cashStatus: z.enum(['paid', 'forecast']),
   amountCents: z.number().int().positive().max(100_000_000_000),
@@ -385,7 +385,7 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
     const costs = transactions.filter(row => row.transaction_type === 'expense' && row.basis === 'actual');
     const normalizedCosts = transactions.filter(row => row.transaction_type === 'expense' && row.basis === 'normalized');
     const sum = (rows, predicate) => rows.filter(predicate).reduce((total, row) => total + Number(row.amount_cents || 0), 0);
-    const costByCategory = Object.fromEntries(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'other'].map(category => [
+    const costByCategory = Object.fromEntries(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'support', 'marketing', 'administrative', 'extraordinary', 'other'].map(category => [
       category,
       sum(costs, row => row.category === category),
     ]));
@@ -522,6 +522,8 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
           - (left.actualTechnicalCogsCents + left.actualChannelCents + left.estimatedAiUsageCents)),
         cashInCents, cashOutCents, netCashFlowCents: cashInCents - cashOutCents,
         cashClosingEstimateCents,
+        burnRateCents:Math.max(0,cashOutCents-cashInCents),
+        runwayMonths:cashOutCents>cashInCents?Math.max(0,cashClosingEstimateCents)/(cashOutCents-cashInCents):null,
         alerts,
       },
       transactions,
@@ -1555,21 +1557,8 @@ async function requestAsaas(method, path, body = null, apiKey) {
   return data;
 }
 
-function billingReference(userId: string, plan: string) {
-  return `orkto-plan:${userId}:${plan}`;
-}
-
-function parseBillingReference(value: unknown) {
-  if (typeof value !== 'string') return { userId: '', plan: '' };
-  const match = /^orkto-plan:([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}):(pro|business)$/i.exec(value);
-  if (match) return { userId: match[1].toLowerCase(), plan: match[2] };
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-    ? { userId: value.toLowerCase(), plan: '' }
-    : { userId: '', plan: '' };
-}
-
 app.post("/api/asaas/checkout", authenticate, (_req, res) => {
-  // Public prices and automated recurring charges remain disabled until commercial approval.
+  // Prices are approved; real automated recurring charges still require explicit activation approval.
   return res.status(503).json({ error:'Checkout ORKTO está desativado até aprovação comercial e configuração de billing.', category:'configuration_required' });
 });
 

@@ -37,11 +37,12 @@ create index orkto_commercial_requests_plan_idx on public.orkto_commercial_reque
 
 -- No allowances seeded: owners still need to approve plan limits and Pulso packages.
 create table public.orkto_pulso_policies(
- workspace_id uuid primary key references public.orkto_workspaces(id),version integer not null check(version>0),
+ workspace_id uuid primary key references public.orkto_workspaces(id),plan_key text not null references public.orkto_plan_catalog(plan_key),version integer not null check(version>0),
  allowance_milli bigint not null check(allowance_milli>=0),approved_by uuid not null references auth.users(id),
  approved_at timestamptz not null default now(),expires_at timestamptz not null,reason text not null check(length(reason)>=10)
 );
 create index orkto_pulso_policy_approver_idx on public.orkto_pulso_policies(approved_by);
+create index orkto_pulso_policy_plan_idx on public.orkto_pulso_policies(plan_key);
 create function public.orkto_audit_pulso_policy() returns trigger language plpgsql set search_path='' as $$
 begin
  if new.expires_at<=now() or (TG_OP='UPDATE' and new.version<=old.version) then raise exception 'PULSO_POLICY_VERSION_REQUIRED'; end if;
@@ -75,12 +76,15 @@ create index orkto_model_tariffs_approver_idx on public.orkto_model_tariffs(appr
 -- Invoker functions are deliberately service-only; no new SECURITY DEFINER authority.
 create function public.orkto_reserve_pulso(p_workspace_id uuid,p_request_key text,p_class text)
 returns jsonb language plpgsql set search_path='' as $$
-declare policy public.orkto_pulso_policies; existing public.orkto_pulso_ledger; used bigint; units bigint;
+declare policy public.orkto_pulso_policies; existing public.orkto_pulso_ledger; used bigint; units bigint; current_plan text;
 begin
  units:=case p_class when 'simple' then 250 when 'light' then 500 when 'normal' then 1000 when 'complex' then 4000 else null end;
  if units is null or p_request_key is null or length(p_request_key) not between 8 and 200 then raise exception 'PULSO_INVALID'; end if;
  select * into policy from public.orkto_pulso_policies where workspace_id=p_workspace_id for update;
  if not found or policy.expires_at<=now() then return jsonb_build_object('allowed',false,'reason','configuration_required'); end if;
+ select s.plan_key into current_plan from public.orkto_workspace_subscriptions s where s.workspace_id=p_workspace_id and not s.billing_pending order by s.created_at desc limit 1;
+ if current_plan is null then select plan_key into current_plan from public.orkto_workspaces where id=p_workspace_id; end if;
+ if current_plan is distinct from policy.plan_key then return jsonb_build_object('allowed',false,'reason','plan_policy_mismatch'); end if;
  select * into existing from public.orkto_pulso_ledger where workspace_id=p_workspace_id and request_key=p_request_key;
  if found then return jsonb_build_object('allowed',false,'reason','already_reserved','state',existing.state); end if;
  select coalesce(sum(reserved_milli),0) into used from public.orkto_pulso_ledger
@@ -128,10 +132,11 @@ create index orkto_subscription_events_binding_idx on public.orkto_subscription_
 create function public.orkto_reconcile_subscription(p_binding_id uuid,p_event_key text,p_provider_subscription_id text,
  p_amount_cents bigint,p_currency text,p_financial_status text,p_period_start timestamptz,p_period_end timestamptz,p_observed_at timestamptz)
 returns text language plpgsql set search_path='' as $$
-declare binding public.orkto_billing_bindings; price public.orkto_plan_price_versions; previous public.orkto_subscription_events;
+declare binding public.orkto_billing_bindings; price public.orkto_plan_price_versions; previous public.orkto_subscription_events; current_end timestamptz;
 begin
  select * into binding from public.orkto_billing_bindings where id=p_binding_id for update;
- if not found or binding.provider_subscription_id is distinct from p_provider_subscription_id then raise exception 'BILLING_BINDING_MISMATCH'; end if;
+ if not found or binding.creation_state<>'created' or p_provider_subscription_id is null
+ or binding.provider_subscription_id is distinct from p_provider_subscription_id then raise exception 'BILLING_BINDING_MISMATCH'; end if;
  select * into price from public.orkto_plan_price_versions where id=binding.price_version_id;
  if price.plan_key='enterprise' or price.version<>2 or price.price_cents is distinct from p_amount_cents or p_currency<>'BRL'
  or price.currency<>p_currency or p_financial_status not in ('pending','confirmed','overdue','refunded','cancelled')
@@ -146,13 +151,15 @@ begin
  end if;
  insert into public.orkto_subscription_events(binding_id,event_key,observed_at,financial_status,period_start,period_end,amount_cents,currency)
  values(p_binding_id,p_event_key,p_observed_at,p_financial_status,p_period_start,p_period_end,p_amount_cents,p_currency);
+ select current_period_end into current_end from public.orkto_workspace_subscriptions where id=binding.subscription_id;
+ if current_end is not null and p_period_end<current_end then return 'STALE'; end if;
  if binding.last_reconciled_at is not null and p_observed_at<=binding.last_reconciled_at then return 'STALE'; end if;
  update public.orkto_billing_bindings set financial_status=p_financial_status,last_reconciled_at=p_observed_at where id=p_binding_id;
- update public.orkto_workspace_subscriptions set status=case when p_period_end<=now() then 'suspended'
+ update public.orkto_workspace_subscriptions set status=case when p_period_end<=now() or p_period_start>now() then 'suspended'
  when p_financial_status='confirmed' then 'active' when p_financial_status='overdue' then 'past_due'
  when p_financial_status in ('cancelled','refunded') then 'cancelled' else 'suspended' end,
  current_period_start=p_period_start,current_period_end=p_period_end,
- billing_pending=case when p_financial_status='confirmed' and p_period_end>now() then false else billing_pending end,
+ billing_pending=case when p_financial_status='confirmed' and p_period_start<=now() and p_period_end>now() then false else billing_pending end,
  updated_at=now() where id=binding.subscription_id and workspace_id=binding.workspace_id;
  insert into public.orkto_wia_events(workspace_id,actor_user_id,event_type,source,entity_type,entity_ref,payload)
  values(binding.workspace_id,null,'billing.subscription.reconciled','system','subscription',binding.subscription_id::text,
@@ -225,3 +232,8 @@ begin
 end $$;
 revoke all on function public.orkto_begin_sandbox_subscription(uuid,uuid,text,text,text) from public,anon,authenticated;
 grant execute on function public.orkto_begin_sandbox_subscription(uuid,uuid,text,text,text) to service_role;
+
+-- Economic categories remain distinct from technical COGS. No historical entries are rewritten.
+alter table public.orkto_finance_transactions drop constraint orkto_finance_transactions_category_check;
+alter table public.orkto_finance_transactions add constraint orkto_finance_transactions_category_check check(category in
+ ('subscription','infrastructure','ai','channel','payment_processor','people','tax','support','marketing','administrative','extraordinary','other'));

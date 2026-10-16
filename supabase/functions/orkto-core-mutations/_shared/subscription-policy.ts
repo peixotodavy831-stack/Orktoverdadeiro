@@ -21,7 +21,8 @@ export function reconcileSubscription(current:SubscriptionSnapshot|null,event:Ve
   if(!Number.isFinite(start)||!Number.isFinite(end)||end<=start||!Number.isFinite(observed)||observed>now+60_000)throw new Error('BILLING_INVALID_PERIOD');
   if(current&&(current.workspaceId!==event.workspaceId||current.providerSubscriptionId!==event.providerSubscriptionId))throw new Error('BILLING_TENANT_MISMATCH');
   if(current&&observed<=Date.parse(current.lastObservedAt))return current;
-  const commercial:CommercialState=end<=now?'expired':event.financial==='confirmed'?'active':event.financial==='overdue'?'past_due':event.financial==='pending'?'pending':'cancelled';
+  if(current&&end<Date.parse(current.periodEnd))return current;
+  const commercial:CommercialState=end<=now?'expired':start>now?'pending':event.financial==='confirmed'?'active':event.financial==='overdue'?'past_due':event.financial==='pending'?'pending':'cancelled';
   return {workspaceId:event.workspaceId,providerSubscriptionId:event.providerSubscriptionId,planKey:event.planKey,
     priceVersion:event.priceVersion,priceCents:event.priceCents,periodStart:event.periodStart,periodEnd:event.periodEnd,
     lastObservedAt:event.observedAt,financial:event.financial,commercial,cancelAtPeriodEnd:event.cancelAtPeriodEnd};

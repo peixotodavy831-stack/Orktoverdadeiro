@@ -10,8 +10,8 @@ do $$ declare count_plans integer; wid uuid; uid uuid; reserved jsonb; request_i
  if wid is null then raise exception 'Synthetic owner fixture required'; end if;
  reserved:=public.orkto_reserve_pulso(wid,'billing-test-0001','normal');
  if reserved->>'allowed'<>'false' then raise exception 'Unapproved Pulso accepted'; end if;
- insert into public.orkto_pulso_policies(workspace_id,version,allowance_milli,approved_by,expires_at,reason)
- values(wid,1,1000,uid,now()+interval '1 hour','Disposable CI fixture policy only');
+ insert into public.orkto_pulso_policies(workspace_id,plan_key,version,allowance_milli,approved_by,expires_at,reason)
+ select wid,s.plan_key,1,1000,uid,now()+interval '1 hour','Disposable CI fixture policy only' from public.orkto_workspace_subscriptions s where s.workspace_id=wid and not s.billing_pending order by s.created_at desc limit 1;
  reserved:=public.orkto_reserve_pulso(wid,'billing-test-0001','normal');
  if reserved->>'allowed'<>'true' then raise exception 'Approved allocation denied'; end if;
  reserved:=public.orkto_reserve_pulso(wid,'billing-test-0002','normal');

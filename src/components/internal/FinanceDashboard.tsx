@@ -52,7 +52,7 @@ const customerVolumes = [10, 100, 1000, 10000];
 const categories = [
   { key: 'infrastructure', label: 'Infraestrutura' }, { key: 'ai', label: 'IA' }, { key: 'channel', label: 'Canal' },
   { key: 'payment_processor', label: 'Processador de pagamentos' }, { key: 'people', label: 'Equipe' },
-  { key: 'tax', label: 'Impostos' }, { key: 'other', label: 'Outro' },
+  { key: 'tax', label: 'Impostos' }, {key:'support',label:'Suporte'}, {key:'marketing',label:'Marketing'}, {key:'administrative',label:'Administrativo'}, {key:'extraordinary',label:'Extraordinário'}, { key: 'other', label: 'Outro' },
 ];
 const fmt = (cents: number) => formatBRL(Number(cents || 0) / 100);
 const moneyInput = (cents: number) => (Number(cents || 0) / 100).toFixed(2);
