@@ -61,6 +61,12 @@ Isso **não** é recuperação de dados reais, identidades Google ou projeto Sup
 
 ## Matriz de evidências
 
+Regressão final: **275/275 aplicação; 61/61 readiness**, sem skips ou falhas. `npm run lint`, `npm run lint:edge` e `npm run readiness:build` passaram. O build executou health, SPA, fronteira de autenticação e proteção do source sem credenciais externas. O handler real do webhook passou cinco testes negativos com acesso externo proibido, incluindo token inválido, configuração ausente, JSON inválido/nulo/array, corpo excedente e ambiente de produção. Typecheck Edge cobre os dois entrypoints; não substitui deployment Deno.
+
+Revisão visual local: cinco planos visíveis, desktop e mobile 390×844, sem overflow horizontal. Solicitação Enterprise após autenticação ainda exige prova no novo Preview. O warning preexistente de chunk WebGL grande permanece; não foi tratado como falha de build nem como prova de desempenho online.
+
+CI mais recente para a migration final: [run 38924771423](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38924771423), ambos os replays e restore aprovados. Restore sintético: **1 segundo**, zero perda de linhas do snapshot; checksum `27dcc4e741f90f2ea7c6266a2a3c8e7dd45895ffec321b52b002cbe9c80c053f`. Evidência anterior acima permanece histórica. SHA-256 da migration 49: `AABA842E2303947F47F2AC0CB6AD1F264DCA0B90BECBD4A8F0248244B9EBB093`.
+
 | Item | Estado | Escopo da evidência |
 | --- | --- | --- |
 | Auditoria do HEAD e draft | PASS | HEAD inicial e checks consultados no GitHub; PR mantida draft. |

@@ -1,5 +1,7 @@
 # ORKTO — fechamento técnico e operacional do MVP — 2026-10-16
 
+> Checkpoint histórico do runtime `ee3b3b3`. O incremento de planos, Pulso e billing está documentado em [fechamento operacional e billing](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md), com 49 migrations no source e 48 no staging até a aplicação remota.
+
 ## Decisão atual
 
 `READY_FOR_PRODUCTION_CANDIDATE=NO`

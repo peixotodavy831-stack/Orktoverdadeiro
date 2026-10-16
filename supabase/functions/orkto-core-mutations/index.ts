@@ -339,7 +339,7 @@ Deno.serve(async (req: Request) => {
           || (holder.reason !== undefined && (typeof holder.reason !== 'string' || holder.reason.length > 1000))) {
         return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       }
-      canonical = { taskId:holder.taskId,decision:command,reason:(holder.reason || '').trim() };
+      canonical = { taskId:holder.taskId,decision:command,reason:typeof holder.reason==='string'?holder.reason.trim():'' };
       functionName = 'orkto_decide_approval_task_command';
       eventType = command === 'APPROVE_DRAFT_TASK' ? 'approval.approved' : 'approval.rejected';
       argumentsForCommand = { p_task_id:holder.taskId,
@@ -712,10 +712,10 @@ Deno.serve(async (req: Request) => {
         p_provider_message_id:accepted.externalMessageId,p_content:canonical.content,p_occurred_at:accepted.acceptedAt,
       });
       if(acceptError||!['APPLIED','REPLAY'].includes(String(acceptedState))){
-        await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+        try { await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
           p_send_request_id:reservation.send_request_id,p_target_status:'UNKNOWN',
           p_provider_message_id:accepted.externalMessageId,p_failure_category:'acceptance_not_persisted',
-          p_occurred_at:accepted.acceptedAt}).catch(()=>undefined);
+          p_occurred_at:accepted.acceptedAt}); } catch { /* Retain the durable reservation; never resend on uncertain acceptance. */ }
         return response(503,'PROVIDER_UNAVAILABLE',requestId,undefined,origin);
       }
       return response(202,'OK',requestId,{result:'ACCEPTED',status:'REQUEST_ACCEPTED',
@@ -880,7 +880,7 @@ Deno.serve(async (req: Request) => {
         .eq('workspace_id',membership.workspace_id).is('archived_at',null).not('status','in','(rejected,expired)');
       if (countError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
       const limit = checkPlanLimit(plan.entitlements,'active_proposals',activeCount || 0);
-      if (!limit.allowed) return response(limit.reason === 'limit_reached' ? 403 : 423,
+      if (limit.allowed === false) return response(limit.reason === 'limit_reached' ? 403 : 423,
         limit.reason === 'limit_reached' ? 'PERMISSION_DENIED' : 'CONFIGURATION_REQUIRED', requestId, undefined, origin);
       const ids=[...new Set(quote.items.map(item=>item.catalogItemId).filter((id):id is string=>Boolean(id)))];
       const catalog=new Map<string,{name:string;description:string|null;unit_price:number}>();

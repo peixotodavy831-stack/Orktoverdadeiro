@@ -35,7 +35,8 @@
     "test:smoke": "npm run build && node scripts/smoke.mjs",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "lint:edge": "node scripts/typecheck-edge.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.5",
