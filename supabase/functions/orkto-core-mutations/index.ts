@@ -105,7 +105,7 @@ Deno.serve(async (req: Request) => {
     let functionName: string;
     let argumentsForCommand: Record<string,unknown>;
     let eventType: string;
-    if (command === 'READ_PLAN_CATALOG') {
+    if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT') {
       if (!suppliedPayload || typeof suppliedPayload !== 'object' || Array.isArray(suppliedPayload)
           || Object.keys(suppliedPayload).length !== 0) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       canonical = {};
@@ -436,6 +436,21 @@ Deno.serve(async (req: Request) => {
           ? version.price_cents : null,
       }));
       return response(200, 'OK', requestId, { result:'READ', catalog }, origin);
+    }
+    if (command === 'READ_BILLING_CURRENT') {
+      const access=await loadWorkspacePlanAccess(admin,membership.workspace_id);
+      const {data:usage,error:usageError}=await admin.from('orkto_plan_usage')
+        .select('feature_key,quantity,period_start').eq('workspace_id',membership.workspace_id)
+        .order('period_start',{ascending:false}).limit(100);
+      if(usageError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      const subscription=access.subscription;
+      return response(200,'OK',requestId,{result:'READ',billing:{
+        subscription:subscription?{plan_key:subscription.plan_key,status:subscription.status,trial_ends_at:subscription.trial_ends_at,current_period_start:subscription.current_period_start,current_period_end:subscription.current_period_end,cancel_at_period_end:subscription.cancel_at_period_end}:null,
+        workspacePlan:access.planKey,status:access.status,trialEndsAt:access.trialEndsAt,
+        readOnly:access.readOnly,configurationRequired:access.configurationRequired,
+        entitlements:access.entitlements,effectivePriceVersion:access.effectivePriceVersion,
+        usage:usage||[],checkout:'not_configured',pricesPublic:access.publicPriceApproved,
+      }},origin);
     }
     if (command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
       const conversationId = String(canonical.conversationId);

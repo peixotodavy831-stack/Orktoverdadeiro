@@ -59,6 +59,7 @@ export default function BillingPage({ userProfile }: BillingPageProps) {
       if (!currentResponse.ok) throw new Error(currentPayload.error || 'Não foi possível carregar sua assinatura.');
       setCatalog((catalogPayload.data || []) as CatalogPlan[]);
     } catch (cause) {
+      setCurrent(null); setCatalog([]);
       setError(cause instanceof Error ? cause.message : 'Não foi possível consultar o billing.');
     } finally { setLoading(false); }
   },[]);
@@ -77,7 +78,7 @@ export default function BillingPage({ userProfile }: BillingPageProps) {
     </header>
 
     {error && <div role="alert" className="mb-4 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-600 dark:text-red-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /><div className="flex-1">{error}</div><button onClick={() => void load()} className="underline">Tentar novamente</button></div>}
-    {loading && !current ? <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-zinc-500"><Loader2 className="h-5 w-5 animate-spin" />Carregando plano e uso…</div> : <>
+    {loading && !current ? <div className="flex min-h-40 items-center justify-center gap-2 text-sm text-zinc-500"><Loader2 className="h-5 w-5 animate-spin" />Carregando plano e uso…</div> : !current ? <p role="status" className="rounded-xl border border-zinc-200 p-5 text-sm text-zinc-500 dark:border-zinc-800">Não foi possível confirmar o plano, os limites ou as permissões de escrita. Tente atualizar a consulta.</p> : <>
       <section className="mb-6 grid gap-3 sm:grid-cols-2">
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"><p className="text-xs text-zinc-500">Plano atual</p><strong className="mt-1 block text-xl">{currentName}</strong><p className="mt-2 text-xs text-zinc-500">Situação: {STATUS_NAMES[current?.status||'configuration_required']||'Não reconhecida'}</p></div>
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900"><div className="flex items-center gap-2 text-xs text-zinc-500"><Clock3 className="h-4 w-4 text-orange-500" />Trial / acesso</div><strong className="mt-2 block text-sm">{trialEndsAt ? `Período termina em ${date(trialEndsAt)}` : 'Sem período de trial configurado'}</strong><p className="mt-2 text-xs text-zinc-500">{current?.readOnly ? 'Workspace em somente leitura.' : current?.configurationRequired ? 'A configuração do plano ainda é necessária.' : 'Acesso de escrita disponível conforme os limites configurados.'}</p></div>

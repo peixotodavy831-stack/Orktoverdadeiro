@@ -2,7 +2,7 @@
 
 - Checkpoint detalhado: docs/05_ENGINEERING/ORKTO_OPERATIONAL_WHATSAPP_CHECKPOINT_2026-10-16.md.
 - Sidebar compactada, Gestão expansível, logo empresarial/foto Google com fallback. Nova tela de estado de Integrações; nenhuma conexão externa ativada.
-- Billing/current corrigido para usar JWT/RLS do usuário. Contratação online continua não disponível: preços rascunho, checkout desligado e integração não concluída. Não marcar pedido de assinatura como PASS.
+- Billing/current usa contexto autenticado e comando READ_BILLING_CURRENT no gateway (a tentativa inicial de SELECT com JWT falhou por grants privados). Contratação online continua não disponível: preços rascunho, checkout desligado e integração não concluída. Não marcar pedido de assinatura como PASS.
 - Gemini: adaptador existente, teste isolado de uma solicitação sintética preparado. Guard final mantém chave proibida no Preview; WIA segura do staging continua T0 na Edge. Gemini live NOT RUN e integração conversacional confiável PENDING.
 - Meta: normalizador de assinatura HMAC e binding por número/WABA + estimador de tarifas versionadas implementados e testados localmente, ainda sem endpoint/persistência oficial, Embedded Signup ou envio. WhatsApp real NOT RUN.
 - Local: tipos e build Google/backend/smoke PASS; HTTP 37/37 + financeiro 14/14 PASS; 53 testes focados 53/53 PASS no guard final. Secret scan 422 arquivos/0 findings PASS. Revisão visual e publicação do novo candidato PENDING neste checkpoint.
@@ -520,3 +520,6 @@ O GitHub CLI local continua com credenciais inválidas, mas o conector GitHub do
 - A matriz de mutações foi atualizada com a sessão B real. `CORE_MUTATION_MATRIX=PARTIAL_BROWSER_VERIFIED`: CREATE de cliente, contato, negócio e proposta pendente e uma transição não terminal de negócio passaram no Preview exato. Negação HTTP de escrita direta, replay, A/B adversarial, demais comandos e efeitos externos continuam **PENDING** nesse deployment.
 - A cópia local de Configurações deixou de afirmar checkout Asaas/PIX ativo e envio WhatsApp; a leitura de Billing preserva o plano atual quando apenas o catálogo falha. Essas alterações estão **NOT DEPLOYED**. O erro real do catálogo no Preview, a proveniência `COMPLETE_WIA_RUN`, a proteção de senhas comprometidas indisponível no plano staging e a aprovação dos termos/preços comerciais impedem o checkpoint de segurança e o piloto de venda.
 - `PREVIEW_8B3F422=PARTIAL_PASS`, `FULL_BROWSER_E2E=PENDING`, `AUTH_AB_CROSS_TENANT=PENDING`, `SECURITY_RELEASE_CHECKPOINT=FAIL`, `SNAPSHOT_FINAL=NOT_CREATED`, `READY_FOR_PRODUCTION_CANDIDATE=NO`. Produção não foi alterada.
+
+### Correção de billing após conferência real
+No Preview 14ce720, a leitura com JWT ainda falhou por grants privados. Correção final usa READ_BILLING_CURRENT no gateway Edge, sem ampliar RLS/grants ou colocar admin no Preview. A tela deixa de afirmar escrita disponível quando a consulta não foi confirmada. Testes HTTP/cliente do gateway 47/47 PASS (fixtures); validação remota do novo comando PENDING. Metadados Vercel inspecionados com CA do sistema: sem nomes Gemini/Meta/checkout no Preview. O teste Gemini isolado continua NOT RUN.

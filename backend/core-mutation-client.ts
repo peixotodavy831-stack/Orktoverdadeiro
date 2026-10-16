@@ -16,7 +16,7 @@ export type CoreMutationCommand =
   | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE' | 'EXTEND_QUOTE_RETENTION'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN'
-  | 'READ_PLAN_CATALOG' | 'PREPARE_WIA_T0';
+  | 'READ_PLAN_CATALOG' | 'READ_BILLING_CURRENT' | 'PREPARE_WIA_T0';
 
 export type CoreMutationResult = {
   result: string;
@@ -42,6 +42,7 @@ export type CoreMutationResult = {
   token?: string;
   publicPath?: string;
   catalog?: Array<{ plan_key: string; price_cents: number | null; currency: string; price_is_public: boolean; entitlements: unknown; version: number }>;
+  billing?: Record<string,unknown>;
   agent?: string;
   traceId?: string;
   runId?: string;

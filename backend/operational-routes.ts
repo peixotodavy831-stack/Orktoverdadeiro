@@ -1161,18 +1161,11 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
 
   app.get('/api/billing/current', authenticate, requireDb, async (req, res) => {
     const context = await workspaceContext(req, res, db, false); if (!context) return;
-    const readDb=req.authenticatedSupabase||db;
     res.setHeader('Cache-Control','private, no-store');
-    try {
-      const [workspace, subscription, usage] = await Promise.all([
-        readDb.from('orkto_workspaces').select('plan_key,subscription_status').eq('id',context.id).maybeSingle(),
-        readDb.from('orkto_workspace_subscriptions').select('plan_key,status,trial_ends_at,current_period_start,current_period_end,cancel_at_period_end').eq('workspace_id',context.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
-        readDb.from('orkto_plan_usage').select('feature_key,quantity,period_start').eq('workspace_id',context.id).order('period_start',{ascending:false}).limit(100),
-      ]);
-      if (workspace.error) throw workspace.error; if (subscription.error) throw subscription.error; if (usage.error) throw usage.error;
-      const access = await loadWorkspacePlanAccess(readDb,context.id);
-      res.json({ subscription: subscription.data, workspacePlan: access.planKey, status: access.status, trialEndsAt:access.trialEndsAt, readOnly:access.readOnly, configurationRequired:access.configurationRequired, entitlements:access.entitlements, effectivePriceVersion:access.effectivePriceVersion, usage: usage.data || [], checkout: 'not_configured', pricesPublic:access.publicPriceApproved });
-    } catch (error) { failure(res,error,'Não foi possível carregar o plano e o uso.'); }
+    const result=await invokeCoreMutation(req,res,context,'READ_BILLING_CURRENT',{});
+    if(!result)return;
+    if(!result.billing)return res.status(503).json({error:'Não foi possível confirmar os dados do plano.',category:'configuration_required'});
+    return res.json(result.billing);
   });
 
   app.get('/api/notifications', authenticate, requireDb, async (req, res) => {

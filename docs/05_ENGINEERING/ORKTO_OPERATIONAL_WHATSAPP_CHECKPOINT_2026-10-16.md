@@ -14,11 +14,11 @@ Continuação incremental da missão do proprietário no checkout Orktoverdeiro-
 | Cloud API | Novo normalizador com HMAC de bytes originais e binding confiável por número/WABA | Testes locais PASS; ainda não ligado a endpoint/persistência, Embedded Signup ou envio real |
 | Custos WhatsApp | Novo estimador puro por versão, categoria, moeda, país e vigência | Testes locais PASS. Sem tarifas reais aprovadas, conciliação ou medição remota |
 | Cobrança | /api/asaas/checkout permanece explicitamente desativado | Bloqueado por condições comerciais e integração; nenhuma assinatura criada |
-| Plano atual | Correção de GET /api/billing/current para JWT/RLS da requisição | Regressão HTTP local PASS; leitura autenticada no novo Preview PENDING |
+| Plano atual | GET /api/billing/current usa READ_BILLING_CURRENT no gateway após conferir grants privados | Regressão HTTP/gateway 47/47 PASS; leitura autenticada no novo Preview PENDING |
 | Integrações | Nova consulta autenticada de estado e tela sem sucesso simulado | Exibe limitações reais. Nenhuma conexão externa ativada |
 
 ## Mudanças de interface
-- Sidebar: removida a soma de espaçamento space-y com gap; grupos mais próximos e linhas desktop de 36px. Gestão pode ser expandida/recolhida, abrindo ao navegar para um módulo do grupo. Navegação móvel mantém alvos existentes.
+- Sidebar: removida a soma de espaçamento space-y com gap; grupos mais próximos e linhas desktop de 32px. Gestão pode ser expandida/recolhida, abrindo ao navegar para um módulo do grupo. Navegação móvel mantém alvos existentes.
 - Identidade: logo da empresa se disponível, foto Google como alternativa; foto pequena da conta quando ambas existem. Fallback para inicial em falha; imagens HTTPS sem credenciais, foto Google com host validado e referrerPolicy=no-referrer. Clique abre Perfil.
 - Plano & cobrança: estado de acesso em português, planos inexistentes não são apresentados, botões de contratação inoperantes removidos. Continua impossível assinar enquanto checkout e condições não forem aprovados/implementados. Não declarar esse pedido concluído.
 
@@ -64,3 +64,12 @@ READY_FOR_PRODUCTION_CANDIDATE=NO
 WHATSAPP_BUSINESS_REAL=NOT_RUN
 GEMINI_LIVE=NOT_RUN
 ONLINE_SUBSCRIPTION=NOT_AVAILABLE
+
+## Correção adicional após observação no Preview 14ce720
+A leitura direta com o JWT também falhou no ambiente real porque tabelas de billing são privadas por desenho. O teste de fixture que cobria apenas JWT não capturava a fronteira de grants real; essa limitação foi identificada na navegação autenticada e o resultado não foi convertido em PASS remoto. A tela ainda apresentava mensagem de escrita disponível sem current confirmado: corrigido para estado indisponível e limpeza de dados antigos em falha.
+
+Correção final: comando explícito READ_BILLING_CURRENT na Edge. Reutiliza autenticação Google/piloto e membership ativa antes da consulta, não aceita payload com IDs, retorna somente campos de plano/status/período/uso e não retorna preço não publicado ou credenciais. A rota web chama esse comando, sem SELECT nas tabelas privadas. Não altera RLS, grants, SQL ou assinatura. Teste HTTP atualizado verifica gateway e ausência de consultas privadas pelo Preview; 47/47 testes HTTP + cliente de gateway PASS. Inicialmente o harness usava URL HTTP de fixture com APP_ENV staging e foi corretamente rejeitado; corrigida a identidade do fixture, não o guard.
+
+Acesso ao editor Supabase staging disponível. Baseline remoto de index.ts comparado byte-a-byte normalizado ao HEAD antes da alteração, igualdade confirmada; atualização somente desse arquivo preparada e verificada igual ao arquivo local. O editor confirmou solicitação de deploy; persistência remota e leitura pelo novo Preview ainda precisam da verificação final. Fonte anterior preservada no histórico Git para reversão. Nenhum segredo lido.
+
+Repetição de metadados Vercel com NODE_USE_SYSTEM_CA=1 funcionou: projeto orkto-staging, variáveis Preview usuais e Auth Google por branch. Nenhum nome de variável Gemini/Meta/checkout listado. A falha anterior de fetch não foi usada como prova de ausência. Não houve env pull ou descriptografia.

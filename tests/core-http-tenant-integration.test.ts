@@ -334,6 +334,7 @@ let app: Express;
 let failGeminiRequests = false;
 let lastGeminiRequestContents: unknown = null;
 let profileGatewayCalls = 0;
+let billingGatewayCalls = 0;
 const servers = new Set<ReturnType<typeof createServer>>();
 
 before(async () => {
@@ -371,6 +372,12 @@ before(async () => {
         id: randomUUID(), workspace_id: workspaceId, actor_user_id: user.id, event_type: eventType,
         entity_type: entityType, entity_ref: entityRef, request_id: headers.get('x-request-id'),
       });
+      if (request.command === 'READ_BILLING_CURRENT') {
+        if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        billingGatewayCalls++;
+        const subscription=database.rows('orkto_workspace_subscriptions').find(row=>row.workspace_id===workspaceId)||null;
+        return ok({result:'READ',billing:{subscription,workspacePlan:subscription?.plan_key||null,status:subscription?.status||'configuration_required',readOnly:false,configurationRequired:false,entitlements:{},usage:[],checkout:'not_configured'}});
+      }
       if (request.command === 'READ_PLAN_CATALOG') {
         if (Object.keys(payload).length) return Response.json({ code:'VALIDATION_FAILED' }, { status:400 });
         const catalog = database.rows('orkto_plan_price_versions').filter(row=>row.status==='approved').map(row=>({
@@ -850,13 +857,14 @@ test('workspace audit restricts role, tenant and payload projection',async()=>{
   assert.equal((await fetch(`${base}/api/audit`)).status,401);
 });
 
-test('billing reads keep the staging caller JWT and reject foreign workspace',async()=>{
-  resetDatabase();const base=await serve(app);const previous=process.env.APP_ENV;
-  try{process.env.APP_ENV='staging';const response=await api(base,CLIENT_TOKEN_A,'/api/billing/current');assert.equal(response.status,200);
-    const reads=database.requestAuthorization.filter(item=>['/rest/v1/orkto_workspaces','/rest/v1/orkto_workspace_subscriptions','/rest/v1/orkto_plan_usage'].includes(item.path));
-    assert.ok(reads.length>=3);assert.ok(reads.every(item=>item.authorization===`Bearer ${CLIENT_TOKEN_A}`));
+test('billing reads use the authenticated gateway without private table reads in Preview',async()=>{
+  resetDatabase();const base=await serve(app);const previous=process.env.APP_ENV;const previousUrl=process.env.VITE_SUPABASE_URL;
+  try{process.env.APP_ENV='staging';process.env.VITE_SUPABASE_URL='https://ghrjongiodziasupakrk.supabase.co';const beforeCalls=billingGatewayCalls;const response=await api(base,CLIENT_TOKEN_A,'/api/billing/current');assert.equal(response.status,200);
+    assert.equal(billingGatewayCalls,beforeCalls+1);
+    const reads=database.requestAuthorization.filter(item=>['/rest/v1/orkto_workspace_subscriptions','/rest/v1/orkto_plan_usage'].includes(item.path));
+    assert.equal(reads.length,0);assert.equal((await response.json() as {workspacePlan:string}).workspacePlan,'pro');
     assert.equal((await api(base,CLIENT_TOKEN_A,'/api/billing/current',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
-  }finally{if(previous===undefined)delete process.env.APP_ENV;else process.env.APP_ENV=previous;}
+  }finally{if(previous===undefined)delete process.env.APP_ENV;else process.env.APP_ENV=previous;if(previousUrl===undefined)delete process.env.VITE_SUPABASE_URL;else process.env.VITE_SUPABASE_URL=previousUrl;}
 });
 
 test('integration status never claims external activation or exposes keys',async()=>{
