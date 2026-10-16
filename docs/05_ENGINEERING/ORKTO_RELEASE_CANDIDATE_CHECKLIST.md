@@ -1,3 +1,8 @@
+# Current checklist decision — billing staging 16/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** Runtime `45068033a3b41f7fb170ca174408dc5fd1ba53fa`, [Preview g8jxnq6ye](https://orkto-staging-g8jxnq6ye-peixoto-s-projects1.vercel.app/), READY/Preview. Remote staging 49 migrations, Edge core v29 + billing webhook v1. Public gates and Google-only entry PASS; current-candidate authenticated E2E and external provider/recovery gates remain open. [Current canonical matrix](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md).
+
+## Previous checklist checkpoints — historical
 # Current checklist decision — 2026-10-16
 
 **Incremento comercial em validação:** [fechamento operacional e billing](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md). O source agora requer **49 migrations**; o staging remoto anteriormente validado tem **48**. Os cinco planos e quatro preços foram aprovados pelo proprietário. Migration/gateway e novo candidato precisam de aplicação e E2E antes de qualquer liberação. Abaixo fica preservado o checkpoint anterior.

@@ -1,0 +1,62 @@
+{
+  "sha": "45068033a3b41f7fb170ca174408dc5fd1ba53fa",
+  "scope": "PUBLIC_ENTRY_ONLY_OAUTH_NAVIGATION_INTERCEPTED_NO_LOGIN",
+  "rows": [
+    {
+      "test": "FIVE_PUBLIC_OFFERS",
+      "status": "PASS"
+    },
+    {
+      "test": "APPROVED_PRICE_79,90",
+      "status": "PASS"
+    },
+    {
+      "test": "APPROVED_PRICE_149,90",
+      "status": "PASS"
+    },
+    {
+      "test": "APPROVED_PRICE_299,90",
+      "status": "PASS"
+    },
+    {
+      "test": "APPROVED_PRICE_599,90",
+      "status": "PASS"
+    },
+    {
+      "test": "CHECKOUT_CLOSED",
+      "status": "PASS"
+    },
+    {
+      "test": "ENTERPRISE_AUTH_INTENT",
+      "status": "PASS"
+    },
+    {
+      "test": "PASSWORD_FIELDS_ABSENT",
+      "status": "PASS"
+    },
+    {
+      "test": "GOOGLE_ONLY_LIVE_SETTINGS",
+      "status": "PASS"
+    },
+    {
+      "test": "LOGIN_RESPONSIVE",
+      "status": "PASS",
+      "width": 390
+    },
+    {
+      "test": "LOGIN_RESPONSIVE",
+      "status": "PASS",
+      "width": 1440
+    },
+    {
+      "test": "PASSWORD_GRANT_DISABLED",
+      "status": "PASS",
+      "http_status": 422,
+      "error_code": "email_provider_disabled"
+    },
+    {
+      "test": "GOOGLE_PKCE_AUTHORIZATION",
+      "status": "PASS"
+    }
+  ]
+}

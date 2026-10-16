@@ -6,7 +6,7 @@ Estado: `READY_FOR_PRODUCTION_CANDIDATE=NO`. PR #2 permanece draft. Nenhum merge
 
 A auditoria partiu do HEAD `d3946bcafb339d0a315cae2ba9834b7ed41da649`, com checks PostgreSQL 17 e boundary aprovados. O Preview anteriormente validado continua sendo `ee3b3b3d45decb208d7ccf927bb25f429a64af04` em `https://orkto-staging-nlwxxb8o0-peixoto-s-projects1.vercel.app/`. O smoke Google nesse Preview é evidência histórica preservada.
 
-Este incremento acrescenta a migration 49 `20261016060000_commercial_billing_pulso.sql` e exige atualizar o gateway Edge antes de publicar um novo candidato. O staging remoto ainda tem 48 migrations; nenhuma das novas funções de billing foi apresentada como ativa remotamente.
+Migration 49 aplicada no staging em 16/10/2026 via conector: ledger remoto 49, nome lógico `commercial_billing_pulso` exatamente uma vez, versão remota `20261016154435`. Gateway Edge v29 e webhook de billing v1 ativos. Os sete objetos novos têm RLS e zero grants de dados para anon/authenticated; não há políticas Pulso ou tarifas de modelo provisionadas. [Evidência sanitizada](evidence/billing-staging-2026-10-16.json).
 
 ## Cinco planos aprovados
 
@@ -73,7 +73,7 @@ CI mais recente para a migration final: [run 38924771423](https://github.com/pei
 | Cinco planos/preços/categorias | PASS | Contrato compartilhado, migration versionada e testes locais. |
 | Enterprise sem preço fixo | PASS | Interface e política rejeitam ativação com valor fictício. |
 | Solicitação Enterprise persistida | PASS | RPC testada em PostgreSQL; role, quota diária, idempotência e auditoria. UI local encaminha para login e formulário autenticado. |
-| Solicitação Enterprise no novo Preview | NOT_TESTED | Depende de migration/gateway/candidato atualizados. |
+| Solicitação Enterprise no novo Preview | PARTIAL / NOT_TESTED_AUTHENTICATED | CTA conserva intenção e abre Google; persistência real após login não foi executada no novo candidato. |
 | Pulso, saldo e bloqueio | PASS | Testes unitários e SQL, reserva atômica e vínculo ao plano. Nenhuma franquia real aprovada. |
 | Custos e tarifas | PASS | Testes locais de fornecedor, tokens, versão, validade e custo desconhecido. |
 | Central Econômica | PASS | Cálculos/contratos locais e tipos. Valores financeiros reais não foram inventados. |
@@ -90,19 +90,32 @@ CI mais recente para a migration final: [run 38924771423](https://github.com/pei
 | Meta real/coexistência/tarifas | BLOCKED_EXTERNAL | Dependem de App/WABA, elegibilidade, número de teste, App Review, secrets e aprovação. Consulta à documentação Meta recebeu HTTP 429; não se presumiu elegibilidade. |
 | Restore PostgreSQL descartável | PASS | Artifact do CI com checksum, contagens, FK, RLS e billing. |
 | Restore gerenciado de staging/PITR | BLOCKED_EXTERNAL | Sem capacidade/backup de staging demonstrado; não contratar plano automaticamente. |
-| Migration 49 no Supabase staging | NOT_TESTED | Preparada e validada em CI; remoto continua em 48 antes da aplicação autorizada. |
-| Edge e novo Preview | NOT_TESTED | Publicar em staging depois da migration; revalidar no SHA exato. |
+| Migration 49 no Supabase staging | PASS | Ledger 49, versão remota 20261016154435, cinco preços v2 corretos, sete tabelas RLS, zero browser grants. |
+| Edge staging | PASS_DEPLOY / PARTIAL_RUNTIME | Core v29 JWT obrigatório: sem token 401. Billing v1 token dedicado: sem configuração 503. Billing sandbox real continua bloqueado. |
+| Novo Preview | PASS_PUBLIC | 45068033a3b41f7fb170ca174408dc5fd1ba53fa READY em orkto-staging; health, API, headers, CORS, teclado, responsividade, planos e entrada Google passaram. E2E autenticado continua aberto. |
 | Produção | PASS | Preservada; `READY_FOR_PRODUCTION_CANDIDATE=NO`. |
 
 ## Configuração externa necessária
 
-1. Aplicar migration 49 no projeto **ghrjongiodziasupakrk** após revisão. O SQL não remove usuários ou registros existentes. Atualiza o catálogo aprovado e cria tabelas/funções internas com RLS e negação de acesso ao navegador.
-2. Publicar `orkto-core-mutations` com JWT obrigatório e `orkto-billing-webhook` com JWT desativado **somente porque o fornecedor usa token dedicado**. O webhook recusa configuração incompleta. Manter `ORKTO_BILLING_SANDBOX_ENABLED=OFF` até preparar credencial e customer de teste.
-3. Publicar novo Preview e cadastrar seu redirect exato. Repetir Google proprietário; para A/B, o proprietário deve aprovar a segunda identidade, workspace e papel. Não usar o launcher de senhas: ele recusa Google-only deliberadamente.
+1. Migration 49 já aplicada no projeto **ghrjongiodziasupakrk**. Não removeu usuários ou registros existentes; catálogo aprovado e tabelas internas reconciliados.
+2. `orkto-core-mutations` v29 e `orkto-billing-webhook` v1 já publicados. O JWT do webhook é desativado **somente porque o fornecedor usa token dedicado**; sem segredo/configuração ele retorna 503 antes de persistir. Manter billing fechado até preparar credencial e customer sandbox.
+3. Novo Preview publicado: `https://orkto-staging-g8jxnq6ye-peixoto-s-projects1.vercel.app/`. No Supabase staging, adicionar esse redirect exato em Authentication → URL Configuration → Redirect URLs, preservando os redirects aprovados existentes. Repetir Google proprietário nesse candidato; para A/B, aprovar a segunda identidade, workspace e papel. Não usar o launcher de senhas: ele recusa Google-only deliberadamente.
 4. Asaas: conta e chave **sandbox** somente no secret store, `ASAAS_ENVIRONMENT=sandbox`, `APP_ENV=staging`, token dedicado de webhook com ao menos 32 caracteres, URL `https://ghrjongiodziasupakrk.supabase.co/functions/v1/orkto-billing-webhook`. Configurar apenas eventos de pagamento tratados. Aprovar customer de teste vinculado ao workspace, sem dados de terceiros nem notificações não autorizadas. Só então habilitar o flag de sandbox e homologar.
 5. Gemini: cadastrar segredo, workspace de teste, flag explícito, modelo, tarifa e política Pulso aprovada. Teste pago exige autorização específica; não enviar segredos por chat.
 6. Meta: concluir App/WABA/Embedded Signup/App Review, número de teste e tarifas com o proprietário. Coexistência depende da elegibilidade confirmada da conta. Manter mensagens reais OFF.
 7. Aprovar franquias, usuários, suporte, termos/SLA e política de cancelamento antes de contratação real. Os cinco planos e quatro preços já estão decididos e não precisam ser aprovados novamente.
+
+## Candidato final publicado e limites atuais
+
+SHA executável **45068033a3b41f7fb170ca174408dc5fd1ba53fa**, deployment `dpl_4Np4vbkDNQWSxLAtVLvHzxzeXf5e`, projeto `orkto-staging`, target `null` (Preview), READY. URL: https://orkto-staging-g8jxnq6ye-peixoto-s-projects1.vercel.app/. A PR continua draft; commits posteriores de documentação não mudam esse runtime.
+
+- [Probe público](evidence/billing-preview-public-4506803.json): health/readiness 200, correlação, headers, API privada 401, origem estrangeira 403, metadados staging, controles nomeados, teclado, console zero erros e larguras 390/768/1440 PASS. Medida única de carregamento não é teste de carga ou SLO.
+- [Entrada Google e planos](evidence/billing-google-entry-4506803.json): cinco ofertas, quatro preços, checkout fechado, Enterprise conserva intenção de proposta, zero campos de senha, configuração Google-only real e PKCE S256 com callback exato PASS. Password grant retorna 422 `email_provider_disabled`. Navegação OAuth foi interceptada antes do fornecedor: **não é login, refresh, logout ou E2E autenticado aprovado**.
+- Banco real: piloto ligado, uma admissão/identidade Google, zero identidades email, zero customer bindings e zero solicitações Enterprise; schema privado sem USAGE para authenticated. Não foi criada uma segunda conta ou franquia implicitamente.
+- CI do SHA: [PostgreSQL 17 / restore](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38926604141) e [boundary](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38926604047) PASS. Secret scan final: 470 arquivos, zero achados/blockers.
+- Tentativa CLI 7Aj9AT6yjHGeqRtWeYeJBZSiPMX4 BLOCKED por colaboração, sem mudar controle de acesso. Tentativa API por SHA 6acj8KY7Rk3F3iZNw9VAbcnWd192 cancelada para preservar variáveis específicas da branch. Deployment dcad0voyg (target staging) não é o candidato entregue: OIDC development recusado por Trusted Sources, sem ampliar a regra. Candidato g8jxnq6ye é Preview e passou com OIDC do mesmo projeto.
+
+**Conclusão:** implementação disponível para revisão e homologação controlada. Prontidão comercial e de produção **não concluída**. Gates obrigatórios ainda abertos: Google A/B e ciclo de sessão no candidato atual, persistência Enterprise autenticada, homologação real de billing sandbox, validações externas Gemini/Meta, recuperação gerenciada e condições comerciais ainda não aprovadas. Nenhuma evidência histórica foi apagada ou convertida em aprovação nova.
 
 ## Fontes oficiais consultadas
 

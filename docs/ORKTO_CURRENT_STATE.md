@@ -1,3 +1,9 @@
+# Estado atual — billing e Pulso, 16/10/2026
+
+Matriz canônica: [fechamento operacional e billing](05_ENGINEERING/OPERATIONAL_BILLING_CLOSURE_2026-10-16.md). Preview g8jxnq6ye / SHA 4506803 READY, staging 49 migrations, core Edge v29, billing v1. Cinco planos, Central Econômica, Pulso e billing sandbox implementados; 275 testes app + 61 readiness PASS, lint/build/CI PASS. Probes públicos e Google-only/PKCE PASS. Google A/B e homologação externa/recuperação ainda pendentes. Produção intocada; READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+## Histórico preservado
+
 ## Candidato operacional verificado — 16/10/2026
 
 Esta seção prevalece sobre os checkpoints históricos abaixo para esta alteração.

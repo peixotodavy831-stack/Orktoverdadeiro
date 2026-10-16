@@ -1,4 +1,22 @@
-# Current security gate — 2026-10-15 — Google-only pilot
+# Current security gate — 2026-10-16 — billing and Pulso
+
+**SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.** Current matrix: [operational billing closure](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md). Previous checkpoints below are historical.
+
+Staging `ghrjongiodziasupakrk`: migration ledger 49; core Edge v29 and billing webhook v1 deployed. Seven new tables have RLS with zero browser grants. No Pulso allowance, tariff, customer binding, charge or paid inference was created. [Live advisor evidence](evidence/billing-staging-2026-10-16.json).
+
+| Actual advisor | Classification | Evidence / limit |
+| --- | --- | --- |
+| 17 RLS tables without policies, INFO | INTENTIONAL_DENY | Pilot private tables and server-only billing/channel controls. No permissive policy added. Seven new tables have zero anon/authenticated data grants. |
+| Five authenticated SECURITY DEFINER helpers, WARN | INTENTIONAL_NARROW_API | Live definitions reviewed: boolean membership/admin/legacy-owner/session predicates; auth.uid identity, active membership, Google admission/session checks, empty search_path. All public definers deny anon execution. Does not replace real two-account Google testing. |
+| Leaked password protection disabled, WARN | REMAINS_OPEN / GOOGLE_ONLY_SCOPE | Not fixed. Password methods remain disabled for pilot; no permission to reintroduce password or purchase platform upgrade. |
+| 80 unindexed FKs, INFO | PERFORMANCE_BACKLOG | No measured slow query established by this count. Not a data access vulnerability or proof of acceptable load performance. Review representative workload before release. |
+| 38 unused indexes, INFO | OBSERVATIONAL | Staging inactivity does not justify deleting indexes used for constraints or future workload. No indexes removed to silence advisor. |
+
+Anonymous core request returns 401; incomplete billing webhook configuration returns 503 before persistence. Provider lifecycle, current-candidate Google A/B and managed staging restore remain required unproven gates. Production untouched.
+
+Remediation references: [RLS](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy), [SECURITY DEFINER](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable), [password protection](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection), [foreign keys](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys), [unused indexes](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index).
+
+## Historical checkpoint — 2026-10-15 — Google-only pilot
 
 **SECURITY_RELEASE_CHECKPOINT=INCOMPLETE; READY_FOR_PRODUCTION_CANDIDATE=NO.**
 
