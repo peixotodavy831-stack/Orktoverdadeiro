@@ -1,0 +1,1872 @@
+{
+  "date": "2026-10-16",
+  "scope": "STAGING_ONLY",
+  "readyForProductionCandidate": "NO",
+  "previousRuntimeSha": "45068033a3b41f7fb170ca174408dc5fd1ba53fa",
+  "sourceRuntimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+  "deployment": {
+    "id": "dpl_56dgXZ3um4wFAVsQZjUdyTUzHvLn",
+    "url": "https://orkto-staging-az36qohmo-peixoto-s-projects1.vercel.app/",
+    "state": "READY",
+    "target": null,
+    "project": "orkto-staging"
+  },
+  "supabase": {
+    "project": "ghrjongiodziasupakrk",
+    "migrations": 50,
+    "newMigration": {
+      "name": "billing_native_lifecycle",
+      "localVersion": "20261016182215",
+      "remoteVersion": "20261016183159",
+      "sha256": "1D54697BADE8FBF0A04B039F41A10B0ED86DC85EFCA684CF99EA0ACAC344701A"
+    },
+    "coreEdge": {
+      "version": 30,
+      "verifyJwt": true,
+      "sha256": "663fe360ccd54872039db992cdfc41fa02df7981dd117f03571a5ee490494d44"
+    },
+    "billingWebhook": {
+      "version": 2,
+      "verifyJwt": false,
+      "authentication": "dedicated secret; unchanged fail-closed",
+      "sha256": "1c9deb58f3d9e8d130608571db4c6d28bab6c629e684d50928f9182070807b47"
+    },
+    "billingBindings": 0,
+    "approvedCustomers": 0,
+    "providerCommands": 0,
+    "lifecycleEvents": 0
+  },
+  "tests": [
+    {
+      "id": "GOOGLE_B_LOGIN",
+      "status": "PASS",
+      "runtimeSha": "45068033a3b41f7fb170ca174408dc5fd1ba53fa",
+      "scope": "Real Google B login; UI + Google identity + separate active owner membership/session; explicit 30-day owner authorization",
+      "evidence": "google-b-4506803.png",
+      "edgeVersionAtTime": 29,
+      "migrationsAtTime": 49
+    },
+    {
+      "id": "B_RLS_ROLE_CONTEXT",
+      "status": "PASS",
+      "runtimeSha": "45068033a3b41f7fb170ca174408dc5fd1ba53fa",
+      "scope": "Live staging database, authenticated role with SQL-installed claims from real B/session; own membership allowed, A membership/admin and A clients/contacts/membership rows denied; NOT JWT HTTP transport"
+    },
+    {
+      "id": "MISSING_SESSION_GUARD",
+      "status": "PASS",
+      "scope": "Live database helper denies claims without matching auth.sessions row; not revoked-token replay"
+    },
+    {
+      "id": "LOCAL_REGRESSION",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "application": {
+        "passed": 285,
+        "total": 285
+      },
+      "readiness": {
+        "passed": 61,
+        "total": 61
+      },
+      "focusedBilling": {
+        "passed": 19,
+        "total": 19
+      }
+    },
+    {
+      "id": "LINT_EDGE_BUILD_SECRET_SCAN",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "secretScan": {
+        "files": 481,
+        "findings": 0
+      }
+    },
+    {
+      "id": "CI_POSTGRES17",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "run": 38947818611,
+      "scope": "50 migrations, legacy and Supabase-like baseline, lifecycle SQL, security assertions, synthetic restore rehearsal"
+    },
+    {
+      "id": "CI_DEPLOY_BOUNDARY",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "run": 38947818388
+    },
+    {
+      "id": "PREVIEW_PUBLIC",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "evidence": "public-preview-a2a3651.json"
+    },
+    {
+      "id": "NATIVE_API_ANONYMOUS",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "put": 401,
+      "delete": 401
+    },
+    {
+      "id": "DEPLOYED_EDGE_BOUNDARY",
+      "status": "PASS",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "coreAnonymous": 401,
+      "billingWebhook": 503,
+      "state": "CONFIGURATION_REQUIRED"
+    },
+    {
+      "id": "GOOGLE_NEW_PREVIEW_REDIRECT",
+      "status": "BLOCKED_EXTERNAL",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "reason": "Exact URL absent from 16 authorized redirects; prepared but NOT saved; action-time browser confirmation required"
+    },
+    {
+      "id": "JWT_HTTP_AB_REPLAY_NATURAL_EXPIRY",
+      "status": "NOT_TESTED",
+      "reason": "Current browser surface provides UI actions, not an authorized two-context token test harness; no real token captured/replayed, no natural expiration observed"
+    },
+    {
+      "id": "AUTHENTICATED_E2E_NEW_SHA",
+      "status": "NOT_TESTED",
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "reason": "New exact redirect pending; old 5/5 and Google proof remain historical"
+    },
+    {
+      "id": "ASAAS_NATIVE_REAL_SANDBOX",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Authorized sandbox account/customer, API key, dedicated webhook secret and disabled provider notifications missing; lifecycle flag remains closed"
+    },
+    {
+      "id": "ACCESS_TERMINATION_POLICY",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "No approval for effective termination/refund timing; no access termination policy seeded"
+    },
+    {
+      "id": "GEMINI_META_PULSO_RECOVERY",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Previously documented external configuration, commercial approvals, inference budget and private recovery destination still absent"
+    }
+  ],
+  "advisors": {
+    "security": {
+      "lints": [
+        {
+          "name": "rls_enabled_no_policy",
+          "title": "RLS Enabled No Policy",
+          "level": "INFO",
+          "facing": "EXTERNAL",
+          "categories": [
+            "SECURITY"
+          ],
+          "description": "Detects cases where row level security (RLS) has been enabled on a table but no RLS policies have been created.",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+          "count": 19,
+          "findings": [
+            {
+              "detail": "Table \\`orkto_pilot_private.admissions\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "admissions",
+                "type": "table",
+                "schema": "orkto_pilot_private"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`orkto_pilot_private.audit\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "audit",
+                "type": "table",
+                "schema": "orkto_pilot_private"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`orkto_pilot_private.configuration\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "configuration",
+                "type": "table",
+                "schema": "orkto_pilot_private"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`orkto_pilot_private.recovery_checkpoints\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "recovery_checkpoints",
+                "type": "table",
+                "schema": "orkto_pilot_private"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`orkto_pilot_private.recovery_rows\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "recovery_rows",
+                "type": "table",
+                "schema": "orkto_pilot_private"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_billing_bindings\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_billing_bindings",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_billing_customers\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_billing_customers",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_channel_connections\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_channel_connections",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_commercial_requests\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_commercial_requests",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_model_tariffs\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_model_tariffs",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_pulso_ledger\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_pulso_ledger",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_pulso_policies\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_pulso_policies",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_subscription_commands\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_subscription_commands",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_subscription_events\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_subscription_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_subscription_lifecycle_events\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_subscription_lifecycle_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_whatsapp_controls\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_whatsapp_controls",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_whatsapp_rate_cards\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_whatsapp_rate_cards",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_whatsapp_usage_events\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_whatsapp_usage_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_whatsapp_webhook_events\\` has RLS enabled, but no policies exist",
+              "metadata": {
+                "name": "orkto_whatsapp_webhook_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            }
+          ]
+        },
+        {
+          "name": "authenticated_security_definer_function_executable",
+          "title": "Signed-In Users Can Execute SECURITY DEFINER Function",
+          "level": "WARN",
+          "facing": "EXTERNAL",
+          "categories": [
+            "SECURITY"
+          ],
+          "description": "Detects `SECURITY DEFINER` functions that are callable by signed-in users. Revoke `EXECUTE`, switch the function to `SECURITY INVOKER`, or move it out of your exposed API schema if signed-in users should not call it.",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+          "count": 5,
+          "findings": [
+            {
+              "detail": "Function `public.orkto_google_pilot_session_allowed()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/orkto_google_pilot_session_allowed`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+              "metadata": {
+                "name": "orkto_google_pilot_session_allowed",
+                "schema": "public",
+                "language": "plpgsql",
+                "arguments": "",
+                "security_definer": true
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Function `public.orkto_is_workspace_admin(target_workspace uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/orkto_is_workspace_admin`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+              "metadata": {
+                "name": "orkto_is_workspace_admin",
+                "schema": "public",
+                "language": "sql",
+                "arguments": "target_workspace uuid",
+                "security_definer": true
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Function `public.orkto_is_workspace_member(target_workspace uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/orkto_is_workspace_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+              "metadata": {
+                "name": "orkto_is_workspace_member",
+                "schema": "public",
+                "language": "sql",
+                "arguments": "target_workspace uuid",
+                "security_definer": true
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Function `public.orkto_legacy_owner_matches(target_workspace uuid, legacy_user uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/orkto_legacy_owner_matches`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+              "metadata": {
+                "name": "orkto_legacy_owner_matches",
+                "schema": "public",
+                "language": "sql",
+                "arguments": "target_workspace uuid, legacy_user uuid",
+                "security_definer": true
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            },
+            {
+              "detail": "Function `public.orkto_pilot_session_allowed()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/orkto_pilot_session_allowed`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+              "metadata": {
+                "name": "orkto_pilot_session_allowed",
+                "schema": "public",
+                "language": "plpgsql",
+                "arguments": "",
+                "security_definer": true
+              },
+              "observed_at": "2026-10-16T18:34:44.706Z"
+            }
+          ]
+        },
+        {
+          "name": "auth_leaked_password_protection",
+          "title": "Leaked Password Protection Disabled",
+          "level": "WARN",
+          "facing": "EXTERNAL",
+          "categories": [
+            "SECURITY"
+          ],
+          "description": "Leaked password protection is currently disabled.",
+          "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection",
+          "count": 1,
+          "findings": [
+            {
+              "detail": "Supabase Auth prevents the use of compromised passwords by checking against HaveIBeenPwned.org. Enable this feature to enhance security.",
+              "metadata": {
+                "type": "auth",
+                "entity": "Auth"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "performance": {
+      "lints": [
+        {
+          "name": "unindexed_foreign_keys",
+          "title": "Unindexed foreign keys",
+          "level": "INFO",
+          "facing": "EXTERNAL",
+          "categories": [
+            "PERFORMANCE"
+          ],
+          "description": "Identifies foreign key constraints without a covering index, which can impact database performance.",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys",
+          "count": 80,
+          "findings": [
+            {
+              "detail": "Table \\`orkto_pilot_private.admissions\\` has a foreign key \\`admissions_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "admissions",
+                "type": "table",
+                "schema": "orkto_pilot_private",
+                "fkey_name": "admissions_workspace_id_fkey",
+                "fkey_columns": [
+                  5
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_approval_tasks\\` has a foreign key \\`orkto_approval_conversation_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_approval_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_approval_conversation_workspace_fkey",
+                "fkey_columns": [
+                  2,
+                  17
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_approval_tasks\\` has a foreign key \\`orkto_approval_tasks_decided_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_approval_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_approval_tasks_decided_by_fkey",
+                "fkey_columns": [
+                  13
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_approval_tasks\\` has a foreign key \\`orkto_approval_tasks_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_approval_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_approval_tasks_workspace_id_fkey",
+                "fkey_columns": [
+                  17
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_audit_log\\` has a foreign key \\`orkto_audit_log_approval_task_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_audit_log",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_audit_log_approval_task_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_audit_log\\` has a foreign key \\`orkto_audit_log_conversation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_audit_log",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_audit_log_conversation_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_audit_log\\` has a foreign key \\`orkto_audit_log_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_audit_log",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_audit_log_workspace_id_fkey",
+                "fkey_columns": [
+                  11
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_automation_jobs\\` has a foreign key \\`orkto_automation_jobs_automation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_automation_jobs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_automation_jobs_automation_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_automation_runs\\` has a foreign key \\`orkto_automation_runs_automation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_automation_runs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_automation_runs_automation_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_automation_runs\\` has a foreign key \\`orkto_automation_runs_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_automation_runs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_automation_runs_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_automations\\` has a foreign key \\`orkto_automations_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_automations",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_automations_created_by_fkey",
+                "fkey_columns": [
+                  7
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_case_studies\\` has a foreign key \\`orkto_case_studies_reviewed_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_case_studies",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_case_studies_reviewed_by_fkey",
+                "fkey_columns": [
+                  8
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_case_studies\\` has a foreign key \\`orkto_case_studies_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_case_studies",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_case_studies_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_channel_delivery_events\\` has a foreign key \\`orkto_channel_delivery_send_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_channel_delivery_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_channel_delivery_send_workspace_fkey",
+                "fkey_columns": [
+                  3,
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_collection_cases\\` has a foreign key \\`orkto_collection_cases_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_collection_cases",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_collection_cases_created_by_fkey",
+                "fkey_columns": [
+                  13
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_collection_cases\\` has a foreign key \\`orkto_collection_cases_deal_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_collection_cases",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_collection_cases_deal_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_collection_events\\` has a foreign key \\`orkto_collection_events_actor_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_collection_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_collection_events_actor_user_id_fkey",
+                "fkey_columns": [
+                  7
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_collection_events\\` has a foreign key \\`orkto_collection_events_case_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_collection_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_collection_events_case_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_collection_events\\` has a foreign key \\`orkto_collection_events_wia_run_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_collection_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_collection_events_wia_run_id_fkey",
+                "fkey_columns": [
+                  8
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_collection_events\\` has a foreign key \\`orkto_collection_events_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_collection_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_collection_events_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_contacts\\` has a foreign key \\`orkto_contacts_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_contacts",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_contacts_created_by_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_contacts\\` has a foreign key \\`orkto_contacts_customer_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_contacts",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_contacts_customer_workspace_fkey",
+                "fkey_columns": [
+                  3,
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_contacts\\` has a foreign key \\`orkto_contacts_orkto_import_job_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_contacts",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_contacts_orkto_import_job_id_fkey",
+                "fkey_columns": [
+                  10
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_conversations\\` has a foreign key \\`conversations_customer_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_conversations",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "conversations_customer_workspace_fkey",
+                "fkey_columns": [
+                  17,
+                  16
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_conversations\\` has a foreign key \\`conversations_deal_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_conversations",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "conversations_deal_workspace_fkey",
+                "fkey_columns": [
+                  18,
+                  16
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_customer_signals\\` has a foreign key \\`orkto_customer_signals_conversation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_customer_signals",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_customer_signals_conversation_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_deals\\` has a foreign key \\`orkto_deals_conversation_ref_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_deals",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_deals_conversation_ref_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_deals\\` has a foreign key \\`orkto_deals_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_deals",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_deals_created_by_fkey",
+                "fkey_columns": [
+                  17
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_deals\\` has a foreign key \\`orkto_deals_orkto_import_job_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_deals",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_deals_orkto_import_job_id_fkey",
+                "fkey_columns": [
+                  20
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_deals\\` has a foreign key \\`orkto_deals_owner_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_deals",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_deals_owner_user_id_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_duplicate_reviews\\` has a foreign key \\`orkto_duplicate_reviews_decided_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_duplicate_reviews",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_duplicate_reviews_decided_by_fkey",
+                "fkey_columns": [
+                  9
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_duplicate_reviews\\` has a foreign key \\`orkto_duplicate_reviews_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_duplicate_reviews",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_duplicate_reviews_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_feature_configs\\` has a foreign key \\`orkto_feature_configs_updated_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_feature_configs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_feature_configs_updated_by_fkey",
+                "fkey_columns": [
+                  7
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_finance_assumptions\\` has a foreign key \\`orkto_finance_assumptions_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_finance_assumptions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_finance_assumptions_created_by_fkey",
+                "fkey_columns": [
+                  6
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_finance_transactions\\` has a foreign key \\`orkto_finance_transactions_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_finance_transactions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_finance_transactions_created_by_fkey",
+                "fkey_columns": [
+                  14
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_import_jobs\\` has a foreign key \\`orkto_import_jobs_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_import_jobs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_import_jobs_created_by_fkey",
+                "fkey_columns": [
+                  8
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_import_jobs\\` has a foreign key \\`orkto_import_jobs_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_import_jobs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_import_jobs_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_live_quote_events\\` has a foreign key \\`orkto_live_quote_events_live_quote_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_live_quote_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_live_quote_events_live_quote_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_live_quotes\\` has a foreign key \\`orkto_live_quotes_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_live_quotes",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_live_quotes_created_by_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_messages\\` has a foreign key \\`orkto_messages_conversation_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_messages",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_messages_conversation_workspace_fkey",
+                "fkey_columns": [
+                  2,
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_messages\\` has a foreign key \\`orkto_messages_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_messages",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_messages_workspace_id_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_notifications\\` has a foreign key \\`orkto_notifications_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_notifications",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_notifications_user_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_payment_intents\\` has a foreign key \\`orkto_payment_intents_quote_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_payment_intents",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_payment_intents_quote_workspace_fkey",
+                "fkey_columns": [
+                  3,
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_plan_price_versions\\` has a foreign key \\`orkto_plan_price_versions_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_plan_price_versions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_plan_price_versions_created_by_fkey",
+                "fkey_columns": [
+                  11
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_replay_records\\` has a foreign key \\`orkto_replay_records_conversation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_replay_records",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_replay_records_conversation_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_reports\\` has a foreign key \\`orkto_reports_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_reports",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_reports_created_by_fkey",
+                "fkey_columns": [
+                  11
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_reports\\` has a foreign key \\`orkto_reports_wia_run_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_reports",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_reports_wia_run_id_fkey",
+                "fkey_columns": [
+                  9
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_risk_assessments\\` has a foreign key \\`orkto_risk_assessments_deal_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_risk_assessments",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_risk_assessments_deal_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_sussurros\\` has a foreign key \\`orkto_sussurros_conversation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_sussurros",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_sussurros_conversation_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_sussurros\\` has a foreign key \\`orkto_sussurros_from_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_sussurros",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_sussurros_from_user_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_sussurros\\` has a foreign key \\`orkto_sussurros_to_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_sussurros",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_sussurros_to_user_id_fkey",
+                "fkey_columns": [
+                  5
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_tasks\\` has a foreign key \\`orkto_tasks_assigned_to_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_tasks_assigned_to_fkey",
+                "fkey_columns": [
+                  10
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_tasks\\` has a foreign key \\`orkto_tasks_conversation_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_tasks_conversation_id_fkey",
+                "fkey_columns": [
+                  5
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_tasks\\` has a foreign key \\`orkto_tasks_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_tasks_created_by_fkey",
+                "fkey_columns": [
+                  14
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_tasks\\` has a foreign key \\`orkto_tasks_deal_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_tasks",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_tasks_deal_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_actions\\` has a foreign key \\`orkto_wia_actions_approved_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_actions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_actions_approved_by_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_actions\\` has a foreign key \\`orkto_wia_actions_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_actions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_actions_created_by_fkey",
+                "fkey_columns": [
+                  16
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_actions\\` has a foreign key \\`orkto_wia_actions_run_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_actions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_actions_run_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_chat_messages\\` has a foreign key \\`orkto_wia_chat_messages_run_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_chat_messages",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_chat_messages_run_id_fkey",
+                "fkey_columns": [
+                  8
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_chat_messages\\` has a foreign key \\`orkto_wia_chat_messages_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_chat_messages",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_chat_messages_user_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_events\\` has a foreign key \\`orkto_wia_events_actor_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_events_actor_user_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_events\\` has a foreign key \\`orkto_wia_events_run_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_events",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_events_run_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_memories\\` has a foreign key \\`orkto_wia_memories_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_memories",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_memories_created_by_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_memories\\` has a foreign key \\`orkto_wia_memories_supersedes_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_memories",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_memories_supersedes_fkey",
+                "fkey_columns": [
+                  10
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_runs\\` has a foreign key \\`orkto_wia_runs_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_runs",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_runs_user_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_tool_calls\\` has a foreign key \\`orkto_wia_tool_calls_action_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_tool_calls",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_tool_calls_action_id_fkey",
+                "fkey_columns": [
+                  4
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_tool_calls\\` has a foreign key \\`orkto_wia_tool_calls_run_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_tool_calls",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_tool_calls_run_id_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_wia_tool_calls\\` has a foreign key \\`orkto_wia_tool_calls_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_wia_tool_calls",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_wia_tool_calls_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_workspace_invites\\` has a foreign key \\`orkto_workspace_invites_accepted_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_workspace_invites",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_workspace_invites_accepted_by_fkey",
+                "fkey_columns": [
+                  9
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_workspace_invites\\` has a foreign key \\`orkto_workspace_invites_invited_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_workspace_invites",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_workspace_invites_invited_by_fkey",
+                "fkey_columns": [
+                  7
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_workspace_invites\\` has a foreign key \\`orkto_workspace_invites_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_workspace_invites",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_workspace_invites_workspace_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_workspace_members\\` has a foreign key \\`orkto_workspace_members_invited_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_workspace_members",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_workspace_members_invited_by_fkey",
+                "fkey_columns": [
+                  5
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_workspace_members\\` has a foreign key \\`orkto_workspace_members_user_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_workspace_members",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_workspace_members_user_id_fkey",
+                "fkey_columns": [
+                  2
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.orkto_workspace_subscriptions\\` has a foreign key \\`orkto_workspace_subscriptions_plan_key_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "orkto_workspace_subscriptions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "orkto_workspace_subscriptions_plan_key_fkey",
+                "fkey_columns": [
+                  3
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.payment_records\\` has a foreign key \\`payment_records_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "payment_records",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "payment_records_workspace_id_fkey",
+                "fkey_columns": [
+                  9
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.proposals\\` has a foreign key \\`proposals_created_by_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "proposals",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "proposals_created_by_fkey",
+                "fkey_columns": [
+                  12
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.quote_extensions\\` has a foreign key \\`quote_extensions_workspace_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "quote_extensions",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "quote_extensions_workspace_id_fkey",
+                "fkey_columns": [
+                  7
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.quotes\\` has a foreign key \\`quotes_customer_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "quotes",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "quotes_customer_workspace_fkey",
+                "fkey_columns": [
+                  26,
+                  25
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.quotes\\` has a foreign key \\`quotes_deal_workspace_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "quotes",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "quotes_deal_workspace_fkey",
+                "fkey_columns": [
+                  27,
+                  25
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Table \\`public.quotes\\` has a foreign key \\`quotes_orkto_import_job_id_fkey\\` without a covering index. This can lead to suboptimal query performance.",
+              "metadata": {
+                "name": "quotes",
+                "type": "table",
+                "schema": "public",
+                "fkey_name": "quotes_orkto_import_job_id_fkey",
+                "fkey_columns": [
+                  29
+                ]
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            }
+          ]
+        },
+        {
+          "name": "unused_index",
+          "title": "Unused Index",
+          "level": "INFO",
+          "facing": "EXTERNAL",
+          "categories": [
+            "PERFORMANCE"
+          ],
+          "description": "Detects if an index has never been used and may be a candidate for removal.",
+          "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index",
+          "count": 38,
+          "findings": [
+            {
+              "detail": "Index \\`conversations_workspace_customer_idx\\` on table \\`public.orkto_conversations\\` has not been used",
+              "metadata": {
+                "name": "orkto_conversations",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_channel_connections_workspace_status_idx\\` on table \\`public.orkto_channel_connections\\` has not been used",
+              "metadata": {
+                "name": "orkto_channel_connections",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_contacts_workspace_phone_idx\\` on table \\`public.orkto_contacts\\` has not been used",
+              "metadata": {
+                "name": "orkto_contacts",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_rate_cards_lookup_idx\\` on table \\`public.orkto_whatsapp_rate_cards\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_rate_cards",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_webhook_workspace_status_idx\\` on table \\`public.orkto_whatsapp_webhook_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_webhook_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_usage_workspace_period_idx\\` on table \\`public.orkto_whatsapp_usage_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_usage_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_channel_connections_connected_by_idx\\` on table \\`public.orkto_channel_connections\\` has not been used",
+              "metadata": {
+                "name": "orkto_channel_connections",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_controls_connection_workspace_idx\\` on table \\`public.orkto_whatsapp_controls\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_controls",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_controls_updated_by_idx\\` on table \\`public.orkto_whatsapp_controls\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_controls",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_rate_cards_approved_by_idx\\` on table \\`public.orkto_whatsapp_rate_cards\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_rate_cards",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_webhook_connection_workspace_idx\\` on table \\`public.orkto_whatsapp_webhook_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_webhook_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_usage_connection_workspace_idx\\` on table \\`public.orkto_whatsapp_usage_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_usage_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_whatsapp_usage_rate_card_idx\\` on table \\`public.orkto_whatsapp_usage_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_whatsapp_usage_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_channel_send_rate_card_idx\\` on table \\`public.orkto_channel_send_requests\\` has not been used",
+              "metadata": {
+                "name": "orkto_channel_send_requests",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_channel_send_conversation_workspace_idx\\` on table \\`public.orkto_channel_send_requests\\` has not been used",
+              "metadata": {
+                "name": "orkto_channel_send_requests",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`idx_proposals_slug\\` on table \\`public.proposals\\` has not been used",
+              "metadata": {
+                "name": "proposals",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_commercial_requests_actor_idx\\` on table \\`public.orkto_commercial_requests\\` has not been used",
+              "metadata": {
+                "name": "orkto_commercial_requests",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_commercial_requests_plan_idx\\` on table \\`public.orkto_commercial_requests\\` has not been used",
+              "metadata": {
+                "name": "orkto_commercial_requests",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`idx_services_user_created\\` on table \\`public.services\\` has not been used",
+              "metadata": {
+                "name": "services",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_payment_webhook_status_idx\\` on table \\`public.orkto_payment_webhook_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_payment_webhook_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_pulso_policy_approver_idx\\` on table \\`public.orkto_pulso_policies\\` has not been used",
+              "metadata": {
+                "name": "orkto_pulso_policies",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_pulso_policy_plan_idx\\` on table \\`public.orkto_pulso_policies\\` has not been used",
+              "metadata": {
+                "name": "orkto_pulso_policies",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`quotes_retention_expiry\\` on table \\`public.quotes\\` has not been used",
+              "metadata": {
+                "name": "quotes",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_channel_delivery_request_time_idx\\` on table \\`public.orkto_channel_delivery_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_channel_delivery_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`tony_conversations_search_idx\\` on table \\`public.tony_conversations\\` has not been used",
+              "metadata": {
+                "name": "tony_conversations",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`tony_memories_search_idx\\` on table \\`public.tony_memories\\` has not been used",
+              "metadata": {
+                "name": "tony_memories",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`tony_memories_user_importance_idx\\` on table \\`public.tony_memories\\` has not been used",
+              "metadata": {
+                "name": "tony_memories",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_billing_customer_approver_idx\\` on table \\`public.orkto_billing_customers\\` has not been used",
+              "metadata": {
+                "name": "orkto_billing_customers",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_conversations_user_updated_idx\\` on table \\`public.orkto_conversations\\` has not been used",
+              "metadata": {
+                "name": "orkto_conversations",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_model_tariffs_approver_idx\\` on table \\`public.orkto_model_tariffs\\` has not been used",
+              "metadata": {
+                "name": "orkto_model_tariffs",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_billing_binding_workspace_idx\\` on table \\`public.orkto_billing_bindings\\` has not been used",
+              "metadata": {
+                "name": "orkto_billing_bindings",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_billing_binding_price_idx\\` on table \\`public.orkto_billing_bindings\\` has not been used",
+              "metadata": {
+                "name": "orkto_billing_bindings",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_finance_transactions_date_idx\\` on table \\`public.orkto_finance_transactions\\` has not been used",
+              "metadata": {
+                "name": "orkto_finance_transactions",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_subscription_events_binding_idx\\` on table \\`public.orkto_subscription_events\\` has not been used",
+              "metadata": {
+                "name": "orkto_subscription_events",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_subscription_commands_actor_idx\\` on table \\`public.orkto_subscription_commands\\` has not been used",
+              "metadata": {
+                "name": "orkto_subscription_commands",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_wia_memories_lookup_idx\\` on table \\`public.orkto_wia_memories\\` has not been used",
+              "metadata": {
+                "name": "orkto_wia_memories",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`orkto_replay_workspace_outcome_idx\\` on table \\`public.orkto_replay_records\\` has not been used",
+              "metadata": {
+                "name": "orkto_replay_records",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            },
+            {
+              "detail": "Index \\`proposals_workspace_created_idx\\` on table \\`public.proposals\\` has not been used",
+              "metadata": {
+                "name": "proposals",
+                "type": "table",
+                "schema": "public"
+              },
+              "observed_at": "2026-10-16T18:34:44.384Z"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "unchangedRestrictions": {
+    "production": "UNTOUCHED",
+    "merge": false,
+    "realCharges": 0,
+    "externalMessages": 0,
+    "paidInferenceCalls": 0,
+    "additionalOffers": 0,
+    "deletedAccounts": 0
+  },
+  "limitations": [
+    "Provider deletion returning 404 is reconciliation-required; never accepted as deletion proof.",
+    "Unknown provider command outcomes block subsequent commands and require operator reconciliation.",
+    "Only status and future nextDueDate are mutable; price/plan changes remain blocked until commercial rules are approved.",
+    "Previous 4506803 Preview now shares migrated database and Edge v30; historical evidence is bound to original Edge v29/database49."
+  ]
+}

@@ -1,3 +1,4 @@
+> Continuação em [STAGING_HOMOLOGATION_A2A3651_2026-10-16.md](STAGING_HOMOLOGATION_A2A3651_2026-10-16.md). Este relatório preserva as provas históricas de 4506803; não descreve o novo runtime a2a3651. A pendência de cadastro/login B deste checkpoint foi resolvida na continuação, sem transferir o PASS ao novo SHA.
 # ORKTO — homologação final do staging 4506803
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** PR #2 draft, sem merge. Runtime avaliado: `45068033a3b41f7fb170ca174408dc5fd1ba53fa`, [Preview](https://orkto-staging-g8jxnq6ye-peixoto-s-projects1.vercel.app/), deployment `dpl_4Np4vbkDNQWSxLAtVLvHzxzeXf5e`, projeto `orkto-staging`, target Preview, READY. HEAD documental inicial `278145d`; nenhum código executável alterado nesta homologação.

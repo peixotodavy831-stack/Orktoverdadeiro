@@ -1,3 +1,8 @@
+## Estado vigente — continuação da homologação, 16/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz vigente](05_ENGINEERING/STAGING_HOMOLOGATION_A2A3651_2026-10-16.md): runtime a2a3651319196ffc56813992f705692d368ef967 / Preview az36qohmo READY; staging DB50/core Edge30/webhook2. Google B real comprovado somente no runtime anterior 4506803; contexto RLS SQL aprovado, transporte A/B e replay/expiração natural ainda não executados. Lifecycle nativo Asaas implementado e validado com fixtures/CI; fornecedor real e política de término de acesso bloqueados externamente. Regressão 285/285 + 61/61, billing focado19/19, lint/Edge/build/CI/secret scan PASS. Novo redirect aguarda confirmação antes de salvar. Produção intocada e PR #2 sem merge.
+
+## Checkpoints anteriores — históricos
 ## Homologação atual do runtime 4506803 — 16/10/2026
 
 [Matriz de homologação por fase](05_ENGINEERING/STAGING_HOMOLOGATION_4506803_2026-10-16.md): Google A, redirect, reload, logout e Enterprise real PASS; B aprovado mas login pendente. Secrets externos ausentes; backup gerenciado não incluído no Free; ciclo nativo Asaas precisa implementação/política. READY_FOR_PRODUCTION_CANDIDATE=NO. Esta atualização prevalece sobre os checkpoints abaixo.
