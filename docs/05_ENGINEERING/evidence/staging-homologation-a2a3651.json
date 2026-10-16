@@ -119,9 +119,10 @@
     },
     {
       "id": "GOOGLE_NEW_PREVIEW_REDIRECT",
-      "status": "BLOCKED_EXTERNAL",
+      "status": "PASS",
       "sha": "a2a3651319196ffc56813992f705692d368ef967",
-      "reason": "Exact URL absent from 16 authorized redirects; prepared but NOT saved; action-time browser confirmation required"
+      "reason": "Owner explicitly confirmed this exact URL; Save URLs persisted 16 to 17 redirects, Site URL unchanged; real callback returned to candidate.",
+      "evidence": "redirect-a2a3651-saved.png"
     },
     {
       "id": "JWT_HTTP_AB_REPLAY_NATURAL_EXPIRY",
@@ -132,7 +133,7 @@
       "id": "AUTHENTICATED_E2E_NEW_SHA",
       "status": "NOT_TESTED",
       "sha": "a2a3651319196ffc56813992f705692d368ef967",
-      "reason": "New exact redirect pending; old 5/5 and Google proof remain historical"
+      "reason": "Exact redirect and real Google B login/reload now PASS; complete two-context authenticated E2E and token transport remain NOT_TESTED."
     },
     {
       "id": "ASAAS_NATIVE_REAL_SANDBOX",
@@ -148,6 +149,25 @@
       "id": "GEMINI_META_PULSO_RECOVERY",
       "status": "BLOCKED_EXTERNAL",
       "reason": "Previously documented external configuration, commercial approvals, inference budget and private recovery destination still absent"
+    },
+    {
+      "id": "GOOGLE_B_NEW_CANDIDATE_LOGIN_RELOAD",
+      "status": "PASS",
+      "runtimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+      "edgeVersion": 30,
+      "migrations": 50,
+      "scope": "Real Google B sign-in, callback consumed, authenticated UI after reload; not full E2E, refresh or token replay",
+      "screenshots": [
+        "google-b-a2a3651.png",
+        "google-b-a2a3651-reload.png"
+      ],
+      "identityCheck": {
+        "ownWorkspaceOwner": true,
+        "activeSessionsAtCheck": 3,
+        "foreignMemberships": 0,
+        "googleIdentity": true,
+        "activeMemberships": 1
+      }
     }
   ],
   "advisors": {
