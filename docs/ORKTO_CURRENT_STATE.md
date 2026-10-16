@@ -1,4 +1,16 @@
-## Missão operacional + WhatsApp — 16/10/2026
+## Candidato operacional verificado — 16/10/2026
+
+Esta seção prevalece sobre os checkpoints históricos abaixo para esta alteração.
+
+- Runtime `49cc3a40bb5fae34cf2d4d90ddfa9cbf13ba4382`, Preview https://orkto-staging-pdjxi9xc4-peixoto-s-projects1.vercel.app/, deployment `dpl_6MXhEKAadqusDUfMHCGKLPpFfJS2`: READY, target preview, projeto orkto-staging e Supabase ghrjongiodziasupakrk.
+- PASS remoto: login Google do proprietário; sidebar compacta sem rolagem desnecessária com Gestão recolhida (1242×715), foto Google carregada; Plano & cobrança com Starter e período de teste até 27/10/2026; tela de Integrações com estados reais. Nenhuma assinatura, papel, logo ou dado comercial gravado nesta conferência.
+- PASS Edge: atualização somente de index.ts de orkto-core-mutations após conferir baseline; fonte persistida comparada após recarga e leitura de billing confirmada no Preview. READ_BILLING_CURRENT retorna projeção explícita após autenticação/membership; sem novos grants/RLS/migrations.
+- PASS local: 229 testes da aplicação + 61 de ferramentas de readiness; lint/typecheck; readiness:build frontend Google/backend/smoke (F7V3SR, dist preservado); scan 427 arquivos, zero findings/blockers. CI do SHA: PostgreSQL17 38845909640 e deploy boundary 38845909672 SUCCESS.
+- BLOCKED: Gemini real NOT RUN e integração conversacional Edge PENDING; WhatsApp oficial PENDING (onboarding, conexão, ingestão durável, envio, conciliação); checkout PENDING (implementação e condições comerciais). Testes de base não satisfazem esses gates. As pendências incluem engenharia, além de configurações externas.
+- E2E autenticado Google A/B completo no novo SHA NOT RUN. Revisão móvel final não comprovada; viewport voltou a 1242px. Evidências históricas preservadas e não reaproveitadas como aprovação deste candidato.
+- Produção intocada. READY_FOR_PRODUCTION_CANDIDATE=NO. Matriz e recuperação da alteração: docs/05_ENGINEERING/ORKTO_OPERATIONAL_WHATSAPP_CHECKPOINT_2026-10-16.md.
+
+## Missão operacional + WhatsApp — checkpoint anterior de 16/10/2026
 
 - Checkpoint detalhado: docs/05_ENGINEERING/ORKTO_OPERATIONAL_WHATSAPP_CHECKPOINT_2026-10-16.md.
 - Sidebar compactada, Gestão expansível, logo empresarial/foto Google com fallback. Nova tela de estado de Integrações; nenhuma conexão externa ativada.

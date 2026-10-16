@@ -1,5 +1,28 @@
 # ORKTO — checkpoint operacional e WhatsApp · 16/10/2026
 
+## Resultado confirmado no candidato atual
+
+Runtime: `49cc3a40bb5fae34cf2d4d90ddfa9cbf13ba4382`. Preview: https://orkto-staging-pdjxi9xc4-peixoto-s-projects1.vercel.app/. Deployment `dpl_6MXhEKAadqusDUfMHCGKLPpFfJS2`, projeto `orkto-staging`, target `preview`, estado `READY`. Os relatos de tentativas anteriores abaixo são históricos; esta matriz resume a evidência final desta execução.
+
+| Gate | Estado | Evidência e limite |
+|---|---|---|
+| Sidebar e identidade | PASS | Preview autenticado, foto Google carregada, viewport 1242×715; navegação recolhida com clientHeight/scrollHeight 459/459. Logo da empresa tem implementação e fallback; não foi gravada uma logo no perfil do proprietário. |
+| Leitura de plano atual | PASS | Preview autenticado mostrou Starter, período de teste até 27/10/2026, limites e catálogo; sem alerta de falha. Nenhuma assinatura alterada. |
+| Edge de billing | PASS | Baseline remoto comparado à fonte anterior; somente index.ts atualizado. Após deploy e recarga, fonte persistida igual à fonte local e READ_BILLING_CURRENT presente; leitura real pelo Preview confirmou o caminho. Fonte anterior recuperável pelo Git em 14ce720. |
+| Estado de integrações | PASS | Tela autenticada apresentou estados indisponíveis reais de Gemini conversacional, WhatsApp e checkout. Não comprova conexão externa. |
+| Regressões locais | PASS | npm run test:all: 229 testes da aplicação e 61 ferramentas de readiness; HTTP/cliente de gateway 47/47; lint/typecheck. Fixtures não equivalem a E2E remoto. |
+| Build | PASS | readiness:build, frontend Google-only, backend e smoke; scratch F7V3SR, dist original preservado. |
+| Secret scan | PASS | 427 arquivos, zero findings e zero blockers. Não é auditoria de segredos remotos. |
+| CI PostgreSQL 17 | PASS | Run 38845909640 SUCCESS no SHA atual. Nenhuma migration remota executada nesta alteração. |
+| CI de fronteira de deploy | PASS | Run 38845909672 SUCCESS no SHA atual. |
+| E2E Google A/B completo no SHA atual | BLOCKED | NOT RUN; leitura com uma conta não comprova negativas, isolamento A/B ou revogação completa. Evidência histórica preservada. |
+| Gemini na WIA | BLOCKED | Chamada real NOT RUN sem chave de teste. Integração do modelo na fronteira confiável Edge ainda requer implementação e validação. Runner isolado não substitui essa integração. |
+| WhatsApp oficial | BLOCKED | Normalizador/estimador têm testes locais. Embedded Signup, armazenamento de conexão, ingestão durável, envio e conciliação ainda requerem implementação e configuração Meta. |
+| Contratação online | BLOCKED | Checkout não implementado/ativado; condições comerciais e configuração sandbox pendentes. Leitura do plano não satisfaz contratação. |
+| Liberação de produção | BLOCKED | READY_FOR_PRODUCTION_CANDIDATE=NO. Produção não alterada. |
+
+Screenshot da sidebar: `C:\Users\sobooa7iqytvqheo\.codex\visualizations\2026\09\30\01a0f48a-acf0-7fc2-9ee8-3692a2d4237a\orkto-sidebar-49cc3a4.png`. Revisão móvel final deste SHA não foi comprovada: o painel voltou a 1242px durante a tentativa; não registrar como PASS em 390px.
+
 ## Escopo e limites
 Continuação incremental da missão do proprietário no checkout Orktoverdeiro-google-pilot, branch production-readiness/google-only-pilot-preflight. Produção, migrations remotas, cobrança e mensagens externas não foram alteradas. Este documento não é uma aprovação de lançamento.
 
@@ -14,7 +37,7 @@ Continuação incremental da missão do proprietário no checkout Orktoverdeiro-
 | Cloud API | Novo normalizador com HMAC de bytes originais e binding confiável por número/WABA | Testes locais PASS; ainda não ligado a endpoint/persistência, Embedded Signup ou envio real |
 | Custos WhatsApp | Novo estimador puro por versão, categoria, moeda, país e vigência | Testes locais PASS. Sem tarifas reais aprovadas, conciliação ou medição remota |
 | Cobrança | /api/asaas/checkout permanece explicitamente desativado | Bloqueado por condições comerciais e integração; nenhuma assinatura criada |
-| Plano atual | GET /api/billing/current usa READ_BILLING_CURRENT no gateway após conferir grants privados | Regressão HTTP/gateway 47/47 PASS; leitura autenticada no novo Preview PENDING |
+| Plano atual | GET /api/billing/current usa READ_BILLING_CURRENT no gateway após conferir grants privados | Regressão HTTP/gateway 47/47 PASS; leitura autenticada no novo Preview PASS, conforme matriz acima |
 | Integrações | Nova consulta autenticada de estado e tela sem sucesso simulado | Exibe limitações reais. Nenhuma conexão externa ativada |
 
 ## Mudanças de interface
@@ -50,7 +73,7 @@ Para habilitar o chat real com Gemini: concluir o comando/model runtime na front
 A documentação vigente COMMERCIAL_DECISIONS.md mantém preços como rascunho (não publicação aprovada). O pedido de fazer a tela funcionar não define um preço, renovação ou contrato específico. Falta confirmar preço/ciclo/condições por plano e provedor em sandbox. Implementar checkout idempotente a partir da versão aprovada no servidor, vincular intent ao workspace, validar confirmação via webhook e reconciliar assinatura; só depois habilitar contratação. Não enviar cliente real para sandbox, não ativar cobrança real nem contratar serviço pago por inferência.
 
 ## Dependências externas identificadas
-- Gemini: chave de teste em entrada local ou segredo no runtime confiável apropriado, nunca por chat. Não foi possível verificar metadados Vercel nesta execução: CLI autenticada retornou fetch failed; isso não prova ausência da variável.
+- Gemini: chave de teste em entrada local ou segredo no runtime confiável apropriado, nunca por chat. A primeira consulta Vercel falhou; repetição com NODE_USE_SYSTEM_CA=1 confirmou apenas metadados, sem nomes de variáveis Gemini/Meta/checkout no Preview. Segredos da Edge não foram inspecionados.
 - Meta: app/permissões, Embedded Signup config, WABA/número de teste, credenciais no runtime de integração e elegibilidade de coexistência. Acesso externo não foi fornecido/verificado nesta execução.
 - Comercial: aprovação explícita das condições públicas; depois configuração sandbox do provedor e validação. Nenhuma oferta foi aprovada em nome do proprietário.
 
@@ -70,6 +93,6 @@ A leitura direta com o JWT também falhou no ambiente real porque tabelas de bil
 
 Correção final: comando explícito READ_BILLING_CURRENT na Edge. Reutiliza autenticação Google/piloto e membership ativa antes da consulta, não aceita payload com IDs, retorna somente campos de plano/status/período/uso e não retorna preço não publicado ou credenciais. A rota web chama esse comando, sem SELECT nas tabelas privadas. Não altera RLS, grants, SQL ou assinatura. Teste HTTP atualizado verifica gateway e ausência de consultas privadas pelo Preview; 47/47 testes HTTP + cliente de gateway PASS. Inicialmente o harness usava URL HTTP de fixture com APP_ENV staging e foi corretamente rejeitado; corrigida a identidade do fixture, não o guard.
 
-Acesso ao editor Supabase staging disponível. Baseline remoto de index.ts comparado byte-a-byte normalizado ao HEAD antes da alteração, igualdade confirmada; atualização somente desse arquivo preparada e verificada igual ao arquivo local. O editor confirmou solicitação de deploy; persistência remota e leitura pelo novo Preview ainda precisam da verificação final. Fonte anterior preservada no histórico Git para reversão. Nenhum segredo lido.
+Acesso ao editor Supabase staging disponível. Baseline remoto de index.ts comparado byte-a-byte normalizado ao HEAD antes da alteração, igualdade confirmada; atualização somente desse arquivo preparada e verificada igual ao arquivo local. Após Deploy updates e recarga, a fonte persistida foi novamente comparada e confirmou igualdade. Leitura autenticada pelo novo Preview PASS, conforme matriz final. Fonte anterior preservada no histórico Git para reversão. Nenhum segredo lido. Nenhum número de versão remoto foi obtido; não inferir versão da função.
 
 Repetição de metadados Vercel com NODE_USE_SYSTEM_CA=1 funcionou: projeto orkto-staging, variáveis Preview usuais e Auth Google por branch. Nenhum nome de variável Gemini/Meta/checkout listado. A falha anterior de fetch não foi usada como prova de ausência. Não houve env pull ou descriptografia.
