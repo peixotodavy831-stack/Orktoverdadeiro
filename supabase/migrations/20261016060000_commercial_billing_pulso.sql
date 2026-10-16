@@ -39,6 +39,7 @@ create index orkto_commercial_requests_plan_idx on public.orkto_commercial_reque
 create table public.orkto_pulso_policies(
  workspace_id uuid primary key references public.orkto_workspaces(id),plan_key text not null references public.orkto_plan_catalog(plan_key),version integer not null check(version>0),
  allowance_milli bigint not null check(allowance_milli>=0),approved_by uuid not null references auth.users(id),
+ operation_rates jsonb not null check(jsonb_typeof(operation_rates)='object'),
  approved_at timestamptz not null default now(),expires_at timestamptz not null,reason text not null check(length(reason)>=10)
 );
 create index orkto_pulso_policy_approver_idx on public.orkto_pulso_policies(approved_by);
@@ -48,7 +49,7 @@ begin
  if new.expires_at<=now() or (TG_OP='UPDATE' and new.version<=old.version) then raise exception 'PULSO_POLICY_VERSION_REQUIRED'; end if;
  insert into public.orkto_wia_events(workspace_id,actor_user_id,event_type,source,entity_type,entity_ref,payload)
  values(new.workspace_id,new.approved_by,'billing.pulso.policy_approved','system','pulso_policy',new.workspace_id::text,
- jsonb_build_object('version',new.version,'allowance_milli',new.allowance_milli,'reason',new.reason));
+ jsonb_build_object('version',new.version,'allowance_milli',new.allowance_milli,'operation_rates',new.operation_rates,'reason',new.reason));
  return new;
 end $$;
 create trigger orkto_pulso_policy_audited after insert or update on public.orkto_pulso_policies
@@ -78,10 +79,11 @@ create function public.orkto_reserve_pulso(p_workspace_id uuid,p_request_key tex
 returns jsonb language plpgsql set search_path='' as $$
 declare policy public.orkto_pulso_policies; existing public.orkto_pulso_ledger; used bigint; units bigint; current_plan text;
 begin
- units:=case p_class when 'simple' then 250 when 'light' then 500 when 'normal' then 1000 when 'complex' then 4000 else null end;
- if units is null or p_request_key is null or length(p_request_key) not between 8 and 200 then raise exception 'PULSO_INVALID'; end if;
+ if p_class not in ('simple','light','normal','complex') or p_class is null or p_request_key is null or length(p_request_key) not between 8 and 200 then raise exception 'PULSO_INVALID'; end if;
  select * into policy from public.orkto_pulso_policies where workspace_id=p_workspace_id for update;
  if not found or policy.expires_at<=now() then return jsonb_build_object('allowed',false,'reason','configuration_required'); end if;
+ if coalesce(policy.operation_rates->>p_class,'') !~ '^[1-9][0-9]{0,8}$' then return jsonb_build_object('allowed',false,'reason','class_rate_not_approved'); end if;
+ units:=(policy.operation_rates->>p_class)::bigint;
  select s.plan_key into current_plan from public.orkto_workspace_subscriptions s where s.workspace_id=p_workspace_id and not s.billing_pending order by s.created_at desc limit 1;
  if current_plan is null then select plan_key into current_plan from public.orkto_workspaces where id=p_workspace_id; end if;
  if current_plan is distinct from policy.plan_key then return jsonb_build_object('allowed',false,'reason','plan_policy_mismatch'); end if;

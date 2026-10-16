@@ -1,5 +1,7 @@
 # Current checklist decision — 2026-10-16
 
+**Incremento comercial em validação:** [fechamento operacional e billing](OPERATIONAL_BILLING_CLOSURE_2026-10-16.md). O source agora requer **49 migrations**; o staging remoto anteriormente validado tem **48**. Os cinco planos e quatro preços foram aprovados pelo proprietário. Migration/gateway e novo candidato precisam de aplicação e E2E antes de qualquer liberação. Abaixo fica preservado o checkpoint anterior.
+
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** O candidato executável atual é `ee3b3b3d45decb208d7ccf927bb25f429a64af04`, Preview `orkto-staging-nlwxxb8o0-peixoto-s-projects1.vercel.app`, deployment `8NBPFoE284DdCkJNGiWWjdXomQZN`. As 48 migrations estão reconciliadas e o CI PostgreSQL 17 passou. O redirect OAuth foi corrigido com confirmação do proprietário. Login Google, Hoje, Auditoria, persistência após reload e logout passaram no candidato exato. E2E completo, expiração/revogação e A/B real continuam obrigatoriamente abertos.
 
 [Matriz canônica, evidências e ações restantes](MVP_OPERATIONAL_CLOSURE_2026-10-16.md).
