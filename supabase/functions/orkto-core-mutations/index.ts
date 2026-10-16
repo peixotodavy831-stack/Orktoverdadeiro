@@ -15,6 +15,7 @@ import { completeMetaEmbeddedSignup, MetaConnectionError, metaRuntimeConfig } fr
 import { MetaSendError, sendMetaText } from './_shared/meta-send.ts';
 import { COMMERCIAL_PLANS } from './_shared/commercial-catalog.ts';
 import { asaasSandbox } from './_shared/asaas-sandbox.ts';
+import {changeSandboxSubscription} from './_shared/billing-lifecycle.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
@@ -119,6 +120,18 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = '';
       argumentsForCommand = {};
+    } else if(command==='CHANGE_SUBSCRIPTION_SANDBOX') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      const changes=holder?.changes as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['bindingId','operation','changes'])
+        ||typeof holder.bindingId!=='string'||!UUID.test(holder.bindingId)||!['update','cancel'].includes(String(holder.operation))
+        ||!changes||typeof changes!=='object'||Array.isArray(changes)
+        ||(holder.operation==='cancel'?Object.keys(changes).length!==0:
+          Object.keys(changes).some(k=>!['status','nextDueDate'].includes(k))||!['ACTIVE','INACTIVE'].includes(String(changes.status))
+          ||(changes.status==='ACTIVE'&&typeof changes.nextDueDate!=='string')
+          ||(changes.nextDueDate!==undefined&&(typeof changes.nextDueDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(changes.nextDueDate)))))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={bindingId:holder.bindingId,operation:holder.operation,changes};functionName='';eventType='';argumentsForCommand={};
     } else if(command==='BEGIN_SUBSCRIPTION_SANDBOX') {
       const holder=suppliedPayload as Record<string,unknown>|null;
       if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['planKey','customerRef'])
@@ -493,6 +506,19 @@ Deno.serve(async (req: Request) => {
       const configured=geminiTestConfiguration(Deno.env,membership.workspace_id)!==null;
       return response(200,'OK',requestId,{result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',
         state:configured?'configured_not_verified':'configuration_required',testingOnly:true}},origin);
+    }
+    if(command==='CHANGE_SUBSCRIPTION_SANDBOX') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      if(Deno.env.get('ORKTO_BILLING_SANDBOX_LIFECYCLE_ENABLED')!=='ON')return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const env=Object.fromEntries(['APP_ENV','ASAAS_ENVIRONMENT','ORKTO_BILLING_SANDBOX_ENABLED','ORKTO_BILLING_SANDBOX_LIFECYCLE_ENABLED','ASAAS_API_KEY'].map(key=>[key,Deno.env.get(key)]));
+      env.VITE_SUPABASE_URL=Deno.env.get('SUPABASE_URL');
+      let processor;try{processor=asaasSandbox(env);}catch{return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);}
+      try {
+        const result=await changeSandboxSubscription(admin,processor,{workspaceId:membership.workspace_id,actorId:user.id,
+          bindingId:String(canonical.bindingId),key:idempotencyKey,operation:canonical.operation as 'cancel'|'update',
+          changes:canonical.changes as {status?:'ACTIVE'|'INACTIVE';nextDueDate?:string}});
+        return response(result==='RECONCILIATION_REQUIRED'?409:200,result==='RECONCILIATION_REQUIRED'?'CONFLICT':'OK',requestId,{result},origin);
+      } catch {return response(409,'CONFLICT',requestId,{result:'RECONCILIATION_REQUIRED'},origin);}
     }
     if(command==='BEGIN_SUBSCRIPTION_SANDBOX') {
       if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);

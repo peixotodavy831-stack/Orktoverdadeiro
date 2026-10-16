@@ -1,6 +1,7 @@
 import {createClient} from '@supabase/supabase-js';
 import {asaasSandbox} from '../orkto-core-mutations/_shared/asaas-sandbox.ts';
 import {reconcileSandboxPayment} from '../orkto-core-mutations/_shared/billing-reconciliation.ts';
+import {reconcileSandboxSubscription,SUBSCRIPTION_EVENTS} from '../orkto-core-mutations/_shared/billing-lifecycle.ts';
 
 const reply=(status:number,state:string)=>new Response(JSON.stringify({state}),{status,headers:{'content-type':'application/json','cache-control':'no-store'}});
 // verify_jwt=false is intentional for a provider webhook. The dedicated token is checked before any persistence.
@@ -19,7 +20,8 @@ Deno.serve(async req=>{
   const raw=await req.text();if(new TextEncoder().encode(raw).length>32768)return reply(413,'INVALID_EVENT');
   let event;try{event=JSON.parse(raw);}catch{return reply(400,'INVALID_EVENT');}
   if(!event||typeof event!=='object'||Array.isArray(event)||typeof event.id!=='string'||!/^[a-zA-Z0-9_&-]{8,240}$/.test(event.id)||typeof event.event!=='string'
-    ||!/^PAYMENT_[A-Z_]{1,80}$/.test(event.event)||typeof event.payment?.id!=='string')return reply(400,'INVALID_EVENT');
+    ||!((/^PAYMENT_[A-Z_]{1,80}$/.test(event.event)&&typeof event.payment?.id==='string')
+      ||(SUBSCRIPTION_EVENTS.has(event.event)&&typeof event.subscription?.id==='string')))return reply(400,'INVALID_EVENT');
   const fingerprint=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(raw)))].map(v=>v.toString(16).padStart(2,'0')).join('');
   const url=Deno.env.get('SUPABASE_URL')!,key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if(!key)return reply(503,'CONFIGURATION_REQUIRED');
@@ -31,7 +33,9 @@ Deno.serve(async req=>{
   if(claim?.decision==='DUPLICATE')return reply(200,'REPLAY');
   if(!['CLAIMED','RETRY'].includes(claim?.decision))return reply(409,'RECONCILIATION_REQUIRED');
   try{
-    const result=await reconcileSandboxPayment(db,processor,event.payment.id,event.id);
+    const result=SUBSCRIPTION_EVENTS.has(event.event)
+      ?await reconcileSandboxSubscription(db,processor,event.subscription.id,event.id)
+      :await reconcileSandboxPayment(db,processor,event.payment.id,event.id);
     const done=await db.rpc('orkto_finish_payment_webhook_event',{p_provider:'asaas',p_provider_event_id:event.id,
       p_request_fingerprint:fingerprint,p_claim_token:claim.claim_token,p_target_status:'processed',p_error_category:null});
     if(done.error||done.data!==true)throw new Error('CLAIM_LOST');

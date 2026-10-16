@@ -1,4 +1,5 @@
 import type { SubscriptionProcessor } from './asaas-sandbox.ts';
+import {reconcileSandboxSubscription} from './billing-lifecycle.ts';
 
 /** Re-read authoritative provider payment and match all server-owned bindings before the atomic RPC. */
 export async function reconcileSandboxPayment(db:any,processor:SubscriptionProcessor,paymentId:string,eventKey:string) {
@@ -11,6 +12,7 @@ export async function reconcileSandboxPayment(db:any,processor:SubscriptionProce
     ||subscription.valueCents!==payment.valueCents)throw new Error('BILLING_PROVIDER_MISMATCH');
   const financial={CONFIRMED:'confirmed',RECEIVED:'confirmed',OVERDUE:'overdue',REFUNDED:'refunded',PENDING:'pending',DELETED:'cancelled'}[payment.status];
   if(!financial)throw new Error('BILLING_RECONCILIATION_REQUIRED');
+  await reconcileSandboxSubscription(db,processor,payment.subscriptionId,`obs:${eventKey}`);
   const start=new Date(`${payment.dueDate}T00:00:00.000Z`);
   if(!Number.isFinite(start.getTime())||start.toISOString().slice(0,10)!==payment.dueDate)throw new Error('BILLING_INVALID_PERIOD');
   const end=new Date(start);end.setUTCMonth(end.getUTCMonth()+1,1);
@@ -18,6 +20,6 @@ export async function reconcileSandboxPayment(db:any,processor:SubscriptionProce
   const result=await db.rpc('orkto_reconcile_subscription',{p_binding_id:binding.id,p_event_key:eventKey,
     p_provider_subscription_id:payment.subscriptionId,p_amount_cents:payment.valueCents,p_currency:'BRL',p_financial_status:financial,
     p_period_start:start.toISOString(),p_period_end:end.toISOString(),p_observed_at:new Date().toISOString()});
-  if(result.error||!['APPLIED','REPLAY','STALE'].includes(result.data))throw new Error('BILLING_RECONCILIATION_FAILED');
+  if(result.error||!['APPLIED','REPLAY','STALE','RECORDED_POLICY_REQUIRED'].includes(result.data))throw new Error('BILLING_RECONCILIATION_FAILED');
   return result.data as string;
 }

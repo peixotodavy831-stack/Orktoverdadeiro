@@ -1231,6 +1231,26 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     return res.json({status:'pending',result:result.result});
   });
 
+  app.put('/api/billing/sandbox/subscriptions/:bindingId',authenticate,requireDb,async(req,res)=>{
+    const parsed=z.object({status:z.enum(['ACTIVE','INACTIVE']),nextDueDate:z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()}).strict()
+      .refine(v=>v.status!=='ACTIVE'||Boolean(v.nextDueDate)).safeParse(req.body);
+    if(!parsed.success||!z.string().uuid().safeParse(req.params.bindingId).success)return res.status(400).json({error:'Alteração sandbox inválida.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Permissão administrativa necessária.'});
+    const result=await invokeCoreMutation(req,res,context,'CHANGE_SUBSCRIPTION_SANDBOX',{
+      bindingId:req.params.bindingId,operation:'update',changes:parsed.data});if(!result)return;
+    return res.json({result:result.result});
+  });
+  app.delete('/api/billing/sandbox/subscriptions/:bindingId',authenticate,requireDb,async(req,res)=>{
+    if(!z.string().uuid().safeParse(req.params.bindingId).success||!z.object({}).strict().safeParse(req.body||{}).success)
+      return res.status(400).json({error:'Cancelamento sandbox inválido.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Permissão administrativa necessária.'});
+    const result=await invokeCoreMutation(req,res,context,'CHANGE_SUBSCRIPTION_SANDBOX',{
+      bindingId:req.params.bindingId,operation:'cancel',changes:{}});if(!result)return;
+    return res.json({result:result.result});
+  });
+
   app.get('/api/notifications', authenticate, requireDb, async (req, res) => {
     const context = await workspaceContext(req, res, db); if (!context) return;
     try {

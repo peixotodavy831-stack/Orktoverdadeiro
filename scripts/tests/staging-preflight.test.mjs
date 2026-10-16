@@ -13,7 +13,7 @@ const validEnv = {
 };
 
 test('staging preflight is read-only and passes only for the pinned staging environment and current schema', () => {
-  assert.equal(STAGING_TARGET.migrationCount, 49);
+  assert.equal(STAGING_TARGET.migrationCount, 50);
   const passing = evaluateStagingPreflight(validEnv, { status: 'PASS', code: 'STAGING_SCHEMA_CURRENT', expected: STAGING_TARGET.migrationCount, actual: STAGING_TARGET.migrationCount });
   assert.equal(passing.status, 'PASS');
   assert.deepEqual(passing.actionsPerformed, []);
@@ -24,9 +24,9 @@ test('staging preflight is read-only and passes only for the pinned staging envi
   assert.ok(outdated.failures.includes('migrationCurrent'));
 });
 
-test('a 49-migration ledger accepted by the migration gate also passes the staging preflight', () => {
+test('a 50-migration ledger accepted by the migration gate also passes the staging preflight', () => {
   const names = [MIGRATION_18_NAME, ...CORE_MUTATION_MIGRATION_NAMES];
-  const migrations = Array.from({ length: 49 }, (_, index) => ({
+  const migrations = Array.from({ length: 50 }, (_, index) => ({
     version: index === 43 ? '20261015163447' : String(20260901000000 + index),
     name: index === 43 ? MIGRATION_44_NAME : names[index] || `other_migration_${index}`,
   }));

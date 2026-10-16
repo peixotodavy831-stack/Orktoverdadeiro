@@ -8,7 +8,7 @@ function fixture(overrides:Record<string,unknown>={}) {
  const processor:any={payment:async()=>({id:'pay_a',subscriptionId:'sub_a',customerRef:'cus_a',valueCents:7990,status:'CONFIRMED',dueDate:'2026-01-31',...overrides}),
  read:async()=>({providerId:'sub_a',customerRef:'cus_a',valueCents:7990,bindingId:`orkto-sub:${binding.id}`,status:'ACTIVE'})};
  const query:any={select:()=>query,eq:()=>query,maybeSingle:async()=>({data:binding,error:null})};
- const db={from:()=>query,rpc:async(name:string,args:any)=>{calls.push({name,args});return {data:'APPLIED',error:null};}};
+ const db={from:()=>query,rpc:async(name:string,args:any)=>{if(name==='orkto_observe_subscription')return {data:'RECORDED',error:null};calls.push({name,args});return {data:'APPLIED',error:null};}};
  return {db,processor,calls};
 }
 test('provider re-read must match workspace customer, subscription, price and reference',async()=>{

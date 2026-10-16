@@ -35,3 +35,36 @@ test('sandbox webhook cannot run against production even with a correct token',a
  values.APP_ENV='production';
  assert.equal((await handler(request('{}'))).status,503);assert.equal(outbound,0);
 });
+
+test('native subscription event re-reads provider and completes durable claim; duplicates skip I/O',async()=>{
+ Object.assign(values,{APP_ENV:'staging',SUPABASE_SERVICE_ROLE_KEY:'fixture-service-key'});
+ let duplicate=false;const calls:string[]=[];
+ globalThis.fetch=(async(input)=>{
+  const url=String(input);calls.push(url);
+  if(url.endsWith('/orkto_claim_payment_webhook_event'))return Response.json({decision:duplicate?'DUPLICATE':'CLAIMED',claim_token:'fixture-claim'});
+  if(url.endsWith('/subscriptions/sub_test'))return Response.json({id:'sub_test',status:'INACTIVE',value:79.9,customer:'cus_test',externalReference:'orkto-sub:fixture'});
+  if(url.endsWith('/orkto_observe_subscription'))return Response.json('RECORDED_POLICY_REQUIRED');
+  if(url.endsWith('/orkto_finish_payment_webhook_event'))return Response.json(true);
+  throw new Error('Unexpected request');
+ }) as typeof fetch;
+ const event=JSON.stringify({id:'evt_native_fixture',event:'SUBSCRIPTION_INACTIVATED',subscription:{id:'sub_test',status:'ACTIVE'}});
+ const first=await handler(request(event));assert.equal(first.status,200);assert.equal((await first.json()).state,'RECORDED_POLICY_REQUIRED');
+ assert.equal(calls.filter(url=>url.includes('api-sandbox')).length,1);
+ duplicate=true;const second=await handler(request(event));assert.equal((await second.json()).state,'REPLAY');
+ assert.equal(calls.filter(url=>url.includes('api-sandbox')).length,1);
+});
+
+test('native deletion 404 stays retryable and never assumes entitlement termination',async()=>{
+ const calls:string[]=[];
+ globalThis.fetch=(async(input,init)=>{
+  const url=String(input);calls.push(url);
+  if(url.endsWith('/orkto_claim_payment_webhook_event'))return Response.json({decision:'CLAIMED',claim_token:'fixture-claim'});
+  if(url.includes('api-sandbox'))return new Response('',{status:404});
+  if(url.endsWith('/orkto_finish_payment_webhook_event')){
+   assert.equal(JSON.parse(String(init?.body)).p_target_status,'failed');return Response.json(true);
+  }
+  throw new Error('Unexpected request');
+ }) as typeof fetch;
+ const result=await handler(request(JSON.stringify({id:'evt_deleted_fixture',event:'SUBSCRIPTION_DELETED',subscription:{id:'sub_test'}})));
+ assert.equal(result.status,503);assert.ok(!calls.some(url=>url.endsWith('/orkto_observe_subscription')));
+});

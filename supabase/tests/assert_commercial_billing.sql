@@ -24,7 +24,7 @@ do $$ declare count_plans integer; wid uuid; uid uuid; reserved jsonb; request_i
  if binding->>'created'<>'true' then raise exception 'Sandbox reservation failed'; end if;
  if not exists(select 1 from public.orkto_workspace_subscriptions s join public.orkto_billing_bindings b on b.subscription_id=s.id
  where b.id=(binding->>'bindingId')::uuid and s.billing_pending and s.status='suspended') then raise exception 'Unpaid reservation granted access'; end if;
- update public.orkto_billing_bindings set provider_subscription_id='sub_fixture_ci',creation_state='created' where id=(binding->>'bindingId')::uuid;
+ update public.orkto_billing_bindings set provider_subscription_id='sub_fixture_ci',creation_state='created',provider_status='ACTIVE' where id=(binding->>'bindingId')::uuid;
  outcome:=public.orkto_reconcile_subscription((binding->>'bindingId')::uuid,'payment-event-ci','sub_fixture_ci',7990,'BRL','confirmed',began,began+interval '30 days',began);
  if outcome<>'APPLIED' then raise exception 'Reconciliation failed'; end if;
  outcome:=public.orkto_reconcile_subscription((binding->>'bindingId')::uuid,'payment-event-ci','sub_fixture_ci',7990,'BRL','confirmed',began,began+interval '30 days',began);
