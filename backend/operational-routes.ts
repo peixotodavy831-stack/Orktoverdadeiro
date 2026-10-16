@@ -273,7 +273,14 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     res.setHeader('Cache-Control','private, no-store');
     try {
       const model=createModelRegistry(process.env).standard;
-      return res.json({data:{wia:{provider:model.provider,model:model.modelId,state:model.enabled?'configured_not_verified':'configuration_required',testingOnly:model.purpose==='development-testing'},whatsapp:{state:'implementation_pending',connected:false,coexistence:'not_verified'},billing:{state:'configuration_required',checkoutEnabled:false},canManage:['owner','admin'].includes(context.role)}});
+      let wia={provider:model.provider as string,model:model.modelId,state:model.enabled?'configured_not_verified':'configuration_required',testingOnly:model.purpose==='development-testing'};
+      if(['staging','production'].includes((process.env.APP_ENV||'').trim().toLowerCase())) {
+        const runtime=await invokeCoreMutation(req,res,context,'READ_WIA_RUNTIME',{});
+        if(!runtime)return;
+        if(!runtime.wia)return res.status(503).json({error:'Estado da WIA não confirmado.',category:'configuration_required'});
+        wia=runtime.wia;
+      }
+      return res.json({data:{wia,whatsapp:{state:'implementation_pending',connected:false,coexistence:'not_verified'},billing:{state:'configuration_required',checkoutEnabled:false},canManage:['owner','admin'].includes(context.role)}});
     } catch {return res.status(503).json({error:'Não foi possível consultar as integrações.',category:'configuration_required'});}
   });
 
@@ -1241,7 +1248,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     // shared public client before the gateway sees the authenticated request.
     const context = await workspaceContext(req, res, db, false, true); if (!context) return;
     if (['staging','production'].includes((process.env.APP_ENV || '').trim().toLowerCase())) {
-      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_T0',{message:parsed.data.message});
+      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_REQUEST',{message:parsed.data.message});
       if (!trusted) return;
       return res.json({success:true,agent:trusted.agent,traceId:trusted.traceId,runId:trusted.runId,
         serviceRunId:trusted.serviceRunId,path:trusted.path,mode:trusted.mode,replayed:trusted.replayed || false,

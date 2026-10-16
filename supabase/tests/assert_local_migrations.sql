@@ -55,6 +55,8 @@ begin
     'public.orkto_update_quote_command(uuid,uuid,uuid,timestamptz,jsonb,text,uuid,text)',
     'public.orkto_transition_deal_command(uuid,uuid,uuid,text,text,text,uuid,text)',
     'public.orkto_wia_start_command(uuid,uuid,uuid,text,uuid,numeric)',
+    'public.orkto_wia_claim_request(uuid,uuid,uuid,text,uuid,numeric,text)',
+    'public.orkto_wia_finish_request(uuid,uuid,uuid,text,text,jsonb,uuid)',
     'public.orkto_wia_complete_command(uuid,uuid,uuid,text,text,jsonb,uuid)',
     'public.orkto_publish_live_quote_command(uuid,uuid,uuid,text,text,uuid,text)',
     'public.orkto_public_live_quote_command(text,text,text,text,uuid)'

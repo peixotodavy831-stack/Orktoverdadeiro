@@ -9,6 +9,8 @@ import { onboardingInput, personalProfileInput } from './_shared/profile-input.t
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './_shared/plan-access.ts';
 import { routeT0Request } from './_shared/wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './_shared/wia-trusted.ts';
+import { prepareTrustedRequest, WiaRequestError } from './_shared/wia-request.ts';
+import { geminiTestConfiguration } from './_shared/wia-gemini.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
@@ -105,7 +107,7 @@ Deno.serve(async (req: Request) => {
     let functionName: string;
     let argumentsForCommand: Record<string,unknown>;
     let eventType: string;
-    if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT') {
+    if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT' || command === 'READ_WIA_RUNTIME') {
       if (!suppliedPayload || typeof suppliedPayload !== 'object' || Array.isArray(suppliedPayload)
           || Object.keys(suppliedPayload).length !== 0) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       canonical = {};
@@ -389,7 +391,7 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = 'channel.send.configuration_required';
       argumentsForCommand = {};
-    } else if (command === 'PREPARE_WIA_T0') {
+    } else if (command === 'PREPARE_WIA_T0' || command === 'PREPARE_WIA_REQUEST') {
       const holder=suppliedPayload as {message?:unknown}|null;
       if(!holder||typeof holder!=='object'||Array.isArray(holder)
         ||!exactKeys(holder as Record<string,unknown>,['message'])
@@ -416,6 +418,11 @@ Deno.serve(async (req: Request) => {
     if (membershipError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
     if (!membership || membership.status !== 'active') return response(403, 'WORKSPACE_ACCESS_DENIED', requestId, undefined, origin);
     if (!['owner','admin','manager','member'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'READ_WIA_RUNTIME') {
+      const configured=geminiTestConfiguration(Deno.env,membership.workspace_id)!==null;
+      return response(200,'OK',requestId,{result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',
+        state:configured?'configured_not_verified':'configuration_required',testingOnly:true}},origin);
+    }
     if (command === 'READ_PLAN_CATALOG') {
       const now = new Date().toISOString();
       const { data: versions, error: catalogError } = await admin.from('orkto_plan_price_versions')
@@ -477,6 +484,23 @@ Deno.serve(async (req: Request) => {
     // A personal display name is independent of the workspace's commercial entitlement.
     // All business commands keep the existing read-only/configuration guard.
     if ((plan.configurationRequired || plan.readOnly) && command !== 'UPDATE_SELF_PROFILE') return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'PREPARE_WIA_REQUEST') {
+      if(!hasPlanFeature(plan,'wia'))return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const limit=plan.entitlements.limits?.monthly_wia_runs;
+      if(limit===undefined||(limit!==null&&(!Number.isSafeInteger(limit)||limit<0)))
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      try {
+        const result=await prepareTrustedRequest(admin,{
+          workspaceId:membership.workspace_id,actorId:user.id,requestId,
+          traceId:await traceUuid(`wia-request-v1:${membership.workspace_id}:${user.id}:${idempotencyKey}`),
+          message:String(canonical.message),monthlyLimit:limit,fingerprint:await fingerprint(canonical),
+        },Deno.env);
+        return response(200,'OK',requestId,result,origin);
+      } catch(error) {
+        if(error instanceof WiaRequestError)return response(error.status,error.code,requestId,undefined,origin);
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+    }
     if (command === 'PREPARE_WIA_T0') {
       if (!hasPlanFeature(plan,'wia')) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const limit=plan.entitlements.limits?.monthly_wia_runs;
@@ -519,7 +543,7 @@ Deno.serve(async (req: Request) => {
             sourceIds,confidenceSignal:'high',requiresApproval:false,
             reasonCode:eventResult.data.payload?.reason_code||`t0_${route.name}`},usage:usage(0),toolExecutions:[]},origin);
       }
-      if(started?.result==='REPLAY' && started?.status!=='running') return response(409,'CONFLICT',requestId,undefined,origin);
+      if(started?.result==='REPLAY') return response(409,'CONFLICT',requestId,undefined,origin);
       let prepared;
       try { prepared=await executeTrustedT0(admin,membership.workspace_id,route); }
       catch {

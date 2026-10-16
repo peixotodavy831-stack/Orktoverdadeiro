@@ -387,7 +387,11 @@ before(async () => {
         }));
         return ok({result:'READ',catalog});
       }
-      if (request.command === 'PREPARE_WIA_T0') {
+      if (request.command === 'READ_WIA_RUNTIME') {
+        if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        return ok({result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',state:'configuration_required',testingOnly:true}});
+      }
+      if (request.command === 'PREPARE_WIA_REQUEST') {
         if(typeof payload.message!=='string'||!payload.message.trim()
           ||Object.keys(payload).some(key=>key!=='message'))
           return Response.json({code:'VALIDATION_FAILED'},{status:400});
