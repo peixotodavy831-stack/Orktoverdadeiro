@@ -1,4 +1,4 @@
--- Run after migration 47 against a disposable PostgreSQL 17 database.
+-- Run after migration 48 against a disposable PostgreSQL 17 database.
 -- This assertion contains no provider credentials and rolls its fixtures back.
 begin;
 
@@ -57,6 +57,24 @@ begin
     select 1 from pg_indexes where schemaname='public'
       and indexname='orkto_conversations_workspace_channel_phone_uidx'
   ) then raise exception 'Workspace conversation uniqueness is missing'; end if;
+  if (
+    select count(*) from pg_indexes where schemaname='public' and indexname = any(array[
+      'orkto_channel_connections_connected_by_idx',
+      'orkto_whatsapp_controls_connection_workspace_idx',
+      'orkto_whatsapp_controls_updated_by_idx',
+      'orkto_whatsapp_rate_cards_approved_by_idx',
+      'orkto_whatsapp_webhook_connection_workspace_idx',
+      'orkto_whatsapp_usage_connection_workspace_idx',
+      'orkto_whatsapp_usage_rate_card_idx',
+      'orkto_channel_send_rate_card_idx',
+      'orkto_channel_send_conversation_workspace_idx'
+    ])
+  ) <> 9 then raise exception 'Meta WhatsApp foreign-key indexes are incomplete'; end if;
+  if position('( SELECT auth.uid() AS uid)' in pg_get_expr(
+    (select polqual from pg_policy where polname='orkto_sussurros_recipient_select'
+      and polrelid='public.orkto_sussurros'::regclass),
+    'public.orkto_sussurros'::regclass
+  )) = 0 then raise exception 'Sussurros auth.uid() is not init-plan safe'; end if;
 
   insert into public.orkto_channel_connections(id,workspace_id,provider,status,waba_id,phone_number_id,
     token_secret_id,verified_at,connected_by)
