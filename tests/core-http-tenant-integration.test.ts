@@ -391,6 +391,11 @@ before(async () => {
         if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
         return ok({result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',state:'configuration_required',testingOnly:true}});
       }
+      if (request.command === 'READ_WHATSAPP_CONNECTION') {
+        if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        return ok({result:'READ',whatsapp:{state:'configuration_required',connected:false,
+          runtimeConfigured:false,connection:null,controls:null}});
+      }
       if (request.command === 'PREPARE_WIA_REQUEST') {
         if(typeof payload.message!=='string'||!payload.message.trim()
           ||Object.keys(payload).some(key=>key!=='message'))

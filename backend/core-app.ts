@@ -34,7 +34,6 @@ import {
 import { selectActiveWorkspaceMembership, WorkspaceSelectionError } from './tenancy/workspace-selection.js';
 import { createRequestScopedClient } from './tenancy/request-scoped-client.js';
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './billing/plan-access.js';
-import { createDurableChannelSendRepository, sendThroughDurableChannelAdapter } from './channels/durable-send.js';
 import { applyPixIntentProviderEvent } from './billing/pix-intent.js';
 import { isQuoteEmailRecipientAuthorized } from './quote-email-policy.js';
 import { assertStagingBoundary, stagingPreviewOrigin } from './staging-boundary.js';
@@ -2178,36 +2177,14 @@ app.post("/api/conversations/:conversationId/send", authenticate, async (req, re
       return res.status(503).json({ error:'Canal de saída não configurado. A mensagem não foi enviada.',
         status:'CONFIGURATION_REQUIRED',category:'channel_not_configured' });
     }
-    const result = await sendThroughDurableChannelAdapter({
-      repository: createDurableChannelSendRepository(supabase),
-      adapter: null,
-      request: { workspaceId, conversationId, channel: conversation.source_channel, content: parsed.data.content, idempotencyKey: parsed.data.idempotencyKey },
-      audit: async event => {
-        const { error: auditError } = await supabase!.from('orkto_audit_log').insert({
-          user_id: tenantContext.userId,
-          workspace_id: workspaceId,
-          conversation_id: conversationId,
-          event_type: event.eventType,
-          actor_type: 'human',
-          actor_id: tenantContext.userId,
-          event_data: { channel: event.channel, status: event.status },
-        });
-        if (auditError) throw auditError;
-      },
+    req.headers['x-idempotency-key']=parsed.data.idempotencyKey||crypto.randomUUID();
+    const result=await invokeCoreMutation(req,res,{id:workspaceId},'SEND_WHATSAPP_MESSAGE',{
+      conversationId,content:parsed.data.content,
     });
-    if (result.status === 'CONFIGURATION_REQUIRED') return res.status(503).json({ error: 'O rascunho não foi enviado. Conecte um canal de saída oficial para habilitar o envio.', status: result.status, category: 'channel_not_configured' });
-    if (result.status === 'REQUEST_ACCEPTED' || result.status === 'PROVIDER_ACKNOWLEDGED' || result.status === 'DELIVERED') {
-      return res.status(202).json({ status: result.status, requestId: result.requestId, externalMessageId: result.externalMessageId,
-        acceptedAt: result.acceptedAt, delivered: result.status === 'DELIVERED', replay: result.replay });
-    }
-    if (result.status === 'IDEMPOTENCY_CONFLICT') return res.status(409).json({ error: 'A chave de idempotência já foi usada para outra mensagem.', category: 'idempotency_conflict', requestId: result.requestId });
-    if (result.status === 'IN_PROGRESS') return res.status(409).json({ error: 'O envio com esta chave ainda está em processamento.', category: 'processing_in_progress', requestId: result.requestId });
-    if (result.status === 'RECONCILIATION_REQUIRED') return res.status(503).json({ error: 'O resultado do envio é incerto; reconcilie antes de tentar novamente.', category: 'external_delivery_unknown', requestId: result.requestId });
-    if (result.status === 'PERSISTENCE_UNAVAILABLE') return res.status(503).json({ error: 'Não foi possível registrar o envio com segurança.', category: 'persistence_unavailable', requestId: result.requestId });
-    if ('category' in result) {
-      return res.status(result.category === 'validation_failed' ? 400 : 502).json({ error: 'O provedor não confirmou a mensagem.', status: result.status, category: result.category || 'provider_error', requestId: result.requestId });
-    }
-    return res.status(502).json({ error: 'O provedor não confirmou a mensagem.', status: result.status, requestId: result.requestId });
+    if(!result)return;
+    return res.status(result.result==='REPLAY'?200:202).json({status:result.status||'REQUEST_ACCEPTED',
+      requestId:result.requestId,externalMessageId:result.externalMessageId,acceptedAt:result.acceptedAt,
+      delivered:result.status==='DELIVERED',replay:result.result==='REPLAY'});
   } catch (error) {
     console.error(`[ERRO] ${req.method} ${req.path}:`, error);
     res.status(500).json({ error: 'Erro ao enviar mensagem.' });

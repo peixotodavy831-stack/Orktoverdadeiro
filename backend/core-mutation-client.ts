@@ -16,7 +16,9 @@ export type CoreMutationCommand =
   | 'CREATE_QUOTE' | 'UPDATE_QUOTE' | 'ARCHIVE_QUOTE' | 'PUBLISH_LIVE_QUOTE' | 'EXTEND_QUOTE_RETENTION'
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN'
-  | 'READ_PLAN_CATALOG' | 'READ_BILLING_CURRENT' | 'READ_WIA_RUNTIME' | 'PREPARE_WIA_T0' | 'PREPARE_WIA_REQUEST';
+  | 'READ_PLAN_CATALOG' | 'READ_BILLING_CURRENT' | 'READ_WIA_RUNTIME' | 'PREPARE_WIA_T0' | 'PREPARE_WIA_REQUEST'
+  | 'READ_WHATSAPP_CONNECTION' | 'BEGIN_WHATSAPP_CONNECTION' | 'COMPLETE_WHATSAPP_CONNECTION' | 'SET_WHATSAPP_MODE'
+  | 'SEND_WHATSAPP_MESSAGE';
 
 export type CoreMutationResult = {
   result: string;
@@ -44,6 +46,12 @@ export type CoreMutationResult = {
   catalog?: Array<{ plan_key: string; price_cents: number | null; currency: string; price_is_public: boolean; entitlements: unknown; version: number }>;
   billing?: Record<string,unknown>;
   wia?: {provider:string;model:string;state:string;testingOnly:boolean};
+  whatsapp?: Record<string,unknown>;
+  connectionId?: string;
+  status?: string;
+  requestId?: string;
+  externalMessageId?: string;
+  acceptedAt?: string;
   agent?: string;
   traceId?: string;
   runId?: string;
@@ -106,12 +114,14 @@ export class CoreMutationClient {
         headers: { 'content-type': 'application/json', apikey: publishableKey,
           authorization: req.get('authorization') || '', 'x-orkto-workspace': workspaceId,
           'x-idempotency-key': idempotencyKey, 'x-request-id': req.requestId || crypto.randomUUID() },
-        body: JSON.stringify({ command, payload }), signal: AbortSignal.timeout(command==='PREPARE_WIA_REQUEST'?25_000:10_000),
+        body: JSON.stringify({ command, payload }), signal: AbortSignal.timeout(
+          command==='PREPARE_WIA_REQUEST'||command==='COMPLETE_WHATSAPP_CONNECTION'?25_000:10_000),
       });
       const result = await gateway.json() as { code?: string; data?: CoreMutationResult };
       if (!gateway.ok) {
         const allowed = new Set(['AUTH_REQUIRED', 'PERMISSION_DENIED', 'VALIDATION_FAILED', 'WORKSPACE_ACCESS_DENIED',
-          'NOT_FOUND', 'CONFLICT', 'IDEMPOTENCY_CONFLICT', 'RATE_LIMITED', 'CONFIGURATION_REQUIRED', 'MODEL_UNAVAILABLE']);
+          'NOT_FOUND', 'CONFLICT', 'IDEMPOTENCY_CONFLICT', 'RATE_LIMITED', 'CONFIGURATION_REQUIRED', 'MODEL_UNAVAILABLE',
+          'PROVIDER_REJECTED','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID']);
         const code = allowed.has(result.code || '') ? result.code : 'INTERNAL_ERROR';
         const category = command === 'START_WIA_RUN' && code === 'RATE_LIMITED' ? 'plan_limit_reached' : code;
         res.status(gateway.status >= 400 && gateway.status < 500 ? gateway.status : 503)

@@ -11,6 +11,8 @@ import { routeT0Request } from './_shared/wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './_shared/wia-trusted.ts';
 import { prepareTrustedRequest, WiaRequestError } from './_shared/wia-request.ts';
 import { geminiTestConfiguration } from './_shared/wia-gemini.ts';
+import { completeMetaEmbeddedSignup, MetaConnectionError, metaRuntimeConfig } from './_shared/meta-connection.ts';
+import { MetaSendError, sendMetaText } from './_shared/meta-send.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
@@ -107,13 +109,43 @@ Deno.serve(async (req: Request) => {
     let functionName: string;
     let argumentsForCommand: Record<string,unknown>;
     let eventType: string;
-    if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT' || command === 'READ_WIA_RUNTIME') {
+    if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT' || command === 'READ_WIA_RUNTIME'
+        || command === 'READ_WHATSAPP_CONNECTION' || command === 'BEGIN_WHATSAPP_CONNECTION') {
       if (!suppliedPayload || typeof suppliedPayload !== 'object' || Array.isArray(suppliedPayload)
           || Object.keys(suppliedPayload).length !== 0) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       canonical = {};
       functionName = '';
       eventType = '';
       argumentsForCommand = {};
+    } else if (command === 'COMPLETE_WHATSAPP_CONNECTION') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      const allowed=['code','businessId','wabaId','phoneNumberId','coexistenceState'];
+      const states=['unknown','eligible','enabled','ineligible','not_requested'];
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,allowed)
+        ||typeof holder.code!=='string'||holder.code.length<1||holder.code.length>4096
+        ||!(holder.businessId===null||typeof holder.businessId==='string')
+        ||typeof holder.wabaId!=='string'||typeof holder.phoneNumberId!=='string'
+        ||typeof holder.coexistenceState!=='string'||!states.includes(holder.coexistenceState))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={code:holder.code,businessId:holder.businessId,wabaId:holder.wabaId,
+        phoneNumberId:holder.phoneNumberId,coexistenceState:holder.coexistenceState};
+      functionName='';eventType='channel.meta.connected';argumentsForCommand={};
+    } else if (command === 'SET_WHATSAPP_MODE') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['mode','humanTakeover'])
+        ||typeof holder.mode!=='string'||!['manual','assisted','controlled'].includes(holder.mode)
+        ||typeof holder.humanTakeover!=='boolean')
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={mode:holder.mode,humanTakeover:holder.humanTakeover};
+      functionName='';eventType='channel.meta.mode_changed';argumentsForCommand={};
+    } else if (command === 'SEND_WHATSAPP_MESSAGE') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['conversationId','content'])
+        ||typeof holder.conversationId!=='string'||!UUID.test(holder.conversationId)
+        ||typeof holder.content!=='string'||holder.content.trim().length<1||holder.content.length>4000)
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={conversationId:holder.conversationId,content:holder.content.trim()};
+      functionName='';eventType='channel.send.requested';argumentsForCommand={};
     } else if (command === 'UPDATE_SELF_PROFILE') {
       const parsed = personalProfileInput.safeParse(suppliedPayload);
       if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
@@ -418,6 +450,30 @@ Deno.serve(async (req: Request) => {
     if (membershipError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
     if (!membership || membership.status !== 'active') return response(403, 'WORKSPACE_ACCESS_DENIED', requestId, undefined, origin);
     if (!['owner','admin','manager','member'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'READ_WHATSAPP_CONNECTION') {
+      const [connectionResult,controlsResult]=await Promise.all([
+        admin.from('orkto_channel_connections')
+          .select('id,status,business_id,waba_id,phone_number_id,display_phone_number,verified_name,coexistence_state,service_mode,granted_scopes,verified_at,webhook_subscribed_at,last_error_category,updated_at')
+          .eq('workspace_id',membership.workspace_id).eq('provider','meta_whatsapp_cloud').maybeSingle(),
+        admin.from('orkto_whatsapp_controls')
+          .select('monthly_message_limit,monthly_cost_limit_micros,currency,block_on_unpriced,block_on_cost_limit,allow_marketing,human_takeover,updated_at')
+          .eq('workspace_id',membership.workspace_id).maybeSingle(),
+      ]);
+      if(connectionResult.error||controlsResult.error)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      const runtime=metaRuntimeConfig(Deno.env);
+      return response(200,'OK',requestId,{result:'READ',whatsapp:{
+        state:connectionResult.data?.status||(runtime?'ready_to_connect':'configuration_required'),
+        connected:connectionResult.data?.status==='connected',runtimeConfigured:runtime!==null,
+        connection:connectionResult.data||null,controls:controlsResult.data||null,
+      }},origin);
+    }
+    if (command === 'BEGIN_WHATSAPP_CONNECTION') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const config=metaRuntimeConfig(Deno.env);
+      if(!config)return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'READY',whatsapp:{appId:config.appId,configId:config.configId,
+        graphVersion:config.graphVersion,redirectUri:config.redirectUri}},origin);
+    }
     if (command === 'READ_WIA_RUNTIME') {
       const configured=geminiTestConfiguration(Deno.env,membership.workspace_id)!==null;
       return response(200,'OK',requestId,{result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',
@@ -477,6 +533,8 @@ Deno.serve(async (req: Request) => {
     if (command === 'COMPLETE_ONBOARDING' && membership.role !== 'owner') return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if ((command === 'APPROVE_WIA_ACTION' || command === 'REJECT_WIA_ACTION') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if ((command === 'APPROVE_DRAFT_TASK' || command === 'REJECT_DRAFT_TASK') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if ((command === 'COMPLETE_WHATSAPP_CONNECTION' || command === 'SET_WHATSAPP_MODE')
+        && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if (command === 'SET_CONVERSATION_STATUS' && canonical.status === 'archived'
         && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
 
@@ -484,6 +542,133 @@ Deno.serve(async (req: Request) => {
     // A personal display name is independent of the workspace's commercial entitlement.
     // All business commands keep the existing read-only/configuration guard.
     if ((plan.configurationRequired || plan.readOnly) && command !== 'UPDATE_SELF_PROFILE') return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'COMPLETE_WHATSAPP_CONNECTION') {
+      try {
+        const completed=await completeMetaEmbeddedSignup(canonical as {
+          code:string;businessId:string|null;wabaId:string;phoneNumberId:string;
+          coexistenceState:'unknown'|'eligible'|'enabled'|'ineligible'|'not_requested';
+        },Deno.env);
+        const {data:connectionId,error:storeError}=await admin.rpc('orkto_store_meta_connection',{
+          p_workspace_id:membership.workspace_id,p_actor_user_id:user.id,p_business_id:completed.businessId,
+          p_waba_id:completed.wabaId,p_phone_number_id:completed.phoneNumberId,
+          p_display_phone_number:completed.displayPhoneNumber,p_verified_name:completed.verifiedName,
+          p_coexistence_state:completed.coexistenceState,p_granted_scopes:completed.grantedScopes,
+          p_access_token:completed.accessToken,p_provider_metadata:completed.metadata,
+        });
+        if(storeError||typeof connectionId!=='string')return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+        return response(200,'OK',requestId,{result:'CONNECTED',connectionId},origin);
+      } catch(error) {
+        if(error instanceof MetaConnectionError)return response(error.code==='CONFIGURATION_REQUIRED'?423:502,error.code,requestId,undefined,origin);
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+    }
+    if (command === 'SET_WHATSAPP_MODE') {
+      const {data:changed,error:modeError}=await admin.rpc('orkto_set_whatsapp_mode',{
+        p_workspace_id:membership.workspace_id,p_actor_user_id:user.id,p_mode:canonical.mode,
+        p_human_takeover:canonical.humanTakeover,
+      });
+      if(modeError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(changed!==true)return response(404,'NOT_FOUND',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'UPDATED'},origin);
+    }
+    if (command === 'SEND_WHATSAPP_MESSAGE') {
+      const now=new Date();const nowIso=now.toISOString();
+      const {data:conversation,error:conversationError}=await admin.from('orkto_conversations')
+        .select('id,source_channel,contact_phone').eq('workspace_id',membership.workspace_id)
+        .eq('id',canonical.conversationId).maybeSingle();
+      if(conversationError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(!conversation)return response(404,'NOT_FOUND',requestId,undefined,origin);
+      if(conversation.source_channel!=='whatsapp')return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const recipient=String(conversation.contact_phone||'').replace(/\D/g,'');
+      if(!/^\d{5,30}$/.test(recipient))return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const [connectionResult,controlsResult,lastInboundResult]=await Promise.all([
+        admin.from('orkto_channel_connections').select('id,phone_number_id,status,service_mode')
+          .eq('workspace_id',membership.workspace_id).eq('provider','meta_whatsapp_cloud').maybeSingle(),
+        admin.from('orkto_whatsapp_controls').select('monthly_message_limit,monthly_cost_limit_micros,pricing_market,currency,block_on_unpriced,block_on_cost_limit,human_takeover')
+          .eq('workspace_id',membership.workspace_id).maybeSingle(),
+        admin.from('orkto_messages').select('sent_at').eq('workspace_id',membership.workspace_id)
+          .eq('conversation_id',canonical.conversationId).eq('direction','incoming')
+          .order('sent_at',{ascending:false}).limit(1).maybeSingle(),
+      ]);
+      if(connectionResult.error||controlsResult.error||lastInboundResult.error)
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      const connection=connectionResult.data,controls=controlsResult.data;
+      if(!connection||connection.status!=='connected'||!controls)
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const lastInbound=Date.parse(lastInboundResult.data?.sent_at||'');
+      if(!Number.isFinite(lastInbound)||now.getTime()-lastInbound>24*60*60*1000)
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      if(typeof controls.pricing_market!=='string'||!/^[A-Z]{2}$/.test(controls.pricing_market))
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const {data:cards,error:cardError}=await admin.from('orkto_whatsapp_rate_cards')
+        .select('id,unit_price_micros,free_messages,currency').eq('provider','meta_whatsapp_cloud')
+        .eq('status','approved').eq('market',controls.pricing_market).eq('category','service')
+        .eq('currency',controls.currency).lte('effective_from',nowIso)
+        .or(`effective_until.is.null,effective_until.gt.${nowIso}`).limit(2);
+      if(cardError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if((cards||[]).length!==1){
+        if(controls.block_on_unpriced!==false)return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      }
+      const card=cards![0];const unitPrice=Number(card.unit_price_micros);const freeMessages=Number(card.free_messages);
+      if(!Number.isSafeInteger(unitPrice)||unitPrice<0||!Number.isSafeInteger(freeMessages)||freeMessages<0)
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const requestFingerprint=await sha256Hex(JSON.stringify({workspaceId:membership.workspace_id,
+        conversationId:canonical.conversationId,channel:'whatsapp',content:canonical.content}));
+      const {data:reserved,error:reserveError}=await admin.rpc('orkto_reserve_meta_send',{
+        p_workspace_id:membership.workspace_id,p_conversation_id:canonical.conversationId,
+        p_idempotency_key:idempotencyKey,p_request_fingerprint:requestFingerprint,p_rate_card_id:card.id,
+      });
+      const reservation=Array.isArray(reserved)?reserved[0]:reserved;
+      if(reserveError||!reservation)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(reservation.decision==='IDEMPOTENCY_CONFLICT')return response(409,'IDEMPOTENCY_CONFLICT',requestId,undefined,origin);
+      if(reservation.decision==='IN_PROGRESS')return response(409,'CONFLICT',requestId,undefined,origin);
+      if(reservation.decision==='RECONCILIATION_REQUIRED')return response(503,'PROVIDER_UNAVAILABLE',requestId,undefined,origin);
+      if(reservation.decision==='RATE_LIMITED')return response(429,'RATE_LIMITED',requestId,undefined,origin);
+      if(reservation.decision==='CONFIGURATION_REQUIRED')return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      if(reservation.decision==='REPLAY'){
+        if(['REQUEST_ACCEPTED','PROVIDER_ACKNOWLEDGED','DELIVERED'].includes(reservation.send_status)
+          &&typeof reservation.provider_message_id==='string')
+          return response(200,'OK',requestId,{result:'REPLAY',status:reservation.send_status,
+            requestId:reservation.send_request_id,externalMessageId:reservation.provider_message_id},origin);
+        return response(409,'CONFLICT',requestId,undefined,origin);
+      }
+      const {data:accessToken,error:tokenError}=await admin.rpc('orkto_read_meta_token',{p_connection_id:connection.id});
+      const config=metaRuntimeConfig(Deno.env);
+      if(tokenError||typeof accessToken!=='string'||!accessToken||!config){
+        await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+          p_send_request_id:reservation.send_request_id,p_target_status:'FAILED',
+          p_provider_message_id:null,p_failure_category:'configuration_required',p_occurred_at:nowIso});
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      }
+      let accepted:{externalMessageId:string;acceptedAt:string};
+      try{
+        accepted=await sendMetaText({phoneNumberId:connection.phone_number_id,recipient,
+          content:String(canonical.content),accessToken,graphVersion:config.graphVersion});
+      }catch(error){
+        const category=error instanceof MetaSendError?error.category:'outcome_unknown';
+        await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+          p_send_request_id:reservation.send_request_id,p_target_status:category==='outcome_unknown'?'UNKNOWN':'FAILED',
+          p_provider_message_id:null,p_failure_category:category,p_occurred_at:new Date().toISOString()});
+        return response(category==='rate_limit'?429:category==='outcome_unknown'?503:502,
+          category==='rate_limit'?'RATE_LIMITED':category==='outcome_unknown'?'PROVIDER_UNAVAILABLE':'PROVIDER_REJECTED',
+          requestId,undefined,origin);
+      }
+      const {data:acceptedState,error:acceptError}=await admin.rpc('orkto_accept_meta_send',{
+        p_workspace_id:membership.workspace_id,p_send_request_id:reservation.send_request_id,p_actor_user_id:user.id,
+        p_provider_message_id:accepted.externalMessageId,p_content:canonical.content,p_occurred_at:accepted.acceptedAt,
+      });
+      if(acceptError||!['APPLIED','REPLAY'].includes(String(acceptedState))){
+        await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+          p_send_request_id:reservation.send_request_id,p_target_status:'UNKNOWN',
+          p_provider_message_id:accepted.externalMessageId,p_failure_category:'acceptance_not_persisted',
+          p_occurred_at:accepted.acceptedAt}).catch(()=>undefined);
+        return response(503,'PROVIDER_UNAVAILABLE',requestId,undefined,origin);
+      }
+      return response(202,'OK',requestId,{result:'ACCEPTED',status:'REQUEST_ACCEPTED',
+        requestId:reservation.send_request_id,externalMessageId:accepted.externalMessageId,
+        acceptedAt:accepted.acceptedAt},origin);
+    }
     if (command === 'PREPARE_WIA_REQUEST') {
       if(!hasPlanFeature(plan,'wia'))return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const limit=plan.entitlements.limits?.monthly_wia_runs;

@@ -50,6 +50,14 @@ const memoryInput = z.object({
   provenance: z.object({ source: z.string().trim().min(1).max(80), sourceRef: z.string().trim().max(200).optional() }),
   confidence: z.number().min(0).max(1).optional(), expiresAt: z.string().datetime({ offset: true }).optional(), explicitlyConfirmed: z.boolean().default(false),
 });
+const whatsappCompleteInput=z.object({
+  code:z.string().min(1).max(4096),businessId:z.string().regex(/^\d{5,30}$/).nullable(),
+  wabaId:z.string().regex(/^\d{5,30}$/),phoneNumberId:z.string().regex(/^\d{5,30}$/),
+  coexistenceState:z.enum(['unknown','eligible','enabled','ineligible','not_requested']).default('not_requested'),
+}).strict();
+const whatsappModeInput=z.object({
+  mode:z.enum(['manual','assisted','controlled']),humanTakeover:z.boolean(),
+}).strict();
 
 function normalizeCustomerPhone(value: unknown): string {
   return String(value || '').replace(/\D/g, '');
@@ -280,8 +288,37 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         if(!runtime.wia)return res.status(503).json({error:'Estado da WIA não confirmado.',category:'configuration_required'});
         wia=runtime.wia;
       }
-      return res.json({data:{wia,whatsapp:{state:'implementation_pending',connected:false,coexistence:'not_verified'},billing:{state:'configuration_required',checkoutEnabled:false},canManage:['owner','admin'].includes(context.role)}});
+      const whatsappRuntime=await invokeCoreMutation(req,res,context,'READ_WHATSAPP_CONNECTION',{});
+      if(!whatsappRuntime)return;
+      if(!whatsappRuntime.whatsapp)return res.status(503).json({error:'Estado do WhatsApp não confirmado.',category:'configuration_required'});
+      return res.json({data:{wia,whatsapp:whatsappRuntime.whatsapp,billing:{state:'configuration_required',checkoutEnabled:false},canManage:['owner','admin'].includes(context.role)}});
     } catch {return res.status(503).json({error:'Não foi possível consultar as integrações.',category:'configuration_required'});}
+  });
+
+  app.post('/api/integrations/whatsapp/start',authenticate,requireDb,async(req,res)=>{
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem conectar canais.'});
+    const result=await invokeCoreMutation(req,res,context,'BEGIN_WHATSAPP_CONNECTION',{});if(!result)return;
+    if(!result.whatsapp)return res.status(503).json({error:'Configuração do provedor não confirmada.',category:'configuration_required'});
+    return res.json({data:result.whatsapp});
+  });
+
+  app.post('/api/integrations/whatsapp/complete',authenticate,requireDb,async(req,res)=>{
+    const parsed=whatsappCompleteInput.safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Resposta de conexão inválida.',category:'validation_failed'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem conectar canais.'});
+    const result=await invokeCoreMutation(req,res,context,'COMPLETE_WHATSAPP_CONNECTION',parsed.data);if(!result)return;
+    return res.json({data:{result:result.result,connectionId:result.connectionId}});
+  });
+
+  app.patch('/api/integrations/whatsapp/mode',authenticate,requireDb,async(req,res)=>{
+    const parsed=whatsappModeInput.safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Modo de atendimento inválido.',category:'validation_failed'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem alterar o modo.'});
+    const result=await invokeCoreMutation(req,res,context,'SET_WHATSAPP_MODE',parsed.data);if(!result)return;
+    return res.json({data:{result:result.result}});
   });
 
   app.get('/api/operational/workspace', authenticate, requireDb, async (req, res) => {
