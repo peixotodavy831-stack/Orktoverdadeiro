@@ -237,7 +237,7 @@ export default function App() {
         setAuthIdentity(u.id);
         setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
         setAccessToken(session.access_token);
-        setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
+        setCurrentView(current => current === 'landing' || current === 'auth' ? (sessionStorage.getItem('orkto-commercial-intent') === 'enterprise' ? 'billing' : 'dashboard') : current);
         loadUserProfile(u.id, u);
       } else {
         setAuthIdentity(null);
@@ -689,7 +689,7 @@ export default function App() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error('Sessão não encontrada. Entre novamente.');
-      setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
+      setCurrentView(current => current === 'landing' || current === 'auth' ? (sessionStorage.getItem('orkto-commercial-intent') === 'enterprise' ? 'billing' : 'dashboard') : current);
     } catch (err: any) {
       console.error('Sign-in error:', err);
       showToast(err.message || 'Email ou senha inválidos', 'error');

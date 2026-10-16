@@ -60,7 +60,9 @@ begin
       if has_table_privilege('authenticated',t.oid,operation)<>(expected_select and operation='SELECT') then
         raise exception 'Authenticated % mismatch on public.%',operation,t.relname;
       end if;
-      if operation=any(array['SELECT','INSERT','UPDATE','DELETE']) and not has_table_privilege('service_role',t.oid,operation) then
+      if operation=any(array['SELECT','INSERT','UPDATE','DELETE'])
+         and not (operation='DELETE' and t.relname=any(array['orkto_commercial_requests','orkto_pulso_policies','orkto_pulso_ledger','orkto_model_tariffs','orkto_billing_customers','orkto_billing_bindings','orkto_subscription_events']))
+         and not has_table_privilege('service_role',t.oid,operation) then
         raise exception 'Service role missing % on public.%',operation,t.relname;
       end if;
     end loop;
@@ -70,7 +72,7 @@ begin
         and x.grantee in (0,'anon'::regrole::oid,'authenticated'::regrole::oid)
     ) then raise exception 'Browser/PUBLIC column grant remains on public.%',t.relname; end if;
   end loop;
-  if table_count<>66 then raise exception 'Expected 66 tables, found %',table_count; end if;
+  if table_count<>73 then raise exception 'Expected 73 tables, found %',table_count; end if;
   if (select count(*) from public.proposals where is_active is null or created_at is null)>0 then
     raise exception 'Proposals contain NULL in required columns';
   end if;

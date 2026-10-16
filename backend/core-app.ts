@@ -39,6 +39,7 @@ import { isQuoteEmailRecipientAuthorized } from './quote-email-policy.js';
 import { assertStagingBoundary, stagingPreviewOrigin } from './staging-boundary.js';
 import { logStructured } from './observability/structured-logger.js';
 import { resolvePublicAppBaseUrl } from './public-app-url.js';
+import { reserveTarget, cashForecast13Weeks } from './finance/economic-controls.js';
 
 dotenv.config();
 assertStagingBoundary(process.env);
@@ -421,6 +422,10 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
     const cashInCents = subscriptionCashInCents + otherRevenueCents;
     const paidSubscribers = actualMrrCoverageCount;
     const cashClosingEstimateCents = assumptions.openingCashCents + cashInCents - cashOutCents;
+    const forecastUntil=new Date(Date.now()+13*7*86400000).toISOString().slice(0,10);
+    const forecastResult=await supabase!.from('orkto_finance_transactions').select('occurred_on,transaction_type,amount_cents,cash_status')
+      .eq('basis','actual').eq('cash_status','forecast').gte('occurred_on',new Date().toISOString().slice(0,10)).lt('occurred_on',forecastUntil).limit(5000);
+    if(forecastResult.error)throw forecastResult.error;
     const observedMetrics = calculateObservedFinanceMetrics({
       mrrCents: observedMrrCents,
       actualTechnicalCogsCents: technicalCogsCents,
@@ -471,6 +476,10 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
     }
     res.json({
       month,
+      reserve:reserveTarget({receivedCents:cashInCents,availableCashCents:cashClosingEstimateCents,constitutedCents:null}),
+      cashForecast:cashForecast13Weeks(cashClosingEstimateCents,forecastResult.data||[]),
+      growth:{cac:null,churn:null,retention:null,nrr:null,payback:null,reason:'cohort_and_acquisition_data_not_reconciled'},
+      cashCoverage:'13-week forecast uses registered forecast entries only; missing entries are not expected zero costs.',
       assumptions: history[0] || null,
       assumptionsHistory: history,
       assumptionsFallback: history.length === 0 ? assumptions : null,
@@ -1638,24 +1647,9 @@ app.post("/api/asaas/webhook", async (req, res) => {
         }
       }
     }
-    if (event === 'CHECKOUT_PAID' && checkout) {
-      const { userId, plan } = parseBillingReference(checkout.externalReference);
-      if (userId && ['pro', 'business'].includes(plan)) {
-        const { data: profile, error: profileError } = await supabase.from('profiles').update({ active_plan: plan }).eq('id', userId).select('id').maybeSingle();
-        if (profileError) throw profileError;
-        if (!profile) throw new Error('Perfil da assinatura não encontrado.');
-        const amount = Array.isArray(checkout.items)
-          ? checkout.items.reduce((sum, item) => sum + Number(item?.value || 0) * Number(item?.quantity || 1), 0)
-          : Number(checkout.value || 0);
-        const { data: workspace, error: workspaceError } = await supabase.from('orkto_workspaces').select('id').eq('owner_user_id',userId).maybeSingle();
-        if (workspaceError) throw workspaceError;
-        if (!workspace?.id) throw new Error('Workspace de cobrança não encontrado.');
-        const { error: recordError } = await supabase.from('payment_records').upsert({
-          payment_id: `checkout:${checkout.id}`, user_id: userId, workspace_id:workspace.id, quote_id: null,
-          amount, status: 'confirmed', confirmed_at: confirmedAt,
-        }, { onConflict: 'payment_id' });
-        if (recordError) throw recordError;
-      }
+    // SaaS activation requires a server-created subscription binding and provider reconciliation.
+    if (event === 'CHECKOUT_PAID' || payment?.subscription || event === 'SUBSCRIPTION_CANCELED') {
+      throw new Error('subscription_reconciliation_required');
     }
     if (!skipPaymentMutation && (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') && payment) {
       const ref = matchedIntentQuoteId;
@@ -1712,21 +1706,6 @@ app.post("/api/asaas/webhook", async (req, res) => {
           }
         }
       }
-      const parsedReference = parseBillingReference(payment.externalReference);
-      const userId = parsedReference.userId;
-      if (userId && parsedReference.plan && payment.subscription) {
-        const plan = parsedReference.plan;
-        const { error: profileError } = await supabase.from('profiles').update({ active_plan: plan }).eq('id', userId);
-        if (profileError) throw profileError;
-        const { data: workspace, error: workspaceError } = await supabase.from('orkto_workspaces').select('id').eq('owner_user_id',userId).maybeSingle();
-        if (workspaceError) throw workspaceError;
-        if (!workspace?.id) throw new Error('Workspace de cobrança não encontrado.');
-        const { error: recordError } = await supabase.from('payment_records').upsert({
-          payment_id: payment.id, user_id: userId, workspace_id:workspace.id, quote_id: null,
-          amount: Number(payment.value || 0), status: 'confirmed', confirmed_at: confirmedAt,
-        }, { onConflict: 'payment_id' });
-        if (recordError) throw recordError;
-      }
     }
     if ((event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED') && payment?.id) {
       const status = event === 'PAYMENT_OVERDUE' ? 'overdue' : 'deleted';
@@ -1734,14 +1713,6 @@ app.post("/api/asaas/webhook", async (req, res) => {
       const { error: recordError } = await supabase.from('payment_records').update({ status }).eq('payment_id', payment.id).neq('status', 'confirmed');
       if (recordError) throw recordError;
     }
-    if (event === 'SUBSCRIPTION_CANCELED' && subscription) {
-      const { userId } = parseBillingReference(subscription.externalReference);
-      if (userId) {
-        const { error: profileError } = await supabase.from('profiles').update({ active_plan: 'free' }).eq('id', userId);
-        if (profileError) throw profileError;
-      }
-    }
-
     // Preserve the legacy ledger for existing operational queries; the new
     // claim ledger is authoritative for idempotency and has a fencing token.
     const { error: legacyEventError } = await supabase.from('asaas_webhook_events').insert({ event_id: eventId, event_type: event.trim() });

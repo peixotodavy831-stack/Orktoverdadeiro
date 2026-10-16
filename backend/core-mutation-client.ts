@@ -18,10 +18,11 @@ export type CoreMutationCommand =
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN'
   | 'READ_PLAN_CATALOG' | 'READ_BILLING_CURRENT' | 'READ_WIA_RUNTIME' | 'PREPARE_WIA_T0' | 'PREPARE_WIA_REQUEST'
   | 'READ_WHATSAPP_CONNECTION' | 'BEGIN_WHATSAPP_CONNECTION' | 'COMPLETE_WHATSAPP_CONNECTION' | 'SET_WHATSAPP_MODE'
-  | 'SEND_WHATSAPP_MESSAGE';
+  | 'SEND_WHATSAPP_MESSAGE' | 'REQUEST_COMMERCIAL_PROPOSAL' | 'BEGIN_SUBSCRIPTION_SANDBOX';
 
 export type CoreMutationResult = {
   result: string;
+  commercialRequestId?:string;
   profile?: { id: string; display_name?: string };
   client?: unknown;
   client_id?: string;

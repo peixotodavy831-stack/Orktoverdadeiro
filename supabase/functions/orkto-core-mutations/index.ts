@@ -13,6 +13,8 @@ import { prepareTrustedRequest, WiaRequestError } from './_shared/wia-request.ts
 import { geminiTestConfiguration } from './_shared/wia-gemini.ts';
 import { completeMetaEmbeddedSignup, MetaConnectionError, metaRuntimeConfig } from './_shared/meta-connection.ts';
 import { MetaSendError, sendMetaText } from './_shared/meta-send.ts';
+import { COMMERCIAL_PLANS } from './_shared/commercial-catalog.ts';
+import { asaasSandbox } from './_shared/asaas-sandbox.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
@@ -117,6 +119,19 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = '';
       argumentsForCommand = {};
+    } else if(command==='BEGIN_SUBSCRIPTION_SANDBOX') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['planKey','customerRef'])
+        ||!COMMERCIAL_PLANS.some(plan=>plan.id===holder.planKey&&plan.priceCents!==null)
+        ||typeof holder.customerRef!=='string'||!/^cus_[A-Za-z0-9_-]{1,100}$/.test(holder.customerRef))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={planKey:holder.planKey,customerRef:holder.customerRef};functionName='';eventType='';argumentsForCommand={};
+    } else if (command === 'REQUEST_COMMERCIAL_PROPOSAL') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['requirements'])
+        ||typeof holder.requirements!=='string'||holder.requirements.trim().length<10||holder.requirements.length>3000)
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={requirements:holder.requirements.trim()};functionName='';eventType='';argumentsForCommand={};
     } else if (command === 'COMPLETE_WHATSAPP_CONNECTION') {
       const holder=suppliedPayload as Record<string,unknown>|null;
       const allowed=['code','businessId','wabaId','phoneNumberId','coexistenceState'];
@@ -479,6 +494,36 @@ Deno.serve(async (req: Request) => {
       return response(200,'OK',requestId,{result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',
         state:configured?'configured_not_verified':'configuration_required',testingOnly:true}},origin);
     }
+    if(command==='BEGIN_SUBSCRIPTION_SANDBOX') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const env=Object.fromEntries(['APP_ENV','ASAAS_ENVIRONMENT','ORKTO_BILLING_SANDBOX_ENABLED','ASAAS_API_KEY'].map(key=>[key,Deno.env.get(key)]));
+      env.VITE_SUPABASE_URL=Deno.env.get('SUPABASE_URL');
+      let processor;try{processor=asaasSandbox(env);}catch{return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);}
+      const reservation=await admin.rpc('orkto_begin_sandbox_subscription',{p_workspace_id:membership.workspace_id,p_actor_id:user.id,
+        p_key:idempotencyKey,p_plan:canonical.planKey,p_customer:canonical.customerRef});
+      if(reservation.error||!reservation.data)return response(409,'CONFLICT',requestId,undefined,origin);
+      const binding=reservation.data;
+      if(!binding.created)return response(binding.providerId?200:409,binding.providerId?'OK':'CONFLICT',requestId,
+        {result:binding.providerId?'PENDING':'RECONCILIATION_REQUIRED'},origin);
+      try {
+        const provider=await processor.create({customerRef:String(canonical.customerRef),bindingId:`orkto-sub:${binding.bindingId}`,
+          planKey:String(canonical.planKey),priceVersion:binding.priceVersion,priceCents:binding.priceCents,nextDueDate:new Date().toISOString().slice(0,10)});
+        const saved=await admin.from('orkto_billing_bindings').update({provider_subscription_id:provider.providerId,creation_state:'created'})
+          .eq('id',binding.bindingId).eq('workspace_id',membership.workspace_id).eq('creation_state','reserved').select('id').maybeSingle();
+        if(saved.error||!saved.data)throw new Error('BILLING_PERSISTENCE_UNKNOWN');
+        return response(200,'OK',requestId,{result:'PENDING',billingBindingId:binding.bindingId},origin);
+      }catch{
+        await admin.from('orkto_billing_bindings').update({creation_state:'unknown'}).eq('id',binding.bindingId).eq('workspace_id',membership.workspace_id);
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+    }
+    if(command==='REQUEST_COMMERCIAL_PROPOSAL') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const {data,error}=await admin.rpc('orkto_request_commercial_proposal',{p_workspace_id:membership.workspace_id,
+        p_actor_id:user.id,p_key:idempotencyKey,p_requirements:canonical.requirements});
+      if(error)return response(error.message==='COMMERCIAL_IDEMPOTENCY_CONFLICT'?409:503,'CONFLICT',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'REQUESTED',commercialRequestId:data},origin);
+    }
     if (command === 'READ_PLAN_CATALOG') {
       const now = new Date().toISOString();
       const { data: versions, error: catalogError } = await admin.from('orkto_plan_price_versions')
@@ -488,7 +533,7 @@ Deno.serve(async (req: Request) => {
         .order('effective_from',{ascending:false}).limit(100);
       if (catalogError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
       const latest = new Map<string,Record<string,unknown>>();
-      const allowedPlans = new Set(['starter','pro','business','scale','enterprise','founders','legacy_standard']);
+      const allowedPlans = new Set<string>(COMMERCIAL_PLANS.map(plan=>plan.id));
       for (const version of versions || []) {
         if (allowedPlans.has(version.plan_key) && !latest.has(version.plan_key)) latest.set(version.plan_key, version);
       }
@@ -507,12 +552,20 @@ Deno.serve(async (req: Request) => {
         .order('period_start',{ascending:false}).limit(100);
       if(usageError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
       const subscription=access.subscription;
+      const [pulsoPolicy,pulsoUsage]=await Promise.all([
+        admin.from('orkto_pulso_policies').select('allowance_milli,version,expires_at').eq('workspace_id',membership.workspace_id).gt('expires_at',new Date().toISOString()).maybeSingle(),
+        admin.from('orkto_pulso_ledger').select('reserved_milli,state').eq('workspace_id',membership.workspace_id).eq('period_start',new Date().toISOString().slice(0,7)+'-01'),
+      ]);
+      const pulsoKnown=!pulsoPolicy.error&&!pulsoUsage.error&&!!pulsoPolicy.data;
+      const pulsoUsed=(pulsoUsage.data||[]).filter(row=>row.state!=='released').reduce((sum,row)=>sum+Number(row.reserved_milli),0);
       return response(200,'OK',requestId,{result:'READ',billing:{
         subscription:subscription?{plan_key:subscription.plan_key,status:subscription.status,trial_ends_at:subscription.trial_ends_at,current_period_start:subscription.current_period_start,current_period_end:subscription.current_period_end,cancel_at_period_end:subscription.cancel_at_period_end}:null,
         workspacePlan:access.planKey,status:access.status,trialEndsAt:access.trialEndsAt,
         readOnly:access.readOnly,configurationRequired:access.configurationRequired,
         entitlements:access.entitlements,effectivePriceVersion:access.effectivePriceVersion,
         usage:usage||[],checkout:'not_configured',pricesPublic:access.publicPriceApproved,
+        pulso:{state:pulsoKnown?'configured':'configuration_required',allowance:pulsoKnown?Number(pulsoPolicy.data.allowance_milli)/1000:null,
+          used:pulsoKnown?pulsoUsed/1000:null,remaining:pulsoKnown?Math.max(0,Number(pulsoPolicy.data.allowance_milli)-pulsoUsed)/1000:null},
       }},origin);
     }
     if (command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {

@@ -1,4 +1,4 @@
-export const TARGET_MIGRATION_COUNT = 48;
+export const TARGET_MIGRATION_COUNT = 49;
 export const MIGRATION_44_NAME = 'google_pilot_gate_fails_closed';
 export const STAGING_PROJECT_REF = 'ghrjongiodziasupakrk';
 export const MIGRATION_18_NAME = 'v20260928130000_durable_payment_and_delivery_ledgers';

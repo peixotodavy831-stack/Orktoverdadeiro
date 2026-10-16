@@ -56,12 +56,12 @@ test('provider errors never expose credentials, raw responses or retry automatic
 function database(start:any={result:'STARTED',wia_run_id:'run-1',status:'running'}) {
   const calls:any[]=[];const queries:any[]=[];
   return {calls,queries,rpc:async(name:string,args:any)=>{
-    calls.push({name,args});if(name==='orkto_wia_claim_request')return {data:start,error:null};
+    calls.push({name,args});if(name==='orkto_reserve_pulso')return {data:{allowed:true},error:null};if(name==='orkto_finish_pulso')return {data:true,error:null};if(name==='orkto_wia_claim_request')return {data:start,error:null};
     return {data:{result:'COMPLETED',wia_run_id:'run-1'},error:null};
   },from:(table:string)=>{
     const filters:any[]=[];queries.push({table,filters});
     const data=table==='quotes'?[{id:'private-quote-id'}]:null;
-    const query:any={select:()=>query,eq:(...v:any[])=>{filters.push(v);return query;},is:()=>query,in:()=>query,limit:()=>query,gte:()=>query,
+    const query:any={select:()=>query,eq:(...v:any[])=>{filters.push(v);return query;},is:()=>query,in:()=>query,limit:()=>query,gte:()=>query,lte:()=>query,order:()=>query,maybeSingle:()=>query,
       then:(done:any)=>Promise.resolve({data,error:null,count:table==='clients'?3:0}).then(done)};
     return query;
   }};
@@ -74,8 +74,8 @@ test('trusted request scopes all reads and persists before returning success',as
   }) as typeof fetch);
   assert.equal(providerCalls,1);assert.equal(response.path,'model');
   assert.equal(db.calls[0].args.p_fingerprint,request.fingerprint);
-  assert.equal(db.calls[1].name,'orkto_wia_finish_request');assert.equal(db.calls[1].args.p_status,'succeeded');
-  for(const query of db.queries)assert.ok(query.filters.some(([key,value])=>key==='workspace_id'&&value===workspace));
+  assert.equal(db.calls[1].name,'orkto_reserve_pulso');assert.equal(db.calls[2].name,'orkto_finish_pulso');assert.equal(db.calls[3].name,'orkto_wia_finish_request');assert.equal(db.calls[3].args.p_status,'succeeded');
+  for(const query of db.queries.filter(q=>q.table!=='orkto_model_tariffs'))assert.ok(query.filters.some(([key,value])=>key==='workspace_id'&&value===workspace));
 });
 test('running, failed and completed replays never call Gemini',async()=>{
   for(const status of ['running','failed']) {
@@ -97,6 +97,13 @@ test('failed model run is audited and never represented as successful',async()=>
   const db=database();
   await assert.rejects(prepareTrustedRequest(db,request,env,(async()=>new Response('',{status:429})) as typeof fetch),
     (error:any)=>error.code==='MODEL_UNAVAILABLE');
-  assert.equal(db.calls[1].args.p_status,'failed');
-  assert.equal(db.calls[1].args.p_payload.errorCategory,'provider_unavailable');
+  assert.equal(db.calls[3].args.p_status,'failed');
+  assert.equal(db.calls[3].args.p_payload.errorCategory,'provider_unavailable');
+});
+
+test('unapproved Pulso allocation blocks generative calls and records the failed run',async()=>{
+  const db=database();const rpc=db.rpc;
+  db.rpc=async(name,args)=>name==='orkto_reserve_pulso'?{data:{allowed:false,reason:'configuration_required'},error:null}:rpc(name,args);
+  await assert.rejects(prepareTrustedRequest(db,request,env,noSend),(error:any)=>error.code==='PULSO_CONFIGURATION_OR_LIMIT');
+  assert.ok(db.calls.some(call=>call.name==='orkto_wia_finish_request'&&call.args.p_status==='failed'));
 });

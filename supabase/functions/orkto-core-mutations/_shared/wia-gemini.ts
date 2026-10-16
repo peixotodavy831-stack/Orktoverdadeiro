@@ -8,7 +8,8 @@ export function geminiTestConfiguration(env: Environment, workspaceId: string) {
     && env.get('WIA_STAGING_GEMINI_TESTS') === 'ON'
     && (env.get('WIA_GEMINI_TEST_WORKSPACES') || '').split(',').map(v => v.trim()).includes(workspaceId);
   const key = env.get('GEMINI_API_KEY')?.trim();
-  return enabled && key ? { apiKey: key, model: MODEL } : null;
+  const model=env.get('WIA_GEMINI_MODEL')?.trim()||MODEL;
+  return enabled && key && /^gemini-[a-z0-9.-]{1,80}$/.test(model) ? { apiKey: key, model } : null;
 }
 
 const decisionSchema = z.object({
@@ -67,8 +68,9 @@ export async function prepareTrustedGemini(input: {
   sourceIds: string[];
 }, send: typeof fetch = fetch) {
   const began = Date.now();
+  if(!/^gemini-[a-z0-9.-]{1,80}$/.test(input.model))throw new TrustedModelError('provider_invalid_response');
   try {
-    const response = await send(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,{
+    const response = await send(`https://generativelanguage.googleapis.com/v1beta/models/${input.model}:generateContent`,{
       method:'POST',headers:{'content-type':'application/json','x-goog-api-key':input.apiKey},
       signal:AbortSignal.timeout(15_000),redirect:'error',
       body:JSON.stringify({systemInstruction:{parts:[{text:
@@ -106,7 +108,7 @@ export async function prepareTrustedGemini(input: {
     const prompt=count(meta?.promptTokenCount),completion=count(meta?.candidatesTokenCount),total=count(meta?.totalTokenCount);
     if(prompt===null||completion===null||total===null||total<prompt+completion)throw new TrustedModelError('provider_invalid_response');
     return {decision,usage:{provider:'gemini',modelFamily:'gemini',gateway:'supabase-edge-google-direct',
-      model:MODEL,requestedModel:MODEL,selectedModel:MODEL,actualModel:typeof body.modelVersion==='string'&&/^gemini-[a-z0-9.-]{1,80}$/.test(body.modelVersion)?body.modelVersion:MODEL,
+      model:input.model,requestedModel:input.model,selectedModel:input.model,actualModel:typeof body.modelVersion==='string'&&/^gemini-[a-z0-9.-]{1,80}$/.test(body.modelVersion)?body.modelVersion:input.model,
       taskType:'standard',fallbackUsed:false,promptTokens:prompt,cachedInputTokens:0,
       completionTokens:completion,totalTokens:total,latencyMs:Date.now()-began,status:'succeeded'},
       sourceIds:decision.sourceIds,toolExecutions:[]};

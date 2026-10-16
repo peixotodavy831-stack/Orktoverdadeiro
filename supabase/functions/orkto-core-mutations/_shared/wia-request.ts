@@ -1,6 +1,7 @@
 import { routeT0Request } from './wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './wia-trusted.ts';
 import { geminiTestConfiguration, prepareTrustedGemini, TrustedModelError } from './wia-gemini.ts';
+import { estimateModelCost } from './cost-governor.ts';
 
 export class WiaRequestError extends Error {
   constructor(readonly status: number, readonly code: string) { super(code); }
@@ -49,6 +50,9 @@ export async function prepareTrustedRequest(db: any, input: {
           taskType:'fast',fallbackUsed:false,promptTokens:0,cachedInputTokens:0,completionTokens:0,totalTokens:0,
           latencyMs:prepared.durationMs,status:'succeeded'}};
     } else {
+      // No provider call without a durable, owner-approved Pulso allocation.
+      const reservation=await db.rpc('orkto_reserve_pulso',{p_workspace_id:input.workspaceId,p_request_key:input.traceId,p_class:'normal'});
+      if(reservation.error||reservation.data?.allowed!==true)throw new WiaRequestError(423,'PULSO_CONFIGURATION_OR_LIMIT');
       // Send aggregate counts, never full contacts, proposal details, or private chat histories.
       const [quotes,clients]=await Promise.all([
         db.from('quotes').select('id').eq('workspace_id',input.workspaceId).is('archived_at',null)
@@ -60,13 +64,27 @@ export async function prepareTrustedRequest(db: any, input: {
       const prepared=await prepareTrustedGemini({...configuration!,message:input.message,
         context:{openQuotes:rows.length,clients:clients.count,truncated:(quotes.data||[]).length>50},
         sourceIds:[]},send);
+      const tariffResult=await db.from('orkto_model_tariffs').select('*').eq('provider',prepared.usage.provider)
+        .eq('model',prepared.usage.model).lte('effective_from',new Date().toISOString())
+        .order('effective_from',{ascending:false}).limit(1).maybeSingle();
+      const tariff=tariffResult.error?null:tariffResult.data;
+      const estimate=estimateModelCost(tariff?{version:tariff.version,provider:tariff.provider,model:tariff.model,
+        effectiveFrom:tariff.effective_from,effectiveUntil:tariff.effective_until,
+        inputMicrousdPerMillion:Number(tariff.input_microusd_per_million),outputMicrousdPerMillion:Number(tariff.output_microusd_per_million),
+        cachedMicrousdPerMillion:Number(tariff.cached_microusd_per_million)}:null,
+        {provider:prepared.usage.provider,model:prepared.usage.model,input:prepared.usage.promptTokens,cached:prepared.usage.cachedInputTokens,output:prepared.usage.completionTokens});
+      const usage={...prepared.usage,costEstimate:estimate,costState:estimate?'estimated':'tariff_missing',actualCashCost:null};
       payload={contextRefs:prepared.sourceIds,path:'model',mode:'live',decision:prepared.decision,
-        usage:prepared.usage,toolExecutions:prepared.toolExecutions};
+        usage,toolExecutions:prepared.toolExecutions};
+      const settled=await db.rpc('orkto_finish_pulso',{p_workspace_id:input.workspaceId,p_request_key:input.traceId,p_state:'consumed',p_usage:usage});
+      if(settled.error||settled.data!==true)throw new Error('pulso_commit_failed');
     }
   } catch(error) {
+    if(!route)await db.rpc('orkto_finish_pulso',{p_workspace_id:input.workspaceId,p_request_key:input.traceId,p_state:'unknown',p_usage:{status:'unknown'}});
     const category=error instanceof TrustedModelError?error.category:'trusted_context_query_failed';
     const failed=await db.rpc('orkto_wia_finish_request',{...common,p_status:'failed',p_payload:{errorCategory:category}});
     if(failed.error)throw new WiaRequestError(503,'INTERNAL_ERROR');
+    if(error instanceof WiaRequestError)throw error;
     throw new WiaRequestError(503,'MODEL_UNAVAILABLE');
   }
   const {data:completed,error:completeError}=await db.rpc('orkto_wia_finish_request',{

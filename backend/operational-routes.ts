@@ -21,6 +21,7 @@ import { accountingAdapterRegistry, type AccountingSaleExport } from './accounti
 import { invokeCoreMutation } from './core-mutation-client.js';
 import { invokePublicProposal } from './public-proposal-client.js';
 import { createModelRegistry } from './wiaos/model-registry.js';
+import { COMMERCIAL_PLANS } from '../supabase/functions/orkto-core-mutations/_shared/commercial-catalog.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -1199,7 +1200,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     const result = await invokeCoreMutation(req,res,context,'READ_PLAN_CATALOG',{});
     if (!result) return;
     const catalog = result.catalog || [];
-    res.json({ data: catalog, catalogKeys:['starter','pro','business','scale','enterprise','founders','legacy_standard'],
+    res.json({ data: catalog, catalogKeys:COMMERCIAL_PLANS.map(plan=>plan.id),
       publicPricesApproved: catalog.some(plan => plan.price_is_public && plan.price_cents !== null), pricingSource: 'versioned_assumptions' });
   });
 
@@ -1210,6 +1211,24 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if(!result)return;
     if(!result.billing)return res.status(503).json({error:'Não foi possível confirmar os dados do plano.',category:'configuration_required'});
     return res.json(result.billing);
+  });
+
+  app.post('/api/billing/proposal-requests',authenticate,requireDb,async(req,res)=>{
+    const parsed=z.object({requirements:z.string().trim().min(10).max(3000)}).strict().safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Descreva as necessidades da empresa entre 10 e 3000 caracteres.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente responsáveis pela empresa podem solicitar uma proposta.'});
+    const result=await invokeCoreMutation(req,res,context,'REQUEST_COMMERCIAL_PROPOSAL',parsed.data);if(!result)return;
+    return res.status(201).json({id:result.commercialRequestId,status:'requested'});
+  });
+
+  app.post('/api/billing/sandbox/subscriptions',authenticate,requireDb,async(req,res)=>{
+    const parsed=z.object({planKey:z.enum(['starter','pro','business','scale']),customerRef:z.string().regex(/^cus_[A-Za-z0-9_-]{1,100}$/)}).strict().safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Assinatura sandbox inválida.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Permissão administrativa necessária.'});
+    const result=await invokeCoreMutation(req,res,context,'BEGIN_SUBSCRIPTION_SANDBOX',parsed.data);if(!result)return;
+    return res.json({status:'pending',result:result.result});
   });
 
   app.get('/api/notifications', authenticate, requireDb, async (req, res) => {
