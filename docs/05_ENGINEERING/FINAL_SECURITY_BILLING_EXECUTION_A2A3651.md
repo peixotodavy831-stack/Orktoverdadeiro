@@ -1,3 +1,7 @@
+## Inspeção vigente — 17/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz e evidências atuais](REAL_GATES_CHECKPOINT_2026-10-17.md): runtime a2a3651 confirmado READY, motores c40fba9 preservados; zero custom secrets e customers sandbox. Executor Google isolado BLOCKED_EXTERNAL; G01–G12 e B01–B13 NOT_TESTED. G06/G08 também têm cobertura ainda ausente no motor, além do impedimento externo. Nenhum teste real, fornecedor, deploy ou alteração cloud nesta rodada. PASS anteriores preservados.
+
 # ORKTO — execução restante de segurança e billing
 
 Referência executável: `a2a3651319196ffc56813992f705692d368ef967`, [Preview autorizado](https://orkto-staging-az36qohmo-peixoto-s-projects1.vercel.app/), Supabase `ghrjongiodziasupakrk`. **READY_FOR_PRODUCTION_CANDIDATE=NO.** Este documento é um roteiro de execução ainda pendente, não evidência de testes aprovados.

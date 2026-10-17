@@ -1,3 +1,7 @@
+## Checkpoint vigente — 17/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Gates reais e evidências atuais](05_ENGINEERING/REAL_GATES_CHECKPOINT_2026-10-17.md): runtime a2a3651 confirmado READY; ferramentas c40fba9 preservadas. Google A/B sem executor PKCE isolado; Asaas sem customer aprovado e sem custom secrets. G01–G12/B01–B13 NOT_TESTED; G06/G08 também requerem cobertura no motor existente. Somente inspeções de leitura; PASS históricos preservados, produção e PR sem merge.
+
 ## Estado vigente — continuação da homologação, 16/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz vigente](05_ENGINEERING/STAGING_HOMOLOGATION_A2A3651_2026-10-16.md): runtime a2a3651319196ffc56813992f705692d368ef967 / Preview az36qohmo READY; staging DB50/core Edge30/webhook2. Google B real e persistência após reload comprovados também no candidato a2a3651; contexto RLS SQL aprovado, transporte A/B e replay/expiração natural ainda não executados. Lifecycle nativo Asaas implementado e validado com fixtures/CI; fornecedor real e política de término de acesso bloqueados externamente. Regressão 285/285 + 61/61, billing focado19/19, lint/Edge/build/CI/secret scan PASS. Redirect exato salvo após confirmação específica; lista 16→17 e Site URL preservada. Produção intocada e PR #2 sem merge.

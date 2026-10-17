@@ -1,3 +1,7 @@
+## Inspeção vigente — 17/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz e evidências atuais](REAL_GATES_CHECKPOINT_2026-10-17.md): runtime a2a3651 confirmado READY, motores c40fba9 preservados; zero custom secrets e customers sandbox. Executor Google isolado BLOCKED_EXTERNAL; G01–G12 e B01–B13 NOT_TESTED. G06/G08 também têm cobertura ainda ausente no motor, além do impedimento externo. Nenhum teste real, fornecedor, deploy ou alteração cloud nesta rodada. PASS anteriores preservados.
+
 # ORKTO — continuação da homologação, 16/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** PR #2 permanece aberta, sem merge. Somente staging foi alterado. Esta matriz substitui o estado corrente do [relatório 4506803](STAGING_HOMOLOGATION_4506803_2026-10-16.md), cujas evidências históricas permanecem preservadas.
