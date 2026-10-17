@@ -1,3 +1,7 @@
+## Atualização vigente — G06/G08 implementados em 40fcfdc
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Engenharia e matriz por ambiente](G06_G08_ENGINEERING_2026-10-17.md): G06 (escritas cruzadas com observação independente) e G08 (reuse fora das exceções) implementados no motor existente, source `40fcfdcc6effb6d2bd32f875e39e4e81b30b1e29`. **39/39 testes de ferramentas + 22/22 deploy boundary PASS**, lint/sintaxe/build isolado/secret scan e CI PostgreSQL17/deploy boundary PASS. As menções abaixo à cobertura ausente são históricas e foram superadas nesta engenharia. G01–G12 reais continuam NOT_TESTED, executor PKCE BLOCKED_EXTERNAL; Asaas configuração BLOCKED_EXTERNAL e B01–B13 NOT_TESTED. [Configuração exata pelo proprietário](ASAAS_SANDBOX_OWNER_SETUP.md). Runtime a2a3651 preservado, sem deploy, mudança cloud ou produção.
+
 # Gates reais — inspeção de 17/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** PR #2 permanece sem merge. Esta rodada consultou somente staging; não executou G01–G12 nem B01–B13.

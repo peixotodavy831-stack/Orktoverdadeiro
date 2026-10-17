@@ -1,3 +1,7 @@
+## Atualização vigente — G06/G08 implementados em 40fcfdc
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Engenharia e matriz por ambiente](G06_G08_ENGINEERING_2026-10-17.md): G06 (escritas cruzadas com observação independente) e G08 (reuse fora das exceções) implementados no motor existente, source `40fcfdcc6effb6d2bd32f875e39e4e81b30b1e29`. **39/39 testes de ferramentas + 22/22 deploy boundary PASS**, lint/sintaxe/build isolado/secret scan e CI PostgreSQL17/deploy boundary PASS. As menções abaixo à cobertura ausente são históricas e foram superadas nesta engenharia. G01–G12 reais continuam NOT_TESTED, executor PKCE BLOCKED_EXTERNAL; Asaas configuração BLOCKED_EXTERNAL e B01–B13 NOT_TESTED. [Configuração exata pelo proprietário](ASAAS_SANDBOX_OWNER_SETUP.md). Runtime a2a3651 preservado, sem deploy, mudança cloud ou produção.
+
 ## Inspeção vigente — 17/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz e evidências atuais](REAL_GATES_CHECKPOINT_2026-10-17.md): runtime a2a3651 confirmado READY, motores c40fba9 preservados; zero custom secrets e customers sandbox. Executor Google isolado BLOCKED_EXTERNAL; G01–G12 e B01–B13 NOT_TESTED. G06/G08 também têm cobertura ainda ausente no motor, além do impedimento externo. Nenhum teste real, fornecedor, deploy ou alteração cloud nesta rodada. PASS anteriores preservados.

@@ -1,0 +1,38 @@
+{
+  "scope": "LOCAL_FIXTURE_AND_CI_ENGINEERING_ONLY",
+  "toolsSourceSha": "40fcfdcc6effb6d2bd32f875e39e4e81b30b1e29",
+  "previousToolsSourceSha": "c40fba9789206b0206902d966cdd1ed8c6593e71",
+  "referenceRuntimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+  "project": "ghrjongiodziasupakrk",
+  "date": "2026-10-17",
+  "checks": {
+    "G06Implementation": "PASS",
+    "G08Implementation": "PASS",
+    "toolsTests": {"mode": "FIXTURE", "passed": 39, "failed": 0, "log": "g06-g08-tools-tests.log"},
+    "deployBoundaryTests": {"mode": "FIXTURE", "passed": 22, "failed": 0, "log": "g06-g08-deploy-boundary.log"},
+    "lintTypecheck": {"command": "npm run lint", "exitCode": 0},
+    "syntax": {"commands": ["node --check scripts/readiness/google-ab-transport.mjs", "node --check scripts/tests/google-ab-transport.test.mjs"], "exitCode": 0},
+    "isolatedGoogleBuild": {"status": "PASS", "frontend": true, "publicUrl": true, "server": true, "runtime": true, "distPreserved": true, "log": "g06-g08-build.log", "initialRestrictedAttempt": "EPERM_REALPATH_ENVIRONMENT_FAILURE", "retry": "AUTHORIZED_ISOLATED_BUILD_PASS"},
+    "secretScan": {"status": "PASS", "findings": 0, "blockers": 0, "log": "g06-g08-secret-scan.log"}
+  },
+  "ci": [
+    {"name": "Production Readiness deploy boundary", "headSha": "40fcfdcc6effb6d2bd32f875e39e4e81b30b1e29", "conclusion": "success", "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39075890884"},
+    {"name": "Validate migrations (PostgreSQL 17)", "headSha": "40fcfdcc6effb6d2bd32f875e39e4e81b30b1e29", "conclusion": "success", "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39075890867"}
+  ],
+  "gates": {
+    "googlePkceAcquisition": "BLOCKED_EXTERNAL",
+    "googleRealG01ThroughG12": "NOT_TESTED",
+    "G06RealPersistenceProof": "NOT_TESTED",
+    "G08RealProviderReuseDetection": "NOT_TESTED",
+    "asaasConfiguration": "BLOCKED_EXTERNAL",
+    "asaasRealB01ThroughB13": "NOT_TESTED",
+    "accessTerminationPolicy": "BLOCKED_EXTERNAL"
+  },
+  "secretsExported": false,
+  "newFramework": false,
+  "runtimeChanged": false,
+  "newDeployment": false,
+  "cloudConfigurationChanged": false,
+  "productionChanged": false,
+  "readyForProductionCandidate": "NO"
+}

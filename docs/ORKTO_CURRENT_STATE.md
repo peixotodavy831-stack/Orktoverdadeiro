@@ -1,3 +1,7 @@
+## Engenharia vigente — G06/G08, 17/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz atual](05_ENGINEERING/G06_G08_ENGINEERING_2026-10-17.md): ferramentas source40fcfdc completam G06/G08; 39 testes de ferramentas, 22 de deploy boundary, lint/sintaxe, build isolado, secret scan e CI PostgreSQL17/deploy boundary PASS. Runtime a2a3651 inalterado. Execução Google real continua NOT_TESTED/BLOCKED_EXTERNAL por executor PKCE; Asaas real continua pendente de customer/secret store/notificações/autorização. [Passos do proprietário](05_ENGINEERING/ASAAS_SANDBOX_OWNER_SETUP.md). Nenhum novo framework, usuário, papel, deploy, cobrança, mensagem ou produção. As lacunas de engenharia G06/G08 descritas nos checkpoints anteriores foram superadas; não equivalem a PASS real.
+
 ## Checkpoint vigente — 17/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Gates reais e evidências atuais](05_ENGINEERING/REAL_GATES_CHECKPOINT_2026-10-17.md): runtime a2a3651 confirmado READY; ferramentas c40fba9 preservadas. Google A/B sem executor PKCE isolado; Asaas sem customer aprovado e sem custom secrets. G01–G12/B01–B13 NOT_TESTED; G06/G08 também requerem cobertura no motor existente. Somente inspeções de leitura; PASS históricos preservados, produção e PR sem merge.
