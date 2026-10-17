@@ -53,6 +53,6 @@ export async function preflightAsaasSandbox({env={},approvedCustomer,fetchImpl=f
   }catch{return blocked('PROVIDER_READ_UNAVAILABLE');}
 }
 
-if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+if(typeof process!=='undefined'&&process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
   process.stdout.write(JSON.stringify(await preflightAsaasSandbox())+'\n');process.exitCode=2;
 }

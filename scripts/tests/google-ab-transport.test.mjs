@@ -35,7 +35,7 @@ function fixture() {
       if(u.pathname.endsWith('/orkto_google_pilot_session_allowed'))return Response.json(!denied);
       const workspace=init.headers['x-orkto-workspace']||u.searchParams.get('id')?.slice(3);
       const foreign=workspace!==T.actors[actor];
-      if(u.pathname==='/api/operational/workspace')return denied||foreign?Response.json({},{status:403}):Response.json({workspace:{id:workspace}});
+      if(u.pathname==='/api/operational/workspace')return denied||foreign?Response.json({category:denied?'pilot_access_denied':'workspace_access_denied'},{status:403}):Response.json({workspace:{id:workspace}});
       if(u.pathname.startsWith('/functions/'))return denied||foreign?Response.json({},{status:403}):Response.json({code:'OK',data:{result:'READ'}});
       if(u.pathname==='/rest/v1/orkto_workspaces')return Response.json(denied||foreign?[]:[{id:workspace}]);
       throw new Error('UNEXPECTED_FIXTURE_REQUEST');
@@ -138,4 +138,17 @@ test('malformed fixture IDs and staging clock/transport overrides fail before cr
   const r=await runGoogleAbTransport({...f.config,...patch});assert.equal(acquired,false);assert.equal(f.calls.length,0);
   assert.ok(r.records.some(v=>v.status==='FAIL'));
  }
+});
+
+test('Vercel denial cannot masquerade as revoked user authentication',async()=>{
+ const f=fixture();const send=f.config.fetchImpl;
+ f.config.fetchImpl=async(url,init)=>url.startsWith(T.preview)?new Response('Vercel login',{status:403}):send(url,init);
+ const r=await runGoogleAbTransport(f.config);
+ assert.ok(r.records.some(v=>v.test==='A_API_FOREIGN'&&v.status==='FAIL'));
+});
+test('natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter',async()=>{
+ const f=fixture();f.config.oidcToken=jwt({exp:Math.floor(f.config.now()/1000)+2});
+ const r=await runGoogleAbTransport({...f.config,naturalExpiry:true});
+ assert.ok(r.records.some(v=>v.test==='NATURAL_EXPIRY_PREVIEW_ACCESS_RENEWAL_REQUIRED'&&v.status==='BLOCKED_EXTERNAL'));
+ assert.ok(!r.records.some(v=>v.test.startsWith('NATURALLY_EXPIRED_')));
 });

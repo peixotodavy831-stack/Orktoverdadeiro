@@ -28,7 +28,7 @@ function validateSession(session,actor,now) {
  * must supply two isolated, memory-only contexts from their normal OAuth flow.
  * No environment/session files, SDK storage, browser internals or raw diagnostics.
  */
-export async function runGoogleAbTransport({verifyDeployment,acquireContexts,publicKey,oidcToken,
+export async function runGoogleAbTransport({verifyDeployment,acquireContexts,publicKey,oidcToken,getPreviewOidc,
   fetchImpl=fetch,now=Date.now,sleep=systemSleep,fixtureClients,
   naturalExpiry=false,revokeCurrentSessions=false,maxNaturalWaitMs=65*60_000,expiryLeewayMs=5000,
   executionMode='STAGING'}={}) {
@@ -69,7 +69,11 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
       if(![GOOGLE_AB_TARGET.preview,GOOGLE_AB_TARGET.supabase].includes(origin))fail();
       const headers={'content-type':'application/json'};
       if(token)headers.authorization=`Bearer ${token}`;
-      if(origin===GOOGLE_AB_TARGET.preview){if(oidcToken)headers['x-vercel-trusted-oidc-idp-token']=oidcToken;}
+      if(origin===GOOGLE_AB_TARGET.preview){
+        const access=typeof getPreviewOidc==='function'?await getPreviewOidc():oidcToken;
+        if(access){if(!Number.isFinite(claims(access).exp)||claims(access).exp*1000<=now())fail();
+          headers['x-vercel-trusted-oidc-idp-token']=access;}
+      }
       else headers.apikey=publicKey;
       if(workspace)headers['x-orkto-workspace']=workspace;
       if(path.startsWith('/functions/'))headers['x-idempotency-key']=`google-ab-${randomUUID()}`;
@@ -94,7 +98,8 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
       const denied=other||revoked;
       const api=await request(GOOGLE_AB_TARGET.preview,'/api/operational/workspace',token,{workspace});
       record(`${prefix}${c.actor}_API_${other?'FOREIGN':'OWN'}`,denied
-        ?([401,403].includes(api.status)?'PASS':'FAIL')
+        ?((api.status===401&&api.data?.error==='Sessão expirada. Faça login novamente.')
+          ||(api.status===403&&['pilot_access_denied','workspace_access_denied'].includes(api.data?.category))?'PASS':'FAIL')
         :(api.status===200&&api.data?.workspace?.id===workspace?'PASS':'FAIL'),api.status);
       const edge=await request(GOOGLE_AB_TARGET.supabase,'/functions/v1/orkto-core-mutations',token,
         {method:'POST',workspace,body:{command:'READ_PLAN_CATALOG',payload:{}}});
@@ -136,7 +141,9 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
     }else record('BUSINESS_RESOURCE_AB','NOT_TESTED');
     if(naturalExpiry){
       const until=Math.max(...oldTokens.map(t=>t.exp))*1000+expiryLeewayMs;
-      if(until-now()>maxNaturalWaitMs){record('NATURAL_EXPIRY_WAIT_LIMIT','BLOCKED_EXTERNAL');}
+      if(oidcToken&&typeof getPreviewOidc!=='function'&&claims(oidcToken).exp*1000<=until+30_000){
+        record('NATURAL_EXPIRY_PREVIEW_ACCESS_RENEWAL_REQUIRED','BLOCKED_EXTERNAL');
+      }else if(until-now()>maxNaturalWaitMs){record('NATURAL_EXPIRY_WAIT_LIMIT','BLOCKED_EXTERNAL');}
       else {while(now()<until)await sleep(Math.min(30_000,until-now()));
         for(const c of contexts){const old=oldTokens.find(t=>t.actor===c.actor);
           if(now()<=old.exp*1000)fail();await probe(c,false,old.token,true,'NATURALLY_EXPIRED_');await refresh(c);}
