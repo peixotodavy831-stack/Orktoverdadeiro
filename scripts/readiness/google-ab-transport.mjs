@@ -11,6 +11,11 @@ export const GOOGLE_AB_TARGET=Object.freeze({
 
 const fail=()=>{throw new Error('GOOGLE_AB_BOUNDARY_REJECTED');};
 const systemSleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const canonical=value=>JSON.stringify(value,(_,v)=>v&&typeof v==='object'&&!Array.isArray(v)
+  ?Object.fromEntries(Object.entries(v).sort(([a],[b])=>a.localeCompare(b))):v);
+const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+const refreshDenied=r=>[400,401].includes(r.status)
+  &&['refresh_token_not_found','refresh_token_already_used','session_not_found','session_expired'].includes(r.data?.error_code||r.data?.code);
 function claims(token) {
   try{return JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString('utf8'));}catch{fail();}
 }
@@ -30,6 +35,7 @@ function validateSession(session,actor,now) {
  */
 export async function runGoogleAbTransport({verifyDeployment,acquireContexts,publicKey,oidcToken,getPreviewOidc,
   fetchImpl=fetch,now=Date.now,sleep=systemSleep,fixtureClients,
+  crossTenantWrites,refreshReuse=false,verifyRefreshPolicy,
   naturalExpiry=false,revokeCurrentSessions=false,maxNaturalWaitMs=65*60_000,expiryLeewayMs=5000,
   executionMode='STAGING'}={}) {
   const records=[];
@@ -43,6 +49,15 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
   let contexts;
   try {
     if(executionMode==='STAGING'&&(fetchImpl!==fetch||now!==Date.now||sleep!==systemSleep))fail();
+    // Reuse detection terminates its sessions. Logout needs a separate fresh PKCE
+    // round, never an implicit reacquisition or a global sign-out.
+    if(refreshReuse&&revokeCurrentSessions)fail();
+    if(crossTenantWrites){
+      if(typeof crossTenantWrites.inspect!=='function')fail();
+      for(const actor of ['A','B']){const f=crossTenantWrites[actor];
+        if(!f||!uuid(f.id)||f.ownerApproved!==true||f.exclusivelySynthetic!==true)fail();}
+      if(crossTenantWrites.A.id===crossTenantWrites.B.id)fail();
+    }
     // Verify before credentials are acquired or sent anywhere.
     const identity=await verifyDeployment();
     if(!validateStagingPreviewDeployment(GOOGLE_AB_TARGET.preview,identity?.deployment,identity?.deployments,GOOGLE_AB_TARGET.sha).ok)fail();
@@ -65,7 +80,7 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
       if(c.provenance!=='google_pkce_memory'||c.storage!=='memory'||c.autoRefresh!==false||typeof c.dispose!=='function')fail();
       validateSession(c.session,c.actor,now());
     }
-    async function request(origin,path,token,{method='GET',workspace,body}={}) {
+    async function request(origin,path,token,{method='GET',workspace,body,representation=false}={}) {
       if(![GOOGLE_AB_TARGET.preview,GOOGLE_AB_TARGET.supabase].includes(origin))fail();
       const headers={'content-type':'application/json'};
       if(token)headers.authorization=`Bearer ${token}`;
@@ -75,6 +90,7 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
           headers['x-vercel-trusted-oidc-idp-token']=access;}
       }
       else headers.apikey=publicKey;
+      if(representation)headers.prefer='return=representation';
       if(workspace)headers['x-orkto-workspace']=workspace;
       if(path.startsWith('/functions/'))headers['x-idempotency-key']=`google-ab-${randomUUID()}`;
       const response=await fetchImpl(origin+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),
@@ -132,8 +148,98 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
         if(ok)c.session={access_token:r.data.access_token,refresh_token:r.data.refresh_token};}
       record(`${c.actor}_REFRESH_ROTATION`,ok?'PASS':'FAIL',r.status);if(!ok)fail();
     }
+    async function writeIsolation(){
+      if(!crossTenantWrites){record('CROSS_TENANT_WRITES','NOT_TESTED');return;}
+      // inspect is a trusted, read-only administrative adapter. It receives only
+      // approved fixture IDs, never sessions/keys. Return complete rows so a
+      // changed timestamp, ownership or unrelated field cannot pass unnoticed.
+      const ids=['A','B'].map(actor=>crossTenantWrites[actor].id);
+      async function snapshot(){
+        const rows=await crossTenantWrites.inspect({project:'ghrjongiodziasupakrk',ids:[...ids]});
+        if(!Array.isArray(rows)||rows.length!==2)fail();
+        return ['A','B'].map(actor=>{
+          const row=rows.find(r=>r.id===crossTenantWrites[actor].id);
+          if(!row||row.workspace_id!==GOOGLE_AB_TARGET.actors[actor]||row.archived_at!==null
+            ||typeof row.name!=='string'||!row.name.startsWith('ORKTO-G06-'))fail();
+          return structuredClone(row);
+        });
+      }
+      const baseline=await snapshot();
+      for(const c of contexts){
+        const row=baseline[c.actor==='A'?0:1];
+        const own=await request(GOOGLE_AB_TARGET.preview,`/api/clients/${row.id}`,c.session.access_token,
+          {workspace:GOOGLE_AB_TARGET.actors[c.actor]});
+        if(own.status!==200||own.data?.data?.id!==row.id||own.data?.data?.workspace_id!==row.workspace_id
+          ||own.data?.data?.name!==row.name)fail();
+      }
+      for(const c of contexts){
+        const victim=c.actor==='A'?'B':'A',id=crossTenantWrites[victim].id;
+        const changes={name:`ORKTO-G06-${randomUUID()}`};
+        const attempts=[];
+        for(const forged of [false,true]){
+          const workspace=GOOGLE_AB_TARGET.actors[forged?victim:c.actor];
+          attempts.push({surface:`API_${forged?'FOREIGN_HEADER':'OWN_HEADER'}`,origin:GOOGLE_AB_TARGET.preview,
+            path:`/api/clients/${id}`,options:{method:'PATCH',workspace,body:changes}});
+          attempts.push({surface:`EDGE_${forged?'FOREIGN_HEADER':'OWN_HEADER'}`,origin:GOOGLE_AB_TARGET.supabase,
+            path:'/functions/v1/orkto-core-mutations',options:{method:'POST',workspace,
+              body:{command:'UPDATE_CLIENT',payload:{clientId:id,changes}}}});
+        }
+        attempts.push({surface:'POSTGREST',origin:GOOGLE_AB_TARGET.supabase,path:`/rest/v1/clients?id=eq.${id}`,
+          options:{method:'PATCH',body:changes,representation:true}});
+        for(const attempt of attempts){
+          validateSession(c.session,c.actor,now());
+          const allowed=await request(GOOGLE_AB_TARGET.supabase,'/rest/v1/rpc/orkto_google_pilot_session_allowed',c.session.access_token,
+            {method:'POST',body:{}});
+          if(allowed.status!==200||allowed.data!==true)fail();
+          let response,transportFailed=false;
+          try{response=await request(attempt.origin,attempt.path,c.session.access_token,attempt.options);}
+          catch{transportFailed=true;}
+          // Always check persistence, including ambiguous timeout/error results.
+          let after;
+          try{after=await snapshot();}catch{record(`${c.actor}_G06_OBSERVER`,'FAIL');fail();}
+          const unchanged=canonical(after)===canonical(baseline);
+          const denied=attempt.surface==='POSTGREST'
+            ?response&&([401,403].includes(response.status)||(response.status===200&&Array.isArray(response.data)&&response.data.length===0))
+            :response&&(response.status===404&&(attempt.origin===GOOGLE_AB_TARGET.supabase
+              ?response.data?.code==='NOT_FOUND':response.data?.category==='NOT_FOUND')
+              ||response.status===403&&(attempt.origin===GOOGLE_AB_TARGET.supabase
+                ?['PERMISSION_DENIED','WORKSPACE_ACCESS_DENIED'].includes(response.data?.code)
+                :['pilot_access_denied','workspace_access_denied','PERMISSION_DENIED','WORKSPACE_ACCESS_DENIED'].includes(response.data?.category)));
+          record(`${c.actor}_G06_${attempt.surface}`,!transportFailed&&denied&&unchanged?'PASS':'FAIL',response?.status);
+          record(`${c.actor}_G06_${attempt.surface}_UNCHANGED`,unchanged?'PASS':'FAIL');
+          if(!unchanged){
+            // Bounded recovery only for our marker in the one authorized field.
+            // Never overwrite unrelated concurrent changes or repair permissions.
+            const index=victim==='A'?0:1,changed=after[index],before=baseline[index];
+            const safe=after.every((row,i)=>i===index
+              ?canonical({...row,name:before.name,updated_at:before.updated_at})===canonical(before)&&row.name===changes.name
+              :canonical(row)===canonical(baseline[i]));
+            if(safe){
+              const owner=contexts.find(v=>v.actor===victim);
+              try{
+                await request(GOOGLE_AB_TARGET.preview,`/api/clients/${id}`,owner.session.access_token,
+                  {method:'PATCH',workspace:GOOGLE_AB_TARGET.actors[victim],body:{name:before.name}});
+                const restored=await snapshot();
+                const restoredFields=restored.every((row,i)=>canonical(i===index?{...row,updated_at:before.updated_at}:row)===canonical(baseline[i]));
+                record('G06_AUTHORIZED_FIELD_RESTORATION',restoredFields?'PASS':'FAIL');
+              }catch{record('G06_AUTHORIZED_FIELD_RESTORATION','FAIL');}
+            }else record('G06_MANUAL_RECOVERY_REQUIRED','FAIL');
+            fail();
+          }
+          validateSession(c.session,c.actor,now());
+          const stillAllowed=await request(GOOGLE_AB_TARGET.supabase,'/rest/v1/rpc/orkto_google_pilot_session_allowed',c.session.access_token,
+            {method:'POST',body:{}});
+          record(`${c.actor}_G06_${attempt.surface}_LIVE_SESSION`,stillAllowed.status===200&&stillAllowed.data===true?'PASS':'FAIL',stillAllowed.status);
+          if(stillAllowed.status!==200||stillAllowed.data!==true)fail();
+          if(transportFailed||!denied)fail();
+        }
+      }
+    }
+    const reuseAncestors=new Map();
     for(const c of contexts){await verifiedIdentity(c);await probe(c);await probe(c,true);
+      if(refreshReuse)reuseAncestors.set(c.actor,c.session.refresh_token);
       oldTokens.push({actor:c.actor,token:c.session.access_token,exp:claims(c.session.access_token).exp});await refresh(c);}
+    await writeIsolation();
     if(fixtureClients){
       for(const c of contexts)for(const other of [false,true]){
         const resourceActor=other?(c.actor==='A'?'B':'A'):c.actor;const id=fixtureClients[resourceActor];
@@ -158,8 +264,50 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
           if(now()<=old.exp*1000)fail();await probe(c,false,old.token,true,'NATURALLY_EXPIRED_');await refresh(c);}
       }
     }else record('NATURAL_EXPIRY','NOT_TESTED');
-    record('REFRESH_REUSE_OUTSIDE_EXCEPTIONS','NOT_TESTED');
-    record('CROSS_TENANT_WRITES','NOT_TESTED');
+    if(refreshReuse){
+      const policy=typeof verifyRefreshPolicy==='function'?await verifyRefreshPolicy():null;
+      if(!policy||policy.project!=='ghrjongiodziasupakrk'||policy.rotationEnabled!==true
+        ||!Number.isInteger(policy.reuseIntervalSeconds)||policy.reuseIntervalSeconds<0||policy.reuseIntervalSeconds>120){
+        record('REFRESH_REUSE_VERIFIED_POLICY_REQUIRED','BLOCKED_EXTERNAL');
+      }else for(const c of contexts){
+        const ancestor=reuseAncestors.get(c.actor),parent=c.session.refresh_token;
+        await refresh(c); // R0 -> R1 -> R2: R0 is no longer the active token's parent.
+        const active=c.session.refresh_token;
+        if(new Set([ancestor,parent,active]).size!==3)fail();
+        async function outsideWindow(){
+          const until=now()+policy.reuseIntervalSeconds*1000+2000;
+          if(claims(c.session.access_token).exp*1000<=until+30_000){
+            record(`${c.actor}_G08_JWT_LIFETIME_REQUIRED`,'BLOCKED_EXTERNAL');return false;}
+          while(now()<until)await sleep(Math.min(30_000,until-now()));
+          return true;
+        }
+        if(!await outsideWindow())continue;
+        const legitimate=await request(GOOGLE_AB_TARGET.supabase,'/auth/v1/token?grant_type=refresh_token',undefined,
+          {method:'POST',body:{refresh_token:parent}});
+        const parentOk=legitimate.status===200&&legitimate.data?.refresh_token===active
+          &&validateSession(legitimate.data,c.actor,now()).session_id===claims(c.session.access_token).session_id;
+        record(`${c.actor}_G08_PARENT_EXCEPTION`,parentOk?'PASS':'FAIL',legitimate.status);if(!parentOk)fail();
+        c.session={access_token:legitimate.data.access_token,refresh_token:active};
+        if(!await outsideWindow())continue;
+        const live=await request(GOOGLE_AB_TARGET.supabase,'/rest/v1/rpc/orkto_google_pilot_session_allowed',c.session.access_token,
+          {method:'POST',body:{}});
+        if(live.status!==200||live.data!==true)fail();
+        const replay=await request(GOOGLE_AB_TARGET.supabase,'/auth/v1/token?grant_type=refresh_token',undefined,
+          {method:'POST',body:{refresh_token:ancestor}});
+        record(`${c.actor}_G08_ANCESTOR_REJECTED`,refreshDenied(replay)?'PASS':'FAIL',replay.status);
+        if(!refreshDenied(replay))fail();
+        const latest=await request(GOOGLE_AB_TARGET.supabase,'/auth/v1/token?grant_type=refresh_token',undefined,
+          {method:'POST',body:{refresh_token:active}});
+        record(`${c.actor}_G08_FAMILY_REVOKED`,refreshDenied(latest)?'PASS':'FAIL',latest.status);
+        if(!refreshDenied(latest))fail();
+        validateSession(c.session,c.actor,now());
+        await probe(c,false,c.session.access_token,true,'REUSE_REVOKED_');
+        const guard=await request(GOOGLE_AB_TARGET.supabase,'/rest/v1/rpc/orkto_google_pilot_session_allowed',c.session.access_token,
+          {method:'POST',body:{}});
+        record(`${c.actor}_G08_SESSION_GUARD`,guard.status===200&&guard.data===false?'PASS':'FAIL',guard.status);
+        if(c.actor==='A')await verifiedIdentity(contexts[1]);
+      }
+    }else record('REFRESH_REUSE_OUTSIDE_EXCEPTIONS','NOT_TESTED');
     if(revokeCurrentSessions){
       for(const c of contexts){
         // Refreshed JWT must still be unexpired: distinguish revocation from natural expiry.
