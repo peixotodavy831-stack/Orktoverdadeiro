@@ -9,6 +9,10 @@ on:
       - 'scripts/tests/deploy-staging.test.mjs'
       - 'scripts/readiness/google-pilot-preflight.mjs'
       - 'scripts/tests/google-pilot-preflight.test.mjs'
+      - 'scripts/readiness/google-ab-transport.mjs'
+      - 'scripts/readiness/asaas-sandbox-readonly-preflight.mjs'
+      - 'scripts/tests/google-ab-transport.test.mjs'
+      - 'scripts/tests/asaas-sandbox-readonly-preflight.test.mjs'
       - 'docs/05_ENGINEERING/evidence/google-pilot-inventory-*.json'
       - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
@@ -18,6 +22,10 @@ on:
       - 'scripts/tests/deploy-staging.test.mjs'
       - 'scripts/readiness/google-pilot-preflight.mjs'
       - 'scripts/tests/google-pilot-preflight.test.mjs'
+      - 'scripts/readiness/google-ab-transport.mjs'
+      - 'scripts/readiness/asaas-sandbox-readonly-preflight.mjs'
+      - 'scripts/tests/google-ab-transport.test.mjs'
+      - 'scripts/tests/asaas-sandbox-readonly-preflight.test.mjs'
       - 'docs/05_ENGINEERING/evidence/google-pilot-inventory-*.json'
       - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
@@ -40,3 +48,5 @@ jobs:
           package-manager-cache: false
       - name: Verify staging deploy boundary and Google pilot preflight
         run: node --test scripts/tests/deploy-staging.test.mjs scripts/tests/google-pilot-preflight.test.mjs
+      - name: Verify Google transport and Asaas read-only tools with offline fixtures
+        run: node --test scripts/tests/google-ab-transport.test.mjs scripts/tests/asaas-sandbox-readonly-preflight.test.mjs
