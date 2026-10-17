@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, ArrowRight, BriefcaseBusiness, Clock3, Inbox, RefreshCw, Sparkles } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BriefcaseBusiness, Check, Clock3, Inbox, Plus, RefreshCw, ShieldCheck, Sparkles } from 'lucide-react';
 import type { Quote, SavedClient, UserProfile } from '../../types';
 import { getProductErrorState, productApi } from '../api';
 import type { DealView, InboxConversationView, ProductRequestState, WiaActionView } from '../types';
-import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, Metric, PageHeader, PermissionState, StatusBadge } from '../ui/shared-states';
+import { priorityLabel, BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, Metric, PermissionState, StatusBadge } from '../ui/shared-states';
 
 interface TodayV2PageProps {
   user?: { displayName?: string | null } | null;
@@ -115,7 +115,10 @@ export default function TodayV2Page({
   ), [deals.data]);
   const approvalActions = useMemo(() => wia.data.filter(action => action.status === 'awaiting_approval'), [wia.data]);
   const attentionCountReady = !dataLoading && !dataError && inbox.status === 'success' && deals.status === 'success' && wia.status === 'success';
-  const displayName = user?.displayName?.trim().split(/\s+/)[0] || userProfile?.companyName || 'Olá';
+  const savedName = userProfile?.displayName?.trim();
+  const emailAlias = userProfile?.email?.split('@')[0];
+  const preferredName = savedName && savedName !== emailAlias && !savedName.includes('@') ? savedName : undefined;
+  const displayName = (preferredName || user?.displayName?.trim())?.split(/\s+/)[0];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
   const dateLabel = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -126,12 +129,36 @@ export default function TodayV2Page({
   };
 
   return (
-    <div className="orkto-product orkto-today mx-auto min-h-full w-full max-w-[1600px] space-y-7 px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-8">
-      <PageHeader eyebrow={dateLabel} title={`${greeting}, ${displayName}`} description="Veja o que precisa de atenção e escolha o próximo passo." actions={<button type="button" onClick={handleRetryAll} aria-label="Atualizar Hoje" className="flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><RefreshCw size={15} />Atualizar</button>} />
+    <div className="orkto-product orkto-today orkto-today-glass mx-auto min-h-full w-full max-w-[1600px] px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-8">
+      <div className="today-hero-grid">
+        <header className="today-intro">
+          <div className="today-date-row"><p className="today-date">{dateLabel}</p><button type="button" onClick={handleRetryAll} aria-label="Atualizar Hoje" className="today-refresh"><RefreshCw size={15} /><span>Atualizar</span></button></div>
+          <h1>Hoje, sua operação <span>em foco.</span></h1>
+          <h2>{displayName ? `${greeting}, ${displayName}` : greeting}</h2>
+          <p className="today-intro-description">Veja o que precisa de atenção e escolha o próximo passo.</p>
+          <div className="today-intro-actions"><button type="button" onClick={onCreateQuote} className="today-primary-action"><Plus size={16} aria-hidden="true" />Criar proposta</button><button type="button" onClick={() => onOpenDeal()} className="today-text-action">Ver negócios <ArrowRight size={15} aria-hidden="true" /></button></div>
+        </header>
+        <aside className="today-wia-command today-glass-panel" aria-labelledby="today-command-title">
+          <div className="today-command-heading"><h2 id="today-command-title">Central de comando WIA</h2><ArrowRight size={17} aria-hidden="true" /></div>
+          <p>Seu contexto, suas decisões. A WIA prepara o próximo passo com você.</p>
+          <div className="today-command-body">
+            <div className="today-wia-orbit" aria-hidden="true"><span className="today-orbit-ring" /><span className="today-orbit-ring today-orbit-ring-two" /><span className="today-orbit-ring today-orbit-ring-three" /><span className="today-wia-core">WIA</span><i className="today-orbit-point" /></div>
+            <ul className="today-command-capabilities"><li><Inbox size={15} />Consulte seu contexto</li><li><Sparkles size={15} />Prepare ações</li><li><ShieldCheck size={15} />Revise e aprove</li></ul>
+          </div>
+          <button type="button" onClick={onOpenWia} className="today-command-action">Abrir WIA <ArrowRight size={16} /></button>
+        </aside>
+        <section className="today-metrics" aria-label="Resumo da operação">
+          <div className="today-metric today-glass-panel"><Metric label="Conversas prioritárias" value={inbox.status === 'success' ? attentionConversations.length : '—'} note={inbox.status === 'success' ? 'Na fila consultada' : 'Aguardando a Inbox'} icon={<Inbox size={18} />} /></div>
+          <div className="today-metric today-glass-panel"><Metric label="Negócios abertos" value={deals.status === 'success' ? deals.data.filter(deal => deal.status === 'open').length : '—'} note={deals.status === 'success' ? 'Negócios carregados' : 'Aguardando negócios'} icon={<BriefcaseBusiness size={18} />} /></div>
+          <div className="today-metric today-glass-panel"><Metric label="Propostas pendentes" value={dataLoading || dataError ? '—' : pendingQuotes.length} note={dataError ? 'Dados indisponíveis' : 'Acompanhe o retorno'} icon={<Clock3 size={18} />} /></div>
+          <div className="today-metric today-glass-panel"><Metric label="Ações para revisar" value={wia.status === 'success' ? approvalActions.length : '—'} note={wia.status === 'success' ? 'Na lista carregada' : 'Aguardando a WIA'} icon={<ShieldCheck size={18} />} /></div>
+        </section>
+      </div>
+      <div className="today-operation-grid">
 
-      <section aria-labelledby="today-attention-title" className="space-y-3">
+      <section aria-labelledby="today-attention-title" className="today-glass-panel today-attention-panel space-y-3">
         <div className="flex items-end justify-between gap-3">
-          <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--orkto-brand-text)' }}>Primeiro, resolva o que está parado</p><h2 id="today-attention-title" className="mt-1 text-xl font-semibold">Precisa de você</h2></div>
+          <div><h2 id="today-attention-title" className="today-section-title">Precisa de você</h2></div>
           {attentionCountReady && <span className="text-xs orkto-product-muted">{attentionConversations.length + riskDeals.length + pendingQuotes.length + approvalActions.length} itens identificados</span>}
         </div>
 
@@ -146,15 +173,15 @@ export default function TodayV2Page({
         {deals.status === 'configuration_required' && <ConfigurationRequired title="Negócios precisam de configuração" message={deals.message || 'A configuração necessária para consultar negócios está ausente.'} action={onOpenSettings && <button type="button" onClick={onOpenSettings} className="orkto-product-control min-h-11 rounded-lg px-3 text-xs font-semibold">Abrir configurações</button>} />}
         {deals.status === 'backend_pending' && <BackendPending title="Consulta de negócios pendente neste ambiente" message="A lista de negócios ainda não está disponível neste ambiente." />}
 
-        {!dataLoading && !dataError && inbox.status === 'success' && deals.status === 'success' && wia.status === 'success' && attentionConversations.length === 0 && riskDeals.length === 0 && pendingQuotes.length === 0 && approvalActions.length === 0 && <EmptyState title="Nada parado por aqui" description="Inbox, negócios, propostas e ações da WIA foram consultados. Nenhum item retornou uma próxima ação pendente." />}
+        {!dataLoading && !dataError && inbox.status === 'success' && deals.status === 'success' && wia.status === 'success' && attentionConversations.length === 0 && riskDeals.length === 0 && pendingQuotes.length === 0 && approvalActions.length === 0 && <EmptyState title="Nada parado por aqui" description="Nenhuma pendência nas conversas, negócios, propostas e ações consultadas. Aproveite para dar o próximo passo comercial." icon={<Check size={18} />} action={<button type="button" onClick={onCreateQuote} className="today-text-action">Criar uma proposta <ArrowRight size={15} aria-hidden="true" /></button>} />}
 
-        <div className="divide-y rounded-xl border orkto-product-border orkto-product-surface">
+        <div className="today-attention-list divide-y orkto-product-border">
           {approvalActions.slice(0, 3).map(action => <article key={action.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">Ação da WIA aguarda aprovação</h3><StatusBadge tone="attention">Aguardando aprovação</StatusBadge></div><p className="mt-1 line-clamp-2 text-[13px] leading-5 orkto-product-muted">{actionSummary(action)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}</p></div></div>
             <button type="button" onClick={onOpenWia} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Revisar ação <ArrowRight size={15} /></button>
           </article>)}
           {attentionConversations.slice(0, Math.max(0, 5 - Math.min(approvalActions.length, 3))).map(item => <article key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted"><Inbox size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">{item.contact_name || 'Conversa sem nome'}</h3>{Number(item.unread_count || 0) > 0 && <StatusBadge tone="info">{item.unread_count} não lida{Number(item.unread_count) === 1 ? '' : 's'}</StatusBadge>}{item.priority && <StatusBadge tone={['urgent', 'high'].includes(String(item.priority).toLowerCase()) ? 'critical' : 'neutral'}>Prioridade {item.priority}</StatusBadge>}</div><p className="mt-1 line-clamp-1 text-[13px] orkto-product-muted">{item.last_message || priorityReason(item)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{item.last_message_at ? new Date(item.last_message_at).toLocaleString('pt-BR') : 'Horário não retornado'}{item.source_channel ? ` · ${item.source_channel}` : ''}</p></div></div>
+            <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted"><Inbox size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">{item.contact_name || 'Conversa sem nome'}</h3>{Number(item.unread_count || 0) > 0 && <StatusBadge tone="info">{item.unread_count} não lida{Number(item.unread_count) === 1 ? '' : 's'}</StatusBadge>}{item.priority && <StatusBadge tone={['urgent', 'high'].includes(String(item.priority).toLowerCase()) ? 'critical' : 'neutral'}>Prioridade {priorityLabel(item.priority)}</StatusBadge>}</div><p className="mt-1 line-clamp-1 text-[13px] orkto-product-muted">{item.last_message || priorityReason(item)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{item.last_message_at ? new Date(item.last_message_at).toLocaleString('pt-BR') : 'Horário não retornado'}{item.source_channel ? ` · ${item.source_channel}` : ''}</p></div></div>
             <button type="button" onClick={() => onOpenConversation(item.id)} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Abrir conversa <ArrowRight size={15} /></button>
           </article>)}
           {riskDeals.slice(0, 3).map(deal => {
@@ -174,30 +201,25 @@ export default function TodayV2Page({
         </div>
       </section>
 
-      <section aria-labelledby="today-wia-title" className="space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em]" style={{ color: 'var(--orkto-brand-text)' }}>Atividade persistida</p><h2 id="today-wia-title" className="mt-1 text-lg font-semibold">WIA trabalhou por você</h2></div><button type="button" onClick={onOpenWia} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold" style={{ color: 'var(--orkto-brand-text)' }}>Abrir workspace <ArrowRight size={14} /></button></div>
+      <section aria-labelledby="today-wia-title" className="today-glass-panel today-activity-panel space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="today-wia-title" className="today-section-title">Atividade da WIA</h2><p className="mt-1 text-xs orkto-product-muted">Ações registradas no seu workspace</p></div><button type="button" onClick={onOpenWia} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold" style={{ color: 'var(--orkto-brand-text)' }}>Abrir workspace <ArrowRight size={14} /></button></div>
         {wia.status === 'loading' && <LoadingState rows={2} label="Carregando ações persistidas da WIA" />}
         {(wia.status === 'error' || wia.status === 'offline') && <ErrorState title="A atividade da WIA não carregou" message={wia.message || 'Não foi possível confirmar ações recentes.'} onRetry={() => void loadWia()} />}
         {wia.status === 'permission_denied' && <PermissionState message="A atividade da WIA exige acesso autorizado. Nenhuma execução foi exibida." />}
         {wia.status === 'configuration_required' && <ConfigurationRequired title="WIA precisa de configuração" message={wia.message || 'A configuração necessária para consultar esta atividade está ausente.'} action={onOpenSettings && <button type="button" onClick={onOpenSettings} className="orkto-product-control min-h-11 rounded-lg px-3 text-xs font-semibold">Abrir configurações</button>} />}
         {wia.status === 'backend_pending' && <BackendPending title="Atividade da WIA pendente neste ambiente" message="A consulta de ações persistidas não está disponível aqui." />}
-        {wia.status === 'success' && wia.data.length === 0 && <EmptyState title="Nenhuma ação recente registrada" description="A lista de ações da WIA retornou vazia. A conversa e as análises continuam disponíveis no workspace." />}
-        {wia.status === 'success' && wia.data.length > 0 && <ol className="divide-y rounded-xl border orkto-product-border orkto-product-surface">
+        {wia.status === 'success' && wia.data.length === 0 && <EmptyState title="Nenhuma ação recente registrada" description="Consulte a WIA sobre sua operação. As ações registradas aparecerão aqui, com o resultado de cada etapa." icon={<Sparkles size={18} />} action={<button type="button" onClick={onOpenWia} className="today-text-action">Consultar WIA <ArrowRight size={15} aria-hidden="true" /></button>} />}
+        {wia.status === 'success' && wia.data.length > 0 && <ol className="today-activity-list divide-y orkto-product-border">
           {wia.data.slice(0, 4).map(action => <li key={action.id} className="flex items-start gap-3 p-4"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: action.status === 'executed' ? 'var(--orkto-success)' : action.status === 'failed' ? 'var(--orkto-critical)' : 'var(--orkto-brand)' }} aria-hidden="true" /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-medium">{actionSummary(action)}</h3><StatusBadge tone={action.status === 'executed' ? 'success' : action.status === 'failed' ? 'critical' : 'attention'}>{formatActionStatus(action.status)}</StatusBadge></div><p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}{action.rationale ? ` · ${action.rationale}` : ''}</p></div></li>)}
         </ol>}
       </section>
 
-      <section aria-labelledby="today-work-title" className="space-y-3">
-        <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Fila e andamento</p><h2 id="today-work-title" className="mt-1 text-lg font-semibold">Operação agora</h2></div>
-        <div className="grid gap-4 rounded-xl border p-4 sm:grid-cols-2 lg:grid-cols-4 sm:p-5 orkto-product-border orkto-product-surface">
-          <Metric label="Conversas com prioridade" value={inbox.status === 'success' ? attentionConversations.length : '—'} note={inbox.status === 'success' ? 'Fila confirmada pela Inbox' : 'Aguardando a Inbox'} icon={<Inbox size={17} />} />
-          <Metric label="Negócios em andamento" value={deals.status === 'success' ? deals.data.filter(deal => deal.status === 'open').length : '—'} note={deals.status === 'success' ? 'Status aberto retornado pela API' : 'Aguardando negócios'} icon={<BriefcaseBusiness size={17} />} />
-          <Metric label="Propostas pendentes" value={dataLoading || dataError ? '—' : pendingQuotes.length} note={dataError ? 'Dados indisponíveis' : 'Com status pendente'} icon={<Clock3 size={17} />} />
-          <Metric label="Clientes no workspace" value={dataLoading || dataError ? '—' : clients.length} note={dataError ? 'Dados indisponíveis' : 'Registros carregados'} />
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => onOpenDeal()} className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-surface hover:orkto-product-surface-muted">Ver negócios <ArrowRight size={14} /></button>
-          <button type="button" onClick={onCreateQuote} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-semibold orkto-product-primary">Criar proposta <ArrowRight size={14} /></button>
+      </div>
+      <section aria-labelledby="today-work-title" className="today-glass-panel today-operation-footer">
+        <div><h2 id="today-work-title" className="today-section-title">Sua operação, a um passo</h2><p className="mt-1 text-xs orkto-product-muted">{dataLoading || dataError ? 'Clientes: aguardando dados do workspace.' : `${clients.length} cliente${clients.length === 1 ? '' : 's'} no workspace`}</p></div>
+        <div className="today-footer-actions">
+          <button type="button" onClick={() => onOpenDeal()} className="today-secondary-action">Ver negócios <ArrowRight size={14} /></button>
+          <button type="button" onClick={onCreateQuote} className="today-primary-action">Criar proposta <ArrowRight size={14} /></button>
         </div>
       </section>
     </div>

@@ -1,6 +1,27 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { STAGING_E2E_TARGET, stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from '../readiness/staging-e2e-config.mjs';
+import { STAGING_E2E_TARGET, stagingPreviewAccessForBrowser, validatePasswordRunnerMode, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from '../readiness/staging-e2e-config.mjs';
+import { readFileSync } from 'node:fs';
+
+test('password runner fails closed for Google pilot, disabled Email and unavailable settings', () => {
+  assert.equal(validatePasswordRunnerMode({ external: { email: true } }).ok, true);
+  for (const settings of [undefined, null, {}, { external: {} }, { external: { email: false } },
+    { external: { email: 'true' } }, { external: { google: true } }]) {
+    assert.equal(validatePasswordRunnerMode(settings).code, 'PASSWORD_RUNNER_INCOMPATIBLE_WITH_AUTH_MODE');
+  }
+  for (const key of ['ORKTO_AUTH_MODE', 'VITE_ORKTO_AUTH_MODE']) {
+    assert.equal(validatePasswordRunnerMode({ external: { email: true } }, { [key]: 'google_pilot' }).ok, false);
+  }
+});
+
+test('password runner checks live Auth mode before administrative lookup or synthetic creation', () => {
+  const source = readFileSync(new URL('../readiness/validate-staging-auth.mjs', import.meta.url), 'utf8');
+  const guard = source.indexOf('validatePasswordRunnerMode(await publicProbe.json(), process.env)');
+  assert.ok(guard > 0);
+  assert.ok(guard < source.indexOf('admin.auth.admin.listUsers'));
+  assert.ok(guard < source.indexOf("measuredPhase('SYNTHETIC_USERS'"));
+  assert.match(source.slice(guard, source.indexOf('admin.auth.admin.listUsers')), /if \(!passwordMode.ok\)[\s\S]*process.exit\(2\)/);
+});
 
 const valid = {
   ORKTO_STAGING_E2E: '1',

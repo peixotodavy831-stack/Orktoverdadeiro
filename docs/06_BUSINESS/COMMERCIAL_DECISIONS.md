@@ -1,5 +1,9 @@
 # ORKTO — decisões comerciais em aberto
 
+## Decisão do proprietário — 16/10/2026 (vigente)
+
+Existem exatamente cinco ofertas: **Start R$ 79,90; Pro R$ 149,90; Business R$ 299,90; Scale R$ 599,90; Enterprise sob consulta**. Esta decisão substitui os preços e nomes candidatos abaixo, inclusive o antigo seed Enterprise de R$ 1.499,90. Founders/Legacy Standard são somente históricos. Usuários, recursos definitivos e franquias de Pulso continuam pendentes de aprovação; não são ilimitados por omissão. Cobrança real continua OFF. [Implementação, evidências e pendências](../05_ENGINEERING/OPERATIONAL_BILLING_CLOSURE_2026-10-16.md).
+
 **Versão:** 0.1 · **Data:** 26/09/2026 · **Estado:** agenda de decisão, sem preços ou promessas aprovados por este documento.
 
 ## Reconciliação do MVP — 13/10/2026

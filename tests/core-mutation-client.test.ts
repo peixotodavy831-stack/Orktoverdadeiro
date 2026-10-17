@@ -109,7 +109,7 @@ test('staging WIA completion is computed inside Edge and caller-supplied provena
   const route = await readFile(resolve(process.cwd(), 'backend/operational-routes.ts'), 'utf8');
   const edge = await readFile(resolve(process.cwd(), 'supabase/functions/orkto-core-mutations/index.ts'), 'utf8');
   const section = route.slice(route.indexOf("app.post('/api/wia/route-agent'"), route.indexOf("app.get('/api/reports'"));
-  assert.match(section, /\['staging','production'\][\s\S]*?'PREPARE_WIA_T0'/);
+  assert.match(section, /\['staging','production'\][\s\S]*?'PREPARE_WIA_REQUEST'/);
   assert.match(edge, /command === 'PREPARE_WIA_T0'/);
   assert.match(edge, /executeTrustedT0\(admin,membership\.workspace_id,route\)/);
   assert.doesNotMatch(edge, /command === 'COMPLETE_WIA_RUN'|command === 'START_WIA_RUN'/);

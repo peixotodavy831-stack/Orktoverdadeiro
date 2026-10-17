@@ -1,0 +1,138 @@
+/* Internal application material. Public login, landing and proposal pages stay outside this scope. */
+:root {
+  --orkto-glass-soft: rgba(239, 243, 247, .56);
+  --orkto-glass-control: rgba(255, 255, 255, .76);
+  --orkto-glass-elevated: rgba(250, 252, 254, .94);
+}
+.dark {
+  --orkto-glass-soft: rgba(35, 40, 46, .48);
+  --orkto-glass-control: rgba(12, 17, 22, .64);
+  --orkto-glass-elevated: rgba(23, 28, 34, .94);
+}
+.orkto-glass-shell #orkto-main,
+.orkto-glass-shell #visual-main {
+  background: radial-gradient(ellipse at 64% 4%, rgba(255, 159, 28, .09), transparent 42%), radial-gradient(ellipse at 6% 84%, rgba(115, 151, 181, .1), transparent 52%);
+}
+.orkto-glass-shell .orkto-product:not(.orkto-today-glass),
+.orkto-glass-shell .orkto-inbox-view,
+.orkto-glass-shell .orkto-inbox-conversation {
+  background: transparent !important;
+}
+/* Semantic surfaces plus the legacy neutral, bordered panels. No status-color selectors. */
+.orkto-glass-shell :is(div, section, article, aside, header, footer, form).orkto-product-surface,
+.orkto-glass-shell :is(div, section, article, aside, form)[class~="bg-white"][class~="border"],
+.orkto-glass-shell :is(div, section, article, aside, form)[class~="bg-white/60"][class~="border"] {
+  background: linear-gradient(145deg, var(--orkto-glass-highlight), transparent 42%), var(--orkto-glass-fill);
+  border-color: var(--orkto-glass-edge);
+  box-shadow: var(--orkto-glass-shadow);
+}
+/* A filter establishes a containing block. Never put it above fixed dialogs. */
+.orkto-glass-shell :is(div, section, article, aside, header, footer, form).orkto-product-surface:not(:has(.fixed, [role="dialog"])),
+.orkto-glass-shell :is(div, section, article, aside, form)[class~="bg-white"][class~="border"]:not(:has(.fixed, [role="dialog"])) {
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+/* Nested content uses a tint, avoiding stacks of live blur layers. */
+.orkto-glass-shell :is(.orkto-product-surface, [class~="bg-white"])
+  :is(.orkto-product-surface, [class~="bg-white"][class~="border"]) {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none;
+}
+.orkto-glass-shell .orkto-product-surface-muted,
+.orkto-glass-shell :is(div, section, article, aside)[class~="bg-zinc-50"][class~="border"],
+.orkto-glass-shell :is(div, section, article, aside)[class~="bg-zinc-50/50"][class~="border"] {
+  background: var(--orkto-glass-soft);
+  border-color: var(--orkto-glass-edge);
+}
+.orkto-glass-shell .orkto-product-control,
+.orkto-glass-shell :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]) {
+  background: var(--orkto-glass-control);
+  border-color: var(--orkto-glass-edge);
+  color: var(--orkto-text-primary);
+}
+.orkto-glass-shell :is(input, textarea)::placeholder { color: var(--orkto-text-secondary); opacity: .85; }
+.orkto-glass-shell select option { background: var(--orkto-surface-1); color: var(--orkto-text-primary); }
+.orkto-glass-shell :is(input, textarea, select):focus-visible,
+.orkto-glass-shell .orkto-product-control:focus-visible {
+  outline: 2px solid var(--orkto-focus);
+  outline-offset: 2px;
+}
+.orkto-glass-shell table { background: transparent; }
+.orkto-glass-shell thead,
+.orkto-glass-shell :is(th, td)[class~="bg-zinc-50"],
+.orkto-glass-shell :is(th, td)[class~="bg-zinc-50/50"] {
+  background: var(--orkto-glass-elevated);
+}
+/* Conversation text keeps channel/status colors; only neutral surfaces change. */
+.orkto-glass-shell .orkto-inbox-conversation :is(div, header, footer, form)[class~="bg-zinc-900/40"],
+.orkto-glass-shell .orkto-inbox-conversation :is(div, header, footer, form)[class~="bg-zinc-900/50"],
+.orkto-glass-shell .orkto-inbox-conversation :is(div, header, footer, form)[class~="bg-zinc-900/60"],
+.orkto-glass-shell .orkto-inbox-conversation :is(div, header, footer, form)[class~="bg-zinc-800/40"] {
+  background: var(--orkto-glass-soft) !important;
+  border-color: var(--orkto-glass-edge);
+}
+.orkto-glass-shell .orkto-inbox-conversation > header,
+.orkto-glass-shell .orkto-inbox-conversation :is(input, textarea, select),
+.orkto-glass-shell .orkto-inbox-conversation [class~="bg-zinc-950/95"],
+.orkto-glass-shell .orkto-inbox-conversation [class~="bg-zinc-950/70"] {
+  background: var(--orkto-glass-elevated) !important;
+  border-color: var(--orkto-glass-edge);
+}
+.orkto-glass-shell .orkto-inbox-list,
+.orkto-glass-shell .orkto-inbox-context-slot {
+  border-color: var(--orkto-glass-edge);
+}
+/* Raised menus, sheets and dialog content stay readable over other text. */
+.orkto-glass-shell .orkto-mobile-sheet,
+.orkto-glass-shell [role="dialog"].orkto-product-surface,
+.orkto-glass-shell [role="dialog"][class~="bg-white"],
+.orkto-glass-shell [role="dialog"] :is(div, section, article, aside, form)[class~="bg-white"][class~="border"],
+.orkto-glass-shell :is(div, section)[class~="absolute"][class~="bg-white"][class~="border"] {
+  background: linear-gradient(145deg, var(--orkto-glass-highlight), transparent 42%), var(--orkto-glass-elevated);
+  border-color: var(--orkto-glass-edge);
+  -webkit-backdrop-filter: blur(20px) saturate(120%);
+  backdrop-filter: blur(20px) saturate(120%);
+}
+.orkto-glass-shell [role="dialog"] :is(div, section, article, aside, form)[class~="bg-white"][class~="border"]:has(.fixed, [role="dialog"]) {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.orkto-glass-shell .orkto-mobile-dock { background: var(--orkto-glass-elevated); border-color: var(--orkto-glass-edge); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+/* Native controls and printed records need an opaque, predictable fallback. */
+@supports not (backdrop-filter: blur(1px)) {
+  .orkto-glass-shell {
+    --orkto-glass-fill: var(--orkto-surface-1);
+    --orkto-glass-highlight: transparent;
+    --orkto-glass-soft: var(--orkto-surface-2);
+    --orkto-glass-control: var(--orkto-surface-1);
+    --orkto-glass-elevated: var(--orkto-surface-1);
+  }
+  .orkto-glass-shell :is(.orkto-product-surface, .orkto-product-surface-muted, .orkto-product-control),
+  .orkto-glass-shell :is(div, section, article, aside, form)[class~="bg-white"][class~="border"] { background: var(--orkto-surface-1) !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .orkto-glass-shell {
+    --orkto-glass-fill: var(--orkto-surface-1);
+    --orkto-glass-highlight: transparent;
+    --orkto-glass-soft: var(--orkto-surface-2);
+    --orkto-glass-control: var(--orkto-surface-1);
+    --orkto-glass-elevated: var(--orkto-surface-1);
+  }
+  .orkto-glass-shell :is(.orkto-product-surface, .orkto-product-surface-muted, .orkto-product-control, .orkto-mobile-sheet, .orkto-mobile-dock),
+  .orkto-glass-shell :is(div, section, article, aside, form)[class~="bg-white"][class~="border"] {
+    background: var(--orkto-surface-1) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
+@media print {
+  .orkto-glass-shell,
+  .orkto-glass-shell :is(.orkto-product, .orkto-product-surface, .orkto-product-surface-muted),
+  .orkto-glass-shell :is(div, section, article, aside, form)[class~="bg-white"][class~="border"] {
+    background: #fff !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}

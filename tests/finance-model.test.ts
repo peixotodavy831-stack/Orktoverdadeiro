@@ -14,18 +14,18 @@ const configured = {
 
 test('simulador calcula receita recorrente, ARR, ARPA e ponto de equilíbrio', () => {
   const result = projectFinance(configured, 100, 'base');
-  assert.equal(result.arpaCents, 15_440);
-  assert.equal(result.mrrCents, 1_544_000);
-  assert.equal(result.arrCents, 18_528_000);
-  assert.equal(result.breakEvenCustomers, 15);
+  assert.equal(result.arpaCents, 14_540);
+  assert.equal(result.mrrCents, 1_454_000);
+  assert.equal(result.arrCents, 17_448_000);
+  assert.equal(result.breakEvenCustomers, 16);
 });
 
 test('custos de canal são separados do COGS técnico e da margem econômica', () => {
   const result = projectFinance(configured, 100, 'base');
-  assert.equal(result.technicalCogsCents, 380_880);
+  assert.equal(result.technicalCogsCents, 350_000);
   assert.equal(result.channelCostsCents, 30_000);
   assert.equal(result.economicMarginCents, result.mrrCents - result.technicalCogsCents);
-  assert.equal(result.channelAdjustedOperatingResultCents, result.economicMarginCents - result.channelCostsCents);
+  assert.equal(result.channelAdjustedOperatingResultCents, result.economicMarginCents - result.channelCostsCents - Math.round(result.mrrCents*.02));
   assert.equal(result.pokCashEndCents, configured.openingCashCents + result.channelAdjustedOperatingResultCents);
 });
 
@@ -73,7 +73,7 @@ test('snapshot observado separa base atual, base normalizada e custos de canal',
 test('folha, imposto e canal não são classificados como COGS técnico', () => {
   assert.equal(isTechnicalCogsCategory('infrastructure'), true);
   assert.equal(isTechnicalCogsCategory('ai'), true);
-  assert.equal(isTechnicalCogsCategory('payment_processor'), true);
+  assert.equal(isTechnicalCogsCategory('payment_processor'), false);
   assert.equal(isTechnicalCogsCategory('channel'), false);
   assert.equal(isTechnicalCogsCategory('people'), false);
   assert.equal(isTechnicalCogsCategory('tax'), false);
@@ -182,7 +182,7 @@ test('mantém planos Founders e Legacy Standard em premissas antigas sem alterar
   assert.equal(migrated.planPricesCents.founders, DEFAULT_FINANCE_ASSUMPTIONS.planPricesCents.founders);
   assert.equal(migrated.planPricesCents.legacy_standard, 0);
   assert.equal(migrated.planMixPercent.legacy_standard, 0);
-  assert.equal(projectFinance(migrated, 10, 'base').arpaCents, 15_440);
+  assert.equal(projectFinance(migrated, 10, 'base').arpaCents, 14_540);
 });
 
 test('tarifas incompletas não inventam custo, modelo inativo não é tarifado e legado segue compatível', () => {

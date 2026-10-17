@@ -1,4 +1,4 @@
-import { cpSync, existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -41,6 +41,16 @@ writeFileSync(join(outputRoot, 'package.json'), JSON.stringify({ type: 'module' 
 const sourceFixtures = join(testSourceRoot, 'fixtures');
 if (existsSync(sourceFixtures)) {
   cpSync(sourceFixtures, join(outputRoot, 'tests', 'fixtures'), { recursive: true });
+}
+
+// The backend imports this plain JavaScript policy module at runtime. TypeScript
+// compilation preserves the import but does not copy non-TypeScript assets into
+// the isolated output tree, so mirror the exact module path before running tests.
+const pilotAccessSource = join(projectRoot, 'supabase', 'functions', 'orkto-core-mutations', '_shared', 'pilot-access.mjs');
+if (existsSync(pilotAccessSource)) {
+  const pilotAccessOutput = join(outputRoot, 'supabase', 'functions', 'orkto-core-mutations', '_shared', 'pilot-access.mjs');
+  mkdirSync(join(outputRoot, 'supabase', 'functions', 'orkto-core-mutations', '_shared'), { recursive: true });
+  cpSync(pilotAccessSource, pilotAccessOutput);
 }
 
 const compiledTests = readdirSync(join(outputRoot, 'tests'))

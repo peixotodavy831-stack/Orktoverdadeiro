@@ -1,0 +1,54 @@
+{
+  "checked_at": "2026-10-15T17:51:10.292Z",
+  "candidate_sha": "c9584feb52eca364100e95abcfef7037316c6147",
+  "deployment_id": "dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D",
+  "scope": "PUBLIC_HTTP_ONLY_NO_SSO_BYPASS_NO_ADMIN_CREDENTIAL",
+  "tls_validation": true,
+  "checks": [
+    {
+      "check": "/",
+      "status": 302,
+      "duration_ms": 1008,
+      "request_id_present": false,
+      "nosniff": false,
+      "hsts": true,
+      "cors_allows_foreign": false
+    },
+    {
+      "check": "/api/health",
+      "status": 302,
+      "duration_ms": 246,
+      "request_id_present": false,
+      "nosniff": false,
+      "hsts": true,
+      "cors_allows_foreign": false
+    },
+    {
+      "check": "/api/ready",
+      "status": 302,
+      "duration_ms": 187,
+      "request_id_present": false,
+      "nosniff": false,
+      "hsts": true,
+      "cors_allows_foreign": false
+    },
+    {
+      "check": "/api/clients",
+      "status": 302,
+      "duration_ms": 176,
+      "request_id_present": false,
+      "nosniff": false,
+      "hsts": true,
+      "cors_allows_foreign": false
+    },
+    {
+      "check": "/api/clients",
+      "status": 302,
+      "duration_ms": 51,
+      "request_id_present": false,
+      "nosniff": false,
+      "hsts": true,
+      "cors_allows_foreign": false
+    }
+  ]
+}

@@ -1,0 +1,154 @@
+TAP version 13
+# Subtest: empty, incomplete or ambiguous snapshots never prove notification safety
+ok 1 - empty, incomplete or ambiguous snapshots never prove notification safety
+  ---
+  duration_ms: 1.2039
+  type: 'test'
+  ...
+# Subtest: globally disabled rows or all explicitly disabled channels are safe observations
+ok 2 - globally disabled rows or all explicitly disabled channels are safe observations
+  ---
+  duration_ms: 1.3006
+  type: 'test'
+  ...
+# Subtest: each enabled channel fails and unknown enabled channels require schema review
+ok 3 - each enabled channel fails and unknown enabled channels require schema review
+  ---
+  duration_ms: 0.5083
+  type: 'test'
+  ...
+# Subtest: missing configuration, approval or production target blocks all network access
+ok 4 - missing configuration, approval or production target blocks all network access
+  ---
+  duration_ms: 0.7356
+  type: 'test'
+  ...
+# Subtest: real-mode cannot be certified using an injected fixture transport
+ok 5 - real-mode cannot be certified using an injected fixture transport
+  ---
+  duration_ms: 0.1829
+  type: 'test'
+  ...
+# Subtest: GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+ok 6 - GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+  ---
+  duration_ms: 28.9645
+  type: 'test'
+  ...
+# Subtest: foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+ok 7 - foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+  ---
+  duration_ms: 1.3773
+  type: 'test'
+  ...
+# Subtest: foreign customer notification snapshot is not approved
+ok 8 - foreign customer notification snapshot is not approved
+  ---
+  duration_ms: 0.802
+  type: 'test'
+  ...
+# Subtest: no adapter means explicit blocked report and zero network, not false PASS
+ok 9 - no adapter means explicit blocked report and zero network, not false PASS
+  ---
+  duration_ms: 3.4709
+  type: 'test'
+  ...
+# Subtest: read matrix uses both identities, all three transports and both foreign directions
+ok 10 - read matrix uses both identities, all three transports and both foreign directions
+  ---
+  duration_ms: 34.9529
+  type: 'test'
+  ...
+# Subtest: OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+ok 11 - OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+  ---
+  duration_ms: 2.7002
+  type: 'test'
+  ...
+# Subtest: wrong deployment stops before acquiring credentials or contacting application
+ok 12 - wrong deployment stops before acquiring credentials or contacting application
+  ---
+  duration_ms: 0.5784
+  type: 'test'
+  ...
+# Subtest: same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+ok 13 - same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+  ---
+  duration_ms: 0.7858
+  type: 'test'
+  ...
+# Subtest: elevated/public keys from another project are rejected before session acquisition
+ok 14 - elevated/public keys from another project are rejected before session acquisition
+  ---
+  duration_ms: 1.1455
+  type: 'test'
+  ...
+# Subtest: natural expiry waits without altering production time and tests original JWTs before revocation
+ok 15 - natural expiry waits without altering production time and tests original JWTs before revocation
+  ---
+  duration_ms: 6.6215
+  type: 'test'
+  ...
+# Subtest: natural wait limit is blocked, not certified via a fabricated expired token
+ok 16 - natural wait limit is blocked, not certified via a fabricated expired token
+  ---
+  duration_ms: 2.1359
+  type: 'test'
+  ...
+# Subtest: local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+ok 17 - local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+  ---
+  duration_ms: 4.78
+  type: 'test'
+  ...
+# Subtest: foreign data leak is FAIL and never hidden by other passing surfaces
+ok 18 - foreign data leak is FAIL and never hidden by other passing surfaces
+  ---
+  duration_ms: 4.0802
+  type: 'test'
+  ...
+# Subtest: untrusted errors and failed disposal never print credential-bearing diagnostics
+ok 19 - untrusted errors and failed disposal never print credential-bearing diagnostics
+  ---
+  duration_ms: 0.5951
+  type: 'test'
+  ...
+# Subtest: oversized replies and redirects cannot become PASS
+ok 20 - oversized replies and redirects cannot become PASS
+  ---
+  duration_ms: 1.4449
+  type: 'test'
+  ...
+# Subtest: approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+ok 21 - approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+  ---
+  duration_ms: 3.2167
+  type: 'test'
+  ...
+# Subtest: malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+ok 22 - malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+  ---
+  duration_ms: 0.7599
+  type: 'test'
+  ...
+# Subtest: Vercel denial cannot masquerade as revoked user authentication
+ok 23 - Vercel denial cannot masquerade as revoked user authentication
+  ---
+  duration_ms: 2.4797
+  type: 'test'
+  ...
+# Subtest: natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+ok 24 - natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+  ---
+  duration_ms: 2.2051
+  type: 'test'
+  ...
+1..24
+# tests 24
+# suites 0
+# pass 24
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1621.7486

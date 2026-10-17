@@ -60,7 +60,9 @@ begin
       if has_table_privilege('authenticated',t.oid,operation)<>(expected_select and operation='SELECT') then
         raise exception 'Authenticated % mismatch on public.%',operation,t.relname;
       end if;
-      if operation=any(array['SELECT','INSERT','UPDATE','DELETE']) and not has_table_privilege('service_role',t.oid,operation) then
+      if operation=any(array['SELECT','INSERT','UPDATE','DELETE'])
+         and not (operation='DELETE' and t.relname=any(array['orkto_commercial_requests','orkto_pulso_policies','orkto_pulso_ledger','orkto_model_tariffs','orkto_billing_customers','orkto_billing_bindings','orkto_subscription_events','orkto_subscription_lifecycle_events','orkto_subscription_commands']))
+         and not has_table_privilege('service_role',t.oid,operation) then
         raise exception 'Service role missing % on public.%',operation,t.relname;
       end if;
     end loop;
@@ -70,7 +72,7 @@ begin
         and x.grantee in (0,'anon'::regrole::oid,'authenticated'::regrole::oid)
     ) then raise exception 'Browser/PUBLIC column grant remains on public.%',t.relname; end if;
   end loop;
-  if table_count<>61 then raise exception 'Expected 61 tables, found %',table_count; end if;
+  if table_count<>75 then raise exception 'Expected 75 tables, found %',table_count; end if;
   if (select count(*) from public.proposals where is_active is null or created_at is null)>0 then
     raise exception 'Proposals contain NULL in required columns';
   end if;
@@ -86,7 +88,7 @@ do $$ declare f record; expected_browser boolean; function_count integer := 0; b
     where n.nspname='public'
   loop
     function_count := function_count+1;
-    expected_browser := f.proname=any(array['orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches']);
+    expected_browser := f.proname=any(array['orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches','orkto_pilot_session_allowed','orkto_google_pilot_session_allowed']);
     if f.owner<>'postgres' or has_function_privilege('anon',f.oid,'EXECUTE')
        or has_function_privilege('authenticated',f.oid,'EXECUTE')<>expected_browser
        or not has_function_privilege('service_role',f.oid,'EXECUTE') then

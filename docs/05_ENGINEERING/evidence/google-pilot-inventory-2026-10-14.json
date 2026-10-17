@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "supabaseRef": "ghrjongiodziasupakrk",
+  "vercelProjectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "baselineAppSha": "d693e2f8269759485713fba9c3c2b19f6e4fbc74",
+  "authUsers": 19,
+  "passwordAccounts": 19,
+  "googleIdentities": 0,
+  "linkedAccounts": 0,
+  "multiWorkspaceUsers": 0,
+  "privilegedActiveMemberships": 10,
+  "emailProviderEnabled": true,
+  "googleProviderEnabled": false,
+  "manualLinkingEnabled": false,
+  "anonymousEnabled": false,
+  "signupEnabled": true,
+  "confirmEmail": true,
+  "pkceConfigured": false,
+  "automaticWorkspaceProvisioning": true,
+  "pilotAdmissionEnforced": false
+}

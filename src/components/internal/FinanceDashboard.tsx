@@ -19,6 +19,8 @@ type Transaction = {
 };
 
 type DashboardData = {
+  reserve?:{targetCents:number;constitutedCents:number|null;shortfallCents:number;allocations:Array<{name:string;percent:number;targetCents:number}>};
+  cashForecast?:Array<{week:number;from:string;inflowCents:number;outflowCents:number;closingCents:number}>;
   month: string;
   assumptions: { id: string; version: number; status: string; assumptions: FinanceAssumptions; change_note: string; created_at: string } | null;
   assumptionsFallback: FinanceAssumptions | null;
@@ -40,8 +42,8 @@ type DashboardData = {
 };
 
 const plans: Array<{ key: FinancePlanKey; label: string }> = [
-  { key: 'starter', label: 'Starter' }, { key: 'pro', label: 'Pro' }, { key: 'business', label: 'Business' },
-  { key: 'scale', label: 'Scale' }, { key: 'enterprise', label: 'Enterprise' }, { key:'founders',label:'Founders' }, { key:'legacy_standard',label:'Legacy Standard' },
+  { key: 'starter', label: 'Start' }, { key: 'pro', label: 'Pro' }, { key: 'business', label: 'Business' },
+  { key: 'scale', label: 'Scale' }, { key: 'enterprise', label: 'Enterprise' },
 ];
 const scenarios: Array<{ key: FinanceScenarioKey; label: string }> = [
   { key: 'pok', label: 'POK' }, { key: 'base', label: 'Base' }, { key: 'favorable', label: 'Favorável' },
@@ -50,7 +52,7 @@ const customerVolumes = [10, 100, 1000, 10000];
 const categories = [
   { key: 'infrastructure', label: 'Infraestrutura' }, { key: 'ai', label: 'IA' }, { key: 'channel', label: 'Canal' },
   { key: 'payment_processor', label: 'Processador de pagamentos' }, { key: 'people', label: 'Equipe' },
-  { key: 'tax', label: 'Impostos' }, { key: 'other', label: 'Outro' },
+  { key: 'tax', label: 'Impostos' }, {key:'support',label:'Suporte'}, {key:'marketing',label:'Marketing'}, {key:'administrative',label:'Administrativo'}, {key:'extraordinary',label:'Extraordinário'}, { key: 'other', label: 'Outro' },
 ];
 const fmt = (cents: number) => formatBRL(Number(cents || 0) / 100);
 const moneyInput = (cents: number) => (Number(cents || 0) / 100).toFixed(2);
@@ -184,11 +186,14 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
       <button onClick={() => void load()} disabled={loading} className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-medium dark:border-zinc-700"><RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />Atualizar</button>
     </header>
     <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs leading-relaxed text-amber-800 dark:text-amber-200">
-      Dados observados são derivados de pagamentos de assinatura identificáveis e lançamentos marcados como realizados. Simulações e preços abaixo são hipóteses editáveis, não preço aprovado nem previsão contábil. Canal fica fora do COGS técnico e aparece separadamente. Cobranças sintéticas do checkout recorrente estão temporariamente excluídas até conciliação por ID; o primeiro MRR/caixa pode ficar subcontado.
+      Dados observados são derivados de pagamentos de assinatura identificáveis e lançamentos marcados como realizados. Os quatro preços fixos foram aprovados pelo proprietário; cenários e custos são hipóteses editáveis. Enterprise depende de proposta. Canal fica fora do COGS técnico e aparece separadamente. Cobranças sintéticas do checkout recorrente estão temporariamente excluídas até conciliação por ID; o primeiro MRR/caixa pode ficar subcontado.
     </div>
     {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-600 dark:text-red-300"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" /><div className="flex-1">{error}</div><button onClick={() => void load()} className="underline">Tentar novamente</button></div>}
     {notice && <p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</p>}
     {loading && !data ? <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-zinc-500"><Loader2 className="h-5 w-5 animate-spin" />Carregando dados financeiros…</div> : data && <>
+      {data.reserve&&<section className="border-y border-zinc-500/25 py-5"><h2 className="text-lg font-semibold">Meta de reserva · 40% da receita recebida</h2><p className="mt-2 text-sm">Meta: {fmt(data.reserve.targetCents)} · Reserva constituída: {data.reserve.constitutedCents===null?'Não reconciliada':fmt(data.reserve.constitutedCents)} · Desvio de capacidade de caixa: {fmt(data.reserve.shortfallCents)}</p><div className="mt-3 flex flex-wrap gap-5 text-sm">{data.reserve.allocations.map(item=><p key={item.name}>{item.name} · {item.percent}% · {fmt(item.targetCents)}</p>)}</div><p className="mt-3 text-xs text-zinc-500">Divisões da mesma reserva planejada; não são novas despesas. Nenhuma transferência financeira é realizada.</p></section>}
+      {data.cashForecast&&<details className="border-b border-zinc-500/25 pb-5"><summary className="cursor-pointer font-semibold">Projeção de caixa · 13 semanas</summary><p className="my-3 text-xs text-zinc-500">Somente lançamentos previstos registrados. Ausência de lançamento não comprova custo zero. Saldo de abertura gerencial estimado.</p><div className="overflow-x-auto"><table className="w-full text-sm tabular-nums"><thead><tr><th className="text-left">Semana</th><th>Entradas</th><th>Saídas</th><th>Saldo previsto</th></tr></thead><tbody>{data.cashForecast.map(week=><tr key={week.week}><td>{week.from}</td><td className="text-center">{fmt(week.inflowCents)}</td><td className="text-center">{fmt(week.outflowCents)}</td><td className="text-center">{fmt(week.closingCents)}</td></tr>)}</tbody></table></div></details>}
+      <section className="border-b border-zinc-500/25 pb-5"><h2 className="font-semibold">Crescimento e eficiência</h2><p className="mt-2 text-sm text-zinc-500">CAC, conversão, churn, retenção, expansão, NRR e payback aguardam coortes, aquisição e receitas conciliadas. Ausência de dados não é resultado zero.</p></section>
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <Metric label="MRR observado" value={fmt(data.actual.mrrCents)} hint={`${data.actual.paidSubscribers} assinantes com cobrança identificável`} icon={CircleDollarSign} />
         <Metric label="ARR observado" value={fmt(data.actual.arrCents)} hint="MRR atual × 12; run-rate, não receita recebida" icon={ArrowUpRight} />
@@ -257,7 +262,7 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
       {assumptions && <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="font-semibold">Premissas · versão {data.assumptions?.version ?? 'inicial'}</h2><p className="mt-1 text-xs text-zinc-500">Salvar cria um novo rascunho versionado; a cobrança pública não é alterada.</p></div><span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-medium uppercase text-amber-600">Hipótese · não aprovado</span></div>
         <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
-          <div className="space-y-3"><h3 className="text-sm font-medium">Planos e distribuição hipotética (%)</h3><div className="overflow-x-auto"><table className="w-full min-w-[520px] text-xs"><thead><tr className="text-left text-zinc-500"><th className="pb-2">Plano</th><th className="pb-2">Preço base (R$)</th><th className="pb-2">Mix (%)</th></tr></thead><tbody>{plans.map(plan => <tr key={plan.key} className="border-t border-zinc-100 dark:border-zinc-800"><td className="py-2.5">{plan.label}</td><td><input aria-label={`Preço ${plan.label}`} type="number" min="0" step="0.01" value={moneyInput(assumptions.planPricesCents[plan.key])} onChange={event => setPlanField('planPricesCents', plan.key, centsInput(event.target.value))} className="w-32 rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 dark:border-zinc-700" /></td><td><input aria-label={`Mix ${plan.label}`} type="number" min="0" max="100" step="0.1" value={assumptions.planMixPercent[plan.key]} onChange={event => setPlanField('planMixPercent', plan.key, Number(event.target.value) || 0)} className="w-24 rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 dark:border-zinc-700" /></td></tr>)}</tbody></table></div><p className="text-[11px] text-zinc-500">A soma do mix precisa ser 100%. A tabela pública segue separada até aprovação comercial.</p></div>
+          <div className="space-y-3"><h3 className="text-sm font-medium">Planos aprovados e distribuição simulada (%)</h3><div className="overflow-x-auto"><table className="w-full min-w-[520px] text-xs"><thead><tr className="text-left text-zinc-500"><th className="pb-2">Plano</th><th className="pb-2">Preço base (R$)</th><th className="pb-2">Mix (%)</th></tr></thead><tbody>{plans.map(plan => <tr key={plan.key} className="border-t border-zinc-100 dark:border-zinc-800"><td className="py-2.5">{plan.label}</td><td>{plan.key==='enterprise'?<span>Sob consulta</span>:<input aria-label={`Preço ${plan.label}`} type="number" disabled={true} min="0" step="0.01" value={moneyInput(assumptions.planPricesCents[plan.key])} onChange={event => setPlanField('planPricesCents', plan.key, centsInput(event.target.value))} className="w-32 rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 dark:border-zinc-700" />}</td><td><input aria-label={`Mix ${plan.label}`} type="number" min="0" max="100" step="0.1" value={assumptions.planMixPercent[plan.key]} onChange={event => setPlanField('planMixPercent', plan.key, Number(event.target.value) || 0)} className="w-24 rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 dark:border-zinc-700" /></td></tr>)}</tbody></table></div><p className="text-[11px] text-zinc-500">A soma do mix precisa ser 100%. Os quatro preços fixos são imutáveis nesta tela. Enterprise não entra no cenário sem contrato negociado.</p></div>
           <div className="space-y-3"><h3 className="text-sm font-medium">Custos e metas econômicas</h3><div className="grid grid-cols-2 gap-2">{[
             ['monthlyFixedPlatformCostCents', 'Custo fixo mensal (R$)'], ['infrastructurePerWorkspaceCents', 'Infra por workspace/mês (R$)'],
             ['aiPerWorkspaceCents', 'IA por workspace/mês (R$)'], ['channelPerWorkspaceCents', 'Canal por workspace/mês (R$)'],

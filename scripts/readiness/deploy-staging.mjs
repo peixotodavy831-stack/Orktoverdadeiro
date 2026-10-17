@@ -47,7 +47,8 @@ export function parseStagingDeploymentUrl(output) {
   return url.hostname.startsWith('orkto-staging-') && url.hostname.endsWith('.vercel.app') ? url : null;
 }
 
-export function buildStagingDeployArgs(expectedSha) {
+export function buildStagingDeployArgs(expectedSha, googlePilot = false) {
+  if (typeof googlePilot !== 'boolean') throw new Error('STAGING_AUTH_MODE_INVALID');
   if (!/^[a-f0-9]{40}$/i.test(expectedSha || '')) {
     throw new Error('STAGING_SOURCE_SHA_INVALID');
   }
@@ -63,6 +64,8 @@ export function buildStagingDeployArgs(expectedSha) {
     '--build-env', 'VITE_APP_ENV=staging',
     '--build-env', `VITE_SUPABASE_URL=${STAGING_DEPLOY_TARGET.supabaseUrl}`,
     '--build-env', `ORKTO_STAGING_SUPABASE_REF=${STAGING_DEPLOY_TARGET.supabaseRef}`,
+    ...(googlePilot ? ['--build-env','VITE_ORKTO_AUTH_MODE=google_pilot',
+      '--env','ORKTO_AUTH_MODE=google_pilot'] : []),
   ];
 }
 
@@ -80,7 +83,7 @@ function matchesStagingTarget(name, value) {
 }
 
 export function validateStagingDeployBoundary({ projectLink, env, args = [] }) {
-  if (!Array.isArray(args) || args.some((arg) => arg !== '--guard-only')) {
+  if (!Array.isArray(args) || args.some((arg) => !['--guard-only','--google-pilot'].includes(arg))) {
     return { allowed: false, reason: 'UNSUPPORTED_DEPLOY_ARGUMENT' };
   }
 
@@ -205,7 +208,7 @@ function main() {
   }
 
   const command = process.platform === 'win32' ? 'vercel.cmd' : 'vercel';
-  const deployArgs = buildStagingDeployArgs(expectedSha);
+  const deployArgs = buildStagingDeployArgs(expectedSha, args.includes('--google-pilot'));
   const childEnv = { ...process.env };
   // Pin the same project whose local link was verified. Vercel documents
   // these variables for non-interactive deploys; never inherit another target.

@@ -1,3 +1,10 @@
+## Personal account profile — 2026-10-15
+
+| Domain/action | Read path | Write path | Auth / permission | Audit / idempotent | Direct table write | Evidence |
+| --- | --- | --- | --- | --- | --- | --- |
+| Personal display name UPDATE_SELF_PROFILE | Own profile under RLS + Auth identity | PATCH /api/account/profile → explicit Edge command → service-only RPC | Verified JWT/pilot session, active membership; actor derived server-side; no foreign identity field | Atomic profile.personal_updated, request/fingerprint/key; no names in audit payload | DENY | 3 input tests + 34 existing HTTP regressions PASS; 2 PostgreSQL CI baselines + personal SQL negatives PASS; staging RPC rollback checks PASS; browser read PASS, owner HTTP save NOT RUN |
+
+Only display_name is writable. Email/Google identity/photo/roles/plans/company are excluded. Any supported active member can edit their own name; a read-only commercial plan does not prevent this personal operation. Business command plan gates remain unchanged.
 # Current mutation matrix evidence — 2026-10-14
 
 Latest d693e2f run with harness 72cc5e6: **5/5 PASS**. Parent Auth/RLS A/B and negative-role phases PASS; WIA approval/rejection, provenance, Inbox draft decisions, core contact CREATE/UPDATE and persistence after reload, browser B/cross-tenant negatives, gateway adversarial checks and public proposal lifecycle passed. Direct INSERT/UPDATE/DELETE denied on all eight tested core tables. No gateway/grant/runtime change. Full evidence: `evidence/auth-ab-d693e2f-pass.json`. This proves the commands/assertions actually executed by the five cases, not every possible command or policy combination.

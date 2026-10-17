@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+/** Personal display data only. Auth identity, workspace and privileges are never editable here. */
+export const personalProfileInput = z.object({
+  displayName: z.string().trim().min(1).max(100).regex(/^[^\u0000-\u001f\u007f]+$/u),
+}).strict();
+
 /** Owner-editable onboarding fields. Identity, workspace and system fields are excluded. */
 export const onboardingInput = z.object({
   companyName: z.string().trim().min(1).max(160),

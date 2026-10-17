@@ -4,6 +4,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
+import { verifyPilotSession } from '../supabase/functions/orkto-core-mutations/_shared/pilot-access.mjs';
 import dotenv from "dotenv";
 import { z } from "zod";
 import cors from "cors";
@@ -18,7 +19,7 @@ import { ProviderConfigurationError } from './wiaos/model-router.js';
 import { registerOperationalRoutes } from './operational-routes.js';
 import { invokeCoreMutation } from './core-mutation-client.js';
 import { quoteCreateInput } from './orkto-core/quote-input.js';
-import { onboardingInput } from './orkto-core/profile-input.js';
+import { onboardingInput, personalProfileInput } from './orkto-core/profile-input.js';
 import { deriveMessageMemoryCandidates, routeSwarmAgent } from './orkto-core/full-operational.js';
 import { prepareResponseDraft } from './wiaos/response-pipeline.js';
 import { scheduleRepurchaseCandidate } from './orkto-core/repurchase-scheduler.js';
@@ -33,12 +34,12 @@ import {
 import { selectActiveWorkspaceMembership, WorkspaceSelectionError } from './tenancy/workspace-selection.js';
 import { createRequestScopedClient } from './tenancy/request-scoped-client.js';
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './billing/plan-access.js';
-import { createDurableChannelSendRepository, sendThroughDurableChannelAdapter } from './channels/durable-send.js';
 import { applyPixIntentProviderEvent } from './billing/pix-intent.js';
 import { isQuoteEmailRecipientAuthorized } from './quote-email-policy.js';
 import { assertStagingBoundary, stagingPreviewOrigin } from './staging-boundary.js';
 import { logStructured } from './observability/structured-logger.js';
 import { resolvePublicAppBaseUrl } from './public-app-url.js';
+import { reserveTarget, cashForecast13Weeks } from './finance/economic-controls.js';
 
 dotenv.config();
 assertStagingBoundary(process.env);
@@ -255,6 +256,12 @@ async function authenticate(req, res, next) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   requestDb?.useAuthenticatedClient(req.authenticatedSupabase);
+  if (process.env.ORKTO_AUTH_MODE === 'google_pilot') {
+    const pilotAccess = await verifyPilotSession(req.authenticatedSupabase);
+    if (pilotAccess !== 'allowed') return res.status(pilotAccess === 'unavailable' ? 503 : 403)
+      .json({ error: 'Acesso ao piloto indisponível ou não autorizado.',
+        category: pilotAccess === 'unavailable' ? 'pilot_access_unavailable' : 'pilot_access_denied' });
+  }
   // Invitation acceptance is the only authenticated path available before a
   // user belongs to any workspace. Its high-entropy token, verified session
   // email, and compare-and-set invite claim establish the target workspace.
@@ -294,7 +301,7 @@ async function authenticate(req, res, next) {
 
 const financeTransactionSchema = z.object({
   transactionType: z.enum(['revenue', 'expense']),
-  category: z.enum(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'other']),
+  category: z.enum(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'support', 'marketing', 'administrative', 'extraordinary', 'other']),
   basis: z.enum(['actual', 'normalized']),
   cashStatus: z.enum(['paid', 'forecast']),
   amountCents: z.number().int().positive().max(100_000_000_000),
@@ -378,7 +385,7 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
     const costs = transactions.filter(row => row.transaction_type === 'expense' && row.basis === 'actual');
     const normalizedCosts = transactions.filter(row => row.transaction_type === 'expense' && row.basis === 'normalized');
     const sum = (rows, predicate) => rows.filter(predicate).reduce((total, row) => total + Number(row.amount_cents || 0), 0);
-    const costByCategory = Object.fromEntries(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'other'].map(category => [
+    const costByCategory = Object.fromEntries(['infrastructure', 'ai', 'channel', 'payment_processor', 'people', 'tax', 'support', 'marketing', 'administrative', 'extraordinary', 'other'].map(category => [
       category,
       sum(costs, row => row.category === category),
     ]));
@@ -396,6 +403,11 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
       const activePlan = payment.user_id ? profileByUser.get(payment.user_id) : null;
       if (payment.user_id && !String(payment.payment_id || '').startsWith('checkout:')
         && activePlan && activePlan.plan !== 'free' && !latestPaymentByUser.has(payment.user_id)) {
+        const paidAt=new Date(payment.confirmed_at);
+        if(!Number.isFinite(paidAt.getTime())||paidAt.getTime()>Date.now())continue;
+        const coveredUntil=new Date(paidAt);
+        coveredUntil.setUTCMonth(coveredUntil.getUTCMonth()+(activePlan.period==='annual'?12:1));
+        if(coveredUntil.getTime()<=Date.now())continue;
         const periodDivisor = activePlan.period === 'annual' ? 12 : 1;
         latestPaymentByUser.set(payment.user_id, Math.round(Number(payment.amount || 0) * 100 / periodDivisor));
       }
@@ -415,6 +427,10 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
     const cashInCents = subscriptionCashInCents + otherRevenueCents;
     const paidSubscribers = actualMrrCoverageCount;
     const cashClosingEstimateCents = assumptions.openingCashCents + cashInCents - cashOutCents;
+    const forecastUntil=new Date(Date.now()+13*7*86400000).toISOString().slice(0,10);
+    const forecastResult=await supabase!.from('orkto_finance_transactions').select('occurred_on,transaction_type,amount_cents,cash_status')
+      .eq('basis','actual').eq('cash_status','forecast').gte('occurred_on',new Date().toISOString().slice(0,10)).lt('occurred_on',forecastUntil).limit(5000);
+    if(forecastResult.error)throw forecastResult.error;
     const observedMetrics = calculateObservedFinanceMetrics({
       mrrCents: observedMrrCents,
       actualTechnicalCogsCents: technicalCogsCents,
@@ -465,6 +481,10 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
     }
     res.json({
       month,
+      reserve:reserveTarget({receivedCents:cashInCents,availableCashCents:cashClosingEstimateCents,constitutedCents:null}),
+      cashForecast:cashForecast13Weeks(cashClosingEstimateCents,forecastResult.data||[]),
+      growth:{cac:null,churn:null,retention:null,nrr:null,payback:null,reason:'cohort_and_acquisition_data_not_reconciled'},
+      cashCoverage:'13-week forecast uses registered forecast entries only; missing entries are not expected zero costs.',
       assumptions: history[0] || null,
       assumptionsHistory: history,
       assumptionsFallback: history.length === 0 ? assumptions : null,
@@ -502,6 +522,8 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
           - (left.actualTechnicalCogsCents + left.actualChannelCents + left.estimatedAiUsageCents)),
         cashInCents, cashOutCents, netCashFlowCents: cashInCents - cashOutCents,
         cashClosingEstimateCents,
+        burnRateCents:Math.max(0,cashOutCents-cashInCents),
+        runwayMonths:cashOutCents>cashInCents?Math.max(0,cashClosingEstimateCents)/(cashOutCents-cashInCents):null,
         alerts,
       },
       transactions,
@@ -993,6 +1015,18 @@ app.get('/api/wia/history', authenticate, async (req, res) => {
     console.error('[WIA] audit_history_unavailable', { workspaceId, code });
     return res.status(503).json({ error: 'Não foi possível recuperar o histórico operacional.', category: code === '42P01' || code === 'PGRST205' ? 'schema_not_applied' : 'persistence_unavailable' });
   }
+});
+
+app.patch('/api/account/profile', authenticate, async (req, res) => {
+  const parsed = personalProfileInput.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: 'Informe um nome entre 1 e 100 caracteres, sem caracteres de controle.', category: 'VALIDATION_FAILED' });
+  const result = await invokeCoreMutation(req, res,
+    { id: requireTenantContext(req).workspaceId }, 'UPDATE_SELF_PROFILE', parsed.data);
+  if (!result) return;
+  if (result.profile?.id !== requireTenantContext(req).userId || typeof result.profile.display_name !== 'string') {
+    return res.status(503).json({ error: 'Não foi possível confirmar a atualização do perfil.', category: 'mutation_gateway_unavailable' });
+  }
+  return res.json({ data: { displayName: result.profile.display_name } });
 });
 
 app.put('/api/profile', authenticate, async (req, res) => {
@@ -1523,21 +1557,8 @@ async function requestAsaas(method, path, body = null, apiKey) {
   return data;
 }
 
-function billingReference(userId: string, plan: string) {
-  return `orkto-plan:${userId}:${plan}`;
-}
-
-function parseBillingReference(value: unknown) {
-  if (typeof value !== 'string') return { userId: '', plan: '' };
-  const match = /^orkto-plan:([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}):(pro|business)$/i.exec(value);
-  if (match) return { userId: match[1].toLowerCase(), plan: match[2] };
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
-    ? { userId: value.toLowerCase(), plan: '' }
-    : { userId: '', plan: '' };
-}
-
 app.post("/api/asaas/checkout", authenticate, (_req, res) => {
-  // Public prices and automated recurring charges remain disabled until commercial approval.
+  // Prices are approved; real automated recurring charges still require explicit activation approval.
   return res.status(503).json({ error:'Checkout ORKTO está desativado até aprovação comercial e configuração de billing.', category:'configuration_required' });
 });
 
@@ -1620,24 +1641,9 @@ app.post("/api/asaas/webhook", async (req, res) => {
         }
       }
     }
-    if (event === 'CHECKOUT_PAID' && checkout) {
-      const { userId, plan } = parseBillingReference(checkout.externalReference);
-      if (userId && ['pro', 'business'].includes(plan)) {
-        const { data: profile, error: profileError } = await supabase.from('profiles').update({ active_plan: plan }).eq('id', userId).select('id').maybeSingle();
-        if (profileError) throw profileError;
-        if (!profile) throw new Error('Perfil da assinatura não encontrado.');
-        const amount = Array.isArray(checkout.items)
-          ? checkout.items.reduce((sum, item) => sum + Number(item?.value || 0) * Number(item?.quantity || 1), 0)
-          : Number(checkout.value || 0);
-        const { data: workspace, error: workspaceError } = await supabase.from('orkto_workspaces').select('id').eq('owner_user_id',userId).maybeSingle();
-        if (workspaceError) throw workspaceError;
-        if (!workspace?.id) throw new Error('Workspace de cobrança não encontrado.');
-        const { error: recordError } = await supabase.from('payment_records').upsert({
-          payment_id: `checkout:${checkout.id}`, user_id: userId, workspace_id:workspace.id, quote_id: null,
-          amount, status: 'confirmed', confirmed_at: confirmedAt,
-        }, { onConflict: 'payment_id' });
-        if (recordError) throw recordError;
-      }
+    // SaaS activation requires a server-created subscription binding and provider reconciliation.
+    if (event === 'CHECKOUT_PAID' || payment?.subscription || event === 'SUBSCRIPTION_CANCELED') {
+      throw new Error('subscription_reconciliation_required');
     }
     if (!skipPaymentMutation && (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') && payment) {
       const ref = matchedIntentQuoteId;
@@ -1694,21 +1700,6 @@ app.post("/api/asaas/webhook", async (req, res) => {
           }
         }
       }
-      const parsedReference = parseBillingReference(payment.externalReference);
-      const userId = parsedReference.userId;
-      if (userId && parsedReference.plan && payment.subscription) {
-        const plan = parsedReference.plan;
-        const { error: profileError } = await supabase.from('profiles').update({ active_plan: plan }).eq('id', userId);
-        if (profileError) throw profileError;
-        const { data: workspace, error: workspaceError } = await supabase.from('orkto_workspaces').select('id').eq('owner_user_id',userId).maybeSingle();
-        if (workspaceError) throw workspaceError;
-        if (!workspace?.id) throw new Error('Workspace de cobrança não encontrado.');
-        const { error: recordError } = await supabase.from('payment_records').upsert({
-          payment_id: payment.id, user_id: userId, workspace_id:workspace.id, quote_id: null,
-          amount: Number(payment.value || 0), status: 'confirmed', confirmed_at: confirmedAt,
-        }, { onConflict: 'payment_id' });
-        if (recordError) throw recordError;
-      }
     }
     if ((event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED') && payment?.id) {
       const status = event === 'PAYMENT_OVERDUE' ? 'overdue' : 'deleted';
@@ -1716,14 +1707,6 @@ app.post("/api/asaas/webhook", async (req, res) => {
       const { error: recordError } = await supabase.from('payment_records').update({ status }).eq('payment_id', payment.id).neq('status', 'confirmed');
       if (recordError) throw recordError;
     }
-    if (event === 'SUBSCRIPTION_CANCELED' && subscription) {
-      const { userId } = parseBillingReference(subscription.externalReference);
-      if (userId) {
-        const { error: profileError } = await supabase.from('profiles').update({ active_plan: 'free' }).eq('id', userId);
-        if (profileError) throw profileError;
-      }
-    }
-
     // Preserve the legacy ledger for existing operational queries; the new
     // claim ledger is authoritative for idempotency and has a fencing token.
     const { error: legacyEventError } = await supabase.from('asaas_webhook_events').insert({ event_id: eventId, event_type: event.trim() });
@@ -2159,36 +2142,14 @@ app.post("/api/conversations/:conversationId/send", authenticate, async (req, re
       return res.status(503).json({ error:'Canal de saída não configurado. A mensagem não foi enviada.',
         status:'CONFIGURATION_REQUIRED',category:'channel_not_configured' });
     }
-    const result = await sendThroughDurableChannelAdapter({
-      repository: createDurableChannelSendRepository(supabase),
-      adapter: null,
-      request: { workspaceId, conversationId, channel: conversation.source_channel, content: parsed.data.content, idempotencyKey: parsed.data.idempotencyKey },
-      audit: async event => {
-        const { error: auditError } = await supabase!.from('orkto_audit_log').insert({
-          user_id: tenantContext.userId,
-          workspace_id: workspaceId,
-          conversation_id: conversationId,
-          event_type: event.eventType,
-          actor_type: 'human',
-          actor_id: tenantContext.userId,
-          event_data: { channel: event.channel, status: event.status },
-        });
-        if (auditError) throw auditError;
-      },
+    req.headers['x-idempotency-key']=parsed.data.idempotencyKey||crypto.randomUUID();
+    const result=await invokeCoreMutation(req,res,{id:workspaceId},'SEND_WHATSAPP_MESSAGE',{
+      conversationId,content:parsed.data.content,
     });
-    if (result.status === 'CONFIGURATION_REQUIRED') return res.status(503).json({ error: 'O rascunho não foi enviado. Conecte um canal de saída oficial para habilitar o envio.', status: result.status, category: 'channel_not_configured' });
-    if (result.status === 'REQUEST_ACCEPTED' || result.status === 'PROVIDER_ACKNOWLEDGED' || result.status === 'DELIVERED') {
-      return res.status(202).json({ status: result.status, requestId: result.requestId, externalMessageId: result.externalMessageId,
-        acceptedAt: result.acceptedAt, delivered: result.status === 'DELIVERED', replay: result.replay });
-    }
-    if (result.status === 'IDEMPOTENCY_CONFLICT') return res.status(409).json({ error: 'A chave de idempotência já foi usada para outra mensagem.', category: 'idempotency_conflict', requestId: result.requestId });
-    if (result.status === 'IN_PROGRESS') return res.status(409).json({ error: 'O envio com esta chave ainda está em processamento.', category: 'processing_in_progress', requestId: result.requestId });
-    if (result.status === 'RECONCILIATION_REQUIRED') return res.status(503).json({ error: 'O resultado do envio é incerto; reconcilie antes de tentar novamente.', category: 'external_delivery_unknown', requestId: result.requestId });
-    if (result.status === 'PERSISTENCE_UNAVAILABLE') return res.status(503).json({ error: 'Não foi possível registrar o envio com segurança.', category: 'persistence_unavailable', requestId: result.requestId });
-    if ('category' in result) {
-      return res.status(result.category === 'validation_failed' ? 400 : 502).json({ error: 'O provedor não confirmou a mensagem.', status: result.status, category: result.category || 'provider_error', requestId: result.requestId });
-    }
-    return res.status(502).json({ error: 'O provedor não confirmou a mensagem.', status: result.status, requestId: result.requestId });
+    if(!result)return;
+    return res.status(result.result==='REPLAY'?200:202).json({status:result.status||'REQUEST_ACCEPTED',
+      requestId:result.requestId,externalMessageId:result.externalMessageId,acceptedAt:result.acceptedAt,
+      delivered:result.status==='DELIVERED',replay:result.result==='REPLAY'});
   } catch (error) {
     console.error(`[ERRO] ${req.method} ${req.path}:`, error);
     res.status(500).json({ error: 'Erro ao enviar mensagem.' });

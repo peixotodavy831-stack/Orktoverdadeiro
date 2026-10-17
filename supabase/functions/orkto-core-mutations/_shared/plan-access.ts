@@ -91,7 +91,7 @@ export function checkPlanLimit(entitlements: PlanEntitlements, key: string, curr
 export async function loadWorkspacePlanAccess(db: any, workspaceId: string, now = new Date()) {
   const [workspaceResult, subscriptionResult] = await Promise.all([
     db.from('orkto_workspaces').select('plan_key,subscription_status').eq('id', workspaceId).maybeSingle(),
-    db.from('orkto_workspace_subscriptions').select('plan_key,status,trial_ends_at,current_period_start,current_period_end,cancel_at_period_end').eq('workspace_id', workspaceId).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    db.from('orkto_workspace_subscriptions').select('plan_key,status,trial_ends_at,current_period_start,current_period_end,cancel_at_period_end').eq('workspace_id', workspaceId).eq('billing_pending',false).order('created_at', { ascending: false }).limit(1).maybeSingle(),
   ]);
   if (workspaceResult.error) throw workspaceResult.error;
   if (subscriptionResult.error) throw subscriptionResult.error;
@@ -109,7 +109,8 @@ export async function loadWorkspacePlanAccess(db: any, workspaceId: string, now 
   }
   const access = resolvePlanAccess({
     planKey,
-    status: subscription?.status || workspaceResult.data?.subscription_status,
+    status: subscription?.status==='active'&&subscription?.current_period_end&&Date.parse(subscription.current_period_end)<=now.getTime()
+      ?'suspended':subscription?.status || workspaceResult.data?.subscription_status,
     trialEndsAt: subscription?.trial_ends_at,
     entitlements: version?.entitlements,
     effectivePriceVersion: version?.version,

@@ -93,6 +93,17 @@ test('rejects deploy flags and permits guard-only without invoking Vercel', () =
     true);
 });
 
+test('Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags', () => {
+  assert.equal(validateStagingDeployBoundary({projectLink,env,args:['--google-pilot']}).allowed,true);
+  assert.equal(validateStagingDeployBoundary({projectLink:{...projectLink,projectId:PRODUCTION_DEPLOY_TARGET.projectId},env,args:['--google-pilot']}).allowed,false);
+  const args=buildStagingDeployArgs('a'.repeat(40),true);
+  assert.ok(args.includes('VITE_ORKTO_AUTH_MODE=google_pilot'));
+  assert.ok(args.includes('ORKTO_AUTH_MODE=google_pilot'));
+  assert.ok(args.includes('--target=preview'));
+  assert.equal(args.includes('--prod'),false);
+  assert.throws(()=>buildStagingDeployArgs('a'.repeat(40),'google_pilot'),/AUTH_MODE_INVALID/);
+});
+
 test('extracts one staging URL from CLI progress and rejects ambiguous or production URLs', () => {
   const stage = 'https://orkto-staging-5ee92qdyr-peixoto-s-projects1.vercel.app';
   assert.equal(parseStagingDeploymentUrl(`Building...\n${stage}\n`)?.origin, stage);
@@ -124,6 +135,8 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   const productionConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.production.json',import.meta.url)),'utf8'));
   assert.deepEqual(defaultConfig,stagingConfig);
   assert.equal(stagingConfig.buildCommand,'vite build && node scripts/render-public-url.mjs');
+  assert.equal(defaultConfig.functions?.['api/server.ts']?.includeFiles,
+    'supabase/functions/orkto-core-mutations/_shared/pilot-access.mjs');
   const {crons,...productionWithoutCrons}=productionConfig;
   assert.deepEqual(productionWithoutCrons,defaultConfig);
   assert.equal(defaultConfig.crons,undefined);

@@ -1,0 +1,87 @@
+{
+  "scope": "OFFLINE_HOMOLOGATION_TOOLS",
+  "date": "2026-10-16",
+  "toolSourceSha": "1c4f4a93c86301c2fe0bb25f49f0cb00b1f2806e",
+  "referenceRuntimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+  "runtimeChanged": false,
+  "liveGoogleCalls": 0,
+  "liveAsaasCalls": 0,
+  "customerOrAccountCreated": false,
+  "permissionsChanged": false,
+  "commercialPolicyChanged": false,
+  "readyForProductionCandidate": "NO",
+  "results": [
+    {
+      "id": "NEW_TOOLS_OFFLINE_TESTS",
+      "status": "PASS",
+      "passed": 24,
+      "total": 24,
+      "evidence": "homologation-tools-1c4f4a9.txt"
+    },
+    {
+      "id": "LINT_AND_NODE_SYNTAX",
+      "status": "PASS",
+      "scope": "local source validation; not Edge/browser runtime"
+    },
+    {
+      "id": "SECRET_SCAN_NEW_TOOLS",
+      "status": "PASS",
+      "files": 4,
+      "findings": 0
+    },
+    {
+      "id": "CLI_NO_CREDENTIALS",
+      "status": "PASS",
+      "exitCodes": [
+        2,
+        2
+      ],
+      "networkRequests": 0,
+      "evidence": "homologation-tools-cli-1c4f4a9.jsonl"
+    },
+    {
+      "id": "CI_TOOLS",
+      "status": "PASS",
+      "run": 38986371314,
+      "scope": "deploy boundary plus new offline fixtures"
+    },
+    {
+      "id": "CI_POSTGRES17_UNCHANGED_MIGRATIONS",
+      "status": "PASS",
+      "run": 38986371297,
+      "scope": "automatic CI on tooling source; no remote migration applied"
+    },
+    {
+      "id": "GOOGLE_PKCE_ACQUISITION_ADAPTER",
+      "status": "BLOCKED_EXTERNAL"
+    },
+    {
+      "id": "GOOGLE_AB_HTTP_REAL",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "REAL_SESSION_LIFECYCLE",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "CROSS_TENANT_WRITES",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "REFRESH_REUSE_OUTSIDE_EXCEPTIONS",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "ASAAS_ACCOUNT_CUSTOMER_SECRET_STORE",
+      "status": "BLOCKED_EXTERNAL"
+    },
+    {
+      "id": "ASAAS_PROVIDER_EVENTS_REAL",
+      "status": "NOT_TESTED"
+    },
+    {
+      "id": "ACCESS_TERMINATION_POLICY",
+      "status": "BLOCKED_EXTERNAL"
+    }
+  ]
+}

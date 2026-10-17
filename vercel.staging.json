@@ -8,7 +8,8 @@
   "functions": {
     "api/server.ts": {
       "memory": 256,
-      "maxDuration": 30
+      "maxDuration": 30,
+      "includeFiles": "supabase/functions/orkto-core-mutations/_shared/pilot-access.mjs"
     }
   },
   "git": {

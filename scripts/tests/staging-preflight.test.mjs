@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { evaluateStagingPreflight, STAGING_TARGET } from '../readiness/staging-preflight.mjs';
+import { evaluateStagingMigrationGate, CORE_MUTATION_MIGRATION_NAMES, MIGRATION_18_NAME, MIGRATION_44_NAME } from '../readiness/staging-migration-gate.mjs';
 
 const validEnv = {
   APP_ENV: 'staging', VITE_APP_ENV: 'staging',
@@ -12,7 +13,7 @@ const validEnv = {
 };
 
 test('staging preflight is read-only and passes only for the pinned staging environment and current schema', () => {
-  assert.equal(STAGING_TARGET.migrationCount, 41);
+  assert.equal(STAGING_TARGET.migrationCount, 50);
   const passing = evaluateStagingPreflight(validEnv, { status: 'PASS', code: 'STAGING_SCHEMA_CURRENT', expected: STAGING_TARGET.migrationCount, actual: STAGING_TARGET.migrationCount });
   assert.equal(passing.status, 'PASS');
   assert.deepEqual(passing.actionsPerformed, []);
@@ -21,6 +22,22 @@ test('staging preflight is read-only and passes only for the pinned staging envi
   assert.equal(outdated.status, 'BLOCKED');
   assert.equal(outdated.code, 'STAGING_SCHEMA_OUTDATED');
   assert.ok(outdated.failures.includes('migrationCurrent'));
+});
+
+test('a 50-migration ledger accepted by the migration gate also passes the staging preflight', () => {
+  const names = [MIGRATION_18_NAME, ...CORE_MUTATION_MIGRATION_NAMES];
+  const migrations = Array.from({ length: 50 }, (_, index) => ({
+    version: index === 43 ? '20261015163447' : String(20260901000000 + index),
+    name: index === 43 ? MIGRATION_44_NAME : names[index] || `other_migration_${index}`,
+  }));
+  const now = Date.parse('2026-10-15T17:00:00Z');
+  const capture = { capturedAt: new Date(now).toISOString(), source: { projectRef: 'ghrjongiodziasupakrk' },
+    rowDataExported: false, migrationSqlExported: false };
+  const gate = evaluateStagingMigrationGate({ capture, ledger: { migrations }, now });
+  assert.equal(gate.status, 'PASS');
+  assert.equal(evaluateStagingPreflight(validEnv, gate).status, 'PASS');
+  const oldGate = evaluateStagingMigrationGate({ capture, ledger: { migrations: migrations.slice(0, 43) }, now });
+  assert.equal(evaluateStagingPreflight(validEnv, oldGate).status, 'BLOCKED');
 });
 
 test('staging preflight fails closed on production refs, project IDs, missing legal OFF flags and mock routes', () => {

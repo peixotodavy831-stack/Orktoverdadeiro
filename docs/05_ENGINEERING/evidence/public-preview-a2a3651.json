@@ -1,0 +1,85 @@
+{
+  "candidate_sha": "a2a3651319196ffc56813992f705692d368ef967",
+  "records": [
+    {
+      "test": "HEALTH",
+      "status": "PASS",
+      "http_status": 200
+    },
+    {
+      "test": "REQUEST_CORRELATION_HEADER",
+      "status": "PASS"
+    },
+    {
+      "test": "SECURITY_HEADERS",
+      "status": "PASS"
+    },
+    {
+      "test": "READINESS",
+      "status": "PASS",
+      "http_status": 200,
+      "environment": "staging"
+    },
+    {
+      "test": "REQUEST_CORRELATION_HEADER",
+      "status": "PASS"
+    },
+    {
+      "test": "SECURITY_HEADERS",
+      "status": "PASS"
+    },
+    {
+      "test": "ANONYMOUS_PRIVATE_ROUTE_DENIED",
+      "status": "PASS",
+      "http_status": 401
+    },
+    {
+      "test": "FOREIGN_ORIGIN_NOT_ALLOWED",
+      "status": "PASS",
+      "http_status": 403,
+      "request_id": "5a9e068c-99ef-4c8f-bd02-0af578cdc5fc"
+    },
+    {
+      "test": "STAGING_HTML_METADATA",
+      "status": "PASS"
+    },
+    {
+      "test": "PUBLIC_ACCESSIBLE_NAMES",
+      "status": "PASS",
+      "unnamed_controls": 0
+    },
+    {
+      "test": "PUBLIC_RESPONSIVE",
+      "status": "PASS",
+      "width": 390
+    },
+    {
+      "test": "PUBLIC_RESPONSIVE",
+      "status": "PASS",
+      "width": 768
+    },
+    {
+      "test": "PUBLIC_RESPONSIVE",
+      "status": "PASS",
+      "width": 1440
+    },
+    {
+      "test": "KEYBOARD_FOCUS",
+      "status": "PASS"
+    },
+    {
+      "test": "PUBLIC_CONSOLE",
+      "status": "PASS",
+      "errors": 0
+    },
+    {
+      "test": "PUBLIC_PERFORMANCE_BASELINE",
+      "status": "MEASURED",
+      "response_ms": 3133.699999988079,
+      "dom_ms": 3635.199999988079,
+      "transfer_bytes": 1471,
+      "javascript_requests": 5,
+      "javascript_duration_ms": 1512
+    }
+  ]
+}

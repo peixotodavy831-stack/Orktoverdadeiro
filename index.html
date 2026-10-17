@@ -26,7 +26,6 @@
     <link rel="canonical" href="__ORKTO_PUBLIC_ORIGIN__/" />
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <script defer src="https://cloud.umami.is/script.js" data-website-id="524cbfdf-e7d5-481b-b9a2-dd5052f6852b"></script>
     <title>ORKTO — Operação comercial com inteligência</title>
     <script type="application/ld+json">
@@ -62,7 +61,15 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div role="status" aria-label="Preparando sua ORKTO" style="min-height:100svh;background:#111110;color:#bcb5aa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;font:12px system-ui">
+        <span role="img" aria-label="ORKTO" style="display:flex;align-items:center;gap:10px">
+          <img src="/brand/orkto-symbol.svg" width="52" height="52" alt="" />
+          <img src="/brand/orkto-wordmark.svg" width="170" height="40" alt="" style="filter:brightness(0) invert(1)" />
+        </span>
+        <span>Preparando sua ORKTO…</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
