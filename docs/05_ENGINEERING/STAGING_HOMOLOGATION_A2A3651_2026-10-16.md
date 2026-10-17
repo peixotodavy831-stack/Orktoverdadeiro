@@ -15,6 +15,8 @@
 
 ### Avanço autônomo — ferramentas sem credenciais
 
+**Versão final das ferramentas: c40fba9789206b0206902d966cdd1ed8c6593e71 — 25/25 testes offline PASS**, com verificação da membership aprovada antes de acessar qualquer API de workspace. [Estado vigente das ferramentas e CI](HOMOLOGATION_TOOLS_CURRENT.md). A versão-base 1c4f4a9 abaixo preserva seus 24 testes históricos; não é o total final. Aquisição Google/execuções reais/Asaas continuam bloqueados ou NOT_TESTED, sem novo deployment.
+
 Source das ferramentas `1c4f4a93c86301c2fe0bb25f49f0cb00b1f2806e`; runtime de referência a2a3651 preservado. Implementados motor HTTP Google A/B em memória e preflight Asaas GET-only, com **24 testes offline PASS**, lint/sintaxe e saída sanitizada. CLI sem adaptadores retorna BLOCKED_EXTERNAL/exit2, sem rede. [Detalhes e limites](HOMOLOGATION_TOOLS_1C4F4A9.md).
 
 | Gate | Estado | SHA / evidência |
