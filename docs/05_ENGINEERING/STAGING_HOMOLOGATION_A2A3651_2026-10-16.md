@@ -13,6 +13,21 @@
 
 ## Matriz de gates
 
+### Avanço autônomo — ferramentas sem credenciais
+
+Source das ferramentas `1c4f4a93c86301c2fe0bb25f49f0cb00b1f2806e`; runtime de referência a2a3651 preservado. Implementados motor HTTP Google A/B em memória e preflight Asaas GET-only, com **24 testes offline PASS**, lint/sintaxe e saída sanitizada. CLI sem adaptadores retorna BLOCKED_EXTERNAL/exit2, sem rede. [Detalhes e limites](HOMOLOGATION_TOOLS_1C4F4A9.md).
+
+| Gate | Estado | SHA / evidência |
+| --- | --- | --- |
+| Motor HTTP A/B + preflight Asaas read-only | PASS | Source 1c4f4a9, fixtures locais; [24 testes](evidence/homologation-tools-1c4f4a9.txt). Não certifica fornecedores reais. |
+| CI das ferramentas | PASS | Source 1c4f4a9; [deploy boundary + 24 fixtures](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/38986371314). |
+| Fechamento sem credenciais/adaptadores | PASS | Source 1c4f4a9; [CLI exit2](evidence/homologation-tools-cli-1c4f4a9.jsonl), zero requisições de rede. |
+| Aquisição Google PKCE em dois contextos | BLOCKED_EXTERNAL | Adaptador real não disponível. O motor pronto não extrai tokens de abas, não cria usuários nem implementa isolamento por mera flag. |
+| Execução real A/B/tokens | NOT_TESTED | Alvo a2a3651; ações de escrita cruzada e reuse fora das exceções também continuam explicitamente NOT_TESTED. |
+| Customer/credenciais e notificações Asaas reais | BLOCKED_EXTERNAL | Customer exclusivamente de teste e configuração segura ainda não informados; preflight preparado não faz chamadas sem esses dados. |
+
+Nenhuma nova migration, mudança de API/Edge, implantação ou política comercial foi feita. Código de src/backend/Supabase/package permanece idêntico ao runtime a2a3651; não foi criado outro Preview/redirect. **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
 ### Rodada final de pré-requisitos — 16/10/2026, 22:11 UTC
 
 Inspeção de código e consultas administrativas somente de leitura, com runtime de referência a2a3651 e source documental b06b29c. Não houve novo login, migration, deploy, chamada de fornecedor nem repetição dos testes aprovados. [Evidência desta rodada](evidence/final-security-billing-prerequisites-a2a3651.json) e [roteiro dos casos ainda não executados](FINAL_SECURITY_BILLING_EXECUTION_A2A3651.md).

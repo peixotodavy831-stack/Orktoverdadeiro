@@ -13,7 +13,7 @@ Referência executável: `a2a3651319196ffc56813992f705692d368ef967`, [Preview au
 
 ## Gate G-EXEC — BLOCKED_EXTERNAL
 
-Falta executor Google compatível, previamente autorizado para os dois contextos. O plano de testes abaixo está NOT_TESTED até existir esse executor; não é necessário recriar a conta B nem ampliar seus papéis.
+O [motor HTTP e os preflights foram implementados autonomamente](HOMOLOGATION_TOOLS_1C4F4A9.md), source 1c4f4a9, com 24 testes offline aprovados. Ainda falta o adaptador que obtenha sessões pelo fluxo Google PKCE em dois contextos realmente isolados, além da integração e execução reais. O plano abaixo permanece NOT_TESTED até essa aquisição existir; não é necessário recriar a conta B nem ampliar seus papéis. A implementação local não remove o bloqueio externo.
 
 Contrato mínimo do executor:
 
