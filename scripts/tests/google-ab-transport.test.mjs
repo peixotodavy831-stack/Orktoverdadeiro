@@ -29,6 +29,7 @@ function fixture() {
         return Response.json({access_token:token(who,60),refresh_token:`fixture-refresh-${who}-${count}`});
       }
       if(u.pathname==='/auth/v1/user')return denied?Response.json({}, {status:401}):Response.json({id:T.actors[actor],identities:[{provider:'google'}]});
+      if(u.pathname==='/rest/v1/orkto_workspace_members')return Response.json(denied?[]:[{user_id:T.actors[actor],workspace_id:T.actors[actor],role:'owner',status:'active'}]);
       if(u.pathname==='/auth/v1/logout'){
         assert.equal(u.search,'?scope=local');revoked.add(actor);return new Response(null,{status:204});
       }
@@ -151,4 +152,11 @@ test('natural-expiry phase requires valid Preview protection beyond the wait or 
  const r=await runGoogleAbTransport({...f.config,naturalExpiry:true});
  assert.ok(r.records.some(v=>v.test==='NATURAL_EXPIRY_PREVIEW_ACCESS_RENEWAL_REQUIRED'&&v.status==='BLOCKED_EXTERNAL'));
  assert.ok(!r.records.some(v=>v.test.startsWith('NATURALLY_EXPIRED_')));
+});
+test('missing existing membership stops before any workspace API could provision a role',async()=>{
+ const f=fixture();const send=f.config.fetchImpl;
+ f.config.fetchImpl=async(url,init)=>url.includes('/rest/v1/orkto_workspace_members')?Response.json([]):send(url,init);
+ const r=await runGoogleAbTransport(f.config);
+ assert.ok(r.records.some(v=>v.test==='A_EXISTING_APPROVED_MEMBERSHIP'&&v.status==='FAIL'));
+ assert.ok(!f.calls.some(v=>v.url.startsWith(T.preview)||v.url.includes('/functions/')));
 });

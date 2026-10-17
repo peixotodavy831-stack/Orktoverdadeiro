@@ -92,6 +92,15 @@ export async function runGoogleAbTransport({verifyDeployment,acquireContexts,pub
       const ok=r.status===200&&r.data?.id===GOOGLE_AB_TARGET.actors[c.actor]
         &&r.data?.identities?.some(i=>i.provider==='google');
       record(`${c.actor}_VERIFIED_GOOGLE_SUBJECT`,ok?'PASS':'FAIL',r.status);if(!ok)fail();
+      // Prove existing authorization first: the application workspace read has a
+      // legacy provisioning fallback that must never be used to create test roles.
+      const id=GOOGLE_AB_TARGET.actors[c.actor];
+      const member=await request(GOOGLE_AB_TARGET.supabase,
+        `/rest/v1/orkto_workspace_members?select=workspace_id,user_id,role,status&user_id=eq.${id}`,c.session.access_token);
+      const rows=member.data;
+      const authorized=member.status===200&&Array.isArray(rows)&&rows.length===1
+        &&rows[0].user_id===id&&rows[0].workspace_id===id&&rows[0].role==='owner'&&rows[0].status==='active';
+      record(`${c.actor}_EXISTING_APPROVED_MEMBERSHIP`,authorized?'PASS':'FAIL',member.status);if(!authorized)fail();
     }
     async function probe(c,other=false,token=c.session.access_token,revoked=false,prefix='') {
       const workspace=GOOGLE_AB_TARGET.actors[other?(c.actor==='A'?'B':'A'):c.actor];
