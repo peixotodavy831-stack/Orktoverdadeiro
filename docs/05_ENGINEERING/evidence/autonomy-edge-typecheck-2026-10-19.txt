@@ -1,0 +1,4 @@
+
+> orkto@0.0.0 lint:edge
+> node scripts/typecheck-edge.mjs
+

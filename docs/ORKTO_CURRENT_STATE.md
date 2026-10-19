@@ -1,3 +1,7 @@
+## Execução vigente — 19/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz por ambiente e dependências](05_ENGINEERING/AUTONOMOUS_HOMOLOGATION_2026-10-19.md): source601e519 possui executor Google PKCE legítimo integrado ao motor, sem extração de sessões; contexto Chrome real PASS, aquisição aguardou login humano A. 289/289 app +105/105 readiness, 26/26 provider focados, lint/Edge/build/scan e CI PostgreSQL17/restore PASS. Novas proteções Gemini/Meta implementadas/testadas, **não implantadas**. Runtime remoto a2a3651 preservado durante a rodada de referência; G01–G12 e B01–B13 reais NOT_TESTED. Asaas abriu sem sessão autenticada; zero custom secrets/customers. Sem merge/produção. Estado antigo de executor inexistente foi superado pela integração atual.
+
 ## Engenharia vigente — G06/G08, 17/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz atual](05_ENGINEERING/G06_G08_ENGINEERING_2026-10-17.md): ferramentas source40fcfdc completam G06/G08; 39 testes de ferramentas, 22 de deploy boundary, lint/sintaxe, build isolado, secret scan e CI PostgreSQL17/deploy boundary PASS. Runtime a2a3651 inalterado. Execução Google real continua NOT_TESTED/BLOCKED_EXTERNAL por executor PKCE; Asaas real continua pendente de customer/secret store/notificações/autorização. [Passos do proprietário](05_ENGINEERING/ASAAS_SANDBOX_OWNER_SETUP.md). Nenhum novo framework, usuário, papel, deploy, cobrança, mensagem ou produção. As lacunas de engenharia G06/G08 descritas nos checkpoints anteriores foram superadas; não equivalem a PASS real.

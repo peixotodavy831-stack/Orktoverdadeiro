@@ -1,0 +1,10 @@
+BEGIN
+DO
+SET
+              set_config              
+--------------------------------------
+ aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
+(1 row)
+
+DO
+ROLLBACK

@@ -1,0 +1,274 @@
+TAP version 13
+# Subtest: empty, incomplete or ambiguous snapshots never prove notification safety
+ok 1 - empty, incomplete or ambiguous snapshots never prove notification safety
+  ---
+  duration_ms: 1.2227
+  type: 'test'
+  ...
+# Subtest: globally disabled rows or all explicitly disabled channels are safe observations
+ok 2 - globally disabled rows or all explicitly disabled channels are safe observations
+  ---
+  duration_ms: 1.3265
+  type: 'test'
+  ...
+# Subtest: each enabled channel fails and unknown enabled channels require schema review
+ok 3 - each enabled channel fails and unknown enabled channels require schema review
+  ---
+  duration_ms: 0.4547
+  type: 'test'
+  ...
+# Subtest: missing configuration, approval or production target blocks all network access
+ok 4 - missing configuration, approval or production target blocks all network access
+  ---
+  duration_ms: 0.6785
+  type: 'test'
+  ...
+# Subtest: real-mode cannot be certified using an injected fixture transport
+ok 5 - real-mode cannot be certified using an injected fixture transport
+  ---
+  duration_ms: 0.1868
+  type: 'test'
+  ...
+# Subtest: GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+ok 6 - GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+  ---
+  duration_ms: 29.4799
+  type: 'test'
+  ...
+# Subtest: foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+ok 7 - foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+  ---
+  duration_ms: 1.3358
+  type: 'test'
+  ...
+# Subtest: foreign customer notification snapshot is not approved
+ok 8 - foreign customer notification snapshot is not approved
+  ---
+  duration_ms: 0.7949
+  type: 'test'
+  ...
+# Subtest: no adapter means explicit blocked report and zero network, not false PASS
+ok 9 - no adapter means explicit blocked report and zero network, not false PASS
+  ---
+  duration_ms: 4.0833
+  type: 'test'
+  ...
+# Subtest: read matrix uses both identities, all three transports and both foreign directions
+ok 10 - read matrix uses both identities, all three transports and both foreign directions
+  ---
+  duration_ms: 54.0202
+  type: 'test'
+  ...
+# Subtest: OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+ok 11 - OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+  ---
+  duration_ms: 3.4456
+  type: 'test'
+  ...
+# Subtest: wrong deployment stops before acquiring credentials or contacting application
+ok 12 - wrong deployment stops before acquiring credentials or contacting application
+  ---
+  duration_ms: 0.403
+  type: 'test'
+  ...
+# Subtest: same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+ok 13 - same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+  ---
+  duration_ms: 0.9962
+  type: 'test'
+  ...
+# Subtest: elevated/public keys from another project are rejected before session acquisition
+ok 14 - elevated/public keys from another project are rejected before session acquisition
+  ---
+  duration_ms: 2.7694
+  type: 'test'
+  ...
+# Subtest: natural expiry waits without altering production time and tests original JWTs before revocation
+ok 15 - natural expiry waits without altering production time and tests original JWTs before revocation
+  ---
+  duration_ms: 3.6194
+  type: 'test'
+  ...
+# Subtest: natural wait limit is blocked, not certified via a fabricated expired token
+ok 16 - natural wait limit is blocked, not certified via a fabricated expired token
+  ---
+  duration_ms: 2.4987
+  type: 'test'
+  ...
+# Subtest: local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+ok 17 - local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+  ---
+  duration_ms: 5.6249
+  type: 'test'
+  ...
+# Subtest: foreign data leak is FAIL and never hidden by other passing surfaces
+ok 18 - foreign data leak is FAIL and never hidden by other passing surfaces
+  ---
+  duration_ms: 2.6506
+  type: 'test'
+  ...
+# Subtest: untrusted errors and failed disposal never print credential-bearing diagnostics
+ok 19 - untrusted errors and failed disposal never print credential-bearing diagnostics
+  ---
+  duration_ms: 0.6642
+  type: 'test'
+  ...
+# Subtest: oversized replies and redirects cannot become PASS
+ok 20 - oversized replies and redirects cannot become PASS
+  ---
+  duration_ms: 2.3022
+  type: 'test'
+  ...
+# Subtest: approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+ok 21 - approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+  ---
+  duration_ms: 6.2547
+  type: 'test'
+  ...
+# Subtest: malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+ok 22 - malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+  ---
+  duration_ms: 0.5056
+  type: 'test'
+  ...
+# Subtest: Vercel denial cannot masquerade as revoked user authentication
+ok 23 - Vercel denial cannot masquerade as revoked user authentication
+  ---
+  duration_ms: 4.079
+  type: 'test'
+  ...
+# Subtest: natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+ok 24 - natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+  ---
+  duration_ms: 2.4773
+  type: 'test'
+  ...
+# Subtest: missing existing membership stops before any workspace API could provision a role
+ok 25 - missing existing membership stops before any workspace API could provision a role
+  ---
+  duration_ms: 0.6433
+  type: 'test'
+  ...
+# Subtest: G06 attempts API, Edge, forged workspace and PostgREST writes in both directions, independently observes every result
+ok 26 - G06 attempts API, Edge, forged workspace and PostgREST writes in both directions, independently observes every result
+  ---
+  duration_ms: 23.4197
+  type: 'test'
+  ...
+# Subtest: G06 refuses unapproved, nonsynthetic, duplicate or unobserved fixtures before acquiring credentials
+ok 27 - G06 refuses unapproved, nonsynthetic, duplicate or unobserved fixtures before acquiring credentials
+  ---
+  duration_ms: 0.6385
+  type: 'test'
+  ...
+# Subtest: G06 persisted leakage fails despite denial response, restores only the approved field and stops writes
+ok 28 - G06 persisted leakage fails despite denial response, restores only the approved field and stops writes
+  ---
+  duration_ms: 8.233
+  type: 'test'
+  ...
+# Subtest: G06 checks persistence after ambiguous transport errors and never overwrites unrelated changes
+ok 29 - G06 checks persistence after ambiguous transport errors and never overwrites unrelated changes
+  ---
+  duration_ms: 7.0791
+  type: 'test'
+  ...
+# Subtest: G06 missing baseline, unknown denial and observer outage never become PASS
+ok 30 - G06 missing baseline, unknown denial and observer outage never become PASS
+  ---
+  duration_ms: 7.6964
+  type: 'test'
+  ...
+# Subtest: G08 accepts legitimate parent outside the interval, rejects older ancestor and proves family revocation for A/B
+ok 31 - G08 accepts legitimate parent outside the interval, rejects older ancestor and proves family revocation for A/B
+  ---
+  duration_ms: 6.7837
+  type: 'test'
+  ...
+# Subtest: G08 wrong or unknown policy is blocked; it never assumes the default reuse interval
+ok 32 - G08 wrong or unknown policy is blocked; it never assumes the default reuse interval
+  ---
+  duration_ms: 6.2917
+  type: 'test'
+  ...
+# Subtest: G08 detects accepted ancestor, broken parent exception and nonrevoked active family
+ok 33 - G08 detects accepted ancestor, broken parent exception and nonrevoked active family
+  ---
+  duration_ms: 6.1744
+  type: 'test'
+  ...
+# Subtest: G08 and explicit logout cannot compete for the same sessions
+ok 34 - G08 and explicit logout cannot compete for the same sessions
+  ---
+  duration_ms: 0.2667
+  type: 'test'
+  ...
+# Subtest: G08 refuses a wait longer than JWT lifetime rather than confusing expiry with reuse revocation
+ok 35 - G08 refuses a wait longer than JWT lifetime rather than confusing expiry with reuse revocation
+  ---
+  duration_ms: 3.0825
+  type: 'test'
+  ...
+# Subtest: G06 expired/revoked actor cannot certify tenant denial even if rows stay unchanged
+ok 36 - G06 expired/revoked actor cannot certify tenant denial even if rows stay unchanged
+  ---
+  duration_ms: 6.2176
+  type: 'test'
+  ...
+# Subtest: G08 uses the verified interval including zero/custom values rather than a hardcoded ten seconds
+ok 37 - G08 uses the verified interval including zero/custom values rather than a hardcoded ten seconds
+  ---
+  duration_ms: 6.7447
+  type: 'test'
+  ...
+# Subtest: G08 arbitrary provider error is not evidence of rejected reuse or family revocation
+ok 38 - G08 arbitrary provider error is not evidence of rejected reuse or family revocation
+  ---
+  duration_ms: 2.2755
+  type: 'test'
+  ...
+# Subtest: G06 failed restoration remains FAIL and cannot hide a persisted unauthorized change
+ok 39 - G06 failed restoration remains FAIL and cannot hide a persisted unauthorized change
+  ---
+  duration_ms: 3.8184
+  type: 'test'
+  ...
+# Subtest: normal Google PKCE exchange owns two separate contexts, verifiers and memory stores; no session extraction
+ok 40 - normal Google PKCE exchange owns two separate contexts, verifiers and memory stores; no session extraction
+  ---
+  duration_ms: 5.9925
+  type: 'test'
+  ...
+# Subtest: wrong deployment never starts a browser or initiates OAuth
+ok 41 - wrong deployment never starts a browser or initiates OAuth
+  ---
+  duration_ms: 0.8379
+  type: 'test'
+  ...
+# Subtest: callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors
+ok 42 - callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors
+  ---
+  duration_ms: 3.8806
+  type: 'test'
+  ...
+# Subtest: elevated key, fixture dependencies in STAGING, missing inspector and unsafe timeout are refused
+ok 43 - elevated key, fixture dependencies in STAGING, missing inspector and unsafe timeout are refused
+  ---
+  duration_ms: 0.5039
+  type: 'test'
+  ...
+# Subtest: SDK HTTP boundary cannot send credentials to another origin
+ok 44 - SDK HTTP boundary cannot send credentials to another origin
+  ---
+  duration_ms: 1.2967
+  type: 'test'
+  ...
+1..44
+# tests 44
+# suites 0
+# pass 44
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2314.8377

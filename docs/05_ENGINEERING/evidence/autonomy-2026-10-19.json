@@ -1,0 +1,64 @@
+{
+  "sourceSha": "601e519a9c83b8a4ebdfa4d120739aac75a3aa3a",
+  "runtimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+  "project": "ghrjongiodziasupakrk",
+  "date": "2026-10-19",
+  "runtimeChangesDeployed": false,
+  "local": {
+    "appTests": {"passed": 289, "failed": 0},
+    "readinessTests": {"passed": 105, "failed": 0},
+    "providerFocusedTests": {"passed": 26, "failed": 0},
+    "bridgeAndToolsTests": {"passed": 44, "failed": 0},
+    "lint": "PASS",
+    "edgeTypecheckIncludingMeta": "PASS",
+    "isolatedBuildSmoke": "PASS",
+    "distPreserved": true,
+    "secretScan": "PASS"
+  },
+  "google": {
+    "realChromeContextProbe": "PASS",
+    "previewInspection": "PASS",
+    "acquisitionImplementation": "IMPLEMENTED",
+    "realAcquisitionObservedPhase": "A_HUMAN_GOOGLE_LOGIN_REQUIRED",
+    "realG01ThroughG12": "NOT_TESTED",
+    "dependency": "EXTERNAL_ACCESS_REQUIRED",
+    "credentialsExported": false,
+    "existingProfileAccessed": false
+  },
+  "asaas": {
+    "sandboxSession": "LOGIN_REQUIRED",
+    "databaseObservedAtUtc": "2026-10-19T21:29:06.832194Z",
+    "approvedBillingCustomers": 0,
+    "billingBindings": 0,
+    "customEdgeSecrets": 0,
+    "realB01ThroughB13": "NOT_TESTED",
+    "providerFinancialCalls": 0
+  },
+  "otherIntegrations": {
+    "modelTariffs": 0,
+    "pulsoPolicies": 0,
+    "paidInferenceCalls": 0,
+    "externalMessages": 0,
+    "geminiTariffPrecheck": "IMPLEMENTED_NOT_DEPLOYED",
+    "metaContentFingerprintAndBodyLimit": "IMPLEMENTED_NOT_DEPLOYED"
+  },
+  "ci": {
+    "providerAndReadiness": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39329197535",
+    "postgresAndRestore": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39329197541",
+    "conclusion": "success",
+    "headSha": "601e519a9c83b8a4ebdfa4d120739aac75a3aa3a"
+  },
+  "restore": {
+    "scope": "disposable_synthetic_postgresql17",
+    "status": "PASS",
+    "checksumVerified": true,
+    "countsMatch": true,
+    "restoreSeconds": 1,
+    "dumpPublished": false,
+    "realStagingRecovery": "NOT_TESTED"
+  },
+  "newUsersOrRoles": false,
+  "cloudSettingsChanged": false,
+  "productionChanged": false,
+  "readyForProductionCandidate": "NO"
+}

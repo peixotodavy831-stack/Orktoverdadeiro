@@ -1,3 +1,7 @@
+## Execução autônoma vigente — 19/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Relatório e dependências atuais](AUTONOMOUS_HOMOLOGATION_2026-10-19.md): source601e519 integra Playwright/SDK Google PKCE ao motor existente, com contextos Chrome isolados reais e callback aprovado. Tentativa chegou a login humano A; G01–G12 NOT_TESTED. Não repetir o diagnóstico antigo de adaptador inexistente. 289 app + 105 readiness, 26 provider focados, lint/build/scan e CI PostgreSQL17/restore PASS. Correções Gemini/Meta implementadas e testadas na PR, **não implantadas**; runtime a2a3651 preservado durante a rodada fixada. Asaas exige login; B01–B13 NOT_TESTED. Histórico abaixo preservado e sujeito a este estado mais recente.
+
 ## Atualização vigente — G06/G08 implementados em 40fcfdc
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Engenharia e matriz por ambiente](G06_G08_ENGINEERING_2026-10-17.md): G06 (escritas cruzadas com observação independente) e G08 (reuse fora das exceções) implementados no motor existente, source `40fcfdcc6effb6d2bd32f875e39e4e81b30b1e29`. **39/39 testes de ferramentas + 22/22 deploy boundary PASS**, lint/sintaxe/build isolado/secret scan e CI PostgreSQL17/deploy boundary PASS. As menções abaixo à cobertura ausente são históricas e foram superadas nesta engenharia. G01–G12 reais continuam NOT_TESTED, executor PKCE BLOCKED_EXTERNAL; Asaas configuração BLOCKED_EXTERNAL e B01–B13 NOT_TESTED. [Configuração exata pelo proprietário](ASAAS_SANDBOX_OWNER_SETUP.md). Runtime a2a3651 preservado, sem deploy, mudança cloud ou produção.
