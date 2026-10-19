@@ -11,6 +11,7 @@ try {
   writeFileSync(runtime,'declare const Deno: { env: { get(name:string):string|undefined }; serve(handler:(request:Request)=>Response|Promise<Response>):void };');
   const result=spawnSync(process.execPath,[fileURLToPath(import.meta.resolve('typescript/bin/tsc')),
     '--noEmit','--target','ES2022','--module','ESNext','--moduleResolution','bundler','--allowImportingTsExtensions','--skipLibCheck',
-    runtime,'supabase/functions/orkto-core-mutations/index.ts','supabase/functions/orkto-billing-webhook/index.ts'],{cwd:root,stdio:'inherit'});
+    runtime,'supabase/functions/orkto-core-mutations/index.ts','supabase/functions/orkto-billing-webhook/index.ts',
+    'supabase/functions/orkto-meta-webhook/index.ts'],{cwd:root,stdio:'inherit'});
   process.exitCode=result.status??1;
 } finally {rmSync(scratch,{recursive:true,force:true});}

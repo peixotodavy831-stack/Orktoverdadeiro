@@ -53,14 +53,15 @@ test('provider errors never expose credentials, raw responses or retry automatic
   }
 });
 
-function database(start:any={result:'STARTED',wia_run_id:'run-1',status:'running'}) {
+function database(start:any={result:'STARTED',wia_run_id:'run-1',status:'running'},tariff:any={version:1,provider:'gemini',model:input.model,
+ effective_from:'2026-01-01T00:00:00Z',effective_until:null,input_microusd_per_million:1,output_microusd_per_million:1,cached_microusd_per_million:0}) {
   const calls:any[]=[];const queries:any[]=[];
   return {calls,queries,rpc:async(name:string,args:any)=>{
     calls.push({name,args});if(name==='orkto_reserve_pulso')return {data:{allowed:true},error:null};if(name==='orkto_finish_pulso')return {data:true,error:null};if(name==='orkto_wia_claim_request')return {data:start,error:null};
     return {data:{result:'COMPLETED',wia_run_id:'run-1'},error:null};
   },from:(table:string)=>{
     const filters:any[]=[];queries.push({table,filters});
-    const data=table==='quotes'?[{id:'private-quote-id'}]:null;
+    const data=table==='quotes'?[{id:'private-quote-id'}]:table==='orkto_model_tariffs'?tariff:null;
     const query:any={select:()=>query,eq:(...v:any[])=>{filters.push(v);return query;},is:()=>query,in:()=>query,limit:()=>query,gte:()=>query,lte:()=>query,order:()=>query,maybeSingle:()=>query,
       then:(done:any)=>Promise.resolve({data,error:null,count:table==='clients'?3:0}).then(done)};
     return query;
@@ -106,4 +107,15 @@ test('unapproved Pulso allocation blocks generative calls and records the failed
   db.rpc=async(name,args)=>name==='orkto_reserve_pulso'?{data:{allowed:false,reason:'configuration_required'},error:null}:rpc(name,args);
   await assert.rejects(prepareTrustedRequest(db,request,env,noSend),(error:any)=>error.code==='PULSO_CONFIGURATION_OR_LIMIT');
   assert.ok(db.calls.some(call=>call.name==='orkto_wia_finish_request'&&call.args.p_status==='failed'));
+});
+
+test('missing, expired, foreign-model or malformed tariff blocks inference even with an approved Pulso allocation',async()=>{
+ for(const tariff of [null,{version:1,provider:'gemini',model:input.model,effective_from:'2020-01-01',effective_until:'2021-01-01',input_microusd_per_million:1,output_microusd_per_million:1,cached_microusd_per_million:0},
+  {version:1,provider:'gemini',model:'other',effective_from:'2020-01-01',effective_until:null,input_microusd_per_million:1,output_microusd_per_million:1,cached_microusd_per_million:0},
+  {version:1,provider:'gemini',model:input.model,effective_from:'2020-01-01',effective_until:null,input_microusd_per_million:-1,output_microusd_per_million:1,cached_microusd_per_million:0}]){
+  const db=database(undefined,tariff);
+  await assert.rejects(prepareTrustedRequest(db,request,env,noSend),(error:any)=>error.code==='MODEL_TARIFF_REQUIRED');
+  assert.ok(db.calls.some(call=>call.name==='orkto_wia_finish_request'&&call.args.p_status==='failed'));
+  assert.ok(!db.queries.some(query=>query.table==='clients'||query.table==='quotes'));
+ }
 });

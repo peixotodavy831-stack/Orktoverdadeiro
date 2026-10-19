@@ -53,6 +53,20 @@ export async function prepareTrustedRequest(db: any, input: {
       // No provider call without a durable, owner-approved Pulso allocation.
       const reservation=await db.rpc('orkto_reserve_pulso',{p_workspace_id:input.workspaceId,p_request_key:input.traceId,p_class:'normal'});
       if(reservation.error||reservation.data?.allowed!==true)throw new WiaRequestError(423,'PULSO_CONFIGURATION_OR_LIMIT');
+      // A Pulso allowance does not approve an unknown supplier cost. Validate the
+      // configured, effective tariff before any inference can incur a charge.
+      const tariffResult=await db.from('orkto_model_tariffs').select('*').eq('provider','gemini')
+        .eq('model',configuration!.model).lte('effective_from',new Date().toISOString())
+        .order('effective_from',{ascending:false}).limit(1).maybeSingle();
+      const tariff=tariffResult.error?null:tariffResult.data;
+      const approvedTariff=tariff?{version:tariff.version,provider:tariff.provider,model:tariff.model,
+        effectiveFrom:tariff.effective_from,effectiveUntil:tariff.effective_until,
+        inputMicrousdPerMillion:Number(tariff.input_microusd_per_million),outputMicrousdPerMillion:Number(tariff.output_microusd_per_million),
+        cachedMicrousdPerMillion:Number(tariff.cached_microusd_per_million)}:null;
+      try{
+        if(!estimateModelCost(approvedTariff,{provider:'gemini',model:configuration!.model,input:0,cached:0,output:0}))
+          throw new Error('tariff_missing');
+      }catch{throw new WiaRequestError(423,'MODEL_TARIFF_REQUIRED');}
       // Send aggregate counts, never full contacts, proposal details, or private chat histories.
       const [quotes,clients]=await Promise.all([
         db.from('quotes').select('id').eq('workspace_id',input.workspaceId).is('archived_at',null)
@@ -64,14 +78,7 @@ export async function prepareTrustedRequest(db: any, input: {
       const prepared=await prepareTrustedGemini({...configuration!,message:input.message,
         context:{openQuotes:rows.length,clients:clients.count,truncated:(quotes.data||[]).length>50},
         sourceIds:[]},send);
-      const tariffResult=await db.from('orkto_model_tariffs').select('*').eq('provider',prepared.usage.provider)
-        .eq('model',prepared.usage.model).lte('effective_from',new Date().toISOString())
-        .order('effective_from',{ascending:false}).limit(1).maybeSingle();
-      const tariff=tariffResult.error?null:tariffResult.data;
-      const estimate=estimateModelCost(tariff?{version:tariff.version,provider:tariff.provider,model:tariff.model,
-        effectiveFrom:tariff.effective_from,effectiveUntil:tariff.effective_until,
-        inputMicrousdPerMillion:Number(tariff.input_microusd_per_million),outputMicrousdPerMillion:Number(tariff.output_microusd_per_million),
-        cachedMicrousdPerMillion:Number(tariff.cached_microusd_per_million)}:null,
+      const estimate=estimateModelCost(approvedTariff,
         {provider:prepared.usage.provider,model:prepared.usage.model,input:prepared.usage.promptTokens,cached:prepared.usage.cachedInputTokens,output:prepared.usage.completionTokens});
       const usage={...prepared.usage,costEstimate:estimate,costState:estimate?'estimated':'tariff_missing',actualCashCost:null};
       payload={contextRefs:prepared.sourceIds,path:'model',mode:'live',decision:prepared.decision,

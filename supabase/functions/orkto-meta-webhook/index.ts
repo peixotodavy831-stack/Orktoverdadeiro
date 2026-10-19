@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
+import {readMetaBody,metaMessageFingerprint} from './event-boundary.ts';
 
 const numericId=z.string().regex(/^\d{5,30}$/);
 const unixTime=z.string().regex(/^\d{1,12}$/);
@@ -45,7 +46,8 @@ Deno.serve(async(req:Request)=>{
   if(req.method!=='POST')return json(405,'METHOD_NOT_ALLOWED',requestId);
   const appSecret=Deno.env.get('META_APP_SECRET')||'';
   const length=Number(req.headers.get('content-length')||'0');if(length>1_048_576)return json(413,'PAYLOAD_TOO_LARGE',requestId);
-  const raw=new Uint8Array(await req.arrayBuffer());if(raw.byteLength>1_048_576)return json(413,'PAYLOAD_TOO_LARGE',requestId);
+  let raw:Uint8Array|null;try{raw=await readMetaBody(req.body);}catch{return json(400,'PAYLOAD_INVALID',requestId);}
+  if(!raw)return json(413,'PAYLOAD_TOO_LARGE',requestId);
   if(!await signatureValid(raw,req.headers.get('x-hub-signature-256'),appSecret))return json(401,'SIGNATURE_INVALID',requestId);
   let payload:z.infer<typeof envelope>;
   try{payload=envelope.parse(JSON.parse(new TextDecoder().decode(raw)))}catch{return json(400,'PAYLOAD_INVALID',requestId)}
@@ -58,7 +60,8 @@ Deno.serve(async(req:Request)=>{
     const phoneNumberId=change.value.metadata.phone_number_id;
     for(const item of change.value.messages||[]){
       const eventId=`message:${item.id}`;const at=occurredAt(item.timestamp);
-      const fingerprint=await sha256(JSON.stringify({eventId,phoneNumberId,wabaId:entry.id,from:item.from,type:item.type,at}));
+      const fingerprint=await metaMessageFingerprint({eventId,phoneNumberId,wabaId:entry.id,from:item.from,type:item.type,at,
+        text:item.type==='text'?item.text?.body??null:null});
       const {data:claimed,error:claimError}=await admin.rpc('orkto_claim_meta_webhook_event',{
         p_phone_number_id:phoneNumberId,p_waba_id:entry.id,p_provider_event_id:eventId,
         p_payload_fingerprint:fingerprint,p_event_kind:'message',p_occurred_at:at,
