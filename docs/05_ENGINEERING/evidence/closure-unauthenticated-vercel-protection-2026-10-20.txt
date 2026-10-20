@@ -1,0 +1,5 @@
+{"path":"/api/health","status":302,"expected":200,"result":"FAIL","contentType":"text/plain","code":null}
+{"path":"/api/ready","status":302,"expected":200,"result":"FAIL","contentType":"text/plain","code":null}
+{"path":"/api/clients","status":302,"expected":401,"result":"FAIL","contentType":"text/plain","code":null}
+{"path":"/api/billing/current","status":302,"expected":401,"result":"FAIL","contentType":"text/plain","code":null}
+{"path":"/api/audit","status":302,"expected":401,"result":"FAIL","contentType":"text/plain","code":null}

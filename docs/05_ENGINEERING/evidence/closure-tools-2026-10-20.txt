@@ -1,0 +1,406 @@
+TAP version 13
+# Subtest: empty, incomplete or ambiguous snapshots never prove notification safety
+ok 1 - empty, incomplete or ambiguous snapshots never prove notification safety
+  ---
+  duration_ms: 1.2087
+  type: 'test'
+  ...
+# Subtest: globally disabled rows or all explicitly disabled channels are safe observations
+ok 2 - globally disabled rows or all explicitly disabled channels are safe observations
+  ---
+  duration_ms: 1.6998
+  type: 'test'
+  ...
+# Subtest: each enabled channel fails and unknown enabled channels require schema review
+ok 3 - each enabled channel fails and unknown enabled channels require schema review
+  ---
+  duration_ms: 0.9322
+  type: 'test'
+  ...
+# Subtest: missing configuration, approval or production target blocks all network access
+ok 4 - missing configuration, approval or production target blocks all network access
+  ---
+  duration_ms: 0.9331
+  type: 'test'
+  ...
+# Subtest: real-mode cannot be certified using an injected fixture transport
+ok 5 - real-mode cannot be certified using an injected fixture transport
+  ---
+  duration_ms: 0.2145
+  type: 'test'
+  ...
+# Subtest: GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+ok 6 - GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+  ---
+  duration_ms: 38.6455
+  type: 'test'
+  ...
+# Subtest: foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+ok 7 - foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+  ---
+  duration_ms: 1.7229
+  type: 'test'
+  ...
+# Subtest: foreign customer notification snapshot is not approved
+ok 8 - foreign customer notification snapshot is not approved
+  ---
+  duration_ms: 0.8725
+  type: 'test'
+  ...
+# Subtest: allows only the verified staging project and Supabase target
+ok 9 - allows only the verified staging project and Supabase target
+  ---
+  duration_ms: 3.0872
+  type: 'test'
+  ...
+# Subtest: hard aborts when the linked project is production
+ok 10 - hard aborts when the linked project is production
+  ---
+  duration_ms: 0.405
+  type: 'test'
+  ...
+# Subtest: hard aborts when any supplied Supabase target names production
+ok 11 - hard aborts when any supplied Supabase target names production
+  ---
+  duration_ms: 0.244
+  type: 'test'
+  ...
+# Subtest: hard aborts when a service-role key or fingerprint could reach Preview
+ok 12 - hard aborts when a service-role key or fingerprint could reach Preview
+  ---
+  duration_ms: 0.293
+  type: 'test'
+  ...
+# Subtest: fails closed when required staging ref or URL is missing or unknown
+ok 13 - fails closed when required staging ref or URL is missing or unknown
+  ---
+  duration_ms: 0.3044
+  type: 'test'
+  ...
+# Subtest: rejects an unexpected Vercel project and a production deployment mode
+ok 14 - rejects an unexpected Vercel project and a production deployment mode
+  ---
+  duration_ms: 0.2584
+  type: 'test'
+  ...
+# Subtest: rejects deploy flags and permits guard-only without invoking Vercel
+ok 15 - rejects deploy flags and permits guard-only without invoking Vercel
+  ---
+  duration_ms: 0.1926
+  type: 'test'
+  ...
+# Subtest: Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags
+ok 16 - Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags
+  ---
+  duration_ms: 0.7625
+  type: 'test'
+  ...
+# Subtest: extracts one staging URL from CLI progress and rejects ambiguous or production URLs
+ok 17 - extracts one staging URL from CLI progress and rejects ambiguous or production URLs
+  ---
+  duration_ms: 0.8614
+  type: 'test'
+  ...
+# Subtest: Vercel Git integration disables automatic deployments for every readiness branch
+ok 18 - Vercel Git integration disables automatic deployments for every readiness branch
+  ---
+  duration_ms: 2.2344
+  type: 'test'
+  ...
+# Subtest: CLI Preview excludes local environment and synthetic runner material
+ok 19 - CLI Preview excludes local environment and synthetic runner material
+  ---
+  duration_ms: 6.5942
+  type: 'test'
+  ...
+# Subtest: CLI deploy pins project, Preview target, and the exact clean-checkout SHA
+ok 20 - CLI deploy pins project, Preview target, and the exact clean-checkout SHA
+  ---
+  duration_ms: 0.4199
+  type: 'test'
+  ...
+# Subtest: deploy result binds the inspected staging Preview to the expected SHA
+ok 21 - deploy result binds the inspected staging Preview to the expected SHA
+  ---
+  duration_ms: 0.4326
+  type: 'test'
+  ...
+# Subtest: no adapter means explicit blocked report and zero network, not false PASS
+ok 22 - no adapter means explicit blocked report and zero network, not false PASS
+  ---
+  duration_ms: 4.515
+  type: 'test'
+  ...
+# Subtest: read matrix uses both identities, all three transports and both foreign directions
+ok 23 - read matrix uses both identities, all three transports and both foreign directions
+  ---
+  duration_ms: 37.0667
+  type: 'test'
+  ...
+# Subtest: OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+ok 24 - OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+  ---
+  duration_ms: 3.6749
+  type: 'test'
+  ...
+# Subtest: wrong deployment stops before acquiring credentials or contacting application
+ok 25 - wrong deployment stops before acquiring credentials or contacting application
+  ---
+  duration_ms: 0.3913
+  type: 'test'
+  ...
+# Subtest: same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+ok 26 - same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+  ---
+  duration_ms: 0.9868
+  type: 'test'
+  ...
+# Subtest: elevated/public keys from another project are rejected before session acquisition
+ok 27 - elevated/public keys from another project are rejected before session acquisition
+  ---
+  duration_ms: 2.7439
+  type: 'test'
+  ...
+# Subtest: natural expiry waits without altering production time and tests original JWTs before revocation
+ok 28 - natural expiry waits without altering production time and tests original JWTs before revocation
+  ---
+  duration_ms: 6.0411
+  type: 'test'
+  ...
+# Subtest: natural wait limit is blocked, not certified via a fabricated expired token
+ok 29 - natural wait limit is blocked, not certified via a fabricated expired token
+  ---
+  duration_ms: 4.2027
+  type: 'test'
+  ...
+# Subtest: local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+ok 30 - local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+  ---
+  duration_ms: 6.5199
+  type: 'test'
+  ...
+# Subtest: foreign data leak is FAIL and never hidden by other passing surfaces
+ok 31 - foreign data leak is FAIL and never hidden by other passing surfaces
+  ---
+  duration_ms: 2.7309
+  type: 'test'
+  ...
+# Subtest: untrusted errors and failed disposal never print credential-bearing diagnostics
+ok 32 - untrusted errors and failed disposal never print credential-bearing diagnostics
+  ---
+  duration_ms: 0.6178
+  type: 'test'
+  ...
+# Subtest: oversized replies and redirects cannot become PASS
+ok 33 - oversized replies and redirects cannot become PASS
+  ---
+  duration_ms: 2.3699
+  type: 'test'
+  ...
+# Subtest: approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+ok 34 - approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+  ---
+  duration_ms: 9.3441
+  type: 'test'
+  ...
+# Subtest: malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+ok 35 - malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+  ---
+  duration_ms: 0.5458
+  type: 'test'
+  ...
+# Subtest: Vercel denial cannot masquerade as revoked user authentication
+ok 36 - Vercel denial cannot masquerade as revoked user authentication
+  ---
+  duration_ms: 5.3506
+  type: 'test'
+  ...
+# Subtest: natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+ok 37 - natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+  ---
+  duration_ms: 4.8498
+  type: 'test'
+  ...
+# Subtest: missing existing membership stops before any workspace API could provision a role
+ok 38 - missing existing membership stops before any workspace API could provision a role
+  ---
+  duration_ms: 0.7899
+  type: 'test'
+  ...
+# Subtest: G06 attempts API, Edge, forged workspace and PostgREST writes in both directions, independently observes every result
+ok 39 - G06 attempts API, Edge, forged workspace and PostgREST writes in both directions, independently observes every result
+  ---
+  duration_ms: 55.1875
+  type: 'test'
+  ...
+# Subtest: G06 refuses unapproved, nonsynthetic, duplicate or unobserved fixtures before acquiring credentials
+ok 40 - G06 refuses unapproved, nonsynthetic, duplicate or unobserved fixtures before acquiring credentials
+  ---
+  duration_ms: 0.8347
+  type: 'test'
+  ...
+# Subtest: G06 persisted leakage fails despite denial response, restores only the approved field and stops writes
+ok 41 - G06 persisted leakage fails despite denial response, restores only the approved field and stops writes
+  ---
+  duration_ms: 10.5122
+  type: 'test'
+  ...
+# Subtest: G06 checks persistence after ambiguous transport errors and never overwrites unrelated changes
+ok 42 - G06 checks persistence after ambiguous transport errors and never overwrites unrelated changes
+  ---
+  duration_ms: 7.3523
+  type: 'test'
+  ...
+# Subtest: G06 missing baseline, unknown denial and observer outage never become PASS
+ok 43 - G06 missing baseline, unknown denial and observer outage never become PASS
+  ---
+  duration_ms: 9.3649
+  type: 'test'
+  ...
+# Subtest: G08 accepts legitimate parent outside the interval, rejects older ancestor and proves family revocation for A/B
+ok 44 - G08 accepts legitimate parent outside the interval, rejects older ancestor and proves family revocation for A/B
+  ---
+  duration_ms: 9.877
+  type: 'test'
+  ...
+# Subtest: G08 wrong or unknown policy is blocked; it never assumes the default reuse interval
+ok 45 - G08 wrong or unknown policy is blocked; it never assumes the default reuse interval
+  ---
+  duration_ms: 8.8282
+  type: 'test'
+  ...
+# Subtest: G08 detects accepted ancestor, broken parent exception and nonrevoked active family
+ok 46 - G08 detects accepted ancestor, broken parent exception and nonrevoked active family
+  ---
+  duration_ms: 6.839
+  type: 'test'
+  ...
+# Subtest: G08 and explicit logout cannot compete for the same sessions
+ok 47 - G08 and explicit logout cannot compete for the same sessions
+  ---
+  duration_ms: 0.3221
+  type: 'test'
+  ...
+# Subtest: G08 refuses a wait longer than JWT lifetime rather than confusing expiry with reuse revocation
+ok 48 - G08 refuses a wait longer than JWT lifetime rather than confusing expiry with reuse revocation
+  ---
+  duration_ms: 3.7221
+  type: 'test'
+  ...
+# Subtest: G06 expired/revoked actor cannot certify tenant denial even if rows stay unchanged
+ok 49 - G06 expired/revoked actor cannot certify tenant denial even if rows stay unchanged
+  ---
+  duration_ms: 4.8079
+  type: 'test'
+  ...
+# Subtest: G08 uses the verified interval including zero/custom values rather than a hardcoded ten seconds
+ok 50 - G08 uses the verified interval including zero/custom values rather than a hardcoded ten seconds
+  ---
+  duration_ms: 6.0618
+  type: 'test'
+  ...
+# Subtest: G08 arbitrary provider error is not evidence of rejected reuse or family revocation
+ok 51 - G08 arbitrary provider error is not evidence of rejected reuse or family revocation
+  ---
+  duration_ms: 2.4696
+  type: 'test'
+  ...
+# Subtest: G06 failed restoration remains FAIL and cannot hide a persisted unauthorized change
+ok 52 - G06 failed restoration remains FAIL and cannot hide a persisted unauthorized change
+  ---
+  duration_ms: 6.6565
+  type: 'test'
+  ...
+# Subtest: normal Google PKCE exchange owns two separate contexts, verifiers and memory stores; no session extraction
+ok 53 - normal Google PKCE exchange owns two separate contexts, verifiers and memory stores; no session extraction
+  ---
+  duration_ms: 8.1864
+  type: 'test'
+  ...
+# Subtest: wrong deployment never starts a browser or initiates OAuth
+ok 54 - wrong deployment never starts a browser or initiates OAuth
+  ---
+  duration_ms: 0.848
+  type: 'test'
+  ...
+# Subtest: callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors
+ok 55 - callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors
+  ---
+  duration_ms: 4.1046
+  type: 'test'
+  ...
+# Subtest: elevated key, fixture dependencies in STAGING, missing inspector and unsafe timeout are refused
+ok 56 - elevated key, fixture dependencies in STAGING, missing inspector and unsafe timeout are refused
+  ---
+  duration_ms: 0.4929
+  type: 'test'
+  ...
+# Subtest: SDK HTTP boundary cannot send credentials to another origin
+ok 57 - SDK HTTP boundary cannot send credentials to another origin
+  ---
+  duration_ms: 1.2507
+  type: 'test'
+  ...
+# Subtest: CLI inspection binds explicit staging to authenticated project/team and scoped deployment list
+ok 58 - CLI inspection binds explicit staging to authenticated project/team and scoped deployment list
+  ---
+  duration_ms: 4.7682
+  type: 'test'
+  ...
+# Subtest: missing or inconsistent project, scope, SHA, host and environment never start OAuth
+ok 59 - missing or inconsistent project, scope, SHA, host and environment never start OAuth
+  ---
+  duration_ms: 1.2069
+  type: 'test'
+  ...
+# Subtest: password runner fails closed for Google pilot, disabled Email and unavailable settings
+ok 60 - password runner fails closed for Google pilot, disabled Email and unavailable settings
+  ---
+  duration_ms: 1.1812
+  type: 'test'
+  ...
+# Subtest: password runner checks live Auth mode before administrative lookup or synthetic creation
+ok 61 - password runner checks live Auth mode before administrative lookup or synthetic creation
+  ---
+  duration_ms: 2.7055
+  type: 'test'
+  ...
+# Subtest: E2E gate accepts only explicit isolated staging and synthetic A/B identities
+ok 62 - E2E gate accepts only explicit isolated staging and synthetic A/B identities
+  ---
+  duration_ms: 0.929
+  type: 'test'
+  ...
+# Subtest: E2E gate fails closed for production, unknown preview, missing opt-in, and missing synthetic users
+ok 63 - E2E gate fails closed for production, unknown preview, missing opt-in, and missing synthetic users
+  ---
+  duration_ms: 0.4253
+  type: 'test'
+  ...
+# Subtest: E2E refuses credentials unless authenticated Vercel inspect binds URL to the staging project
+ok 64 - E2E refuses credentials unless authenticated Vercel inspect binds URL to the staging project
+  ---
+  duration_ms: 1.4426
+  type: 'test'
+  ...
+# Subtest: browser child receives only access for the exact staging Preview origin
+ok 65 - browser child receives only access for the exact staging Preview origin
+  ---
+  duration_ms: 1.4262
+  type: 'test'
+  ...
+# Subtest: OIDC access accepts a live token in memory and rejects expired or ambiguous access
+ok 66 - OIDC access accepts a live token in memory and rejects expired or ambiguous access
+  ---
+  duration_ms: 0.5271
+  type: 'test'
+  ...
+1..66
+# tests 66
+# suites 0
+# pass 66
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5583.6899

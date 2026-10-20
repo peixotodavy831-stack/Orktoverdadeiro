@@ -1,0 +1,138 @@
+{
+  "date": "2026-10-20",
+  "environment": "staging",
+  "project": "ghrjongiodziasupakrk",
+  "runtimeSha": "837b5e57ed7706aa08a039b22efaa94a0797d8af",
+  "toolsSha": "0c72508b1b42a18f23d4e39095117210a77e097d",
+  "deployment": {
+    "id": "dpl_5wye3rqTMK2CWscKrbPmv9HbWyke",
+    "url": "https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app",
+    "target": "staging",
+    "state": "READY",
+    "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc"
+  },
+  "edge": [
+    {
+      "name": "core",
+      "version": 31,
+      "verify_jwt": true,
+      "filesMatch": true,
+      "files": 22,
+      "bundleSha256": "a1e627f2641e1b8aa5b4ee95aa7f436091c0c1a48e95ec83f5d98fec30866c13"
+    },
+    {
+      "name": "meta",
+      "version": 2,
+      "verify_jwt": false,
+      "filesMatch": true,
+      "files": 3,
+      "bundleSha256": "2d429432f57ebf51ad45d4be23c2db1975a9780a1f11c2162d65f6dc4590b93f"
+    }
+  ],
+  "previousRemoteFilesMatchedBaseline": true,
+  "previousRemoteFileCount": 24,
+  "httpEdge": [
+    {
+      "test": "core_no_session",
+      "status": 401,
+      "result": "PASS"
+    },
+    {
+      "test": "meta_no_signature",
+      "status": 401,
+      "result": "PASS"
+    },
+    {
+      "test": "meta_unapproved_handshake",
+      "status": 403,
+      "result": "PASS"
+    },
+    {
+      "test": "billing_no_configuration",
+      "status": 503,
+      "result": "PASS"
+    }
+  ],
+  "browser": {
+    "candidateLanding": "PASS",
+    "readinessBody": {
+      "status": "ready",
+      "environment": "staging",
+      "checks": {
+        "supabaseAuth": "reachable"
+      }
+    },
+    "clientsWithoutGoogleSession": "DENIED",
+    "httpStatusObserved": false,
+    "plans": 5,
+    "checkout": "DISABLED",
+    "normalOwnerGoogleLoginOnHistoricalA2": "PASS"
+  },
+  "google": {
+    "realG01ThroughG12": "NOT_TESTED",
+    "acquisition": "BLOCKED_EXTERNAL",
+    "reason": "ISOLATED_CHROME_CONTEXTS_NOT_AVAILABLE_ON_CONTROLLABLE_BROWSER_SURFACE",
+    "exportedSession": false,
+    "newRedirectPreparedNotSaved": true,
+    "existingRedirectsPreserved": 17
+  },
+  "asaas": {
+    "sandboxSession": "PASS",
+    "enabledKeyMetadataObserved": true,
+    "keyValuesRevealed": false,
+    "webhook": "DISABLED",
+    "existingTestNamedCustomer": "PRESENT_NOT_APPROVED",
+    "existingCustomerNotifications": "FAIL_EMAIL_CHANNELS_ENABLED",
+    "existingLegacySubscription": "PRESENT_NOT_MODIFIED",
+    "realB01ThroughB13": "NOT_TESTED",
+    "providerFinancialCalls": 0
+  },
+  "database": {
+    "observedAtUtc": "2026-10-20T15:05:38.682573Z",
+    "billingCustomers": 0,
+    "billingBindings": 0,
+    "modelTariffs": 0,
+    "pulsoPolicies": 0
+  },
+  "secretStore": {
+    "customEdgeEntries": 4,
+    "credentialEntries": 0,
+    "nonSecretConfigurationSavedAtUtc": "2026-10-20T15:32:00Z",
+    "configuration": {"APP_ENV":"staging","ASAAS_ENVIRONMENT":"sandbox","ORKTO_BILLING_SANDBOX_ENABLED":"OFF","ORKTO_BILLING_SANDBOX_LIFECYCLE_ENABLED":"OFF"},
+    "secretValuesRevealed": false
+  },
+  "vercelAccess": {
+    "directRequests": "HTTP_302_PROTECTION",
+    "oidcRequest": "HTTP_403_TRUSTED_SOURCES_ENVIRONMENT_MISMATCH",
+    "rulesChanged": false,
+    "automaticCliBypassCreatedThenRevoked": true,
+    "remainingAutomationBypasses": 0
+  },
+  "local": {
+    "tools": {
+      "passed": 66,
+      "failed": 0
+    },
+    "lint": "PASS",
+    "edgeTypecheck": "PASS",
+    "googleOnlyBuildSmoke": "PASS",
+    "distPreserved": true,
+    "secretScan": {
+      "status": "PASS",
+      "scanned": 555,
+      "findings": 0
+    }
+  },
+  "ci": {
+    "headSha": "0c72508b1b42a18f23d4e39095117210a77e097d",
+    "boundary": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39448519097",
+    "postgres17": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39448519138",
+    "conclusion": "success"
+  },
+  "productionChanged": false,
+  "merged": false,
+  "newUsersOrRoles": false,
+  "paidInferenceCalls": 0,
+  "externalMessages": 0,
+  "readyForProductionCandidate": "NO"
+}

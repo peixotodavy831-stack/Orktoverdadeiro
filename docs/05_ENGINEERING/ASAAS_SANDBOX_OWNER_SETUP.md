@@ -1,5 +1,9 @@
 # Asaas sandbox — configuração pelo proprietário
 
+## Atualização de 20/10/2026
+
+Login sandbox confirmado. O agente já salvou no Edge staging `APP_ENV=staging`, `ASAAS_ENVIRONMENT=sandbox` e ambas as flags billing/lifecycle em `OFF`, com digests conferidos. Não repetir essas etapas nem pedir o login novamente. `ASAAS_API_KEY` e `ASAAS_WEBHOOK_SECRET` continuam ausentes. O cadastro nominal de teste encontrado tem notificações ativas e assinatura legada; não está aprovado para a rodada. [Matriz vigente e passos que ainda exigem aprovação](STAGING_CLOSURE_2026-10-20.md).
+
 **Preparação, não execução financeira. READY_FOR_PRODUCTION_CANDIDATE=NO.** Aplicável ao runtime a2a3651 e Supabase staging `ghrjongiodziasupakrk`. Nenhuma etapa abaixo foi presumida concluída. O preflight existente continua GET-only.
 
 ## 1. Identificar a conta e o customer

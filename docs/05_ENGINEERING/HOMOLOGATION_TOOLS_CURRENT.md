@@ -1,3 +1,7 @@
+## Estado vigente — 20/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz e intervenções atuais](STAGING_CLOSURE_2026-10-20.md): aplicação837b5e5 publicada READY no alvo staging explícito; core31/Meta2 implantados e comparados por readback. Ferramentas0c72508: 66/66 testes, lint/Edge/build/smoke/CI PASS. Asaas autenticado; cadastro nominal de teste com notificações de e-mail ativas (FAIL), quatro configurações não secretas com flags OFF, zero credenciais/customer vinculados. Novo redirect preparado sem salvar e transporte OIDC bloqueado por TRUSTED_SOURCES_ENVIRONMENT_MISMATCH. G01–G12/B01–B13 reais NOT_TESTED. Não pedir novamente login normal A/Asaas nem promover provas antigas ao candidato novo. Histórico abaixo preservado.
+
 ## Execução autônoma vigente — 19/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** [Relatório e dependências atuais](AUTONOMOUS_HOMOLOGATION_2026-10-19.md): source601e519 integra Playwright/SDK Google PKCE ao motor existente, com contextos Chrome isolados reais e callback aprovado. Tentativa chegou a login humano A; G01–G12 NOT_TESTED. Não repetir o diagnóstico antigo de adaptador inexistente. 289 app + 105 readiness, 26 provider focados, lint/build/scan e CI PostgreSQL17/restore PASS. Correções Gemini/Meta implementadas e testadas na PR, **não implantadas**; runtime a2a3651 preservado durante a rodada fixada. Asaas exige login; B01–B13 NOT_TESTED. Histórico abaixo preservado e sujeito a este estado mais recente.
