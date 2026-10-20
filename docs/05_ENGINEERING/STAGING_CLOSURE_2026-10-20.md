@@ -2,6 +2,16 @@
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO. PR #2 permanece draft, sem merge.** Este relatório prevalece sobre os checkpoints anteriores; as evidências históricas continuam preservadas.
 
+## Atualização após autorização do proprietário
+
+Foi salvo **somente** o novo redirect exato, após confirmação pontual: lista **17→18**, URLs anteriores e Site URL preservados. [Captura do resultado](evidence/redirect-saved-837b5e5-2026-10-20.png). A captura “redirect-pending” documenta apenas a preparação anterior.
+
+No candidato **837b5e5 / core31**, o agente concluiu o login Google normal das identidades A e B já existentes, sequencialmente no IAB, sem intervenção adicional do proprietário ou preenchimento de credenciais. Ambas mantiveram a sessão após reload. A retornou à entrada por logout e permaneceu fora após reload; B também retornou à entrada. B apresentou seu onboarding ainda vazio, que não foi preenchido. [Evidências sanitizadas](evidence/google-ui-837b5e5-2026-10-20.json), [A após reload](evidence/google-a-reload-837b5e5-2026-10-20.png), [B após reload](evidence/google-b-reload-837b5e5-2026-10-20.png), [logout](evidence/google-logout-837b5e5-2026-10-20.png).
+
+Consulta administrativa: antes de sair A3/B2 sessões; após sair A0/B2; após a rodada B e sua saída A0/B0. Portanto, o logout da interface revoga as sessões do usuário inteiro, preservando a outra identidade na conferência A; **não é logout local exclusivo da sessão atual**, como o runner HTTP oferece para seus próprios contextos. Memberships finais: uma owner ativa no workspace próprio aprovado por identidade, zero estrangeiras. Não foram criados usuários, empresas, papéis ou dados de onboarding.
+
+São provas reais de **login/reload/logout da interface e observação administrativa de revogação**. Não certificam G01–G12 integrais: o transporte em contextos isolados, escritas cruzadas, refresh/reuse, expiração natural e replay dos tokens não foram executados. O bloqueio OIDC/Trusted Sources e a autorização/configuração do customer Asaas continuam pendentes.
+
 ## Identidade do ambiente
 
 - Aplicação: **837b5e57ed7706aa08a039b22efaa94a0797d8af**, [candidato staging](https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app/), deployment `dpl_5wye3rqTMK2CWscKrbPmv9HbWyke`, READY, alvo REST explícito `staging`, projeto `prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc` e equipe staging verificados.
@@ -33,8 +43,9 @@
 | CI PostgreSQL17 | PASS | [39448519138](https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/39448519138), head0c72508; replay/segurança/restore sintético, sem migration remota nova. |
 | Secret scan | PASS | [Log](evidence/closure-secret-scan-2026-10-20.txt); zero findings/blockers. |
 | HTTP automatizado na aplicação protegida | BLOCKED_EXTERNAL | Direto302 na proteção; OIDC em memória403 **TRUSTED_SOURCES_ENVIRONMENT_MISMATCH**, [diagnóstico](evidence/closure-authenticated-preview-http-2026-10-20.json). Não contar como negação Auth/RLS da ORKTO. |
-| Redirect OAuth do candidato837b5e5 | BLOCKED_EXTERNAL | Nova URL exata preparada, **não salva**; 17 redirects e Site URL preservados. Exige confirmação de acesso cloud no momento de salvar conforme Computer Use. [Revisão](evidence/redirect-pending-837b5e5-2026-10-20.png). |
-| Google G01–G12 no candidato novo | NOT_TESTED | Executor isolado sem interface de login controlável; também faltam acesso HTTP e redirect do novo candidato. A/B existentes e aprovações preservados. G06 depende das fixtures sintéticas/observador independentes; G08 da política real de reuse e rodada de sessões separada. Não são contados como executados. |
+| Redirect OAuth do candidato837b5e5 | PASS | Salvo após confirmação; lista17→18, Site URL e URLs anteriores preservados. [Resultado](evidence/redirect-saved-837b5e5-2026-10-20.png). |
+| Google A/B login, reload e logout de interface | PASS limitado | Sequencial IAB no candidato837b5e5, sessões removidas na base, memberships próprias preservadas; [prova](evidence/google-ui-837b5e5-2026-10-20.json). Não são dois contextos HTTP isolados. |
+| Google G01–G12 integrais no candidato novo | NOT_TESTED | Executor isolado sem interface controlável e transporte HTTP bloqueado. A/B existentes e aprovações preservados. G06 depende das fixtures sintéticas/observador independentes; G08 da política real de reuse e rodada de sessões separada. Não são contados como executados. |
 | Asaas sessão sandbox | PASS | Domínio sandbox.asaas.com autenticado; metadata de chave habilitada e webhook desativado observados. Valores de chave não revelados. |
 | Asaas ausência de notificações externas | FAIL | Cadastro de teste nominal tem e-mail habilitado; não pode ser usado na rodada protegida. Isso é configuração do fornecedor, não teste de vulnerabilidade da aplicação. |
 | Asaas configuração segura / vínculo | BLOCKED_EXTERNAL | Quatro entradas não secretas salvas, flags OFF, **zero credenciais de fornecedor**. Consulta administrativa20/10 15:05:38Z: customers0, bindings0, tarifas0, políticas Pulso0. Cadastro real `cus_...`, origem sintética, workspace e autorização da rodada ainda não comprovados. |
@@ -48,7 +59,7 @@ O `vercel curl` recomendado para acesso normal gerou automaticamente um automati
 
 ## Intervenções mínimas restantes
 
-1. **OAuth / acesso de execução:** confirmar salvar somente `https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app/` no staging, sem wildcard nem mudança do Site URL. Para o transporte automatizado, uma política Vercel precisa permitir o contexto de execução autorizado no alvo staging; qualquer mudança exige aprovação específica. Alternativamente, publicar um Preview pelo fluxo aceito da plataforma depois de resolver a ambiguidade rejeitada pela revisão automática. Não ampliar acesso a produção. O agente deve verificar o caminho escolhido e sua interface de login antes de pedir novos logins ao proprietário.
+1. **Acesso de execução:** redirect já aprovado/salvo e login normal A/B comprovado, sem necessidade de repeti-los. Para o transporte automatizado, uma política Vercel precisa permitir o contexto de execução autorizado no alvo staging; qualquer mudança exige aprovação específica. Alternativamente, publicar um Preview pelo fluxo aceito da plataforma depois de resolver a ambiguidade rejeitada pela revisão automática. Não ampliar acesso a produção. O agente deve verificar o caminho escolhido e sua interface de login antes de pedir novos logins ao proprietário.
 2. **Asaas:** aprovar customer exclusivamente sintético e workspace de billing. Preferir registro de teste dedicado sem contatos reais, pois o cadastro encontrado tem notificações ativas e assinatura legada. Não apagar/modificar o legado sem autorização. API key existente não pode ser recuperada pela listagem de metadata; não gerar/rotacionar chave sem confirmação. Proprietário cadastra `ASAAS_API_KEY` e `ASAAS_WEBHOOK_SECRET` diretamente no secret store staging; nunca no chat. Seguir o [roteiro exato](ASAAS_SANDBOX_OWNER_SETUP.md). Conferir todos os canais OFF via preflight antes de autorizar B01–B13 e habilitar flags somente na rodada autorizada.
 3. **Decisões comerciais e integrações:** aprovar franquias/assentos/limites/término de acesso e escopo de consumo Gemini, configuração Meta de teste e destino/escopo de backup. Não preencher decisões com números inventados. Os cinco planos permanecem Start79,90 / Pro149,90 / Business299,90 / Scale599,90 / Enterprise sob consulta.
 

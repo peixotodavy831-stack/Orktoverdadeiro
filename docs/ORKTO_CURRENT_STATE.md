@@ -1,6 +1,6 @@
 ## Estado vigente — 20/10/2026
 
-**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz e intervenções atuais](05_ENGINEERING/STAGING_CLOSURE_2026-10-20.md): aplicação837b5e5 publicada READY no alvo staging explícito; core31/Meta2 implantados e comparados por readback. Ferramentas0c72508: 66/66 testes, lint/Edge/build/smoke/CI PASS. Asaas autenticado; cadastro nominal de teste com notificações de e-mail ativas (FAIL), quatro configurações não secretas com flags OFF, zero credenciais/customer vinculados. Novo redirect preparado sem salvar e transporte OIDC bloqueado por TRUSTED_SOURCES_ENVIRONMENT_MISMATCH. G01–G12/B01–B13 reais NOT_TESTED. Não pedir novamente login normal A/Asaas nem promover provas antigas ao candidato novo. Histórico abaixo preservado.
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** [Matriz e intervenções atuais](05_ENGINEERING/STAGING_CLOSURE_2026-10-20.md): aplicação837b5e5 publicada READY no alvo staging explícito; core31/Meta2 implantados e comparados por readback. Ferramentas0c72508: 66/66 testes, lint/Edge/build/smoke/CI PASS. Asaas autenticado; cadastro nominal de teste com notificações de e-mail ativas (FAIL), quatro configurações não secretas com flags OFF, zero credenciais/customer vinculados. Redirect aprovado/salvo (17→18), login/reload/logout A/B de interface PASS sequencial; transporte OIDC bloqueado por TRUSTED_SOURCES_ENVIRONMENT_MISMATCH. G01–G12/B01–B13 reais NOT_TESTED. Não pedir novamente login normal A/Asaas nem promover provas antigas ao candidato novo. Histórico abaixo preservado.
 
 ## Execução vigente — 19/10/2026
 

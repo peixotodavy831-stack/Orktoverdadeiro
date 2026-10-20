@@ -73,8 +73,13 @@
     "acquisition": "BLOCKED_EXTERNAL",
     "reason": "ISOLATED_CHROME_CONTEXTS_NOT_AVAILABLE_ON_CONTROLLABLE_BROWSER_SURFACE",
     "exportedSession": false,
-    "newRedirectPreparedNotSaved": true,
-    "existingRedirectsPreserved": 17
+    "newRedirectPreparedNotSaved": false,
+    "newRedirectApprovedAndSaved": true,
+    "existingRedirectsPreserved": 17,
+    "currentRedirectCount": 18,
+    "siteUrlPreserved": true,
+    "sequentialUiLoginReloadLogoutAandB": "PASS",
+    "isolatedHttpContextsExecuted": false
   },
   "asaas": {
     "sandboxSession": "PASS",
@@ -119,7 +124,7 @@
     "distPreserved": true,
     "secretScan": {
       "status": "PASS",
-      "scanned": 555,
+      "scanned": 556,
       "findings": 0
     }
   },
