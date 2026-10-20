@@ -117,7 +117,12 @@ export function validateStagingPreviewDeployment(previewUrl, deployment, project
   const projectId = deployment?.projectId || deployment?.project?.id;
   const deploymentUrl = deployment?.url;
   const actualHost = typeof deploymentUrl === 'string' ? deploymentUrl.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase() : '';
-  const previewTarget = target => target === null || target === 'preview';
+  // The REST API also returns the explicit legacy `staging` target. Project,
+  // host, READY state and exact source SHA remain mandatory below. This target
+  // additionally requires the project ID from authenticated inspection, not
+  // just a list entry's name. Unknown environments/production remain rejected.
+  const previewTarget = target => target === null || target === 'preview'
+    || target === 'staging' && projectId === STAGING_E2E_TARGET.vercelProjectId;
   const stagingListEntry = Array.isArray(projectDeployments) && projectDeployments.find(item =>
     item?.url?.toLowerCase() === expected.hostname.toLowerCase()
       && item?.name === 'orkto-staging' && item?.state === 'READY' && previewTarget(item?.target));

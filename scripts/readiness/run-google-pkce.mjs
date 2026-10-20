@@ -2,9 +2,22 @@ import {spawnSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {googlePkceContexts,probeGoogleBrowser} from './google-pkce-contexts.mjs';
 import {GOOGLE_AB_TARGET as T,runGoogleAbTransport} from './google-ab-transport.mjs';
+import {validateStagingPreviewDeployment} from './staging-e2e-config.mjs';
 
 // Existing authenticated CLI performs read-only deployment inspection. No env
 // pulls, cloud configuration or auth files copied into this executor.
+export function bindGooglePreviewInspection(deployment, deployments, project){
+  if(project?.id!=='prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc'
+    ||project?.name!=='orkto-staging'||project?.accountId!=='team_7mNnmcZNv9miOp7pl7otO6wE'
+    ||deployment?.name!==project.name||deployment.projectId&&deployment.projectId!==project.id
+    ||deployment.project?.id&&deployment.project.id!==project.id
+    ||!Array.isArray(deployments)||!deployments.some(d=>d.url===deployment.url&&d.name===project.name))throw new Error('PREVIEW_INSPECTION_UNAVAILABLE');
+  const identity={deployment:{...deployment,projectId:project.id},deployments};
+  if(!validateInspection(identity))throw new Error('PREVIEW_INSPECTION_UNAVAILABLE');
+  return identity;
+}
+const validateInspection=identity=>validateStagingPreviewDeployment(T.preview,identity.deployment,identity.deployments,T.sha).ok;
+
 export async function inspectGooglePreview(){
   const run=args=>spawnSync(process.platform==='win32'?'vercel.cmd':'vercel',args,{
       encoding:'utf8',shell:process.platform==='win32',timeout:60_000,
@@ -12,8 +25,9 @@ export async function inspectGooglePreview(){
     });
   const result=run(['inspect',new URL(T.preview).hostname,'--format=json']);
   const list=run(['list','prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc','--format=json','--limit','100']);
-  if(result.status!==0||list.status!==0)throw new Error('PREVIEW_INSPECTION_UNAVAILABLE');
-  try{return {deployment:JSON.parse(result.stdout),deployments:JSON.parse(list.stdout).deployments};}
+  const project=run(['api','/v9/projects/prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc?teamId=team_7mNnmcZNv9miOp7pl7otO6wE','--method','GET']);
+  if(result.status!==0||list.status!==0||project.status!==0)throw new Error('PREVIEW_INSPECTION_UNAVAILABLE');
+  try{return bindGooglePreviewInspection(JSON.parse(result.stdout),JSON.parse(list.stdout).deployments,JSON.parse(project.stdout));}
   catch{throw new Error('PREVIEW_INSPECTION_UNAVAILABLE');}
 }
 

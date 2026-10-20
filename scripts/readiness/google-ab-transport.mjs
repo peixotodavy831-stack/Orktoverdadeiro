@@ -3,8 +3,8 @@ import {pathToFileURL} from 'node:url';
 import {validateStagingPreviewDeployment} from './staging-e2e-config.mjs';
 
 export const GOOGLE_AB_TARGET=Object.freeze({
-  sha:'a2a3651319196ffc56813992f705692d368ef967',
-  preview:'https://orkto-staging-az36qohmo-peixoto-s-projects1.vercel.app',
+  sha:'837b5e57ed7706aa08a039b22efaa94a0797d8af',
+  preview:'https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app',
   supabase:'https://ghrjongiodziasupakrk.supabase.co',
   actors:Object.freeze({A:'326864da-7e92-4cb6-a968-9a8411f312a8',B:'0486a0c4-3ac8-4655-9d35-24308ed85018'}),
 });

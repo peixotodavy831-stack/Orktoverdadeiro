@@ -65,6 +65,12 @@ test('E2E refuses credentials unless authenticated Vercel inspect binds URL to t
   const check = (deployment, list = [], sha = valid.ORKTO_STAGING_EXPECTED_SHA) => validateStagingPreviewDeployment(valid.ORKTO_STAGING_PREVIEW_URL, deployment, list, sha);
   assert.equal(check(good).ok, true);
   assert.equal(check({...good,target:'preview'}).ok,true);
+  assert.equal(check({...good,target:'staging'}).ok,true);
+  for (const target of ['production','custom-staging','development','',undefined]) {
+    assert.equal(check({...good,target}).ok,false, `reject unverified target ${target}`);
+  }
+  assert.equal(check({...good,target:'staging',projectId:'prj_XiwDjfbGC8sq8L8zb59lcZA4HUny'}).ok,false);
+  assert.equal(check({...good,target:'staging',readyState:'BLOCKED'}).ok,false);
   assert.equal(check(good, [], 'b'.repeat(40)).code,'STAGING_PREVIEW_SHA_MISMATCH');
   assert.equal(check({...good,meta:{}}).code,'STAGING_PREVIEW_SHA_MISMATCH');
   const cliInspect = { id:'dpl_staging', name:'orkto-staging', url:good.url, target:'preview', readyState:'READY' };
