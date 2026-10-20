@@ -132,6 +132,9 @@ function validateStagingBoundary(env: Environment): void {
   for (const key of FORBIDDEN_STAGING_KEYS) {
     if (env[key]?.trim()) throw new Error(`Staging cannot start with ${key} configured.`);
   }
+  if (Object.entries(env).some(([key,value])=>/^(VITE_|NEXT_PUBLIC_).*(GEMINI|GOOGLE_API_KEY)/i.test(key)&&Boolean(value?.trim()))) {
+    throw new Error('Gemini credentials must never be exposed to the frontend.');
+  }
   if (env.ASAAS_ENVIRONMENT === 'production' || env.STRIPE_MODE === 'live' || env.PAYMENT_ENVIRONMENT === 'production') {
     throw new Error('Staging cannot use production payment mode.');
   }

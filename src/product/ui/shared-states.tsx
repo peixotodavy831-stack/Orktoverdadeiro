@@ -1,6 +1,12 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle, ArrowRight, Check, CircleHelp, LoaderCircle, LockKeyhole, RefreshCw, Settings2 } from 'lucide-react';
 
+export function priorityLabel(priority?: string | null): string {
+  if (!priority) return 'não classificada';
+  const labels: Record<string, string> = { urgent: 'urgente', high: 'alta', medium: 'média', normal: 'normal', low: 'baixa' };
+  return labels[priority.toLowerCase()] || priority;
+}
+
 export function PageHeader({
   eyebrow,
   title,
@@ -13,7 +19,7 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between orkto-product-border">
+    <header className="orkto-page-header flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between orkto-product-border">
       <div className="min-w-0">
         {eyebrow && <p className="text-[11px] font-medium uppercase tracking-[0.16em]" style={{ color: 'var(--orkto-brand-text)' }}>{eyebrow}</p>}
         <h1 className="mt-1 text-[25px] font-semibold leading-8 tracking-[-0.025em] sm:text-[28px]">{title}</h1>
@@ -72,7 +78,7 @@ export function EmptyState({
   icon?: ReactNode;
 }) {
   return (
-    <div className="flex min-h-48 flex-col items-start justify-center gap-3 rounded-xl border border-dashed p-6 orkto-product-border">
+    <div className="orkto-empty-state flex min-h-48 flex-col items-start justify-center gap-3 rounded-xl border border-dashed p-6 orkto-product-border">
       <span className="flex h-9 w-9 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted">{icon || <CircleHelp size={18} />}</span>
       <div>
         <h3 className="text-sm font-semibold">{title}</h3>

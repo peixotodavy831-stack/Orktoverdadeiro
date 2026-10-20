@@ -1,12 +1,13 @@
 import path from 'node:path';
 import { checkStagingMigrationGate } from './check-staging-migration-gate.mjs';
+import { TARGET_MIGRATION_COUNT } from './staging-migration-gate.mjs';
 
 export const STAGING_TARGET = Object.freeze({
   appEnv: 'staging',
   vercelProjectId: 'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc',
   supabaseRef: 'ghrjongiodziasupakrk',
   supabaseUrl: 'https://ghrjongiodziasupakrk.supabase.co',
-  migrationCount: 41,
+  migrationCount: TARGET_MIGRATION_COUNT,
 });
 
 export function evaluateStagingPreflight(env, migrationGate) {

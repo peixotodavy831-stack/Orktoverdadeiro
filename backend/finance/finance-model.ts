@@ -95,10 +95,10 @@ export const DEFAULT_FINANCE_ASSUMPTIONS: FinanceAssumptions = {
   paymentProcessingPercent: 0,
   channelPerWorkspaceCents: 0,
   openingCashCents: 0,
-  // Proposed values from the prior implementation brief; these are hypotheses, not public prices.
-  planPricesCents: { starter: 7990, pro: 14990, business: 29990, scale: 59990, enterprise: 149990, founders: 7990, legacy_standard: 0 },
+  // Four owner-approved prices; Enterprise zero is an excluded simulation placeholder, never an offer.
+  planPricesCents: { starter: 7990, pro: 14990, business: 29990, scale: 59990, enterprise: 0, founders: 7990, legacy_standard: 0 },
   // A draft portfolio mix; edit and version before using this as a forecast.
-  planMixPercent: { starter: 60, pro: 25, business: 10, scale: 4, enterprise: 1, founders: 0, legacy_standard: 0 },
+  planMixPercent: { starter: 60, pro: 25, business: 10, scale: 5, enterprise: 0, founders: 0, legacy_standard: 0 },
   scenarios: {
     pok: { revenueFactor: 0.7, costFactor: 1.2 },
     base: { revenueFactor: 1, costFactor: 1 },
@@ -114,7 +114,7 @@ const roundCents = (value: number) => Math.round(value);
 
 /** Channels, payroll and taxes are tracked separately from technical subscription COGS. */
 export function isTechnicalCogsCategory(category: string): boolean {
-  return ['infrastructure', 'ai', 'payment_processor', 'other'].includes(category);
+  return ['infrastructure', 'ai'].includes(category);
 }
 
 /** Keep booked/actual costs separate from normalized future-cost assumptions. */
@@ -214,6 +214,12 @@ export function validateFinanceAssumptions(value: unknown): FinanceAssumptions {
   const planKeys: FinancePlanKey[] = ['starter', 'pro', 'business', 'scale', 'enterprise', 'founders', 'legacy_standard'];
   const normalizedPrices = { ...DEFAULT_FINANCE_ASSUMPTIONS.planPricesCents, ...plans };
   const normalizedMix = { ...DEFAULT_FINANCE_ASSUMPTIONS.planMixPercent, ...mix };
+  for(const [key,approved] of Object.entries({starter:7990,pro:14990,business:29990,scale:59990})) {
+    if(normalizedPrices[key]!==approved)throw new Error('Preço comercial aprovado é imutável; use uma nova decisão e versão.');
+  }
+  // Historical Enterprise seed was never a commercial price. Exclude it from forecasts until a negotiated contract exists.
+  normalizedPrices.enterprise=0;
+  if(normalizedMix.enterprise>0)throw new Error('Enterprise exige proposta negociada; retire sua participação do cenário sem contrato.');
   for (const key of planKeys) {
     if (!cents(normalizedPrices[key]) || !percentage(normalizedMix[key])) throw new Error(`Premissa inválida para o plano ${key}.`);
   }
@@ -324,11 +330,11 @@ export function projectFinance(
   const workspaceInfra = assumptions.infrastructurePerWorkspaceCents * customers;
   const workspaceAi = assumptions.aiPerWorkspaceCents * customers;
   const processing = mrrCents * assumptions.paymentProcessingPercent / 100;
-  const technicalCogsCents = roundCents((fixedCogs + workspaceInfra + workspaceAi + processing) * factors.costFactor);
+  const technicalCogsCents = roundCents((fixedCogs + workspaceInfra + workspaceAi) * factors.costFactor);
   const channelCostsCents = roundCents(assumptions.channelPerWorkspaceCents * customers * factors.costFactor);
   const technicalCogsPercent = mrrCents > 0 ? technicalCogsCents / mrrCents * 100 : 0;
   const economicMarginCents = mrrCents - technicalCogsCents;
-  const channelAdjustedOperatingResultCents = economicMarginCents - channelCostsCents;
+  const channelAdjustedOperatingResultCents = economicMarginCents - channelCostsCents - roundCents(processing * factors.costFactor);
   const contributionPerWorkspace = arpaCents * (1 - assumptions.paymentProcessingPercent / 100)
     - (assumptions.infrastructurePerWorkspaceCents + assumptions.aiPerWorkspaceCents) * factors.costFactor;
   const breakEvenCustomers = contributionPerWorkspace > 0

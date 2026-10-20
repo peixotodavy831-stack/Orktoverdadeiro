@@ -38,12 +38,16 @@ import { resolveSignedOutView } from './lib/auth-navigation';
 // Core UI Modules (kept as static — always needed)
 import LandingPage from './components/LandingPage';
 import OrktoLogo from './components/OrktoLogo';
+import BrandLoading from './components/BrandLoading';
+import ProfessionField from './components/ProfessionField';
 import { DesktopSidebar } from './product/navigation/desktop-sidebar';
 import { MobileNavigation } from './product/navigation/mobile-navigation';
 
 // Client proposal view (public, no auth)
 import ClientProposalView from './components/ClientProposalView';
 import { hasRecoveryCallback, signUpOutcome, type SignUpOutcome } from './lib/auth-flows';
+import { cleanOAuthCallback, googleCallbackMessage, isGooglePilot } from './lib/google-pilot';
+import { verifyPilotSession } from '../supabase/functions/orkto-core-mutations/_shared/pilot-access';
 
 // Lazy-loaded pages (code-split)
 const Auth = lazy(() => import('./components/Auth'));
@@ -53,6 +57,9 @@ const QuoteDetail = lazy(() => import('./components/QuoteDetail'));
 const ClientsPage = lazy(() => import('./components/ClientsPage'));
 const ServicesPage = lazy(() => import('./components/ServicesPage'));
 const SettingsPage = lazy(() => import('./components/SettingsPage'));
+const ProfilePage = lazy(() => import('./product/screens/profile-page'));
+const ManagementPage = lazy(() => import('./product/screens/management-page'));
+const IntegrationsPage = lazy(() => import('./product/screens/integrations-page'));
 const BillingPage = lazy(() => import('./components/BillingPage'));
 const ReportsPage = lazy(() => import('./components/ReportsPage'));
 const QuotesPage = lazy(() => import('./components/QuotesPage'));
@@ -68,17 +75,7 @@ const PasswordRecovery = lazy(() => import('./components/PasswordRecovery'));
 const WrappedPublicView = lazy(() => import('./components/WrappedPublicView'));
 
 function PageFallback() {
-  return (
-    <div className="flex items-center justify-center min-h-[60vh] text-zinc-500 text-xs font-bold uppercase tracking-widest">
-      <div className="flex flex-col items-center gap-4 rounded-3xl border border-zinc-200 bg-white px-8 py-7 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/50">
-        <div className="relative h-9 w-9">
-          <div className="absolute inset-0 rounded-full border-2 border-zinc-200 dark:border-zinc-800" />
-          <div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-[#FF9F1C]" />
-        </div>
-        Preparando sua tela...
-      </div>
-    </div>
-  );
+  return <BrandLoading />;
 }
 
 async function requestWorkspaceApi(path: string, init: RequestInit = {}): Promise<any> {
@@ -93,7 +90,7 @@ async function requestWorkspaceApi(path: string, init: RequestInit = {}): Promis
     },
   });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'Não foi possível salvar os dados do workspace.');
+  if (!response.ok) throw Object.assign(new Error(payload?.error || 'Não foi possível concluir a operação do workspace.'), { status:response.status });
   return payload;
 }
 
@@ -161,7 +158,7 @@ export default function App() {
   });
 
   // Navigation & Viewing states
-    const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>('landing');
+  const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'profile' | 'team' | 'audit' | 'help' | 'integrations' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
   const [startClientCreate, setStartClientCreate] = useState(false);
   const [startDealCreate, setStartDealCreate] = useState(false);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
@@ -187,6 +184,7 @@ export default function App() {
   // Auth & Profile state
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [pilotAuthError, setPilotAuthError] = useState(() => googleCallbackMessage(window.location.href));
   const [recoveringPassword, setRecoveringPassword] = useState(() => {
     try { return hasRecoveryCallback(window.location.hash) || sessionStorage.getItem('orkto_password_recovery') === '1'; }
     catch { return hasRecoveryCallback(window.location.hash); }
@@ -216,42 +214,56 @@ export default function App() {
 
   // Listen for Supabase auth state changes on mount
   useEffect(() => {
-    supabase.auth.getSession()
-      .then(({ data: { session } }) => {
-        if (session?.user) {
-          const u = session.user;
-          setAuthIdentity(u.id);
-          setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
-          setAccessToken(session.access_token);
-          setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
-          loadUserProfile(u.id, u);
+    let active = true;
+    let generation = 0;
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const pilot = isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE);
+    const applySession = async (session: any, authFailed = false) => {
+      const version = ++generation;
+      if (session?.user && pilot) {
+        const access = await verifyPilotSession(supabase);
+        if (!active || version !== generation) return;
+        if (access !== 'allowed') {
+          setPilotAuthError(access === 'denied' ? 'Sua conta não tem acesso ativo ao piloto.' : 'Não foi possível verificar o acesso. Entre novamente.');
+          setAuthIdentity(null); setUser(null); setAccessToken(null); setCurrentView('auth');
+          setAuthLoading(false);
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+          return;
         }
-      })
-      .catch(err => console.error('[ORKTO] getSession error:', err))
-      .finally(() => setAuthLoading(false));
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        try { sessionStorage.setItem('orkto_password_recovery', '1'); } catch { /* screen still works without storage */ }
-        setRecoveringPassword(true);
-        return;
       }
+      if (!active || version !== generation) return;
       if (session?.user) {
         const u = session.user;
         setAuthIdentity(u.id);
         setUser({ uid: u.id, displayName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'Usuário', email: u.email, photoURL: u.user_metadata?.avatar_url || null });
         setAccessToken(session.access_token);
-        setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
+        setCurrentView(current => current === 'landing' || current === 'auth' ? (sessionStorage.getItem('orkto-commercial-intent') === 'enterprise' ? 'billing' : 'dashboard') : current);
         loadUserProfile(u.id, u);
       } else {
         setAuthIdentity(null);
         setUser(null);
         setAccessToken(null);
-        setCurrentView(current => resolveSignedOutView(current));
+        setCurrentView(current => resolveSignedOutView(current, authFailed));
       }
+      setAuthLoading(false);
+    };
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (error && pilot && active) setPilotAuthError('Não foi possível validar o retorno do Google. Inicie uma nova entrada.');
+        return applySession(error ? null : data.session, pilot && Boolean(error));
+      })
+      .catch(() => { if (active) { setPilotAuthError('Não foi possível validar a sessão. Entre novamente.'); return applySession(null, pilot); } })
+      .finally(() => { if (pilot && active) window.history.replaceState(null, '', cleanOAuthCallback(window.location.href)); });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && !pilot) {
+        try { sessionStorage.setItem('orkto_password_recovery', '1'); } catch { /* no secret persisted */ }
+        setRecoveringPassword(true); return;
+      }
+      // Leave the Auth lock before making a JWT-bearing RPC or signOut call.
+      const timer = setTimeout(() => { timers.delete(timer); void applySession(session); }, 0);
+      timers.add(timer);
     });
-
-    return () => subscription.unsubscribe();
+    return () => { active = false; generation++; timers.forEach(clearTimeout); subscription.unsubscribe(); };
   }, []);
 
   const loadUserProfile = async (uid: string, authUser?: any) => {
@@ -571,6 +583,10 @@ export default function App() {
 
   const handleOnboardSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!onboardProfession.trim()) {
+      showToast('Informe sua profissão ou atuação para continuar.', 'error');
+      return;
+    }
     setOnboardSubmitting(true);
 
     try {
@@ -584,7 +600,7 @@ export default function App() {
         whatsapp_number: onboardPhone,
         address: onboardAddress,
         payment_info: onboardPix,
-        profession: onboardProfession,
+        profession: onboardProfession.trim(),
         brand_name: onboardBrandName || onboardBusinessName,
         brand_tone: onboardBrandTone,
         quote_color: onboardQuoteColor,
@@ -614,7 +630,7 @@ export default function App() {
         whatsappNumber: onboardPhone,
         address: onboardAddress,
         paymentInfo: onboardPix,
-        profession: onboardProfession,
+        profession: onboardProfession.trim(),
         brandName: onboardBrandName || onboardBusinessName,
         brandTone: onboardBrandTone,
         quoteColor: onboardQuoteColor,
@@ -673,7 +689,7 @@ export default function App() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) throw new Error('Sessão não encontrada. Entre novamente.');
-      setCurrentView(current => current === 'landing' || current === 'auth' ? 'dashboard' : current);
+      setCurrentView(current => current === 'landing' || current === 'auth' ? (sessionStorage.getItem('orkto-commercial-intent') === 'enterprise' ? 'billing' : 'dashboard') : current);
     } catch (err: any) {
       console.error('Sign-in error:', err);
       showToast(err.message || 'Email ou senha inválidos', 'error');
@@ -682,6 +698,7 @@ export default function App() {
 
   // Authenticate and return result (used by password step before showing success screen)
   const handleAuthenticate = async (email: string, password: string): Promise<{ error?: string }> => {
+    if (isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)) return { error: 'Utilize sua conta Google autorizada.' };
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
@@ -694,6 +711,7 @@ export default function App() {
   };
 
   const handleSignUp = async (email: string, password: string, name: string): Promise<SignUpOutcome> => {
+    if (isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)) throw new Error('PILOT_GOOGLE_ONLY');
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -704,7 +722,7 @@ export default function App() {
     return signUpOutcome(data);
   };
 
-  if (recoveringPassword) {
+  if (recoveringPassword && !isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)) {
     return <Suspense fallback={<PageFallback />}><PasswordRecovery onComplete={() => {
       try { sessionStorage.removeItem('orkto_password_recovery'); } catch { /* no secret persisted */ }
       setRecoveringPassword(false); setCurrentView('auth');
@@ -720,19 +738,7 @@ export default function App() {
   }
 
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-white font-sans">
-        <div className="text-center space-y-8 animate-pulse">
-          <OrktoLogo size="lg" showSlogan={true} />
-          <div className="space-y-2 max-w-xs mx-auto">
-            <div className="h-1 w-full bg-zinc-200 dark:bg-zinc-900 rounded-full overflow-hidden">
-              <div className="h-full w-2/3 rounded-full bg-brand-orange animate-infinite-loading" style={{ backgroundColor: '#FF9F1C', width: '40%' }} />
-            </div>
-            <p className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold">Preparando sua ORKTO...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <BrandLoading fullScreen />;
   }
 
   // PROPOSAL VIEW (/p/{slug})
@@ -1176,6 +1182,7 @@ export default function App() {
           onDemoLogin={handleDemoSignInSuccess}
           onAuthenticate={handleAuthenticate}
           isLoading={false}
+          initialAuthError={pilotAuthError}
         />
       </Suspense>
       {toast && (
@@ -1203,7 +1210,7 @@ export default function App() {
   // AUTHENTICATED MANAGER PANEL OR ONBOARDING IF INCOMPLETE
   return (
     <>
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 font-sans selection:bg-orange-100 selection:text-orange-950 relative overflow-hidden transition-all duration-300">
+    <div className="orkto-glass-shell flex h-screen bg-zinc-50 dark:bg-zinc-950 font-sans selection:bg-orange-100 selection:text-orange-950 relative overflow-hidden transition-all duration-300">
 
       {/* Onboarding Assistant Overlay modal */}
       <AnimatePresence>
@@ -1331,26 +1338,7 @@ export default function App() {
 
                   <div className="space-y-3.5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      <div>
-                        <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Sua Profissão / Atuação *</label>
-                        <select
-                          value={onboardProfession}
-                          onChange={(e) => setOnboardProfession(e.target.value)}
-                          className="w-full px-3 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none"
-                          required
-                        >
-                          <option value="Oficina">🛞 Oficina Mecânica</option>
-                          <option value="Serviços Gerais">Serviços Gerais</option>
-                          <option value="Advogado">Advogado</option>
-                          <option value="Arquiteto">Arquiteto</option>
-                          <option value="Consultor">Consultor</option>
-                          <option value="Designer">Designer</option>
-                          <option value="Eletricista">Eletricista</option>
-                          <option value="Manutenção">Manutenção</option>
-                          <option value="Marcenaria">Marcenaria</option>
-                          <option value="Construção">Construção & Reformas</option>
-                        </select>
-                      </div>
+                      <ProfessionField value={onboardProfession} onChange={setOnboardProfession} />
 
                       <div>
                         <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Tom de voz do orçamento *</label>
@@ -1528,7 +1516,9 @@ export default function App() {
         darkMode={darkMode}
         onThemeChange={setDarkMode}
         companyName={userProfile?.companyName}
-        userName={user?.displayName}
+        companyLogo={userProfile?.companyLogo}
+        photoUrl={user?.photoURL}
+        userName={userProfile?.displayName || user?.displayName}
         isInternalAdmin={Boolean(userProfile?.isFounder)}
         onSignOut={() => { void handleSignOut(); }}
       />
@@ -1794,6 +1784,27 @@ export default function App() {
                      setServices(current => current.filter(i => i.id !== deletedId));
                    }}
                 />
+                </Suspense>
+              </motion.div>
+            )}
+
+            {currentView === 'integrations' && <Suspense fallback={<PageFallback />}><IntegrationsPage request={requestWorkspaceApi} onNavigate={setCurrentView} /></Suspense>}
+            {(currentView === 'team' || currentView === 'audit' || currentView === 'help') && (
+              <Suspense fallback={<PageFallback />}><ManagementPage key={currentView} view={currentView} request={requestWorkspaceApi} onNavigate={setCurrentView} accountName={userProfile?.displayName || user.displayName} /></Suspense>
+            )}
+
+            {currentView === 'profile' && (
+              <motion.div key="profilePage" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
+                <Suspense fallback={<PageFallback />}>
+                  <ProfilePage profile={userProfile} account={user} onOpenSettings={() => setCurrentView('settings')}
+                    onSignOut={() => { void handleSignOut(); }}
+                    onSave={async (displayName, idempotencyKey) => {
+                      const result = await requestWorkspaceApi('/api/account/profile', { method: 'PATCH', headers: { 'x-idempotency-key': idempotencyKey }, body: JSON.stringify({ displayName }) });
+                      const savedName = result?.data?.displayName;
+                      if (typeof savedName !== 'string') throw new Error('Não foi possível confirmar o perfil.');
+                      setUserProfile(current => current ? { ...current, displayName: savedName } : current);
+                      return savedName;
+                    }} />
                 </Suspense>
               </motion.div>
             )}

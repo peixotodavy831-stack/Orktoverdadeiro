@@ -20,6 +20,8 @@ import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './billi
 import { accountingAdapterRegistry, type AccountingSaleExport } from './accounting/accounting-adapter.js';
 import { invokeCoreMutation } from './core-mutation-client.js';
 import { invokePublicProposal } from './public-proposal-client.js';
+import { createModelRegistry } from './wiaos/model-registry.js';
+import { COMMERCIAL_PLANS } from '../supabase/functions/orkto-core-mutations/_shared/commercial-catalog.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -49,6 +51,14 @@ const memoryInput = z.object({
   provenance: z.object({ source: z.string().trim().min(1).max(80), sourceRef: z.string().trim().max(200).optional() }),
   confidence: z.number().min(0).max(1).optional(), expiresAt: z.string().datetime({ offset: true }).optional(), explicitlyConfirmed: z.boolean().default(false),
 });
+const whatsappCompleteInput=z.object({
+  code:z.string().min(1).max(4096),businessId:z.string().regex(/^\d{5,30}$/).nullable(),
+  wabaId:z.string().regex(/^\d{5,30}$/),phoneNumberId:z.string().regex(/^\d{5,30}$/),
+  coexistenceState:z.enum(['unknown','eligible','enabled','ineligible','not_requested']).default('not_requested'),
+}).strict();
+const whatsappModeInput=z.object({
+  mode:z.enum(['manual','assisted','controlled']),humanTakeover:z.boolean(),
+}).strict();
 
 function normalizeCustomerPhone(value: unknown): string {
   return String(value || '').replace(/\D/g, '');
@@ -266,6 +276,51 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if (!db) { res.status(503).json({ error: 'Banco de dados indisponível.', category: 'configuration_error' }); return; }
     next();
   };
+
+  app.get('/api/integrations/status', authenticate, requireDb, async (req,res)=>{
+    const context=await workspaceContext(req,res,db,false);if(!context)return;
+    res.setHeader('Cache-Control','private, no-store');
+    try {
+      const model=createModelRegistry(process.env).standard;
+      let wia={provider:model.provider as string,model:model.modelId,state:model.enabled?'configured_not_verified':'configuration_required',testingOnly:model.purpose==='development-testing'};
+      if(['staging','production'].includes((process.env.APP_ENV||'').trim().toLowerCase())) {
+        const runtime=await invokeCoreMutation(req,res,context,'READ_WIA_RUNTIME',{});
+        if(!runtime)return;
+        if(!runtime.wia)return res.status(503).json({error:'Estado da WIA não confirmado.',category:'configuration_required'});
+        wia=runtime.wia;
+      }
+      const whatsappRuntime=await invokeCoreMutation(req,res,context,'READ_WHATSAPP_CONNECTION',{});
+      if(!whatsappRuntime)return;
+      if(!whatsappRuntime.whatsapp)return res.status(503).json({error:'Estado do WhatsApp não confirmado.',category:'configuration_required'});
+      return res.json({data:{wia,whatsapp:whatsappRuntime.whatsapp,billing:{state:'configuration_required',checkoutEnabled:false},canManage:['owner','admin'].includes(context.role)}});
+    } catch {return res.status(503).json({error:'Não foi possível consultar as integrações.',category:'configuration_required'});}
+  });
+
+  app.post('/api/integrations/whatsapp/start',authenticate,requireDb,async(req,res)=>{
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem conectar canais.'});
+    const result=await invokeCoreMutation(req,res,context,'BEGIN_WHATSAPP_CONNECTION',{});if(!result)return;
+    if(!result.whatsapp)return res.status(503).json({error:'Configuração do provedor não confirmada.',category:'configuration_required'});
+    return res.json({data:result.whatsapp});
+  });
+
+  app.post('/api/integrations/whatsapp/complete',authenticate,requireDb,async(req,res)=>{
+    const parsed=whatsappCompleteInput.safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Resposta de conexão inválida.',category:'validation_failed'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem conectar canais.'});
+    const result=await invokeCoreMutation(req,res,context,'COMPLETE_WHATSAPP_CONNECTION',parsed.data);if(!result)return;
+    return res.json({data:{result:result.result,connectionId:result.connectionId}});
+  });
+
+  app.patch('/api/integrations/whatsapp/mode',authenticate,requireDb,async(req,res)=>{
+    const parsed=whatsappModeInput.safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Modo de atendimento inválido.',category:'validation_failed'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem alterar o modo.'});
+    const result=await invokeCoreMutation(req,res,context,'SET_WHATSAPP_MODE',parsed.data);if(!result)return;
+    return res.json({data:{result:result.result}});
+  });
 
   app.get('/api/operational/workspace', authenticate, requireDb, async (req, res) => {
     const context = await workspaceContext(req, res, db);
@@ -1035,15 +1090,40 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.get('/api/team', authenticate, requireDb, async (req, res) => {
-    const context = await workspaceContext(req, res, db); if (!context) return;
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    const readDb = req.authenticatedSupabase || db;
+    res.setHeader('Cache-Control','private, no-store');
     try {
       const [members, invites] = await Promise.all([
-        db.from('orkto_workspace_members').select('user_id,role,status,joined_at').eq('workspace_id',context.id).order('created_at',{ascending:true}),
-        db.from('orkto_workspace_invites').select('id,email,role,status,expires_at,created_at').eq('workspace_id',context.id).eq('status','invited').order('created_at',{ascending:false}),
+        readDb.from('orkto_workspace_members').select('user_id,role,status,joined_at').eq('workspace_id',context.id).order('created_at',{ascending:true}).limit(200),
+        ['owner','admin'].includes(context.role)
+          ? readDb.from('orkto_workspace_invites').select('id,email,role,status,expires_at,created_at').eq('workspace_id',context.id).eq('status','invited').order('created_at',{ascending:false}).limit(100)
+          : Promise.resolve({data:[],error:null}),
       ]);
       if (members.error) throw members.error; if (invites.error) throw invites.error;
-      res.json({ members: members.data || [], invites: invites.data || [], currentRole: context.role });
+      res.json({ members: members.data || [], invites: invites.data || [], currentRole: context.role, currentUserId:req.user?.id, memberLimit:200, inviteLimit:100, invitationsEditable:false });
     } catch (error) { failure(res,error,'Não foi possível carregar a equipe.'); }
+  });
+
+  // Read-only metadata, explicitly tenant-scoped and RLS-bound. Never return
+  // payload/event_data: those may contain customer content or sensitive data.
+  app.get('/api/audit', authenticate, requireDb, async (req, res) => {
+    const context = await workspaceContext(req,res,db,false); if (!context) return;
+    if (!['owner','admin'].includes(context.role)) return res.status(403).json({error:'A auditoria está disponível para proprietário e administrador.',category:'permission_denied'});
+    const readDb = req.authenticatedSupabase || db;
+    res.setHeader('Cache-Control','private, no-store');
+    try {
+      const [core, legacy] = await Promise.all([
+        readDb.from('orkto_wia_events').select('id,event_type,source,entity_type,entity_ref,actor_user_id,occurred_at').eq('workspace_id',context.id).order('occurred_at',{ascending:false}).limit(100),
+        readDb.from('orkto_audit_log').select('id,event_type,actor_type,created_at').eq('workspace_id',context.id).order('created_at',{ascending:false}).limit(100),
+      ]);
+      if (core.error) throw core.error; if (legacy.error) throw legacy.error;
+      const events = [
+        ...(core.data || []).map((event:any)=>({id:`core:${event.id}`,eventType:event.event_type,source:event.source,entityType:event.entity_type,entityRef:/^[0-9a-f-]{36}$/i.test(event.entity_ref||'')?event.entity_ref:null,actorId:event.actor_user_id,occurredAt:event.occurred_at})),
+        ...(legacy.data || []).map((event:any)=>({id:`audit:${event.id}`,eventType:event.event_type,source:event.actor_type,entityType:null,entityRef:null,actorId:null,occurredAt:event.created_at})),
+      ].sort((a,b)=>Date.parse(b.occurredAt)-Date.parse(a.occurredAt) || a.id.localeCompare(b.id)).slice(0,100);
+      return res.json({data:events,limit:100,scope:'workspace',metadataOnly:true});
+    } catch { return res.status(503).json({error:'Não foi possível consultar os registros de auditoria.',category:'persistence_unavailable'}); }
   });
 
   app.post('/api/team/invites', authenticate, requireDb, async (req, res) => {
@@ -1120,22 +1200,55 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     const result = await invokeCoreMutation(req,res,context,'READ_PLAN_CATALOG',{});
     if (!result) return;
     const catalog = result.catalog || [];
-    res.json({ data: catalog, catalogKeys:['starter','pro','business','scale','enterprise','founders','legacy_standard'],
+    res.json({ data: catalog, catalogKeys:COMMERCIAL_PLANS.map(plan=>plan.id),
       publicPricesApproved: catalog.some(plan => plan.price_is_public && plan.price_cents !== null), pricingSource: 'versioned_assumptions' });
   });
 
   app.get('/api/billing/current', authenticate, requireDb, async (req, res) => {
-    const context = await workspaceContext(req, res, db); if (!context) return;
-    try {
-      const [workspace, subscription, usage] = await Promise.all([
-        db.from('orkto_workspaces').select('plan_key,subscription_status').eq('id',context.id).maybeSingle(),
-        db.from('orkto_workspace_subscriptions').select('plan_key,status,trial_ends_at,current_period_start,current_period_end,cancel_at_period_end').eq('workspace_id',context.id).order('created_at',{ascending:false}).limit(1).maybeSingle(),
-        db.from('orkto_plan_usage').select('feature_key,quantity,period_start').eq('workspace_id',context.id).order('period_start',{ascending:false}).limit(100),
-      ]);
-      if (workspace.error) throw workspace.error; if (subscription.error) throw subscription.error; if (usage.error) throw usage.error;
-      const access = await loadWorkspacePlanAccess(db,context.id);
-      res.json({ subscription: subscription.data, workspacePlan: access.planKey, status: access.status, trialEndsAt:access.trialEndsAt, readOnly:access.readOnly, configurationRequired:access.configurationRequired, entitlements:access.entitlements, effectivePriceVersion:access.effectivePriceVersion, usage: usage.data || [], checkout: 'not_configured', pricesPublic:access.publicPriceApproved });
-    } catch (error) { failure(res,error,'Não foi possível carregar o plano e o uso.'); }
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    res.setHeader('Cache-Control','private, no-store');
+    const result=await invokeCoreMutation(req,res,context,'READ_BILLING_CURRENT',{});
+    if(!result)return;
+    if(!result.billing)return res.status(503).json({error:'Não foi possível confirmar os dados do plano.',category:'configuration_required'});
+    return res.json(result.billing);
+  });
+
+  app.post('/api/billing/proposal-requests',authenticate,requireDb,async(req,res)=>{
+    const parsed=z.object({requirements:z.string().trim().min(10).max(3000)}).strict().safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Descreva as necessidades da empresa entre 10 e 3000 caracteres.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente responsáveis pela empresa podem solicitar uma proposta.'});
+    const result=await invokeCoreMutation(req,res,context,'REQUEST_COMMERCIAL_PROPOSAL',parsed.data);if(!result)return;
+    return res.status(201).json({id:result.commercialRequestId,status:'requested'});
+  });
+
+  app.post('/api/billing/sandbox/subscriptions',authenticate,requireDb,async(req,res)=>{
+    const parsed=z.object({planKey:z.enum(['starter','pro','business','scale']),customerRef:z.string().regex(/^cus_[A-Za-z0-9_-]{1,100}$/)}).strict().safeParse(req.body);
+    if(!parsed.success)return res.status(400).json({error:'Assinatura sandbox inválida.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Permissão administrativa necessária.'});
+    const result=await invokeCoreMutation(req,res,context,'BEGIN_SUBSCRIPTION_SANDBOX',parsed.data);if(!result)return;
+    return res.json({status:'pending',result:result.result});
+  });
+
+  app.put('/api/billing/sandbox/subscriptions/:bindingId',authenticate,requireDb,async(req,res)=>{
+    const parsed=z.object({status:z.enum(['ACTIVE','INACTIVE']),nextDueDate:z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()}).strict()
+      .refine(v=>v.status!=='ACTIVE'||Boolean(v.nextDueDate)).safeParse(req.body);
+    if(!parsed.success||!z.string().uuid().safeParse(req.params.bindingId).success)return res.status(400).json({error:'Alteração sandbox inválida.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Permissão administrativa necessária.'});
+    const result=await invokeCoreMutation(req,res,context,'CHANGE_SUBSCRIPTION_SANDBOX',{
+      bindingId:req.params.bindingId,operation:'update',changes:parsed.data});if(!result)return;
+    return res.json({result:result.result});
+  });
+  app.delete('/api/billing/sandbox/subscriptions/:bindingId',authenticate,requireDb,async(req,res)=>{
+    if(!z.string().uuid().safeParse(req.params.bindingId).success||!z.object({}).strict().safeParse(req.body||{}).success)
+      return res.status(400).json({error:'Cancelamento sandbox inválido.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Permissão administrativa necessária.'});
+    const result=await invokeCoreMutation(req,res,context,'CHANGE_SUBSCRIPTION_SANDBOX',{
+      bindingId:req.params.bindingId,operation:'cancel',changes:{}});if(!result)return;
+    return res.json({result:result.result});
   });
 
   app.get('/api/notifications', authenticate, requireDb, async (req, res) => {
@@ -1211,7 +1324,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     // shared public client before the gateway sees the authenticated request.
     const context = await workspaceContext(req, res, db, false, true); if (!context) return;
     if (['staging','production'].includes((process.env.APP_ENV || '').trim().toLowerCase())) {
-      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_T0',{message:parsed.data.message});
+      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_REQUEST',{message:parsed.data.message});
       if (!trusted) return;
       return res.json({success:true,agent:trusted.agent,traceId:trusted.traceId,runId:trusted.runId,
         serviceRunId:trusted.serviceRunId,path:trusted.path,mode:trusted.mode,replayed:trusted.replayed || false,

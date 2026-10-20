@@ -1,168 +1,23 @@
-import React from 'react';
-import { ArrowRight, BarChart3, Check, Clock3, FileText, MessageSquare, ShieldCheck, Users, Zap } from 'lucide-react';
+import { ArrowRight, Check, FileText, MessageSquare, ShieldCheck, Users } from 'lucide-react';
 import OrktoLogo from './OrktoLogo';
+import './landing.css';
+import CommercialPlans from './CommercialPlans';
 
-interface LandingPageProps {
-  onStartClick: () => void;
-  onDemoClick: () => void;
-}
-
-const summary = [
-  { label: 'Conversas', value: '24', note: '+20% hoje', icon: MessageSquare },
-  { label: 'Orçamentos', value: '12', note: 'em andamento', icon: FileText },
-  { label: 'Novos clientes', value: '8', note: '+14% hoje', icon: Users },
-  { label: 'Oportunidades', value: 'R$ 12.400', note: '+28% hoje', icon: BarChart3 },
-];
-
-const conversations = [
-  { name: 'Mariana Costa', text: 'Gostaria de receber um orçamento.', status: 'Novo', time: '10:24' },
-  { name: 'Carlos Mendes', text: 'Vocês fazem instalação?', status: 'Em atendimento', time: '09:41' },
-  { name: 'Fernanda Lima', text: 'Pode me enviar os valores?', status: 'Orçamento', time: 'Ontem' },
-];
-
-const principles = [
-  { title: 'Simples', text: 'Direto ao ponto, sem mais uma ferramenta para operar.', icon: Zap },
-  { title: 'Inteligente', text: 'Entende cada conversa e transforma intenção em próxima ação.', icon: BarChart3 },
-  { title: 'Rápida', text: 'Do atendimento ao orçamento enquanto a oportunidade está quente.', icon: Clock3 },
-  { title: 'Sob controle', text: 'Decisões sensíveis continuam com você.', icon: ShieldCheck },
-];
-
-export default function LandingPage({ onStartClick, onDemoClick }: LandingPageProps) {
-  return (
-    <div className="min-h-screen bg-[#0B0B0D] text-[#F5F5F5] selection:bg-[#FF8A00] selection:text-black">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0B0B0D]/95 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
-          <OrktoLogo size="md" showSlogan={false} />
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={onStartClick} className="hidden px-3 py-2 text-sm font-medium text-zinc-400 transition-colors hover:text-white sm:block">
-              Entrar
-            </button>
-            <button type="button" onClick={onStartClick} className="rounded-lg bg-[#FF8A00] px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-[#ff9d2e]">
-              Começar agora
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main>
-        <section className="border-b border-white/10">
-          <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-28">
-            <div className="max-w-xl">
-              <p className="mb-6 text-xs font-semibold uppercase tracking-[0.28em] text-[#FF8A00]">Operação com inteligência</p>
-              <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
-                Conversas viram <span className="text-[#FF8A00]">resultados.</span>
-              </h1>
-              <p className="mt-7 max-w-lg text-base leading-7 text-zinc-400 sm:text-lg">
-                A ORKTO reúne clientes, negócios e propostas e mostra as oportunidades que precisam da sua atenção.
-              </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <button type="button" onClick={onStartClick} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#FF8A00] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff9d2e]">
-                  Organizar minha operação <ArrowRight className="h-4 w-4" />
-                </button>
-                <button type="button" onClick={onDemoClick} className="min-h-12 rounded-lg border border-white/15 px-6 text-sm font-semibold text-white transition-colors hover:border-white/30 hover:bg-white/5">
-                  Ver a experiência
-                </button>
-              </div>
-              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs text-zinc-500">
-                {['Sem cartão', 'Configuração simples', 'Controle humano'].map(item => (
-                  <span key={item} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-[#FF8A00]" /> {item}</span>
-                ))}
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-[#111214] p-3 shadow-2xl shadow-black/40">
-              <p className="px-2 pb-2 text-[11px] text-zinc-500">Prévia ilustrativa da interface · dados fictícios</p>
-              <div className="rounded-xl border border-white/8 bg-[#0E0F11] p-5 sm:p-6">
-                <div className="flex items-center justify-between border-b border-white/8 pb-5">
-                  <div>
-                    <p className="text-lg font-semibold">Olá, João.</p>
-                    <p className="mt-1 text-xs text-zinc-500">Aqui está o resumo do seu negócio hoje.</p>
-                  </div>
-                  <span className="hidden rounded-md border border-white/10 px-3 py-2 text-[11px] text-zinc-500 sm:block">Hoje</span>
-                </div>
-                <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  {summary.map(({ label, value, note, icon: Icon }) => (
-                    <div key={label} className="rounded-xl border border-white/8 bg-[#151618] p-4">
-                      <Icon className="h-4 w-4 text-[#FF8A00]" />
-                      <p className="mt-4 text-lg font-semibold tracking-tight">{value}</p>
-                      <p className="mt-0.5 text-[11px] text-zinc-400">{label}</p>
-                      <p className="mt-2 text-[10px] text-zinc-600">{note}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-[1.15fr_0.85fr]">
-                  <div className="rounded-xl border border-white/8 bg-[#131416] p-4">
-                    <div className="mb-3 flex items-center justify-between"><p className="text-xs font-semibold">Conversas recentes</p><span className="text-[10px] text-zinc-600">Ver todas</span></div>
-                    <div className="divide-y divide-white/6">
-                      {conversations.map(item => (
-                        <div key={item.name} className="grid grid-cols-[1fr_auto] gap-3 py-3">
-                          <div className="min-w-0"><p className="truncate text-xs font-medium text-zinc-200">{item.name}</p><p className="mt-1 truncate text-[10px] text-zinc-600">{item.text}</p></div>
-                          <div className="text-right"><p className="text-[9px] text-zinc-600">{item.time}</p><span className="mt-1 inline-block rounded bg-[#FF8A00]/10 px-1.5 py-0.5 text-[9px] text-[#FF8A00]">{item.status}</span></div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="rounded-xl border border-white/8 bg-[#131416] p-4">
-                    <p className="text-xs font-semibold">Próximas ações</p>
-                    <div className="mt-4 space-y-4">
-                      {[
-                        ['Enviar orçamento', 'Mariana Costa'],
-                        ['Retomar contato', 'Carlos Mendes'],
-                        ['Acompanhar proposta', 'Fernanda Lima'],
-                      ].map(([action, person], index) => (
-                        <div key={action} className="flex items-start gap-3">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-white/10 text-[10px] text-[#FF8A00]">{index + 1}</span>
-                          <div><p className="text-[11px] font-medium text-zinc-300">{action}</p><p className="mt-0.5 text-[10px] text-zinc-600">{person}</p></div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="border-b border-white/10">
-          <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
-            <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-              <div><p className="text-xs font-semibold uppercase tracking-[0.25em] text-zinc-600">Como deve ser</p><h2 className="mt-4 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">Menos telas. Mais operação acontecendo.</h2></div>
-              <div className="grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2">
-                {principles.map(({ title, text, icon: Icon }) => (
-                  <article key={title} className="bg-[#0E0F11] p-6"><Icon className="h-5 w-5 text-[#FF8A00]" /><h3 className="mt-5 text-sm font-semibold">{title}</h3><p className="mt-2 text-sm leading-6 text-zinc-500">{text}</p></article>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-end">
-            <div><p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#FF8A00]">Da conversa ao fechamento</p><h2 className="mt-4 max-w-xl text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">A ORKTO cuida do fluxo e chama você quando uma decisão importa.</h2></div>
-            <div className="space-y-0 border-l border-white/10">
-              {[
-                ['01', 'Entende', 'Interpreta intenção, urgência e oportunidade.'],
-                ['02', 'Prepara', 'Prepara respostas e orçamentos para revisão e organiza o próximo passo.'],
-                ['03', 'Escala', 'Preço, desconto e exceções chegam para sua aprovação.'],
-              ].map(([number, title, text]) => (
-                <div key={number} className="grid grid-cols-[3rem_1fr] gap-4 border-b border-white/10 py-5 pl-5 first:border-t"><span className="text-xs font-semibold text-[#FF8A00]">{number}</span><div><h3 className="text-sm font-semibold">{title}</h3><p className="mt-1 text-sm text-zinc-500">{text}</p></div></div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-white/10 bg-[#101113]">
-          <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 py-14 sm:px-8 md:flex-row md:items-center">
-            <div><p className="text-2xl font-semibold tracking-tight">Mais conversas hoje. Mais negócios amanhã.</p><p className="mt-2 text-sm text-zinc-500">Comece com o essencial e deixe a operação ganhar inteligência com o tempo.</p></div>
-            <button type="button" onClick={onStartClick} className="inline-flex min-h-12 shrink-0 items-center gap-2 rounded-lg bg-[#FF8A00] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff9d2e]">Criar conta <ArrowRight className="h-4 w-4" /></button>
-          </div>
-        </section>
-      </main>
-
-      <footer className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-8 text-xs text-zinc-600 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <OrktoLogo size="sm" showSlogan={false} />
-        <div className="flex gap-5"><a href="/termos.html" className="transition-colors hover:text-zinc-300">Termos</a><a href="/privacidade.html" className="transition-colors hover:text-zinc-300">Privacidade</a><a href="mailto:ola@orkto.co" className="transition-colors hover:text-zinc-300">ola@orkto.co</a></div>
-      </footer>
-    </div>
-  );
+interface LandingPageProps { onStartClick:()=>void; onDemoClick:()=>void }
+export default function LandingPage({onStartClick,onDemoClick}:LandingPageProps) {
+  return <div className="orkto-landing">
+    <a className="orkto-landing-skip" href="#landing-content">Ir para o conteúdo</a>
+    <header className="orkto-landing-header"><div className="orkto-landing-wrap"><a href="/" aria-label="ORKTO — página inicial"><OrktoLogo size="md" /></a><nav aria-label="Navegação principal"><a href="#como-funciona">Como funciona</a><a href="#wia">WIA</a><a href="#piloto">O piloto</a></nav><button type="button" onClick={onStartClick} className="orkto-landing-secondary">Entrar <ArrowRight size={16} aria-hidden="true" /></button></div></header>
+    <main id="landing-content">
+      <section className="orkto-landing-hero orkto-landing-wrap" aria-labelledby="landing-title">
+        <div className="orkto-landing-hero-copy"><h1 id="landing-title">Clientes, negócios<br />e propostas.<br /><span>No mesmo ritmo.</span></h1><p>Para quem vende serviços e precisa cuidar de cada oportunidade. Organize sua operação comercial e encontre o próximo passo com a WIA.</p><div className="orkto-landing-actions"><button type="button" onClick={onStartClick} className="orkto-landing-primary">Entrar no piloto <ArrowRight size={17} aria-hidden="true" /></button><button type="button" onClick={onDemoClick} className="orkto-landing-demo">Explorar a experiência <ArrowRight size={16} aria-hidden="true" /></button></div><p className="orkto-landing-access-note"><ShieldCheck size={15} aria-hidden="true" />Piloto fechado · conta Google e convite aprovado</p></div>
+        <figure className="orkto-landing-preview"><figcaption>Uma operação conectada <span>Demonstração · dados fictícios</span></figcaption><div className="orkto-landing-preview-top"><span className="orkto-landing-today">Hoje</span><span>Seu próximo passo está aqui.</span></div><div className="orkto-landing-sample-row"><div className="orkto-landing-sample-icon"><Users size={20} aria-hidden="true" /></div><div><small>CLIENTE</small><strong>Estúdio Aurora</strong><p>Identidade visual e materiais de marca</p></div></div><div className="orkto-landing-sample-row"><div className="orkto-landing-sample-icon"><MessageSquare size={20} aria-hidden="true" /></div><div><small>NEGÓCIO EM ANDAMENTO</small><strong>Projeto de identidade visual</strong><p>Próximo passo: revisar a proposta</p></div></div><div className="orkto-landing-sample-row"><div className="orkto-landing-sample-icon"><FileText size={20} aria-hidden="true" /></div><div><small>PROPOSTA</small><strong>Escopo pronto para sua revisão</strong><p>Valores e condições sob seu controle</p></div><span className="orkto-landing-draft">Rascunho</span></div><div className="orkto-landing-preview-bottom"><span className="orkto-landing-wia-mark">WIA</span><p>Organize a oportunidade.<br /><strong>Você decide quando avançar.</strong></p><ArrowRight size={20} aria-hidden="true" /></div><button type="button" className="orkto-landing-preview-link" onClick={onDemoClick}>Conhecer a demonstração <ArrowRight size={15} aria-hidden="true" /></button></figure>
+      </section>
+      <section id="como-funciona" className="orkto-landing-flow-section"><div className="orkto-landing-wrap"><div className="orkto-landing-section-heading"><h2>Do contato à proposta.<br />Sem perder o contexto.</h2><p>A ORKTO reúne o que precisa andar junto: quem é o cliente, em que ponto está o negócio e o que falta para avançar.</p></div><div className="orkto-landing-flow"><article><Users size={25} aria-hidden="true" /><h3>Conheça o cliente</h3><p>Centralize contatos e informações comerciais para retomar cada oportunidade com contexto.</p></article><article><MessageSquare size={25} aria-hidden="true" /><h3>Conduza o negócio</h3><p>Acompanhe etapas e prioridades. Veja o que pede atenção e escolha sua próxima ação.</p></article><article><FileText size={25} aria-hidden="true" /><h3>Prepare a proposta</h3><p>Use seu catálogo, revise o escopo e acompanhe os estados da proposta no mesmo lugar.</p></article></div></div></section>
+      <section id="wia" className="orkto-landing-wia orkto-landing-wrap"><div><h2>Inteligência que ajuda.<br /><span>Controle que continua seu.</span></h2><p>A WIA consulta informações autorizadas, organiza o contexto e prepara ações internas. Você revisa as decisões que exigem aprovação.</p><button type="button" onClick={onDemoClick} className="orkto-landing-demo">Ver a experiência <ArrowRight size={16} aria-hidden="true" /></button></div><ul><li><Check size={18} aria-hidden="true" /><div><h3>Contexto da sua empresa</h3><p>Dados e operações respeitam o acesso do workspace.</p></div></li><li><Check size={18} aria-hidden="true" /><div><h3>Decisões com revisão</h3><p>Aprovar uma ação é uma escolha explícita.</p></div></li><li><Check size={18} aria-hidden="true" /><div><h3>Histórico para acompanhar</h3><p>Consulte eventos persistidos conforme suas permissões.</p></div></li></ul></section>
+      <section id="piloto" className="orkto-landing-pilot"><div className="orkto-landing-wrap"><div><h2>Uma operação melhor<br />começa pelo essencial.</h2><p>O piloto fechado é voltado a empresas de serviços. O acesso é por convite aprovado, com autenticação Google.</p><p className="orkto-landing-pilot-note">Canais externos, pagamentos e integrações dependem de configuração e validação próprias. Não estão incluídos como serviços ativos neste piloto.</p></div><button type="button" onClick={onStartClick} className="orkto-landing-primary">Já tenho acesso <ArrowRight size={17} aria-hidden="true" /></button></div></section>
+      <div className="orkto-landing-wrap"><CommercialPlans onProposal={()=>{sessionStorage.setItem('orkto-commercial-intent','enterprise');onStartClick();}} /></div>
+    </main>
+    <footer className="orkto-landing-footer orkto-landing-wrap"><OrktoLogo size="sm" /><p>Operação com inteligência. Decisões com você.</p><div><a href="/termos.html">Termos</a><a href="/privacidade.html">Privacidade</a></div></footer>
+  </div>;
 }

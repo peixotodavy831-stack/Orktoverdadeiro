@@ -1,13 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
+import { verifyPilotSession } from './_shared/pilot-access.ts';
 import { clientInput } from './_shared/client-input.ts';
 import { contactInput, contactPatchInput } from './_shared/contact-input.ts';
 import { serviceInput } from './_shared/service-input.ts';
 import { dealInput, dealPatchInput } from './_shared/deal-input.ts';
 import { quoteCreateInput, quotePatchInput, calculateQuoteMoney, quoteCustomerMatchesDeal } from './_shared/quote-input.ts';
-import { onboardingInput } from './_shared/profile-input.ts';
+import { onboardingInput, personalProfileInput } from './_shared/profile-input.ts';
 import { checkPlanLimit, hasPlanFeature, loadWorkspacePlanAccess } from './_shared/plan-access.ts';
 import { routeT0Request } from './_shared/wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './_shared/wia-trusted.ts';
+import { prepareTrustedRequest, WiaRequestError } from './_shared/wia-request.ts';
+import { geminiTestConfiguration } from './_shared/wia-gemini.ts';
+import { completeMetaEmbeddedSignup, MetaConnectionError, metaRuntimeConfig } from './_shared/meta-connection.ts';
+import { MetaSendError, sendMetaText } from './_shared/meta-send.ts';
+import { COMMERCIAL_PLANS } from './_shared/commercial-catalog.ts';
+import { asaasSandbox } from './_shared/asaas-sandbox.ts';
+import {changeSandboxSubscription} from './_shared/billing-lifecycle.ts';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const IDEMPOTENCY_KEY = /^[A-Za-z0-9][A-Za-z0-9:_-]{7,127}$/;
@@ -104,13 +112,75 @@ Deno.serve(async (req: Request) => {
     let functionName: string;
     let argumentsForCommand: Record<string,unknown>;
     let eventType: string;
-    if (command === 'READ_PLAN_CATALOG') {
+    if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT' || command === 'READ_WIA_RUNTIME'
+        || command === 'READ_WHATSAPP_CONNECTION' || command === 'BEGIN_WHATSAPP_CONNECTION') {
       if (!suppliedPayload || typeof suppliedPayload !== 'object' || Array.isArray(suppliedPayload)
           || Object.keys(suppliedPayload).length !== 0) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       canonical = {};
       functionName = '';
       eventType = '';
       argumentsForCommand = {};
+    } else if(command==='CHANGE_SUBSCRIPTION_SANDBOX') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      const changes=holder?.changes as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['bindingId','operation','changes'])
+        ||typeof holder.bindingId!=='string'||!UUID.test(holder.bindingId)||!['update','cancel'].includes(String(holder.operation))
+        ||!changes||typeof changes!=='object'||Array.isArray(changes)
+        ||(holder.operation==='cancel'?Object.keys(changes).length!==0:
+          Object.keys(changes).some(k=>!['status','nextDueDate'].includes(k))||!['ACTIVE','INACTIVE'].includes(String(changes.status))
+          ||(changes.status==='ACTIVE'&&typeof changes.nextDueDate!=='string')
+          ||(changes.nextDueDate!==undefined&&(typeof changes.nextDueDate!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(changes.nextDueDate)))))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={bindingId:holder.bindingId,operation:holder.operation,changes};functionName='';eventType='';argumentsForCommand={};
+    } else if(command==='BEGIN_SUBSCRIPTION_SANDBOX') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['planKey','customerRef'])
+        ||!COMMERCIAL_PLANS.some(plan=>plan.id===holder.planKey&&plan.priceCents!==null)
+        ||typeof holder.customerRef!=='string'||!/^cus_[A-Za-z0-9_-]{1,100}$/.test(holder.customerRef))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={planKey:holder.planKey,customerRef:holder.customerRef};functionName='';eventType='';argumentsForCommand={};
+    } else if (command === 'REQUEST_COMMERCIAL_PROPOSAL') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['requirements'])
+        ||typeof holder.requirements!=='string'||holder.requirements.trim().length<10||holder.requirements.length>3000)
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={requirements:holder.requirements.trim()};functionName='';eventType='';argumentsForCommand={};
+    } else if (command === 'COMPLETE_WHATSAPP_CONNECTION') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      const allowed=['code','businessId','wabaId','phoneNumberId','coexistenceState'];
+      const states=['unknown','eligible','enabled','ineligible','not_requested'];
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,allowed)
+        ||typeof holder.code!=='string'||holder.code.length<1||holder.code.length>4096
+        ||!(holder.businessId===null||typeof holder.businessId==='string')
+        ||typeof holder.wabaId!=='string'||typeof holder.phoneNumberId!=='string'
+        ||typeof holder.coexistenceState!=='string'||!states.includes(holder.coexistenceState))
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={code:holder.code,businessId:holder.businessId,wabaId:holder.wabaId,
+        phoneNumberId:holder.phoneNumberId,coexistenceState:holder.coexistenceState};
+      functionName='';eventType='channel.meta.connected';argumentsForCommand={};
+    } else if (command === 'SET_WHATSAPP_MODE') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['mode','humanTakeover'])
+        ||typeof holder.mode!=='string'||!['manual','assisted','controlled'].includes(holder.mode)
+        ||typeof holder.humanTakeover!=='boolean')
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={mode:holder.mode,humanTakeover:holder.humanTakeover};
+      functionName='';eventType='channel.meta.mode_changed';argumentsForCommand={};
+    } else if (command === 'SEND_WHATSAPP_MESSAGE') {
+      const holder=suppliedPayload as Record<string,unknown>|null;
+      if(!holder||typeof holder!=='object'||Array.isArray(holder)||!exactKeys(holder,['conversationId','content'])
+        ||typeof holder.conversationId!=='string'||!UUID.test(holder.conversationId)
+        ||typeof holder.content!=='string'||holder.content.trim().length<1||holder.content.length>4000)
+        return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
+      canonical={conversationId:holder.conversationId,content:holder.content.trim()};
+      functionName='';eventType='channel.send.requested';argumentsForCommand={};
+    } else if (command === 'UPDATE_SELF_PROFILE') {
+      const parsed = personalProfileInput.safeParse(suppliedPayload);
+      if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
+      canonical = parsed.data;
+      functionName = 'orkto_update_self_profile_command';
+      eventType = 'profile.personal_updated';
+      argumentsForCommand = { p_display_name: parsed.data.displayName };
     } else if (command === 'COMPLETE_ONBOARDING') {
       const parsed = onboardingInput.safeParse(suppliedPayload);
       if (!parsed.success) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
@@ -282,7 +352,7 @@ Deno.serve(async (req: Request) => {
           || (holder.reason !== undefined && (typeof holder.reason !== 'string' || holder.reason.length > 1000))) {
         return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       }
-      canonical = { taskId:holder.taskId,decision:command,reason:(holder.reason || '').trim() };
+      canonical = { taskId:holder.taskId,decision:command,reason:typeof holder.reason==='string'?holder.reason.trim():'' };
       functionName = 'orkto_decide_approval_task_command';
       eventType = command === 'APPROVE_DRAFT_TASK' ? 'approval.approved' : 'approval.rejected';
       argumentsForCommand = { p_task_id:holder.taskId,
@@ -381,7 +451,7 @@ Deno.serve(async (req: Request) => {
       functionName = '';
       eventType = 'channel.send.configuration_required';
       argumentsForCommand = {};
-    } else if (command === 'PREPARE_WIA_T0') {
+    } else if (command === 'PREPARE_WIA_T0' || command === 'PREPARE_WIA_REQUEST') {
       const holder=suppliedPayload as {message?:unknown}|null;
       if(!holder||typeof holder!=='object'||Array.isArray(holder)
         ||!exactKeys(holder as Record<string,unknown>,['message'])
@@ -393,15 +463,93 @@ Deno.serve(async (req: Request) => {
       return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
     }
 
-    const userClient = createClient(url, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    const userClient = createClient(url, publicKey, {
+      global: { headers: { Authorization: bearer } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
     const { data: { user }, error: authError } = await userClient.auth.getUser(bearer.slice(7));
     if (authError || !user) return response(401, 'AUTH_REQUIRED', requestId, undefined, origin);
+    const pilotAccess = await verifyPilotSession(userClient);
+    if (pilotAccess !== 'allowed') return response(pilotAccess === 'unavailable' ? 503 : 403,
+      pilotAccess === 'unavailable' ? 'INTERNAL_ERROR' : 'PERMISSION_DENIED', requestId, undefined, origin);
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
     const { data: membership, error: membershipError } = await admin.from('orkto_workspace_members')
       .select('workspace_id,role,status').eq('workspace_id', workspaceId).eq('user_id', user.id).maybeSingle();
     if (membershipError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
     if (!membership || membership.status !== 'active') return response(403, 'WORKSPACE_ACCESS_DENIED', requestId, undefined, origin);
     if (!['owner','admin','manager','member'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'READ_WHATSAPP_CONNECTION') {
+      const [connectionResult,controlsResult]=await Promise.all([
+        admin.from('orkto_channel_connections')
+          .select('id,status,business_id,waba_id,phone_number_id,display_phone_number,verified_name,coexistence_state,service_mode,granted_scopes,verified_at,webhook_subscribed_at,last_error_category,updated_at')
+          .eq('workspace_id',membership.workspace_id).eq('provider','meta_whatsapp_cloud').maybeSingle(),
+        admin.from('orkto_whatsapp_controls')
+          .select('monthly_message_limit,monthly_cost_limit_micros,currency,block_on_unpriced,block_on_cost_limit,allow_marketing,human_takeover,updated_at')
+          .eq('workspace_id',membership.workspace_id).maybeSingle(),
+      ]);
+      if(connectionResult.error||controlsResult.error)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      const runtime=metaRuntimeConfig(Deno.env);
+      return response(200,'OK',requestId,{result:'READ',whatsapp:{
+        state:connectionResult.data?.status||(runtime?'ready_to_connect':'configuration_required'),
+        connected:connectionResult.data?.status==='connected',runtimeConfigured:runtime!==null,
+        connection:connectionResult.data||null,controls:controlsResult.data||null,
+      }},origin);
+    }
+    if (command === 'BEGIN_WHATSAPP_CONNECTION') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const config=metaRuntimeConfig(Deno.env);
+      if(!config)return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'READY',whatsapp:{appId:config.appId,configId:config.configId,
+        graphVersion:config.graphVersion,redirectUri:config.redirectUri}},origin);
+    }
+    if (command === 'READ_WIA_RUNTIME') {
+      const configured=geminiTestConfiguration(Deno.env,membership.workspace_id)!==null;
+      return response(200,'OK',requestId,{result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',
+        state:configured?'configured_not_verified':'configuration_required',testingOnly:true}},origin);
+    }
+    if(command==='CHANGE_SUBSCRIPTION_SANDBOX') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      if(Deno.env.get('ORKTO_BILLING_SANDBOX_LIFECYCLE_ENABLED')!=='ON')return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const env=Object.fromEntries(['APP_ENV','ASAAS_ENVIRONMENT','ORKTO_BILLING_SANDBOX_ENABLED','ORKTO_BILLING_SANDBOX_LIFECYCLE_ENABLED','ASAAS_API_KEY'].map(key=>[key,Deno.env.get(key)]));
+      env.VITE_SUPABASE_URL=Deno.env.get('SUPABASE_URL');
+      let processor;try{processor=asaasSandbox(env);}catch{return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);}
+      try {
+        const result=await changeSandboxSubscription(admin,processor,{workspaceId:membership.workspace_id,actorId:user.id,
+          bindingId:String(canonical.bindingId),key:idempotencyKey,operation:canonical.operation as 'cancel'|'update',
+          changes:canonical.changes as {status?:'ACTIVE'|'INACTIVE';nextDueDate?:string}});
+        return response(result==='RECONCILIATION_REQUIRED'?409:200,result==='RECONCILIATION_REQUIRED'?'CONFLICT':'OK',requestId,{result},origin);
+      } catch {return response(409,'CONFLICT',requestId,{result:'RECONCILIATION_REQUIRED'},origin);}
+    }
+    if(command==='BEGIN_SUBSCRIPTION_SANDBOX') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const env=Object.fromEntries(['APP_ENV','ASAAS_ENVIRONMENT','ORKTO_BILLING_SANDBOX_ENABLED','ASAAS_API_KEY'].map(key=>[key,Deno.env.get(key)]));
+      env.VITE_SUPABASE_URL=Deno.env.get('SUPABASE_URL');
+      let processor;try{processor=asaasSandbox(env);}catch{return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);}
+      const reservation=await admin.rpc('orkto_begin_sandbox_subscription',{p_workspace_id:membership.workspace_id,p_actor_id:user.id,
+        p_key:idempotencyKey,p_plan:canonical.planKey,p_customer:canonical.customerRef});
+      if(reservation.error||!reservation.data)return response(409,'CONFLICT',requestId,undefined,origin);
+      const binding=reservation.data;
+      if(!binding.created)return response(binding.providerId?200:409,binding.providerId?'OK':'CONFLICT',requestId,
+        {result:binding.providerId?'PENDING':'RECONCILIATION_REQUIRED'},origin);
+      try {
+        const provider=await processor.create({customerRef:String(canonical.customerRef),bindingId:`orkto-sub:${binding.bindingId}`,
+          planKey:String(canonical.planKey),priceVersion:binding.priceVersion,priceCents:binding.priceCents,nextDueDate:new Date().toISOString().slice(0,10)});
+        const saved=await admin.from('orkto_billing_bindings').update({provider_subscription_id:provider.providerId,creation_state:'created'})
+          .eq('id',binding.bindingId).eq('workspace_id',membership.workspace_id).eq('creation_state','reserved').select('id').maybeSingle();
+        if(saved.error||!saved.data)throw new Error('BILLING_PERSISTENCE_UNKNOWN');
+        return response(200,'OK',requestId,{result:'PENDING',billingBindingId:binding.bindingId},origin);
+      }catch{
+        await admin.from('orkto_billing_bindings').update({creation_state:'unknown'}).eq('id',binding.bindingId).eq('workspace_id',membership.workspace_id);
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+    }
+    if(command==='REQUEST_COMMERCIAL_PROPOSAL') {
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const {data,error}=await admin.rpc('orkto_request_commercial_proposal',{p_workspace_id:membership.workspace_id,
+        p_actor_id:user.id,p_key:idempotencyKey,p_requirements:canonical.requirements});
+      if(error)return response(error.message==='COMMERCIAL_IDEMPOTENCY_CONFLICT'?409:503,'CONFLICT',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'REQUESTED',commercialRequestId:data},origin);
+    }
     if (command === 'READ_PLAN_CATALOG') {
       const now = new Date().toISOString();
       const { data: versions, error: catalogError } = await admin.from('orkto_plan_price_versions')
@@ -411,7 +559,7 @@ Deno.serve(async (req: Request) => {
         .order('effective_from',{ascending:false}).limit(100);
       if (catalogError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
       const latest = new Map<string,Record<string,unknown>>();
-      const allowedPlans = new Set(['starter','pro','business','scale','enterprise','founders','legacy_standard']);
+      const allowedPlans = new Set<string>(COMMERCIAL_PLANS.map(plan=>plan.id));
       for (const version of versions || []) {
         if (allowedPlans.has(version.plan_key) && !latest.has(version.plan_key)) latest.set(version.plan_key, version);
       }
@@ -422,6 +570,29 @@ Deno.serve(async (req: Request) => {
           ? version.price_cents : null,
       }));
       return response(200, 'OK', requestId, { result:'READ', catalog }, origin);
+    }
+    if (command === 'READ_BILLING_CURRENT') {
+      const access=await loadWorkspacePlanAccess(admin,membership.workspace_id);
+      const {data:usage,error:usageError}=await admin.from('orkto_plan_usage')
+        .select('feature_key,quantity,period_start').eq('workspace_id',membership.workspace_id)
+        .order('period_start',{ascending:false}).limit(100);
+      if(usageError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      const subscription=access.subscription;
+      const [pulsoPolicy,pulsoUsage]=await Promise.all([
+        admin.from('orkto_pulso_policies').select('allowance_milli,version,expires_at').eq('workspace_id',membership.workspace_id).gt('expires_at',new Date().toISOString()).maybeSingle(),
+        admin.from('orkto_pulso_ledger').select('reserved_milli,state').eq('workspace_id',membership.workspace_id).eq('period_start',new Date().toISOString().slice(0,7)+'-01'),
+      ]);
+      const pulsoKnown=!pulsoPolicy.error&&!pulsoUsage.error&&!!pulsoPolicy.data;
+      const pulsoUsed=(pulsoUsage.data||[]).filter(row=>row.state!=='released').reduce((sum,row)=>sum+Number(row.reserved_milli),0);
+      return response(200,'OK',requestId,{result:'READ',billing:{
+        subscription:subscription?{plan_key:subscription.plan_key,status:subscription.status,trial_ends_at:subscription.trial_ends_at,current_period_start:subscription.current_period_start,current_period_end:subscription.current_period_end,cancel_at_period_end:subscription.cancel_at_period_end}:null,
+        workspacePlan:access.planKey,status:access.status,trialEndsAt:access.trialEndsAt,
+        readOnly:access.readOnly,configurationRequired:access.configurationRequired,
+        entitlements:access.entitlements,effectivePriceVersion:access.effectivePriceVersion,
+        usage:usage||[],checkout:'not_configured',pricesPublic:access.publicPriceApproved,
+        pulso:{state:pulsoKnown?'configured':'configuration_required',allowance:pulsoKnown?Number(pulsoPolicy.data.allowance_milli)/1000:null,
+          used:pulsoKnown?pulsoUsed/1000:null,remaining:pulsoKnown?Math.max(0,Number(pulsoPolicy.data.allowance_milli)-pulsoUsed)/1000:null},
+      }},origin);
     }
     if (command === 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED') {
       const conversationId = String(canonical.conversationId);
@@ -441,11 +612,159 @@ Deno.serve(async (req: Request) => {
     if (command === 'COMPLETE_ONBOARDING' && membership.role !== 'owner') return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if ((command === 'APPROVE_WIA_ACTION' || command === 'REJECT_WIA_ACTION') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if ((command === 'APPROVE_DRAFT_TASK' || command === 'REJECT_DRAFT_TASK') && !['owner','admin','manager'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if ((command === 'COMPLETE_WHATSAPP_CONNECTION' || command === 'SET_WHATSAPP_MODE')
+        && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
     if (command === 'SET_CONVERSATION_STATUS' && canonical.status === 'archived'
         && !['owner','admin'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
 
     const plan = await loadWorkspacePlanAccess(admin, membership.workspace_id);
-    if (plan.configurationRequired || plan.readOnly) return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    // A personal display name is independent of the workspace's commercial entitlement.
+    // All business commands keep the existing read-only/configuration guard.
+    if ((plan.configurationRequired || plan.readOnly) && command !== 'UPDATE_SELF_PROFILE') return response(423, 'PERMISSION_DENIED', requestId, undefined, origin);
+    if (command === 'COMPLETE_WHATSAPP_CONNECTION') {
+      try {
+        const completed=await completeMetaEmbeddedSignup(canonical as {
+          code:string;businessId:string|null;wabaId:string;phoneNumberId:string;
+          coexistenceState:'unknown'|'eligible'|'enabled'|'ineligible'|'not_requested';
+        },Deno.env);
+        const {data:connectionId,error:storeError}=await admin.rpc('orkto_store_meta_connection',{
+          p_workspace_id:membership.workspace_id,p_actor_user_id:user.id,p_business_id:completed.businessId,
+          p_waba_id:completed.wabaId,p_phone_number_id:completed.phoneNumberId,
+          p_display_phone_number:completed.displayPhoneNumber,p_verified_name:completed.verifiedName,
+          p_coexistence_state:completed.coexistenceState,p_granted_scopes:completed.grantedScopes,
+          p_access_token:completed.accessToken,p_provider_metadata:completed.metadata,
+        });
+        if(storeError||typeof connectionId!=='string')return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+        return response(200,'OK',requestId,{result:'CONNECTED',connectionId},origin);
+      } catch(error) {
+        if(error instanceof MetaConnectionError)return response(error.code==='CONFIGURATION_REQUIRED'?423:502,error.code,requestId,undefined,origin);
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+    }
+    if (command === 'SET_WHATSAPP_MODE') {
+      const {data:changed,error:modeError}=await admin.rpc('orkto_set_whatsapp_mode',{
+        p_workspace_id:membership.workspace_id,p_actor_user_id:user.id,p_mode:canonical.mode,
+        p_human_takeover:canonical.humanTakeover,
+      });
+      if(modeError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(changed!==true)return response(404,'NOT_FOUND',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:'UPDATED'},origin);
+    }
+    if (command === 'SEND_WHATSAPP_MESSAGE') {
+      const now=new Date();const nowIso=now.toISOString();
+      const {data:conversation,error:conversationError}=await admin.from('orkto_conversations')
+        .select('id,source_channel,contact_phone').eq('workspace_id',membership.workspace_id)
+        .eq('id',canonical.conversationId).maybeSingle();
+      if(conversationError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(!conversation)return response(404,'NOT_FOUND',requestId,undefined,origin);
+      if(conversation.source_channel!=='whatsapp')return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const recipient=String(conversation.contact_phone||'').replace(/\D/g,'');
+      if(!/^\d{5,30}$/.test(recipient))return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const [connectionResult,controlsResult,lastInboundResult]=await Promise.all([
+        admin.from('orkto_channel_connections').select('id,phone_number_id,status,service_mode')
+          .eq('workspace_id',membership.workspace_id).eq('provider','meta_whatsapp_cloud').maybeSingle(),
+        admin.from('orkto_whatsapp_controls').select('monthly_message_limit,monthly_cost_limit_micros,pricing_market,currency,block_on_unpriced,block_on_cost_limit,human_takeover')
+          .eq('workspace_id',membership.workspace_id).maybeSingle(),
+        admin.from('orkto_messages').select('sent_at').eq('workspace_id',membership.workspace_id)
+          .eq('conversation_id',canonical.conversationId).eq('direction','incoming')
+          .order('sent_at',{ascending:false}).limit(1).maybeSingle(),
+      ]);
+      if(connectionResult.error||controlsResult.error||lastInboundResult.error)
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      const connection=connectionResult.data,controls=controlsResult.data;
+      if(!connection||connection.status!=='connected'||!controls)
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const lastInbound=Date.parse(lastInboundResult.data?.sent_at||'');
+      if(!Number.isFinite(lastInbound)||now.getTime()-lastInbound>24*60*60*1000)
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      if(typeof controls.pricing_market!=='string'||!/^[A-Z]{2}$/.test(controls.pricing_market))
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const {data:cards,error:cardError}=await admin.from('orkto_whatsapp_rate_cards')
+        .select('id,unit_price_micros,free_messages,currency').eq('provider','meta_whatsapp_cloud')
+        .eq('status','approved').eq('market',controls.pricing_market).eq('category','service')
+        .eq('currency',controls.currency).lte('effective_from',nowIso)
+        .or(`effective_until.is.null,effective_until.gt.${nowIso}`).limit(2);
+      if(cardError)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if((cards||[]).length!==1){
+        if(controls.block_on_unpriced!==false)return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      }
+      const card=cards![0];const unitPrice=Number(card.unit_price_micros);const freeMessages=Number(card.free_messages);
+      if(!Number.isSafeInteger(unitPrice)||unitPrice<0||!Number.isSafeInteger(freeMessages)||freeMessages<0)
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const requestFingerprint=await sha256Hex(JSON.stringify({workspaceId:membership.workspace_id,
+        conversationId:canonical.conversationId,channel:'whatsapp',content:canonical.content}));
+      const {data:reserved,error:reserveError}=await admin.rpc('orkto_reserve_meta_send',{
+        p_workspace_id:membership.workspace_id,p_conversation_id:canonical.conversationId,
+        p_idempotency_key:idempotencyKey,p_request_fingerprint:requestFingerprint,p_rate_card_id:card.id,
+      });
+      const reservation=Array.isArray(reserved)?reserved[0]:reserved;
+      if(reserveError||!reservation)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(reservation.decision==='IDEMPOTENCY_CONFLICT')return response(409,'IDEMPOTENCY_CONFLICT',requestId,undefined,origin);
+      if(reservation.decision==='IN_PROGRESS')return response(409,'CONFLICT',requestId,undefined,origin);
+      if(reservation.decision==='RECONCILIATION_REQUIRED')return response(503,'PROVIDER_UNAVAILABLE',requestId,undefined,origin);
+      if(reservation.decision==='RATE_LIMITED')return response(429,'RATE_LIMITED',requestId,undefined,origin);
+      if(reservation.decision==='CONFIGURATION_REQUIRED')return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      if(reservation.decision==='REPLAY'){
+        if(['REQUEST_ACCEPTED','PROVIDER_ACKNOWLEDGED','DELIVERED'].includes(reservation.send_status)
+          &&typeof reservation.provider_message_id==='string')
+          return response(200,'OK',requestId,{result:'REPLAY',status:reservation.send_status,
+            requestId:reservation.send_request_id,externalMessageId:reservation.provider_message_id},origin);
+        return response(409,'CONFLICT',requestId,undefined,origin);
+      }
+      const {data:accessToken,error:tokenError}=await admin.rpc('orkto_read_meta_token',{p_connection_id:connection.id});
+      const config=metaRuntimeConfig(Deno.env);
+      if(tokenError||typeof accessToken!=='string'||!accessToken||!config){
+        await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+          p_send_request_id:reservation.send_request_id,p_target_status:'FAILED',
+          p_provider_message_id:null,p_failure_category:'configuration_required',p_occurred_at:nowIso});
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      }
+      let accepted:{externalMessageId:string;acceptedAt:string};
+      try{
+        accepted=await sendMetaText({phoneNumberId:connection.phone_number_id,recipient,
+          content:String(canonical.content),accessToken,graphVersion:config.graphVersion});
+      }catch(error){
+        const category=error instanceof MetaSendError?error.category:'outcome_unknown';
+        await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+          p_send_request_id:reservation.send_request_id,p_target_status:category==='outcome_unknown'?'UNKNOWN':'FAILED',
+          p_provider_message_id:null,p_failure_category:category,p_occurred_at:new Date().toISOString()});
+        return response(category==='rate_limit'?429:category==='outcome_unknown'?503:502,
+          category==='rate_limit'?'RATE_LIMITED':category==='outcome_unknown'?'PROVIDER_UNAVAILABLE':'PROVIDER_REJECTED',
+          requestId,undefined,origin);
+      }
+      const {data:acceptedState,error:acceptError}=await admin.rpc('orkto_accept_meta_send',{
+        p_workspace_id:membership.workspace_id,p_send_request_id:reservation.send_request_id,p_actor_user_id:user.id,
+        p_provider_message_id:accepted.externalMessageId,p_content:canonical.content,p_occurred_at:accepted.acceptedAt,
+      });
+      if(acceptError||!['APPLIED','REPLAY'].includes(String(acceptedState))){
+        try { await admin.rpc('orkto_mark_channel_send',{p_workspace_id:membership.workspace_id,
+          p_send_request_id:reservation.send_request_id,p_target_status:'UNKNOWN',
+          p_provider_message_id:accepted.externalMessageId,p_failure_category:'acceptance_not_persisted',
+          p_occurred_at:accepted.acceptedAt}); } catch { /* Retain the durable reservation; never resend on uncertain acceptance. */ }
+        return response(503,'PROVIDER_UNAVAILABLE',requestId,undefined,origin);
+      }
+      return response(202,'OK',requestId,{result:'ACCEPTED',status:'REQUEST_ACCEPTED',
+        requestId:reservation.send_request_id,externalMessageId:accepted.externalMessageId,
+        acceptedAt:accepted.acceptedAt},origin);
+    }
+    if (command === 'PREPARE_WIA_REQUEST') {
+      if(!hasPlanFeature(plan,'wia'))return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      const limit=plan.entitlements.limits?.monthly_wia_runs;
+      if(limit===undefined||(limit!==null&&(!Number.isSafeInteger(limit)||limit<0)))
+        return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      try {
+        const result=await prepareTrustedRequest(admin,{
+          workspaceId:membership.workspace_id,actorId:user.id,requestId,
+          traceId:await traceUuid(`wia-request-v1:${membership.workspace_id}:${user.id}:${idempotencyKey}`),
+          message:String(canonical.message),monthlyLimit:limit,fingerprint:await fingerprint(canonical),
+        },Deno.env);
+        return response(200,'OK',requestId,result,origin);
+      } catch(error) {
+        if(error instanceof WiaRequestError)return response(error.status,error.code,requestId,undefined,origin);
+        return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      }
+    }
     if (command === 'PREPARE_WIA_T0') {
       if (!hasPlanFeature(plan,'wia')) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const limit=plan.entitlements.limits?.monthly_wia_runs;
@@ -488,7 +807,7 @@ Deno.serve(async (req: Request) => {
             sourceIds,confidenceSignal:'high',requiresApproval:false,
             reasonCode:eventResult.data.payload?.reason_code||`t0_${route.name}`},usage:usage(0),toolExecutions:[]},origin);
       }
-      if(started?.result==='REPLAY' && started?.status!=='running') return response(409,'CONFLICT',requestId,undefined,origin);
+      if(started?.result==='REPLAY') return response(409,'CONFLICT',requestId,undefined,origin);
       let prepared;
       try { prepared=await executeTrustedT0(admin,membership.workspace_id,route); }
       catch {
@@ -587,7 +906,7 @@ Deno.serve(async (req: Request) => {
         .eq('workspace_id',membership.workspace_id).is('archived_at',null).not('status','in','(rejected,expired)');
       if (countError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
       const limit = checkPlanLimit(plan.entitlements,'active_proposals',activeCount || 0);
-      if (!limit.allowed) return response(limit.reason === 'limit_reached' ? 403 : 423,
+      if (limit.allowed === false) return response(limit.reason === 'limit_reached' ? 403 : 423,
         limit.reason === 'limit_reached' ? 'PERMISSION_DENIED' : 'CONFIGURATION_REQUIRED', requestId, undefined, origin);
       const ids=[...new Set(quote.items.map(item=>item.catalogItemId).filter((id):id is string=>Boolean(id)))];
       const catalog=new Map<string,{name:string;description:string|null;unit_price:number}>();

@@ -3,6 +3,16 @@ export const STAGING_E2E_TARGET = Object.freeze({
   supabaseRef: 'ghrjongiodziasupakrk',
 });
 
+// The historical password harness must never recreate password accounts in a
+// Google-only project. Inspect live Auth settings before any administrative write.
+export function validatePasswordRunnerMode(settings, env = {}) {
+  if (env.ORKTO_AUTH_MODE === 'google_pilot' || env.VITE_ORKTO_AUTH_MODE === 'google_pilot'
+    || settings?.external?.email !== true) {
+    return { ok: false, code: 'PASSWORD_RUNNER_INCOMPATIBLE_WITH_AUTH_MODE' };
+  }
+  return { ok: true, code: 'PASSWORD_RUNNER_AUTH_MODE_VALID' };
+}
+
 export function syntheticIdentityGroup(email, label) {
   const normalized = String(email || '').toLowerCase();
   if (normalized === `user-${label.toLowerCase()}@staging.synthetic`) return 'legacy';
@@ -107,7 +117,12 @@ export function validateStagingPreviewDeployment(previewUrl, deployment, project
   const projectId = deployment?.projectId || deployment?.project?.id;
   const deploymentUrl = deployment?.url;
   const actualHost = typeof deploymentUrl === 'string' ? deploymentUrl.replace(/^https?:\/\//, '').replace(/\/$/, '').toLowerCase() : '';
-  const previewTarget = target => target === null || target === 'preview';
+  // The REST API also returns the explicit legacy `staging` target. Project,
+  // host, READY state and exact source SHA remain mandatory below. This target
+  // additionally requires the project ID from authenticated inspection, not
+  // just a list entry's name. Unknown environments/production remain rejected.
+  const previewTarget = target => target === null || target === 'preview'
+    || target === 'staging' && projectId === STAGING_E2E_TARGET.vercelProjectId;
   const stagingListEntry = Array.isArray(projectDeployments) && projectDeployments.find(item =>
     item?.url?.toLowerCase() === expected.hostname.toLowerCase()
       && item?.name === 'orkto-staging' && item?.state === 'READY' && previewTarget(item?.target));

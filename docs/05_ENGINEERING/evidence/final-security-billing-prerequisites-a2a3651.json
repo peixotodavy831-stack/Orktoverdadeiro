@@ -1,0 +1,130 @@
+{
+  "observedAtUtc": "2026-10-16T22:11:47Z",
+  "scope": "STAGING_ONLY_READ_ONLY_PREREQUISITES",
+  "referenceRuntimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+  "sourceHeadInspected": "b06b29c51518cae23a82acac18f83f004dd84318",
+  "project": "ghrjongiodziasupakrk",
+  "previousPassResultsPreserved": true,
+  "approvedTestsRerun": false,
+  "gates": [
+    {
+      "id": "GOOGLE_AB_EXECUTOR",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": "Installed historical launcher uses password and is incompatible with Google-only; current browser surface does not provide the isolated token-transport executor. Legacy launcher NOT executed.",
+      "sourceFiles": [
+        "scripts/readiness/run-staging-auth-secure.ps1",
+        "scripts/readiness/validate-staging-auth.mjs",
+        "scripts/readiness/staging-e2e-config.mjs",
+        "tests/e2e/staging.spec.ts"
+      ]
+    },
+    {
+      "id": "GOOGLE_AB_REAL_HTTP",
+      "status": "NOT_TESTED",
+      "referenceRuntimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+      "blockedBy": "GOOGLE_AB_EXECUTOR"
+    },
+    {
+      "id": "GOOGLE_REFRESH_EXPIRY_REVOCATION_REPLAY",
+      "status": "NOT_TESTED",
+      "referenceRuntimeSha": "a2a3651319196ffc56813992f705692d368ef967",
+      "blockedBy": "GOOGLE_AB_EXECUTOR"
+    },
+    {
+      "id": "ASAAS_REAL_SANDBOX_PREREQUISITES",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": {
+        "customEdgeSecrets": 0,
+        "approvedSandboxCustomers": 0,
+        "billingBindings": 0,
+        "providerCommands": 0,
+        "lifecycleEvents": 0,
+        "screenshot": "staging-no-custom-secrets-final-2026-10-16.png"
+      }
+    },
+    {
+      "id": "ASAAS_CUSTOMER_NOTIFICATIONS_DISABLED",
+      "status": "NOT_TESTED",
+      "reason": "No authorized sandbox account/customer and credential; no provider notification settings read or changed."
+    },
+    {
+      "id": "ASAAS_REAL_CASES",
+      "status": "NOT_TESTED",
+      "cases": [
+        "create",
+        "pending",
+        "confirmed",
+        "renewal",
+        "overdue",
+        "update",
+        "inactivate",
+        "native_cancel",
+        "webhook_replay",
+        "old_conflicting_event",
+        "reconcile",
+        "provider_failure"
+      ],
+      "blockedBy": "ASAAS_REAL_SANDBOX_PREREQUISITES"
+    },
+    {
+      "id": "COMMERCIAL_CATALOG_LIVE_READ",
+      "status": "PASS",
+      "transport": "Supabase MCP read-only SQL; not browser E2E",
+      "offers": [
+        {
+          "name": "Start",
+          "priceCents": 7990
+        },
+        {
+          "name": "Pro",
+          "priceCents": 14990
+        },
+        {
+          "name": "Business",
+          "priceCents": 29990
+        },
+        {
+          "name": "Scale",
+          "priceCents": 59990
+        },
+        {
+          "name": "Enterprise",
+          "priceCents": null
+        }
+      ],
+      "currency": "BRL"
+    },
+    {
+      "id": "ACCESS_TERMINATION_POLICY",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Owner commercial timing approval missing; no policy change."
+    },
+    {
+      "id": "GEMINI_META_PULSO_REAL",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": {
+        "customEdgeSecrets": 0,
+        "pulsoPolicies": 0,
+        "modelTariffs": 0
+      },
+      "limits": "Provider account/tier/permissions/notifications were not inspected; no paid inference or messaging executed."
+    },
+    {
+      "id": "REAL_RECOVERY",
+      "status": "BLOCKED_EXTERNAL",
+      "reason": "Private destination, credentials, RPO/RTO and isolated restore not supplied; earlier synthetic CI proof preserved, managed recovery not retested."
+    }
+  ],
+  "runtimeCodeChanges": 0,
+  "cloudConfigurationChanges": 0,
+  "newUsers": 0,
+  "newWorkspaces": 0,
+  "newPermissions": 0,
+  "providerRequests": 0,
+  "paidInferenceCalls": 0,
+  "externalMessages": 0,
+  "merges": 0,
+  "productionChanges": 0,
+  "readyForProductionCandidate": "NO",
+  "executionPlan": "../FINAL_SECURITY_BILLING_EXECUTION_A2A3651.md"
+}

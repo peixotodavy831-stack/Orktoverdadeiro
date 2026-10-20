@@ -1,0 +1,126 @@
+{
+  "runtimeSha": "45068033a3b41f7fb170ca174408dc5fd1ba53fa",
+  "sourceHeadAtStart": "278145d8c83f223fb07375c6a315180d6111e0a5",
+  "scope": "STAGING_ONLY",
+  "date": "2026-10-16",
+  "preview": {
+    "url": "https://orkto-staging-g8jxnq6ye-peixoto-s-projects1.vercel.app/",
+    "deploymentId": "dpl_4Np4vbkDNQWSxLAtVLvHzxzeXf5e",
+    "state": "READY",
+    "target": null,
+    "project": "orkto-staging"
+  },
+  "tests": [
+    {
+      "id": "A01_EXACT_REDIRECT",
+      "status": "PASS",
+      "evidence": "Absent initially; explicit owner confirmation; exact URL saved, list changed 15 to 16, Site URL preserved."
+    },
+    {
+      "id": "A02_GOOGLE_A",
+      "status": "PASS",
+      "evidence": "Real Google account chooser, approved owner selected, callback returned to exact Preview, authenticated Hoje and billing loaded."
+    },
+    {
+      "id": "A03_RELOAD_PERSISTENCE",
+      "status": "PASS",
+      "evidence": "Reload retained authenticated Hoje and original workspace context."
+    },
+    {
+      "id": "A04_REFRESH_EXPIRATION",
+      "status": "NOT_TESTED",
+      "evidence": "Reload is not evidence of token refresh. No natural JWT expiration or controlled expiration executed."
+    },
+    {
+      "id": "A05_LOGOUT",
+      "status": "PASS",
+      "evidence": "Real Sair; landing; reload remained signed out; database sessions for A changed 2 to 0."
+    },
+    {
+      "id": "A06_REVOKED_TOKEN_REPLAY",
+      "status": "NOT_TESTED",
+      "evidence": "Session revocation observed in DB; old JWT/refresh-token replay not executed or extracted."
+    },
+    {
+      "id": "A07_GOOGLE_B",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": "Owner approved identity B plus isolated owner workspace for 30 days; admission persisted with audit; user and workspace not created pending direct Google password/2FA."
+    },
+    {
+      "id": "A08_AB_RLS_EDGE_API",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": "No real B session; no A/B PASS inferred from fixtures."
+    },
+    {
+      "id": "A09_ALLOWLIST_AUTHORITY",
+      "status": "PASS_STRUCTURAL",
+      "evidence": "Private schema USAGE denied anon/authenticated; browser cannot insert/update/delete admissions; no unapproved Auth users; B owner is explicitly owner-approved, never inferred from metadata."
+    },
+    {
+      "id": "A10_ENTERPRISE_PERSISTENCE",
+      "status": "PASS",
+      "evidence": "Real authenticated UI/API/Edge/RPC path persisted first request; same-key same-content resubmission retained same protocol and one row."
+    },
+    {
+      "id": "A11_ENTERPRISE_QUOTA_AUDIT",
+      "status": "PASS",
+      "evidence": "Five distinct synthetic requests and five commercial.proposal.requested events; sixth UI submission denied; counts remain five. No billing binding created."
+    },
+    {
+      "id": "B01_LIVE_FAIL_CLOSED",
+      "status": "PASS",
+      "evidence": "Webhook POST {} returned HTTP 503 CONFIGURATION_REQUIRED without secrets or provider call."
+    },
+    {
+      "id": "B02_PROVIDER_SANDBOX",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": "No custom Edge secrets, zero approved billing customers and zero bindings."
+    },
+    {
+      "id": "B03_FULL_SUBSCRIPTION_LIFECYCLE",
+      "status": "BLOCKED_IMPLEMENTATION_AND_EXTERNAL",
+      "evidence": "Current handler accepts PAYMENT_* only; SUBSCRIPTION_INACTIVATED/DELETED and provider-side cancel/update operations are not wired. Requires commercial cancellation policy and implementation before full lifecycle sign-off."
+    },
+    {
+      "id": "C01_FIVE_OFFERS",
+      "status": "PASS",
+      "evidence": "Existing exact five prices v2 preserved; authenticated billing shows Start 79.90, Pro149.90, Business299.90, Scale599.90, Enterprise under proposal."
+    },
+    {
+      "id": "C02_COMMERCIAL_ALLOWANCES",
+      "status": "BLOCKED_OWNER_DECISION",
+      "evidence": "No Pulso policies or model tariffs provisioned; users, allowances, operational limits and commercial terms remain unapproved."
+    },
+    {
+      "id": "D01_MANAGED_RECOVERY",
+      "status": "BLOCKED_BY_PLAN",
+      "evidence": "Supabase organization Free and live Backups panel says Free Plan does not include project backups. No upgrade/restore executed."
+    },
+    {
+      "id": "D02_GEMINI_META",
+      "status": "BLOCKED_EXTERNAL",
+      "evidence": "No custom Edge secrets. No paid inference or external message sent."
+    },
+    {
+      "id": "REGRESSION_FOCUSED",
+      "status": "PASS",
+      "evidence": "33/33 focused Google, commercial billing, reconciliation and webhook tests, no failure or skip; fixtures only."
+    }
+  ],
+  "testData": {
+    "enterpriseRequestsPersisted": 5,
+    "commercialEventsPersisted": 5,
+    "accountB": "alias_only",
+    "admissionExpiresAt": "2026-11-15T16:08:34.019417Z",
+    "authUserBStillAbsent": true,
+    "quotaImpact": "Owner workspace has used daily five-request quota until records age out after 24h; records preserved for audit."
+  },
+  "limitations": [
+    "UI quota automation reached 60s tool timeout; inspected page and DB before continuing, did not blindly replay batch.",
+    "Quota denial UI uses generic message; no assertion of a readable quota-specific error.",
+    "No credentials, OAuth codes, JWTs, Google subjects or secret values retained."
+  ],
+  "production": "UNTOUCHED",
+  "merge": "NOT_PERFORMED",
+  "READY_FOR_PRODUCTION_CANDIDATE": "NO"
+}

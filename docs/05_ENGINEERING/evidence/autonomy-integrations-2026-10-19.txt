@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: Meta runtime fails closed when any server credential or identifier is invalid
+ok 1 - Meta runtime fails closed when any server credential or identifier is invalid
+  ---
+  duration_ms: 2.5429
+  type: 'test'
+  ...
+# Subtest: Embedded Signup exchanges the one-time code, verifies the phone and subscribes the WABA without exposing the secret
+ok 2 - Embedded Signup exchanges the one-time code, verifies the phone and subscribes the WABA without exposing the secret
+  ---
+  duration_ms: 30.7548
+  type: 'test'
+  ...
+# Subtest: Embedded Signup rejects mismatched provider phone identity and transient provider failure
+ok 3 - Embedded Signup rejects mismatched provider phone identity and transient provider failure
+  ---
+  duration_ms: 2.6866
+  type: 'test'
+  ...
+# Subtest: Embedded Signup rejects a token that lacks a required WhatsApp permission
+ok 4 - Embedded Signup rejects a token that lacks a required WhatsApp permission
+  ---
+  duration_ms: 2.1845
+  type: 'test'
+  ...
+# Subtest: Meta content is part of the durable fingerprint; same ID with changed text is a conflict, not a duplicate
+ok 5 - Meta content is part of the durable fingerprint; same ID with changed text is a conflict, not a duplicate
+  ---
+  duration_ms: 5.1556
+  type: 'test'
+  ...
+# Subtest: Meta body stops at one MiB without relying on Content-Length, cancels stream and releases reader
+ok 6 - Meta body stops at one MiB without relying on Content-Length, cancels stream and releases reader
+  ---
+  duration_ms: 5.3901
+  type: 'test'
+  ...
+# Subtest: Meta body preserves exact bytes for signature verification and releases reader on stream failure
+ok 7 - Meta body preserves exact bytes for signature verification and releases reader on stream failure
+  ---
+  duration_ms: 1.6137
+  type: 'test'
+  ...
+# Subtest: Meta text send uses the fixed Graph host and returns only provider acceptance
+ok 8 - Meta text send uses the fixed Graph host and returns only provider acceptance
+  ---
+  duration_ms: 26.3058
+  type: 'test'
+  ...
+# Subtest: Meta text send classifies confirmed failures and keeps network ambiguity unretryable
+ok 9 - Meta text send classifies confirmed failures and keeps network ambiguity unretryable
+  ---
+  duration_ms: 2.5486
+  type: 'test'
+  ...
+# Subtest: Meta verifies exact raw body bytes and fails tampered or malformed signatures
+ok 10 - Meta verifies exact raw body bytes and fails tampered or malformed signatures
+  ---
+  duration_ms: 2.5426
+  type: 'test'
+  ...
+# Subtest: untrusted workspace fields cannot override the trusted number binding
+ok 11 - untrusted workspace fields cannot override the trusted number binding
+  ---
+  duration_ms: 9.1696
+  type: 'test'
+  ...
+# Subtest: unknown number or mismatched WABA is rejected before persistence
+ok 12 - unknown number or mismatched WABA is rejected before persistence
+  ---
+  duration_ms: 4.8909
+  type: 'test'
+  ...
+# Subtest: duplicate batch events normalize once; persistent dedup remains a repository responsibility
+ok 13 - duplicate batch events normalize once; persistent dedup remains a repository responsibility
+  ---
+  duration_ms: 1.6163
+  type: 'test'
+  ...
+# Subtest: invalid JSON signature and oversized input never reach the connection resolver
+ok 14 - invalid JSON signature and oversized input never reach the connection resolver
+  ---
+  duration_ms: 2.1721
+  type: 'test'
+  ...
+# Subtest: status notifications are distinct from message acceptance
+ok 15 - status notifications are distinct from message acceptance
+  ---
+  duration_ms: 0.7496
+  type: 'test'
+  ...
+# Subtest: Gemini Edge requires staging identity, explicit flag, workspace and secret
+ok 16 - Gemini Edge requires staging identity, explicit flag, workspace and secret
+  ---
+  duration_ms: 1.4224
+  type: 'test'
+  ...
+# Subtest: Gemini output is an approval draft and cannot cite foreign sources
+ok 17 - Gemini output is an approval draft and cannot cite foreign sources
+  ---
+  duration_ms: 3.1929
+  type: 'test'
+  ...
+# Subtest: commercial terms require verified commercial sources; optout/handoff remain pending
+ok 18 - commercial terms require verified commercial sources; optout/handoff remain pending
+  ---
+  duration_ms: 1.7563
+  type: 'test'
+  ...
+# Subtest: Gemini request has no tools, no arbitrary endpoint, bounded output and validated token usage
+ok 19 - Gemini request has no tools, no arbitrary endpoint, bounded output and validated token usage
+  ---
+  duration_ms: 26.3246
+  type: 'test'
+  ...
+# Subtest: provider errors never expose credentials, raw responses or retry automatically
+ok 20 - provider errors never expose credentials, raw responses or retry automatically
+  ---
+  duration_ms: 2.3064
+  type: 'test'
+  ...
+# Subtest: trusted request scopes all reads and persists before returning success
+ok 21 - trusted request scopes all reads and persists before returning success
+  ---
+  duration_ms: 3.0989
+  type: 'test'
+  ...
+# Subtest: running, failed and completed replays never call Gemini
+ok 22 - running, failed and completed replays never call Gemini
+  ---
+  duration_ms: 0.881
+  type: 'test'
+  ...
+# Subtest: no key denies model before quota claim; deterministic T0 still works without key
+ok 23 - no key denies model before quota claim; deterministic T0 still works without key
+  ---
+  duration_ms: 1.2578
+  type: 'test'
+  ...
+# Subtest: failed model run is audited and never represented as successful
+ok 24 - failed model run is audited and never represented as successful
+  ---
+  duration_ms: 0.8922
+  type: 'test'
+  ...
+# Subtest: unapproved Pulso allocation blocks generative calls and records the failed run
+ok 25 - unapproved Pulso allocation blocks generative calls and records the failed run
+  ---
+  duration_ms: 0.8081
+  type: 'test'
+  ...
+# Subtest: missing, expired, foreign-model or malformed tariff blocks inference even with an approved Pulso allocation
+ok 26 - missing, expired, foreign-model or malformed tariff blocks inference even with an approved Pulso allocation
+  ---
+  duration_ms: 2.4047
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4702.8208

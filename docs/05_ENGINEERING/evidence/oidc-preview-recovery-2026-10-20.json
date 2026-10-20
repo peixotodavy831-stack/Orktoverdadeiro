@@ -1,0 +1,34 @@
+{
+  "scope": "READ_ONLY_VERCEL_OIDC_ENVIRONMENT_DIAGNOSIS",
+  "observedAt": "2026-10-20T16:03:56.031Z",
+  "applicationSession": false,
+  "oidcStorage": "memory_only",
+  "rulesChanged": false,
+  "records": [
+    {
+      "sha": "837b5e57ed7706aa08a039b22efaa94a0797d8af",
+      "target": null,
+      "origin": "https://orkto-staging-qabzbbu7z-peixoto-s-projects1.vercel.app",
+      "httpStatus": 200,
+      "healthy": true,
+      "protectionCode": null
+    },
+    {
+      "sha": "837b5e57ed7706aa08a039b22efaa94a0797d8af",
+      "target": "staging",
+      "origin": "https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app",
+      "httpStatus": 403,
+      "healthy": false,
+      "protectionCode": "TRUSTED_SOURCES_ENVIRONMENT_MISMATCH"
+    },
+    {
+      "sha": "a2a3651319196ffc56813992f705692d368ef967",
+      "target": null,
+      "origin": "https://orkto-staging-az36qohmo-peixoto-s-projects1.vercel.app",
+      "httpStatus": 200,
+      "healthy": true,
+      "protectionCode": null
+    }
+  ],
+  "readyForProductionCandidate": "NO"
+}

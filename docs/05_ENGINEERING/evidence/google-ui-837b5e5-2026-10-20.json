@@ -1,0 +1,19 @@
+{
+  "runtimeSha":"837b5e57ed7706aa08a039b22efaa94a0797d8af",
+  "project":"ghrjongiodziasupakrk",
+  "scope":"SEQUENTIAL_NORMAL_BROWSER_UI_NOT_ISOLATED_HTTP",
+  "redirect":{"ownerApproved":true,"saved":true,"before":17,"after":18,"existingUrlsPreserved":true,"siteUrlPreserved":true},
+  "actorA":{"normalGoogleLogin":"PASS","callbackAtExactCandidateRoot":"PASS","reloadPersistence":"PASS","logoutToLanding":"PASS","logoutPersistsAfterReload":"PASS"},
+  "actorB":{"normalGoogleLogin":"PASS","callbackAtExactCandidateRoot":"PASS","reloadPersistence":"PASS","onboardingRequired":true,"onboardingDataWritten":false,"logoutToLanding":"PASS"},
+  "adminSessionCounts":[
+    {"observedAtUtc":"2026-10-20T15:38:32.310431Z","phase":"BEFORE_A_UI_LOGOUT","A":3,"B":2},
+    {"observedAtUtc":"2026-10-20T15:38:50.872885Z","phase":"AFTER_A_UI_LOGOUT","A":0,"B":2},
+    {"observedAtUtc":"2026-10-20T15:40:45.864381Z","phase":"AFTER_SUBSEQUENT_B_LOGIN_AND_UI_LOGOUT","A":0,"B":0}
+  ],
+  "logoutScopeObserved":"ALL_SESSIONS_OF_SIGNING_OUT_USER",
+  "memberships":[{"actor":"A","total":1,"approvedOwnWorkspace":1,"foreignWorkspaces":0},{"actor":"B","total":1,"approvedOwnWorkspace":1,"foreignWorkspaces":0}],
+  "newAccountsWorkspacesOrRoles":false,
+  "credentialsOrSessionExported":false,
+  "crossTenantHttpAndTokenReplay":"NOT_TESTED",
+  "readyForProductionCandidate":"NO"
+}

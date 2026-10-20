@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: native update uses PUT sandbox and never updates pending payments or commercial price
+ok 1 - native update uses PUT sandbox and never updates pending payments or commercial price
+  ---
+  duration_ms: 28.1399
+  type: 'test'
+  ...
+# Subtest: cancel requires explicit lifecycle flag and confirmed DELETE receipt
+ok 2 - cancel requires explicit lifecycle flag and confirmed DELETE receipt
+  ---
+  duration_ms: 1.2865
+  type: 'test'
+  ...
+# Subtest: unknown or deleted provider state is never fabricated from HTTP errors
+ok 3 - unknown or deleted provider state is never fabricated from HTTP errors
+  ---
+  duration_ms: 0.9823
+  type: 'test'
+  ...
+# Subtest: cancel is reserved before I/O, recorded and replayed without second DELETE
+ok 4 - cancel is reserved before I/O, recorded and replayed without second DELETE
+  ---
+  duration_ms: 0.6406
+  type: 'test'
+  ...
+# Subtest: ambiguous provider outcome persists unknown and refuses automatic resend
+ok 5 - ambiguous provider outcome persists unknown and refuses automatic resend
+  ---
+  duration_ms: 0.4018
+  type: 'test'
+  ...
+# Subtest: foreign or inconsistent binding denies mutation before contacting supplier
+ok 6 - foreign or inconsistent binding denies mutation before contacting supplier
+  ---
+  duration_ms: 0.1786
+  type: 'test'
+  ...
+# Subtest: native lifecycle records provider state but never grants entitlement
+ok 7 - native lifecycle records provider state but never grants entitlement
+  ---
+  duration_ms: 0.2184
+  type: 'test'
+  ...
+# Subtest: update re-reads authoritative provider after PUT, persistence failure is unknown
+ok 8 - update re-reads authoritative provider after PUT, persistence failure is unknown
+  ---
+  duration_ms: 0.3811
+  type: 'test'
+  ...
+# Subtest: provider re-read must match workspace customer, subscription, price and reference
+ok 9 - provider re-read must match workspace customer, subscription, price and reference
+  ---
+  duration_ms: 1.9178
+  type: 'test'
+  ...
+# Subtest: foreign customer and wrong amount never reach entitlement mutation
+ok 10 - foreign customer and wrong amount never reach entitlement mutation
+  ---
+  duration_ms: 0.501
+  type: 'test'
+  ...
+# Subtest: pending payment remains pending even when the subscription object is ACTIVE
+ok 11 - pending payment remains pending even when the subscription object is ACTIVE
+  ---
+  duration_ms: 0.2173
+  type: 'test'
+  ...
+# Subtest: provider outage leaves no fabricated activation or automatic second charge
+ok 12 - provider outage leaves no fabricated activation or automatic second charge
+  ---
+  duration_ms: 0.2891
+  type: 'test'
+  ...
+# Subtest: billing webhook fails closed without dedicated secret before provider or database access
+ok 13 - billing webhook fails closed without dedicated secret before provider or database access
+  ---
+  duration_ms: 249.5852
+  type: 'test'
+  ...
+# Subtest: billing webhook rejects wrong dedicated token before any persistence
+ok 14 - billing webhook rejects wrong dedicated token before any persistence
+  ---
+  duration_ms: 3.2509
+  type: 'test'
+  ...
+# Subtest: valid token cannot enable missing sandbox configuration
+ok 15 - valid token cannot enable missing sandbox configuration
+  ---
+  duration_ms: 0.8176
+  type: 'test'
+  ...
+# Subtest: sandbox webhook rejects malformed or oversized events before creating a database client
+ok 16 - sandbox webhook rejects malformed or oversized events before creating a database client
+  ---
+  duration_ms: 3.6218
+  type: 'test'
+  ...
+# Subtest: sandbox webhook cannot run against production even with a correct token
+ok 17 - sandbox webhook cannot run against production even with a correct token
+  ---
+  duration_ms: 0.4679
+  type: 'test'
+  ...
+# Subtest: native subscription event re-reads provider and completes durable claim; duplicates skip I/O
+ok 18 - native subscription event re-reads provider and completes durable claim; duplicates skip I/O
+  ---
+  duration_ms: 15.4548
+  type: 'test'
+  ...
+# Subtest: native deletion 404 stays retryable and never assumes entitlement termination
+ok 19 - native deletion 404 stays retryable and never assumes entitlement termination
+  ---
+  duration_ms: 2.8674
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2977.828

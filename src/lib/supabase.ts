@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { isGooglePilot } from './google-pilot';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -12,7 +13,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(
   supabaseUrl || "https://placeholder.supabase.co",
-  supabaseAnonKey || "placeholder"
+  supabaseAnonKey || "placeholder",
+  isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE)
+    ? { auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true } }
+    : undefined
 );
 
 // Types for Orkto data

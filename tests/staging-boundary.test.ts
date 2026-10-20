@@ -22,6 +22,18 @@ const staging = () => ({
   PUBLIC_CASE_PUBLICATION: 'OFF',
 });
 
+test('Gemini isolated test opt-in never permits secrets in the Preview runtime',()=>{
+  const configured={...staging(),GEMINI_API_KEY:'synthetic-test-key',WIA_STAGING_GEMINI_TESTS:'ON',WIA_MODEL_PROVIDER:'gemini'};
+  assert.throws(()=>assertStagingBoundary(configured));
+  assert.throws(()=>assertStagingBoundary({...configured,WIA_STAGING_GEMINI_TESTS:'OFF'}));
+  assert.throws(()=>assertStagingBoundary({...configured,WIA_MODEL_PROVIDER:'deepseek'}));
+  assert.throws(()=>assertStagingBoundary({...configured,WIA_DEEP_PROVIDER:'openrouter'}));
+  assert.throws(()=>assertStagingBoundary({...configured,DEEPSEEK_API_KEY:'synthetic-test-key'}));
+  assert.throws(()=>assertStagingBoundary({...configured,VITE_GEMINI_API_KEY:'synthetic-test-key'}));
+  assert.throws(()=>assertStagingBoundary({...configured,WHATSAPP_ACCESS_TOKEN:'synthetic-test-key'}));
+  assert.throws(()=>assertStagingBoundary({...configured,SUPABASE_SERVICE_ROLE_KEY:'synthetic-test-key'}));
+});
+
 test('generated Preview origin is allowed only when the staging deployment identity is pinned', () => {
   const env = { ...staging(), VERCEL:'1', VERCEL_ENV:'preview',
     VERCEL_PROJECT_ID:STAGING_VERCEL_PROJECT_ID,

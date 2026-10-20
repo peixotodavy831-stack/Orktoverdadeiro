@@ -144,7 +144,7 @@ function App() {
     if (view === 'create_quote') { setScreen('today'); setMobileThread(false); return; }
   };
 
-  return <div className="orkto-product-shell flex h-dvh min-h-0 overflow-hidden" data-visual-screen={screen} data-visual-theme={darkMode ? 'dark' : 'light'}>
+  return <div className="orkto-product-shell orkto-glass-shell flex h-dvh min-h-0 overflow-hidden" data-visual-screen={screen} data-visual-theme={darkMode ? 'dark' : 'light'}>
     <div className="fixed left-1/2 top-1 z-[200] -translate-x-1/2 rounded-full border px-3 py-1 text-[10px] font-semibold tracking-wide orkto-product-border orkto-product-surface shadow-sm lg:left-[260px] lg:translate-x-0">VISUAL QA · FIXTURES DE TESTE</div>
     <DesktopSidebar currentView={currentView} collapsed={false} onCollapsedChange={() => undefined} onNavigate={navigate} darkMode={darkMode} onThemeChange={setDarkMode} companyName="Ambiente de revisão" userName="QA" isInternalAdmin={false} onSignOut={() => undefined} />
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">

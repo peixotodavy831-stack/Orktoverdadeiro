@@ -1,0 +1,14 @@
+{
+  "runtimeSha": "837b5e57ed7706aa08a039b22efaa94a0797d8af",
+  "vercelAccess": "short_lived_oidc_memory",
+  "applicationSession": false,
+  "records": [
+    {
+      "path": "/api/health",
+      "status": 403,
+      "expected": 200,
+      "result": "BLOCKED_EXTERNAL",
+      "protectionCode": "TRUSTED_SOURCES_ENVIRONMENT_MISMATCH"
+    }
+  ]
+}

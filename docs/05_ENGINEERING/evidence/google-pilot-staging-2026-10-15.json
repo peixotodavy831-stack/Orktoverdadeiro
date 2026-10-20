@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-15",
+  "source": {
+    "projectRef": "ghrjongiodziasupakrk",
+    "method": "authenticated_dashboard_sql_select",
+    "captureKind": "sanitized_transcription_of_aggregate_results",
+    "query": "supabase/tests/inspect_google_pilot_staging_readonly.sql",
+    "rawRowsExported": false,
+    "credentialsExported": false
+  },
+  "application": {
+    "sha": "c9584feb52eca364100e95abcfef7037316c6147",
+    "deployment": "dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D",
+    "origin": "https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app",
+    "target": "Preview",
+    "state": "READY",
+    "observedAuthSettingsHost": "ghrjongiodziasupakrk.supabase.co",
+    "googleE2E": "NOT_RUN"
+  },
+  "ledger": {
+    "count": 44,
+    "distinctVersions": 44,
+    "duplicateLogicalNames": 0,
+    "migration44": {
+      "logicalName": "google_pilot_gate_fails_closed",
+      "remoteVersion": "20261015163447",
+      "localFile": "20261014160000_google_pilot_gate_fails_closed.sql",
+      "occurrences": 1,
+      "localSha256": "20ffabfb627b8bd30bb36fb2f2e1f00bd862840f3e12fc8dd63bc47309e21d7d",
+      "normalizedSqlMd5": "45107aaf5da65c9cc3c737d06631748a",
+      "localRemoteNormalizedSqlMatch": true
+    }
+  },
+  "functions": [
+    {
+      "name": "orkto_pilot_session_allowed",
+      "bodyMd5": "60b921aec407f8914749939e2d2d6d28",
+      "normalizedBodyMd5": "b60cce339d67aa55a6f75b4ac2e077a7",
+      "localRemoteExactBodyMatch": true,
+      "securityDefiner": true,
+      "volatility": "stable",
+      "searchPath": "",
+      "execute": {
+        "anon": false,
+        "PUBLIC": false,
+        "authenticated": true,
+        "service_role": true
+      }
+    },
+    {
+      "name": "orkto_google_pilot_session_allowed",
+      "bodyMd5": "21881a0afc877905cc5f63f6530732f7",
+      "normalizedBodyMd5": "388516263204b8fd0231a9991924b930",
+      "localRemoteExactBodyMatch": true,
+      "securityDefiner": true,
+      "volatility": "stable",
+      "searchPath": "",
+      "execute": {
+        "anon": false,
+        "PUBLIC": false,
+        "authenticated": true,
+        "service_role": true
+      }
+    }
+  ],
+  "privateSchemaUsage": {
+    "anon": false,
+    "authenticated": false
+  },
+  "pilot": {
+    "enabled": true,
+    "admissions": 0,
+    "authUsers": 1,
+    "googleIdentities": 0,
+    "activeSessions": 0,
+    "totalSessions": 0,
+    "refreshTokens": 0,
+    "strictGoogleRpcWithoutJwt": false,
+    "preservedUnknownOriginAccountModified": false
+  },
+  "recovery": {
+    "checkpoints": 1,
+    "verifiedCheckpoints": 1,
+    "protectedRows": 57,
+    "disasterRestoreTest": "NOT_RUN",
+    "limitation": "Counts and verified marker do not prove a current full restore or managed backup/PITR."
+  },
+  "authConfiguration": {
+    "googleEnabled": false,
+    "emailEnabled": false,
+    "manualLinkingEnabled": false,
+    "anonymousEnabled": false,
+    "signupEnabled": true,
+    "confirmEmail": true,
+    "siteUrl": "https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/",
+    "redirectUrls": [
+      "https://orkto-staging-da5dotdh0-peixoto-s-projects1.vercel.app",
+      "https://orkto-staging-h62m3k3sf-peixoto-s-projects1.vercel.app/"
+    ],
+    "redirectChange": "Current exact staging Preview added and Site URL updated; previous exact staging redirect retained; no wildcard or production origin."
+  },
+  "vercelEnvironment": {
+    "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+    "projectName": "orkto-staging",
+    "metadataOnly": true,
+    "valuesRead": false,
+    "previewNames": [
+      "ORKTO_AUTH_MODE",
+      "VITE_ORKTO_AUTH_MODE",
+      "VITE_APP_ENV",
+      "VITE_SUPABASE_URL",
+      "VITE_SUPABASE_ANON_KEY",
+      "APP_URL",
+      "PUBLIC_SITE_URL",
+      "ALLOWED_ORIGINS",
+      "ORKTO_STAGING_VERCEL_PROJECT_ID",
+      "COLLECTIVE_MEMORY_CROSS_WORKSPACE",
+      "PUBLIC_CASE_PUBLICATION",
+      "APP_ENV"
+    ],
+    "modeFlagsBranch": "production-readiness/google-only-pilot-preflight",
+    "privilegedSecretNamesFound": false,
+    "limitation": "Names/scopes do not prove values of ordinary configuration or arbitrary aliases."
+  },
+  "ci": {
+    "sha": "91e60418e5ea30327f7888dfb1bb43421c59a45a",
+    "postgres17": {
+      "run": 38771357969,
+      "status": "SUCCESS",
+      "legacyReplay": "PASS_44",
+      "baselineReplay": "PASS",
+      "googleAdversarialSql": "PASS_DISPOSABLE_DATABASE"
+    },
+    "deployBoundary": {
+      "run": 38771358250,
+      "status": "SUCCESS"
+    }
+  },
+  "remoteChangesThisSession": [
+    "STAGING_AUTH_SITE_URL_UPDATED",
+    "CURRENT_EXACT_STAGING_REDIRECT_ADDED"
+  ],
+  "migrationReapplied": false,
+  "ledgerEdited": false,
+  "productionTouched": false,
+  "limitations": [
+    "Google credentials list failed to load in authenticated Google Cloud console; no client configured.",
+    "Pilot identities and roles not owner-approved; allowlist remains empty.",
+    "No current Google A/B, PKCE/session/revocation or tenant E2E.",
+    "Application health/headers/CORS/observability not proved by 302 from Vercel protection.",
+    "No assertion about unauthorized historical changes by other actors."
+  ],
+  "readiness": "BLOCKED_EXTERNAL_OWNER_ACCESS",
+  "privateTables": [
+    {
+      "name": "admissions",
+      "rlsEnabled": true,
+      "policyCount": 0,
+      "anonAnyDataGrant": false,
+      "authenticatedAnyDataGrant": false
+    },
+    {
+      "name": "audit",
+      "rlsEnabled": true,
+      "policyCount": 0,
+      "anonAnyDataGrant": false,
+      "authenticatedAnyDataGrant": false
+    },
+    {
+      "name": "configuration",
+      "rlsEnabled": true,
+      "policyCount": 0,
+      "anonAnyDataGrant": false,
+      "authenticatedAnyDataGrant": false
+    },
+    {
+      "name": "recovery_checkpoints",
+      "rlsEnabled": true,
+      "policyCount": 0,
+      "anonAnyDataGrant": false,
+      "authenticatedAnyDataGrant": false
+    },
+    {
+      "name": "recovery_rows",
+      "rlsEnabled": true,
+      "policyCount": 0,
+      "anonAnyDataGrant": false,
+      "authenticatedAnyDataGrant": false
+    }
+  ]
+}

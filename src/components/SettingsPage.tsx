@@ -524,19 +524,6 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
           </div>
         </div>
 
-        {/* Row 4: Asaas Integration */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-4">
-          <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-            <CreditCard className="w-5 h-5 text-orange-500" />
-            Integração Asaas (Pagamentos)
-          </h3>
-          <p className="text-xs text-zinc-500">O checkout e a cobrança automática dependem de configuração, validação comercial e ativação explícita.</p>
-          <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
-            <CreditCard className="w-4 h-4 text-amber-500 shrink-0" />
-            <p className="text-xs text-amber-700 dark:text-amber-300">Checkout indisponível nesta versão; nenhuma cobrança será criada por esta tela.</p>
-          </div>
-        </div>
-
         {/* Row 5: Simulated App Notifications options */}
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-4">
           <h3 className="text-sm font-bold uppercase text-zinc-400 tracking-wider mb-2">Avisos e Lembretes (Simulado)</h3>

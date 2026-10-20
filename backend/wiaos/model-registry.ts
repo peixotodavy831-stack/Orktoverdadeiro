@@ -38,7 +38,8 @@ function providerGateway(provider: ModelProviderId): ModelGatewayId {
 
 function hasCredential(provider: ModelProviderId, env: NodeJS.ProcessEnv): boolean {
   if (provider === 'deepseek') return Boolean(env.DEEPSEEK_API_KEY?.trim());
-  if (provider === 'gemini') return Boolean(env.GEMINI_API_KEY?.trim());
+  if (provider === 'gemini') return Boolean(env.GEMINI_API_KEY?.trim())
+    && (env.APP_ENV !== 'staging' || (env.WIA_STAGING_GEMINI_TESTS === 'ON' && env.WIA_MODEL_PROVIDER === 'gemini'));
   if (provider === 'openrouter') return Boolean(env.OPENROUTER_API_KEY?.trim());
   return env.NODE_ENV !== 'production' && env.WIA_ALLOW_MOCK === 'true';
 }
@@ -93,7 +94,7 @@ export function createModelRegistry(env: NodeJS.ProcessEnv = process.env): Model
       purpose: provider === 'mock'
         ? 'development-testing'
         : provider === 'gemini'
-          ? 'production'
+          ? env.APP_ENV === 'staging' ? 'development-testing' : 'production'
           : 'future-opt-in',
       enabled: available,
     };

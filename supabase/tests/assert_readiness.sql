@@ -69,7 +69,7 @@ begin
     definer_count := definer_count + 1;
     if f.proname not in (
       'orkto_is_workspace_member','orkto_is_workspace_admin','orkto_provision_workspace_for_profile',
-      'orkto_provision_profile_for_auth_user',
+      'orkto_provision_profile_for_auth_user','orkto_pilot_session_allowed','orkto_google_pilot_session_allowed',
       'orkto_legacy_owner_matches','orkto_create_default_workspace_trial','orkto_consume_plan_usage',
       'orkto_claim_payment_intent','orkto_finish_payment_intent','orkto_apply_payment_intent_provider_event','orkto_claim_payment_webhook_event',
       'orkto_finish_payment_webhook_event','orkto_reserve_channel_send','orkto_mark_channel_send',
@@ -77,11 +77,15 @@ begin
       'orkto_create_client_command','orkto_update_client_command','orkto_archive_client_command',
       'orkto_catalog_item_command','orkto_deal_command','orkto_wia_decide_command',
       'orkto_create_quote_command','orkto_set_conversation_priority_command',
-      'orkto_complete_onboarding_command','orkto_inbox_state_command',
+      'orkto_complete_onboarding_command','orkto_update_self_profile_command','orkto_inbox_state_command',
       'orkto_archive_quote_command','orkto_update_quote_command',
       'orkto_transition_deal_command','orkto_wia_start_command','orkto_wia_complete_command',
+      'orkto_wia_claim_request','orkto_wia_finish_request',
       'orkto_publish_live_quote_command','orkto_public_live_quote_command',
-      'orkto_extend_quote_retention_command','orkto_decide_approval_task_command','orkto_contact_command'
+      'orkto_extend_quote_retention_command','orkto_decide_approval_task_command','orkto_contact_command',
+      'orkto_store_meta_connection','orkto_read_meta_token','orkto_set_whatsapp_mode',
+      'orkto_claim_meta_webhook_event','orkto_ingest_meta_text_message','orkto_finish_meta_webhook_event',
+      'orkto_reserve_meta_send','orkto_accept_meta_send'
     ) then
       raise exception 'Unexpected SECURITY DEFINER routine in public: %', f.proname;
     end if;
@@ -91,7 +95,7 @@ begin
     if has_function_privilege('anon', f.oid, 'EXECUTE') then
       raise exception 'SECURITY DEFINER routine % is executable by anon', f.proname;
     end if;
-    if f.proname in ('orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches') then
+    if f.proname in ('orkto_is_workspace_member','orkto_is_workspace_admin','orkto_legacy_owner_matches','orkto_pilot_session_allowed','orkto_google_pilot_session_allowed') then
       if not has_function_privilege('authenticated', f.oid, 'EXECUTE') then
         raise exception 'Workspace authorization helper % is unavailable to authenticated RLS policies', f.proname;
       end if;
@@ -102,7 +106,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> (35 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
+  if definer_count <> (48 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;

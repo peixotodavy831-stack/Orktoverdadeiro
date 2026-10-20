@@ -5,7 +5,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@supabase/supabase-js';
-import { stagingPreviewAccessForBrowser, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
+import { stagingPreviewAccessForBrowser, validatePasswordRunnerMode, validateStagingE2EConfig, validateStagingE2ETargetConfig, validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
 import { browserTlsEnvironment, buildStagingBrowserEnvironment, errorClass, sanitizeArtifacts, secretValues } from './staging-browser-security.mjs';
 import { runSafePlaywright } from './staging-playwright-process.mjs';
 
@@ -114,6 +114,11 @@ const admin = createClient(url, adminKey, { auth: { persistSession: false, autoR
 await measuredPhase('STAGING_KEYS', async () => {
 const publicProbe = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: publicKey } });
 assert.equal(publicProbe.status, 200, 'staging publishable key must be accepted by staging Auth');
+const passwordMode = validatePasswordRunnerMode(await publicProbe.json(), process.env);
+if (!passwordMode.ok) {
+  console.error(passwordMode.code);
+  process.exit(2);
+}
 const { error: adminError } = await admin.auth.admin.listUsers({ page: 1, perPage: 1 });
 assert.equal(adminError, null, 'staging Admin API must accept only the project-bound admin key');
 });

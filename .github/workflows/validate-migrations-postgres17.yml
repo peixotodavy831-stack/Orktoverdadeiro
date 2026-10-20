@@ -46,7 +46,7 @@ concurrency:
 
 jobs:
   replay:
-    name: Legacy fixture + 41 migrations + assertions
+    name: Legacy fixture + 50 migrations + assertions
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
@@ -102,7 +102,25 @@ jobs:
 
       - name: Replay fixture and migrations
         shell: bash
-        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 41 --security-assertion supabase/tests/assert_security_contract.sql
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 50 --security-assertion supabase/tests/assert_security_contract.sql
+
+      - name: Google pilot adversarial SQL (disposable only)
+        run: |
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_personal_profile.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_wia_request_provenance.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_whatsapp_connections.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
+
+      - name: Commercial billing and Pulso SQL
+        run: |
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_commercial_billing.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_billing_lifecycle.sql
+
+      - name: Disposable backup and restore rehearsal
+        shell: bash
+        run: bash scripts/readiness/rehearse-restore-ci.sh "${{ job.services.postgres.id }}"
 
       - name: Capture PostgreSQL service log
         if: always()
@@ -167,12 +185,20 @@ jobs:
         run: |
           node scripts/validate-migrations.mjs \
             --target ci \
-            --expected-count 41 \
+            --expected-count 50 \
             --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
             --start-after 20260923225648 \
             --pre-assertion supabase/tests/assert_remote_upgrade.sql \
             --security-assertion supabase/tests/assert_security_contract.sql \
             --evidence-dir "$RUNNER_TEMP/orkto-security-evidence"
+      - name: Google pilot adversarial SQL (disposable only)
+        run: |
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_personal_profile.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_whatsapp_connections.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
+
       - name: Upload security evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

@@ -35,6 +35,8 @@ function decodeIn(value: string): string[] {
 }
 
 class FakePostgrest {
+  pilotAccess: unknown = true;
+  pilotUnavailable = false;
   readonly tables = new Map<string, Row[]>();
   readonly requestAuthorization: Array<{ path: string; authorization: string | null }> = [];
   beforePatch?: (table: string, body: Row, filters: Filter[]) => void;
@@ -143,6 +145,10 @@ class FakePostgrest {
       authorization: new Headers(init.headers).get('authorization')
         || (input instanceof Request ? input.headers.get('authorization') : null),
     });
+    if (url.pathname === '/rest/v1/rpc/orkto_google_pilot_session_allowed') {
+      return this.pilotUnavailable ? Response.json({message:'private-provider-diagnostic'},{status:503})
+        : Response.json(this.pilotAccess);
+    }
     if (url.pathname === '/rest/v1/rpc/orkto_consume_plan_usage' && (init.method || 'GET').toUpperCase() === 'POST') {
       const args = typeof init.body === 'string' ? JSON.parse(init.body) : {};
       const rows = this.rows('orkto_plan_usage');
@@ -328,6 +334,7 @@ let app: Express;
 let failGeminiRequests = false;
 let lastGeminiRequestContents: unknown = null;
 let profileGatewayCalls = 0;
+let billingGatewayCalls = 0;
 const servers = new Set<ReturnType<typeof createServer>>();
 
 before(async () => {
@@ -365,6 +372,12 @@ before(async () => {
         id: randomUUID(), workspace_id: workspaceId, actor_user_id: user.id, event_type: eventType,
         entity_type: entityType, entity_ref: entityRef, request_id: headers.get('x-request-id'),
       });
+      if (request.command === 'READ_BILLING_CURRENT') {
+        if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        billingGatewayCalls++;
+        const subscription=database.rows('orkto_workspace_subscriptions').find(row=>row.workspace_id===workspaceId)||null;
+        return ok({result:'READ',billing:{subscription,workspacePlan:subscription?.plan_key||null,status:subscription?.status||'configuration_required',readOnly:false,configurationRequired:false,entitlements:{},usage:[],checkout:'not_configured'}});
+      }
       if (request.command === 'READ_PLAN_CATALOG') {
         if (Object.keys(payload).length) return Response.json({ code:'VALIDATION_FAILED' }, { status:400 });
         const catalog = database.rows('orkto_plan_price_versions').filter(row=>row.status==='approved').map(row=>({
@@ -374,7 +387,16 @@ before(async () => {
         }));
         return ok({result:'READ',catalog});
       }
-      if (request.command === 'PREPARE_WIA_T0') {
+      if (request.command === 'READ_WIA_RUNTIME') {
+        if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        return ok({result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',state:'configuration_required',testingOnly:true}});
+      }
+      if (request.command === 'READ_WHATSAPP_CONNECTION') {
+        if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
+        return ok({result:'READ',whatsapp:{state:'configuration_required',connected:false,
+          runtimeConfigured:false,connection:null,controls:null}});
+      }
+      if (request.command === 'PREPARE_WIA_REQUEST') {
         if(typeof payload.message!=='string'||!payload.message.trim()
           ||Object.keys(payload).some(key=>key!=='message'))
           return Response.json({code:'VALIDATION_FAILED'},{status:400});
@@ -827,6 +849,39 @@ async function api(base: string, token: string, path: string, init: RequestInit 
 }
 
 function json(body: unknown): RequestInit { return { method: 'POST', body: JSON.stringify(body) }; }
+
+test('workspace audit restricts role, tenant and payload projection',async()=>{
+  resetDatabase();
+  database.set('orkto_wia_events',[
+    {id:randomUUID(),workspace_id:WORKSPACE_A,event_type:'client.created',source:'user',actor_user_id:USER_A,entity_type:'client',entity_ref:'sensitive-non-uuid-reference',payload:{private:'never-expose-content'},occurred_at:'2026-10-16T12:00:00Z'},
+    {id:randomUUID(),workspace_id:WORKSPACE_B,event_type:'foreign.secret',source:'user',occurred_at:'2026-10-16T12:00:00Z'},
+  ]);
+  database.set('orkto_audit_log',[]);
+  const base=await serve(app);
+  const response=await api(base,CLIENT_TOKEN_A,'/api/audit');assert.equal(response.status,200);
+  const text=await response.text();assert.ok(text.includes('client.created'));assert.ok(!text.includes('never-expose-content'));assert.ok(!text.includes('sensitive-non-uuid-reference'));assert.ok(!text.includes('foreign.secret'));
+  assert.equal(response.headers.get('cache-control'),'private, no-store');
+  assert.equal((await api(base,CLIENT_TOKEN_A_RECIPIENT,'/api/audit')).status,403);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/audit',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+  assert.equal((await fetch(`${base}/api/audit`)).status,401);
+});
+
+test('billing reads use the authenticated gateway without private table reads in Preview',async()=>{
+  resetDatabase();const base=await serve(app);const previous=process.env.APP_ENV;const previousUrl=process.env.VITE_SUPABASE_URL;
+  try{process.env.APP_ENV='staging';process.env.VITE_SUPABASE_URL='https://ghrjongiodziasupakrk.supabase.co';const beforeCalls=billingGatewayCalls;const response=await api(base,CLIENT_TOKEN_A,'/api/billing/current');assert.equal(response.status,200);
+    assert.equal(billingGatewayCalls,beforeCalls+1);
+    const reads=database.requestAuthorization.filter(item=>['/rest/v1/orkto_workspace_subscriptions','/rest/v1/orkto_plan_usage'].includes(item.path));
+    assert.equal(reads.length,0);assert.equal((await response.json() as {workspacePlan:string}).workspacePlan,'pro');
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/billing/current',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+  }finally{if(previous===undefined)delete process.env.APP_ENV;else process.env.APP_ENV=previous;if(previousUrl===undefined)delete process.env.VITE_SUPABASE_URL;else process.env.VITE_SUPABASE_URL=previousUrl;}
+});
+
+test('integration status never claims external activation or exposes keys',async()=>{
+  resetDatabase();const base=await serve(app);const response=await api(base,CLIENT_TOKEN_A,'/api/integrations/status');assert.equal(response.status,200);
+  const payload=await response.json() as {data:{whatsapp:{connected:boolean};billing:{checkoutEnabled:boolean}}};assert.equal(payload.data.whatsapp.connected,false);assert.equal(payload.data.billing.checkoutEnabled,false);
+  assert.ok(!JSON.stringify(payload).includes('apiKey'));
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/integrations/status',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+});
 
 test('plan catalog uses membership-scoped Edge read and masks unpublished prices', async () => {
   resetDatabase();
@@ -2214,4 +2269,34 @@ test('automatic message memory is idempotent, contextual in WIA and isolated by 
   assert.match(JSON.stringify(lastGeminiRequestContents),/oferecer alternativas de escopo sem inventar desconto/,'relevant workspace-level Replay memory is retrieved selectively without attaching it to an approximate customer name');
   assert.equal((await api(base,CLIENT_TOKEN_B,'/api/wia/decide',json({message:'Mostre a preferência do outro workspace',contextRefs:{customerId:customer.id}}))).status,404);
   assert.equal(database.rows('orkto_wia_memories').every(row=>row.workspace_id===WORKSPACE_A),true);
+});
+
+test('Google pilot API gate uses caller JWT and precedes invitations, tenancy and business writes', async () => {
+  resetDatabase();
+  const previous = process.env.ORKTO_AUTH_MODE;
+  const base = await serve(app);
+  try {
+    process.env.ORKTO_AUTH_MODE = 'google_pilot';
+    database.pilotAccess = false;
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/clients')).status,403);
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/team/invites/accept',{
+      method:'POST',body:JSON.stringify({token:'test-untrusted-invite'})})).status,403);
+    assert.equal((await api(base,'invalid-pilot-session','/api/clients')).status,401);
+    database.pilotUnavailable = true;
+    const unavailable = await api(base,CLIENT_TOKEN_A,'/api/clients');
+    assert.equal(unavailable.status,503);
+    assert.ok(!(await unavailable.text()).includes('private-provider-diagnostic'));
+    database.pilotUnavailable = false;
+    database.pilotAccess = true;
+    // Invalid invite input is rejected by the route after admission succeeded.
+    assert.equal((await api(base,CLIENT_TOKEN_A,'/api/team/invites/accept',{
+      method:'POST',body:JSON.stringify({})})).status,400);
+    assert.ok(database.requestAuthorization.some(request =>
+      request.path==='/rest/v1/rpc/orkto_google_pilot_session_allowed'
+      && request.authorization===`Bearer ${CLIENT_TOKEN_A}`));
+  } finally {
+    database.pilotAccess = true; database.pilotUnavailable = false;
+    if(previous===undefined) delete process.env.ORKTO_AUTH_MODE;
+    else process.env.ORKTO_AUTH_MODE=previous;
+  }
 });

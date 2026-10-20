@@ -1,0 +1,142 @@
+TAP version 13
+# Subtest: allows only the verified staging project and Supabase target
+ok 1 - allows only the verified staging project and Supabase target
+  ---
+  duration_ms: 2.1778
+  type: 'test'
+  ...
+# Subtest: hard aborts when the linked project is production
+ok 2 - hard aborts when the linked project is production
+  ---
+  duration_ms: 0.2096
+  type: 'test'
+  ...
+# Subtest: hard aborts when any supplied Supabase target names production
+ok 3 - hard aborts when any supplied Supabase target names production
+  ---
+  duration_ms: 0.1504
+  type: 'test'
+  ...
+# Subtest: hard aborts when a service-role key or fingerprint could reach Preview
+ok 4 - hard aborts when a service-role key or fingerprint could reach Preview
+  ---
+  duration_ms: 0.2197
+  type: 'test'
+  ...
+# Subtest: fails closed when required staging ref or URL is missing or unknown
+ok 5 - fails closed when required staging ref or URL is missing or unknown
+  ---
+  duration_ms: 0.2887
+  type: 'test'
+  ...
+# Subtest: rejects an unexpected Vercel project and a production deployment mode
+ok 6 - rejects an unexpected Vercel project and a production deployment mode
+  ---
+  duration_ms: 0.2482
+  type: 'test'
+  ...
+# Subtest: rejects deploy flags and permits guard-only without invoking Vercel
+ok 7 - rejects deploy flags and permits guard-only without invoking Vercel
+  ---
+  duration_ms: 0.176
+  type: 'test'
+  ...
+# Subtest: Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags
+ok 8 - Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags
+  ---
+  duration_ms: 0.727
+  type: 'test'
+  ...
+# Subtest: extracts one staging URL from CLI progress and rejects ambiguous or production URLs
+ok 9 - extracts one staging URL from CLI progress and rejects ambiguous or production URLs
+  ---
+  duration_ms: 0.9109
+  type: 'test'
+  ...
+# Subtest: Vercel Git integration disables automatic deployments for every readiness branch
+ok 10 - Vercel Git integration disables automatic deployments for every readiness branch
+  ---
+  duration_ms: 1.873
+  type: 'test'
+  ...
+# Subtest: CLI Preview excludes local environment and synthetic runner material
+ok 11 - CLI Preview excludes local environment and synthetic runner material
+  ---
+  duration_ms: 4.7897
+  type: 'test'
+  ...
+# Subtest: CLI deploy pins project, Preview target, and the exact clean-checkout SHA
+ok 12 - CLI deploy pins project, Preview target, and the exact clean-checkout SHA
+  ---
+  duration_ms: 0.2852
+  type: 'test'
+  ...
+# Subtest: deploy result binds the inspected staging Preview to the expected SHA
+ok 13 - deploy result binds the inspected staging Preview to the expected SHA
+  ---
+  duration_ms: 0.4008
+  type: 'test'
+  ...
+# Subtest: observed staging inventory blocks activation and preserves legacy access
+ok 14 - observed staging inventory blocks activation and preserves legacy access
+  ---
+  duration_ms: 2.1583
+  type: 'test'
+  ...
+# Subtest: Google pilot RPC denies access while the admission gate is disabled without changing legacy RLS
+ok 15 - Google pilot RPC denies access while the admission gate is disabled without changing legacy RLS
+  ---
+  duration_ms: 0.3384
+  type: 'test'
+  ...
+# Subtest: hiding password UI or enabling Google cannot prove Google-only Auth
+ok 16 - hiding password UI or enabling Google cannot prove Google-only Auth
+  ---
+  duration_ms: 0.1871
+  type: 'test'
+  ...
+# Subtest: disabling project-wide email with legacy accounts remains blocked
+ok 17 - disabling project-wide email with legacy accounts remains blocked
+  ---
+  duration_ms: 0.1466
+  type: 'test'
+  ...
+# Subtest: production targets and altered app baselines are refused without echoing input
+ok 18 - production targets and altered app baselines are refused without echoing input
+  ---
+  duration_ms: 0.3744
+  type: 'test'
+  ...
+# Subtest: malformed, partial, unknown and credential-bearing inventories fail closed
+ok 19 - malformed, partial, unknown and credential-bearing inventories fail closed
+  ---
+  duration_ms: 0.427
+  type: 'test'
+  ...
+# Subtest: manual linking, anonymous login, implicit flow and email confirmation regressions block
+ok 20 - manual linking, anonymous login, implicit flow and email confirmation regressions block
+  ---
+  duration_ms: 0.2299
+  type: 'test'
+  ...
+# Subtest: even ideal declared configuration never substitutes for authenticated runtime evidence
+ok 21 - even ideal declared configuration never substitutes for authenticated runtime evidence
+  ---
+  duration_ms: 0.1581
+  type: 'test'
+  ...
+# Subtest: CLI rejects malformed secret-bearing JSON without raw logs or environment disclosure
+ok 22 - CLI rejects malformed secret-bearing JSON without raw logs or environment disclosure
+  ---
+  duration_ms: 1622.3305
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 22
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3179.9711

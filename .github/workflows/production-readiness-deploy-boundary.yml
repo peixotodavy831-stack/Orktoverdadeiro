@@ -7,12 +7,44 @@ on:
     paths:
       - 'scripts/readiness/deploy-staging.mjs'
       - 'scripts/tests/deploy-staging.test.mjs'
+      - 'scripts/readiness/google-pilot-preflight.mjs'
+      - 'scripts/tests/google-pilot-preflight.test.mjs'
+      - 'scripts/readiness/google-ab-transport.mjs'
+      - 'scripts/readiness/google-pkce-contexts.mjs'
+      - 'scripts/readiness/run-google-pkce.mjs'
+      - 'scripts/tests/google-pkce-contexts.test.mjs'
+      - 'scripts/tests/google-pkce-inspection.test.mjs'
+      - 'scripts/typecheck-edge.mjs'
+      - 'supabase/functions/orkto-core-mutations/_shared/wia-request.ts'
+      - 'supabase/functions/orkto-meta-webhook/**'
+      - 'tests/wia-trusted-gemini.test.ts'
+      - 'tests/meta-*.test.ts'
+      - 'scripts/readiness/asaas-sandbox-readonly-preflight.mjs'
+      - 'scripts/tests/google-ab-transport.test.mjs'
+      - 'scripts/tests/asaas-sandbox-readonly-preflight.test.mjs'
+      - 'docs/05_ENGINEERING/evidence/google-pilot-inventory-*.json'
       - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
   pull_request:
     paths:
       - 'scripts/readiness/deploy-staging.mjs'
       - 'scripts/tests/deploy-staging.test.mjs'
+      - 'scripts/readiness/google-pilot-preflight.mjs'
+      - 'scripts/tests/google-pilot-preflight.test.mjs'
+      - 'scripts/readiness/google-ab-transport.mjs'
+      - 'scripts/readiness/google-pkce-contexts.mjs'
+      - 'scripts/readiness/run-google-pkce.mjs'
+      - 'scripts/tests/google-pkce-contexts.test.mjs'
+      - 'scripts/tests/google-pkce-inspection.test.mjs'
+      - 'scripts/typecheck-edge.mjs'
+      - 'supabase/functions/orkto-core-mutations/_shared/wia-request.ts'
+      - 'supabase/functions/orkto-meta-webhook/**'
+      - 'tests/wia-trusted-gemini.test.ts'
+      - 'tests/meta-*.test.ts'
+      - 'scripts/readiness/asaas-sandbox-readonly-preflight.mjs'
+      - 'scripts/tests/google-ab-transport.test.mjs'
+      - 'scripts/tests/asaas-sandbox-readonly-preflight.test.mjs'
+      - 'docs/05_ENGINEERING/evidence/google-pilot-inventory-*.json'
       - 'vercel.json'
       - '.github/workflows/production-readiness-deploy-boundary.yml'
   workflow_dispatch:
@@ -32,5 +64,29 @@ jobs:
         with:
           node-version: '22.x'
           package-manager-cache: false
-      - name: Verify staging deploy boundary
-        run: node --test scripts/tests/deploy-staging.test.mjs
+      - name: Verify staging deploy boundary and Google pilot preflight
+        run: node --test scripts/tests/deploy-staging.test.mjs scripts/tests/google-pilot-preflight.test.mjs
+      - name: Verify Google transport and Asaas read-only tools with offline fixtures
+        run: node --test scripts/tests/google-ab-transport.test.mjs scripts/tests/google-pkce-contexts.test.mjs scripts/tests/google-pkce-inspection.test.mjs scripts/tests/asaas-sandbox-readonly-preflight.test.mjs
+  provider-boundaries:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      APP_ENV: staging
+      VITE_SUPABASE_URL: ''
+      VITE_SUPABASE_ANON_KEY: ''
+      SUPABASE_SERVICE_ROLE_KEY: ''
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22.x'
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check all Edge entry points
+        run: npm run lint:edge
+      - name: Verify provider boundaries with offline fixtures only
+        run: node node_modules/tsx/dist/cli.mjs --test tests/wia-trusted-gemini.test.ts tests/meta-webhook.test.ts tests/meta-edge-boundary.test.ts tests/meta-connection.test.ts tests/meta-send.test.ts
