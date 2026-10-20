@@ -2,6 +2,10 @@
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO. PR #2 permanece draft, sem merge.** Este relatório prevalece sobre os checkpoints anteriores; as evidências históricas continuam preservadas.
 
+## Continuação — transporte recuperado e Playbooks
+
+O mesmo SHA837b5e5 foi republicado como Preview explícito no projeto staging, com health200/ready200 e clients401 por HTTP real, preservando proteção e TLS. G01–G12 seguem NOT_TESTED por executor/origens pendentes; customer Asaas dedicado está em rascunho, billing OFF. Consulte a [matriz e evidências da continuação](REAL_BLOCKERS_AND_PLAYBOOKS_2026-10-20.md) e a [análise Playbooks 2027](ORKTO_PLAYBOOKS_2027_ARCHITECTURE.md). As seções abaixo registram o estado anterior, preservado historicamente.
+
 ## Atualização após autorização do proprietário
 
 Foi salvo **somente** o novo redirect exato, após confirmação pontual: lista **17→18**, URLs anteriores e Site URL preservados. [Captura do resultado](evidence/redirect-saved-837b5e5-2026-10-20.png). A captura “redirect-pending” documenta apenas a preparação anterior.

@@ -1,0 +1,29 @@
+{
+  "observedAt": "2026-10-20T16:04:35.855Z",
+  "scope": "PUBLIC_AND_UNAUTHENTICATED_HTTP_ONLY",
+  "sha": "837b5e57ed7706aa08a039b22efaa94a0797d8af",
+  "deploymentId": "dpl_7xdpLtbw3U76zMcRK4nBjKGecawM",
+  "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "target": null,
+  "environmentLabel": "Preview",
+  "origin": "https://orkto-staging-qabzbbu7z-peixoto-s-projects1.vercel.app",
+  "records": [
+    {
+      "route": "/api/health",
+      "status": 200,
+      "health": "ok"
+    },
+    {
+      "route": "/api/ready",
+      "status": 200,
+      "ready": "ready",
+      "environment": "staging"
+    },
+    {
+      "route": "/api/clients",
+      "status": 401
+    }
+  ],
+  "googleContextsAcquired": false,
+  "readyForProductionCandidate": "NO"
+}
