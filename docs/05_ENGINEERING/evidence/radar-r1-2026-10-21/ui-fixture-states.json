@@ -1,0 +1,40 @@
+{
+  "scope": "LOCAL_FIXTURE_UI_ONLY",
+  "date": "2026-10-21",
+  "states": [
+    {
+      "scenario": "empty",
+      "text": "Radar comercial\nAtualizar Radar\n\n0 sinais na consulta · somente leitura · R1\n\nNenhum sinal nos dados consultados\n\nRadar procura propostas sem decisão registrada, conversas aguardando resposta e prazos vencidos. Nenhuma ação é executada."
+    },
+    {
+      "scenario": "error",
+      "text": "Radar comercial\nAtualizar Radar\nO Radar não carregou\n\nNão foi possível confirmar os sinais comerciais.\n\nTentar novamente"
+    },
+    {
+      "scenario": "permission",
+      "text": "Radar comercial\nAtualizar Radar\nAcesso necessário\n\nO Radar exige sessão e membership ativa neste workspace."
+    },
+    {
+      "scenario": "configuration",
+      "text": "Radar comercial\nAtualizar Radar\nRadar indisponível neste ambiente\n\nConfira a configuração do banco antes de consultar os sinais."
+    },
+    {
+      "scenario": "backend_pending",
+      "text": "Radar comercial\nAtualizar Radar\nRadar ainda não disponível\n\nEste ambiente ainda não possui o contrato Radar R1. Esta pendência de desenvolvimento não representa uma experiência de produção concluída."
+    }
+  ],
+  "desktop": {
+    "radarWidth": 968,
+    "horizontalOverflow": false,
+    "buttonHeights": [
+      44,
+      44,
+      44,
+      44
+    ],
+    "refreshObserved": true
+  },
+  "partialWarningObserved": true,
+  "mobileNotVerified": true,
+  "remoteNotVerified": true
+}
