@@ -5,6 +5,18 @@
 .today-wia-command .today-command-disclaimer { font-size: 12px; line-height: 1.5; margin-top: 10px; }
 .wia-query-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .wia-query-shortcuts button { min-height: 44px; padding: 8px 12px; border-radius: 10px; font-size: 13px; }
+.wia-sections { display: flex; gap: 4px; border-bottom: 1px solid var(--orkto-glass-edge); }
+.wia-sections button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 18px; border-bottom: 2px solid transparent; color: var(--orkto-text-secondary); font-size: 14px; }
+.wia-sections button[aria-pressed="true"] { border-bottom-color: var(--orkto-brand); color: var(--orkto-brand-text); font-weight: 600; }
+.wia-sections button span { padding: 1px 6px; border-radius: 6px; background: var(--orkto-glass-soft); font-size: 12px; }
+.wia-organized-layout { max-width: 880px; margin-inline: auto; }
+.orkto-wia-workspace .orkto-page-header { flex-direction: row; align-items: flex-start; }
+.wia-answer { padding: 24px 4px; }
+.wia-review-notice { display: flex; gap: 12px; padding: 16px; border-radius: 12px; background: var(--orkto-glass-soft); font-size: 13px; line-height: 1.6; }
+.wia-review-notice > svg { flex: none; margin-top: 3px; }
+.wia-configuration { font-size: 13px; }
+.wia-configuration > summary { cursor: pointer; color: var(--orkto-text-secondary); }
+.wia-configuration > section { margin-top: 12px; }
 .orkto-product :is(p, dd, blockquote) { overflow-wrap: anywhere; }
 .orkto-product details > summary { min-height: 44px; align-content: center; }
 @media (max-width: 1199px) {
@@ -45,6 +57,7 @@
   .orkto-glass-shell .orkto-mobile-dock { background: var(--orkto-surface-1); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media (max-width: 600px) {
+  .wia-sections button { flex: 1; min-width: 0; padding-inline: 8px; font-size: 13px; gap: 6px; }
   .today-intro h1 { font-size: clamp(25px, 7vw, 29px); line-height: 1.18; }
   .today-intro h2 { margin-top: 10px; }
   .today-intro-description { font-size: 14px; }

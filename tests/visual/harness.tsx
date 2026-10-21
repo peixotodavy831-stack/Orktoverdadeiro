@@ -1,3 +1,4 @@
+import { visualTeam } from './team-fixture';
 import { buildConversationAssistance } from '../../backend/orkto-core/conversation-assistance';
 import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -38,7 +39,9 @@ const additionalScreens = ['team','audit','help','profile','settings','proposals
 const fixtureRequest = async (path: string) => {
   const scenario = new URLSearchParams(location.search).get('scenario');
   if (scenario === 'error') throw new Error('Falha de fixture');
-  if (path === '/api/team') return {data:{members:[{user_id:'visual-user',role:'owner',status:'active',joined_at:'2026-10-21T12:00:00Z'}],invites:[],currentRole:'owner',currentUserId:'visual-user'}};
+  if (scenario === 'permission') throw Object.assign(new Error('Sem acesso no fixture'),{status:403});
+  if (scenario === 'loading') await new Promise(() => {});
+  if (path === '/api/team') return scenario === 'empty' ? {...visualTeam,members:[]} : visualTeam;
   return {data:[]};
 };
 const fixtureWriteBlocked = async (): Promise<never> => { throw new Error('Fixture visual: nenhuma gravação permitida.'); };

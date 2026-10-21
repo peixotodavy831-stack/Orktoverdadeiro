@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Check, CircleHelp, LoaderCircle, LockKeyhole, RefreshCw, Send, Sparkles, X } from 'lucide-react';
+import { Check, LoaderCircle, LockKeyhole, RefreshCw, Send, Sparkles, X } from 'lucide-react';
 import { getProductErrorState, productApi } from '../api';
 import type { ProductRequestState, WiaActionView } from '../types';
 import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, PageHeader, PermissionState, StatusBadge } from '../ui/shared-states';
@@ -74,7 +74,9 @@ function externalDeliveryLabel(value: unknown) {
 }
 
 export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenSettings }: { accessToken: string | null; initialMessage?: string; onOpenSettings: () => void }) {
+  const [section, setSection] = useState<'request' | 'approvals' | 'history'>('request');
   const [prompt, setPrompt] = useState(initialMessage);
+  const [lastPrompt, setLastPrompt] = useState('');
   const [phase, setPhase] = useState<WiaPhase | null>(null);
   const [routeResult, setRouteResult] = useState<WiaRouteResult | null>(null);
   const [requestError, setRequestError] = useState<{ status: ProductRequestState; message: string; retry?: () => void } | null>(null);
@@ -98,6 +100,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
   const submitPrompt = async (rawMessage: string) => {
     const message = rawMessage.trim();
     if (!message || phase === 'CONSULTING' || phase === 'EXECUTING') return;
+    setLastPrompt(message);
     setPhase('CONSULTING');
     setRequestError(null);
     setRouteResult(null);
@@ -147,44 +150,43 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
   };
 
   const approvalActions = actionsState.actions.filter(action => action.status === 'awaiting_approval');
-  const recentActions = actionsState.actions.slice(0, 6);
+  const recentActions = actionsState.actions.filter(action => action.status !== 'awaiting_approval').slice(0, 12);
   const references = routeResult?.decision?.sourceIds || [];
   const requestPending = phase === 'CONSULTING' || phase === 'EXECUTING';
   const openSettings = <button type="button" onClick={onOpenSettings} className="min-h-11 rounded-lg border px-3 text-xs font-semibold orkto-product-border orkto-product-control">Ver integrações</button>;
 
-  return <div className="orkto-product orkto-wia-workspace mx-auto min-h-full w-full max-w-[1600px] space-y-6 px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-8">
-    <PageHeader eyebrow="Inteligência operacional" title="WIA" description="Contexto, análise e ações preparadas com confirmação explícita." actions={<button type="button" onClick={() => void loadActions()} className="flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><RefreshCw size={15} />Atualizar atividade</button>} />
+  return <div className="orkto-product orkto-wia-workspace mx-auto min-h-full w-full max-w-[1100px] space-y-6 px-4 py-5 pb-6 sm:px-6 sm:py-7 lg:px-8 lg:pb-8">
+    <PageHeader title="WIA" description="Consulte registros e revise os próximos passos." actions={<button type="button" onClick={() => void loadActions()} className="flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><RefreshCw size={15} aria-hidden="true" /><span className="sr-only">Atualizar atividade</span></button>} />
 
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="min-w-0 space-y-6">
+    <nav className="wia-sections" aria-label="Seções da WIA">{([{id:'request',label:'Pedido'},{id:'approvals',label:'Aprovações'},{id:'history',label:'Histórico'}] as const).map(item => <button key={item.id} type="button" aria-pressed={section === item.id} onClick={() => setSection(item.id)}>{item.label}{item.id === 'approvals' && actionsState.status === 'success' && <span>{approvalActions.length}</span>}</button>)}</nav>
+    <div className="wia-organized-layout">
+      {section === 'request' && <div className="min-w-0 space-y-5">
+
         <section aria-labelledby="wia-input-title" className="rounded-xl border p-4 sm:p-5 orkto-product-border orkto-product-surface">
-          <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={19} /></span><div><h2 id="wia-input-title" className="text-sm font-semibold">O que vamos organizar?</h2><p className="mt-1 text-xs leading-5 orkto-product-muted">Consulte seus registros ou descreva o que precisa. A WIA atual prepara análises e rascunhos; ainda não cadastra clientes ou negócios por comando livre.</p></div></div>
+          <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={19} /></span><div><h2 id="wia-input-title" className="text-sm font-semibold">O que vamos organizar?</h2><p className="mt-1 text-xs leading-5 orkto-product-muted">Descreva seu pedido ou comece por uma consulta.</p></div></div>
           <form onSubmit={run} className="wia-request-composer mt-4 space-y-3">
             <label htmlFor="wia-request" className="sr-only">Pergunta para a WIA</label>
             <textarea id="wia-request" value={prompt} onChange={event => setPrompt(event.target.value)} disabled={requestPending} rows={3} maxLength={4000} placeholder="Descreva seu pedido ou escolha uma consulta abaixo…" className="orkto-product-control min-h-28 w-full resize-y rounded-lg p-3 text-sm leading-6 placeholder:orkto-product-subtle disabled:opacity-60" />
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] orkto-product-subtle">A resposta depende dos dados e ações que o servidor retornar.</p><button type="submit" disabled={!prompt.trim() || requestPending} className="orkto-product-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-55">{requestPending ? <LoaderCircle size={15} className="animate-spin" /> : <Send size={15} />}{requestPending ? phaseLabels[phase!] : 'Consultar WIA'}</button></div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] orkto-product-subtle">Você revisa antes de agir.</p><button type="submit" disabled={!prompt.trim() || requestPending} className="orkto-product-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-55">{requestPending ? <LoaderCircle size={15} className="animate-spin" /> : <Send size={15} />}{requestPending ? phaseLabels[phase!] : 'Consultar WIA'}</button></div>
           </form>
           <div className="wia-query-shortcuts" aria-label="Consultas dos registros existentes">{['Propostas pendentes', 'Aprovações pendentes', 'Vendas hoje'].map(message => <button key={message} type="button" disabled={requestPending} onClick={() => { setPrompt(message); document.getElementById('wia-request')?.focus(); }} className="orkto-product-control">{message}</button>)}</div>
-          <p className="mt-3 text-xs leading-5 orkto-product-muted">Os atalhos preenchem o pedido; você decide quando consultar. Linguagem livre depende do modelo, da configuração e dos limites aprovados.</p>
+          <p className="mt-3 text-xs leading-5 orkto-product-muted">Os atalhos preenchem o pedido; você decide quando consultar.</p>
         </section>
 
-        <WiaRuntimeStatus accessToken={accessToken} onOpenSettings={onOpenSettings} />
+        <details className="wia-configuration"><summary>Disponibilidade e integrações</summary><p className="mt-3 text-xs leading-5 orkto-product-muted">A WIA atual prepara análises e rascunhos; ainda não cadastra clientes ou negócios por comando livre. Linguagem livre depende do modelo, da configuração e dos limites aprovados.</p><WiaRuntimeStatus accessToken={accessToken} onOpenSettings={onOpenSettings} /></details>
 
         {phase && <div role="status" aria-live="polite" className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs orkto-product-border orkto-product-surface-muted"><span className="h-2 w-2 rounded-full" style={{ background: phase === 'FAILED' ? 'var(--orkto-critical)' : phase === 'EXECUTED' ? 'var(--orkto-success)' : 'var(--orkto-brand)' }} aria-hidden="true" />{phaseLabels[phase]}</div>}
 
         {requestError && <div className="space-y-2">{requestError.status === 'permission_denied' ? <PermissionState message={requestError.message} /> : requestError.status === 'configuration_required' ? <ConfigurationRequired message={requestError.message} action={openSettings} /> : requestError.status === 'backend_pending' ? <BackendPending title="WIA pendente neste ambiente" message={requestError.message} /> : <ErrorState title="A execução da WIA falhou" message={requestError.message} onRetry={requestError.retry} />}</div>}
 
-        {routeResult && <section aria-labelledby="wia-result-title" className="space-y-4">
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Resultado estruturado</p><h2 id="wia-result-title" className="mt-1 text-lg font-semibold">Resposta da WIA</h2></div><StatusBadge tone={routeResult.decision.requiresApproval ? 'attention' : 'info'}>{phase ? phaseLabels[phase] : 'Análise disponível'}</StatusBadge></div>
-          <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface" aria-labelledby="wia-context-title"><h3 id="wia-context-title" className="text-sm font-semibold">1. Contexto</h3><p className="mt-1 text-xs leading-5 orkto-product-muted">Registros confirmados usados nesta execução.</p>{references.length > 0 ? <ul className="mt-3 flex flex-wrap gap-2">{references.map(reference => <li key={reference} className="rounded-full border px-2.5 py-1 font-mono text-[10px] orkto-product-border orkto-product-muted">{reference}</li>)}</ul> : <p className="mt-3 text-xs orkto-product-subtle">A resposta não retornou registros relacionados.</p>}<p className="mt-3 text-[10px] orkto-product-subtle">Execução {routeResult.runId || 'sem ID retornado'}{routeResult.traceId ? ` · rastreio ${routeResult.traceId}` : ''}</p></section>
-
-          <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface" aria-labelledby="wia-analysis-title"><h3 id="wia-analysis-title" className="text-sm font-semibold">2. Análise</h3><p className="mt-2 text-sm leading-6">{routeResult.decision.messageDraft || routeResult.decision.reasonCode || 'A WIA não retornou uma análise textual.'}</p>{routeResult.decision.confidenceSignal && <p className="mt-2 text-xs orkto-product-muted">Sinal de confiança retornado: {routeResult.decision.confidenceSignal}</p>}{(!!routeResult.usage?.provider || !!routeResult.agent || !!routeResult.toolExecutions?.length) && <details className="mt-3 border-t pt-3 text-xs orkto-product-border"><summary className="cursor-pointer font-medium">Como a WIA chegou aqui</summary><dl className="mt-2 grid grid-cols-2 gap-2 orkto-product-muted"><dt>Provider</dt><dd>{routeResult.usage?.provider || 'Não informado pelo servidor'}</dd>{routeResult.usage?.model && <><dt>Modelo</dt><dd>{routeResult.usage.model}</dd></>}{routeResult.agent && <><dt>Agente</dt><dd>{routeResult.agent}</dd></>}</dl>{routeResult.toolExecutions?.length ? <ul className="mt-2 space-y-1">{routeResult.toolExecutions.map((tool, index) => <li key={`${tool.toolName}-${index}`}>{tool.toolName} · {tool.status}</li>)}</ul> : null}</details>}</section>
-
-          <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface" aria-labelledby="wia-recommendation-title"><h3 id="wia-recommendation-title" className="text-sm font-semibold">3. Recomendação</h3><p className="mt-2 text-sm font-medium">{actionTitle({ id: routeResult.runId || 'run', action_type: routeResult.decision.action, status: 'prepared' })}</p>{routeResult.decision.messageDraft && <p className="mt-2 whitespace-pre-wrap rounded-lg border p-3 text-sm leading-6 orkto-product-border orkto-product-surface-muted">{routeResult.decision.messageDraft}</p>}{routeResult.decision.requiresApproval && <div className="mt-3 flex items-start gap-2 text-xs leading-5 orkto-product-muted"><LockKeyhole size={15} className="mt-0.5 shrink-0" />A ação retornada exige aprovação. Revise o conteúdo e a consequência na fila abaixo.</div>}</section>
-
-          {routeResult.decision.action && !['answer', 'ask_clarification'].includes(routeResult.decision.action) && <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface" aria-labelledby="wia-prepared-title"><h3 id="wia-prepared-title" className="text-sm font-semibold">4. Ação preparada</h3><div className="mt-2 flex flex-wrap items-center gap-2"><StatusBadge tone={routeResult.decision.requiresApproval ? 'attention' : 'info'}>{routeResult.decision.requiresApproval ? 'Aguardando aprovação' : 'Preparada'}</StatusBadge><span className="text-xs orkto-product-muted">A preparação não significa execução.</span></div><p className="mt-2 text-xs leading-5 orkto-product-muted">Ação: {routeResult.decision.action.replaceAll('_', ' ')}</p></section>}
+        {routeResult && <section aria-labelledby="wia-result-title" className="wia-answer space-y-4">
+          <p className="rounded-xl p-4 text-sm orkto-product-surface-muted"><span className="font-semibold">Seu pedido: </span>{lastPrompt}</p><h2 id="wia-result-title" className="text-lg font-semibold">Resposta da WIA</h2>
+          <p className="whitespace-pre-wrap text-sm leading-7">{routeResult.decision.messageDraft || routeResult.decision.reasonCode || 'A WIA não retornou uma resposta textual.'}</p>
+          {routeResult.decision.requiresApproval && <div className="wia-review-notice"><LockKeyhole size={17} aria-hidden="true" /><div><p>Existe uma ação para sua revisão. Preparação não significa execução.</p><button type="button" className="min-h-11 font-semibold" onClick={() => setSection('approvals')}>Revisar aprovações →</button></div></div>}
+          <details className="border-t pt-3 text-xs orkto-product-border"><summary className="cursor-pointer font-medium">Como a WIA chegou aqui</summary><p className="mt-2 orkto-product-muted">Execução: {routeResult.runId || 'Não informada'}</p>{references.length ? <ul className="mt-2 space-y-1">{references.map(reference => <li key={reference} className="break-all">Fonte: {reference}</li>)}</ul> : <p className="mt-2">Nenhum registro relacionado retornado.</p>}<p className="mt-2">Modelo: {routeResult.usage?.model || 'Não informado'} · Provedor: {routeResult.usage?.provider || 'Não informado'}</p>{routeResult.toolExecutions?.map((tool,index)=><p key={index}>{tool.toolName} · {tool.status}</p>)}</details>
         </section>}
-
+      </div>}
+      {section === 'approvals' && <div className="space-y-5">
         <section aria-labelledby="wia-approvals-title" className="space-y-3">
           <div className="flex items-end justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Supervisão</p><h2 id="wia-approvals-title" className="mt-1 text-base font-semibold">Aguardando aprovação</h2></div><span className="text-xs orkto-product-muted">{actionsState.status === 'success' ? approvalActions.length : '—'}</span></div>
           {actionsState.status === 'loading' && <LoadingState rows={2} label="Carregando ações que aguardam aprovação" />}
@@ -197,12 +199,14 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
         </section>
 
         {actionNotice && <div role="status" className="rounded-xl border p-4 text-sm orkto-product-border orkto-product-surface"><p className="font-semibold">{actionNotice.action.status === 'executed' ? 'Execução interna confirmada' : actionNotice.action.status === 'rejected' ? 'Ação rejeitada' : 'Estado atualizado'}</p><p className="mt-1 text-xs leading-5 orkto-product-muted">{externalDeliveryLabel(actionNotice.externalDelivery) || `Status registrado: ${actionNotice.action.status}.`}</p></div>}
-      </div>
+      </div>}
 
-      <aside className="space-y-5" aria-label="Contexto e histórico de ações">
-        <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface"><div className="flex items-center gap-2"><CircleHelp size={16} className="orkto-product-muted" /><h2 className="text-sm font-semibold">Contexto</h2></div><p className="mt-2 text-xs leading-5 orkto-product-muted">Cada resposta fica ligada a uma execução e aos registros retornados. Fontes e ferramentas ficam em “Como a WIA chegou aqui”.</p>{routeResult?.runId ? <p className="mt-3 break-all font-mono text-[10px] orkto-product-subtle">Run: {routeResult.runId}</p> : <p className="mt-3 text-xs orkto-product-subtle">Nenhuma execução selecionada.</p>}</section>
-        <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface" aria-labelledby="wia-activity-title"><div className="flex items-center justify-between gap-3"><h2 id="wia-activity-title" className="text-sm font-semibold">Ações registradas</h2><button type="button" onClick={() => void loadActions()} aria-label="Atualizar ações registradas" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><RefreshCw size={15} /></button></div>{actionsState.status === 'loading' && <div className="mt-3"><LoadingState rows={3} label="Carregando ações persistidas" /></div>}{actionsState.status === 'success' && recentActions.length === 0 && <p className="mt-3 text-xs leading-5 orkto-product-muted">A API não retornou ações registradas.</p>}{actionsState.status === 'success' && recentActions.length > 0 && <ol className="mt-3 divide-y orkto-product-border">{recentActions.map(action => <li key={action.id} className="py-3"><div className="flex items-start justify-between gap-2"><p className="text-xs font-medium">{actionTitle(action)}</p><StatusBadge tone={action.status === 'executed' ? 'success' : action.status === 'failed' ? 'critical' : action.status === 'awaiting_approval' ? 'attention' : 'neutral'}>{actionStatusLabel(action.status)}</StatusBadge></div><p className="mt-1 line-clamp-2 text-[11px] leading-4 orkto-product-muted">{actionPayloadText(action) || action.rationale || 'Sem resumo retornado.'}</p><p className="mt-1 text-[10px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}</p></li>)}</ol>}</section>
-      </aside>
+      {section === 'history' && <aside className="space-y-5" aria-label="Histórico de ações">
+        {actionsState.status === 'permission_denied' && <PermissionState message="Seu acesso não permite consultar este histórico." />}
+        {['error','offline','configuration_required','backend_pending'].includes(actionsState.status) && <ErrorState title="Histórico indisponível" message={actionsState.message || 'Não foi possível carregar as ações.'} onRetry={() => void loadActions()} />}
+
+        <section className="rounded-xl border p-4 orkto-product-border orkto-product-surface" aria-labelledby="wia-activity-title"><div className="flex items-center justify-between gap-3"><h2 id="wia-activity-title" className="text-sm font-semibold">Histórico de ações</h2><button type="button" onClick={() => void loadActions()} aria-label="Atualizar ações registradas" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><RefreshCw size={15} /></button></div>{actionsState.status === 'loading' && <div className="mt-3"><LoadingState rows={3} label="Carregando ações persistidas" /></div>}{actionsState.status === 'success' && recentActions.length === 0 && <p className="mt-3 text-xs leading-5 orkto-product-muted">Nenhuma ação concluída ou preparada retornada. Pendências ficam em Aprovações.</p>}{actionsState.status === 'success' && recentActions.length > 0 && <ol className="mt-3 divide-y orkto-product-border">{recentActions.map(action => <li key={action.id} className="py-3"><div className="flex items-start justify-between gap-2"><p className="text-xs font-medium">{actionTitle(action)}</p><StatusBadge tone={action.status === 'executed' ? 'success' : action.status === 'failed' ? 'critical' : action.status === 'awaiting_approval' ? 'attention' : 'neutral'}>{actionStatusLabel(action.status)}</StatusBadge></div><p className="mt-1 line-clamp-2 text-[11px] leading-4 orkto-product-muted">{actionPayloadText(action) || action.rationale || 'Sem resumo retornado.'}</p><p className="mt-1 text-[10px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}</p></li>)}</ol>}</section>
+      </aside>}
     </div>
   </div>;
 }

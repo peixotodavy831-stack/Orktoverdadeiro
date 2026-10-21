@@ -1,11 +1,10 @@
+import { parseTeamResponse, type TeamView } from '../adapters/team-contract';
 import { useEffect, useState } from 'react';
 import { ArrowRight, BookOpen, ChevronDown, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
 import type { ProductView } from '../types';
 import { EmptyState, ErrorState, LoadingState, PageHeader, StatusBadge } from '../ui/shared-states';
 
-interface Member { user_id:string; role:string; status:string; joined_at:string|null }
-interface Invite { id:string; email:string; role:string; expires_at:string }
-interface Team { members:Member[]; invites:Invite[]; currentRole:string; currentUserId:string }
+type Team = TeamView;
 interface AuditEvent { id:string; eventType:string; source:string; entityType:string|null; entityRef:string|null; actorId:string|null; occurredAt:string }
 interface Props { view:'team'|'audit'|'help'; request:(path:string)=>Promise<unknown>; onNavigate:(view:ProductView)=>void; accountName?:string|null }
 const roles:Record<string,string>={owner:'Proprietário',admin:'Administrador',manager:'Gestor',member:'Membro'};
@@ -40,8 +39,7 @@ export default function ManagementPage({view,request,onNavigate,accountName}:Pro
     request(view==='team'?'/api/team':'/api/audit').then(result=>{
       if(!alive)return;
       if(view==='team'){
-        const value=result as Team;
-        if(!Array.isArray(value?.members)||!Array.isArray(value?.invites))throw new Error('INVALID_RESPONSE');
+        const value=parseTeamResponse(result);
         setTeam(value);
       }else{
         const value=result as {data:AuditEvent[]};
@@ -52,19 +50,21 @@ export default function ManagementPage({view,request,onNavigate,accountName}:Pro
     return()=>{alive=false;};
   },[view,request,revision]);
   const query=search.trim().toLocaleLowerCase('pt-BR');
+  const visibleMembers=team?.members.filter(member => !query || [member.user_id, roles[member.role] || member.role, statuses[member.status] || member.status, member.user_id===team.currentUserId ? accountName || 'Sua conta' : ''].join(' ').toLocaleLowerCase('pt-BR').includes(query)) || [];
   const titles={team:'Equipe',audit:'Auditoria',help:'Como podemos ajudar?'};
   const descriptions={team:'Pessoas, vínculos e papéis da sua empresa.',audit:'Acompanhe os eventos persistidos na empresa atual.',help:'Orientações práticas para usar a ORKTO com segurança.'};
   const panel='rounded-2xl border p-5 sm:p-6 orkto-product-surface orkto-product-border';
   const button='inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-sm orkto-product-control';
   const matches=events.filter(event=>(source==='all'||event.source===source)&&`${event.eventType} ${event.entityType||''} ${event.entityRef||''} ${event.actorId||''}`.toLocaleLowerCase('pt-BR').includes(query));
-  return <div className="orkto-product mx-auto w-full max-w-[1100px] space-y-6 px-4 py-6 pb-24 sm:px-6 lg:px-8 lg:py-8">
+  return <div className="orkto-product mx-auto w-full max-w-[1100px] space-y-6 px-4 py-6 pb-6 sm:px-6 lg:px-8 lg:py-8">
     <PageHeader title={titles[view]} description={descriptions[view]} actions={view!=='help'&&<button type="button" disabled={loading} onClick={()=>setRevision(value=>value+1)} className={button}><RefreshCw size={16} aria-hidden="true" />Atualizar</button>} />
     {view!=='help'&&loading?<LoadingState rows={4} label={view==='team'?'Carregando equipe':'Consultando auditoria'} />:error?<ErrorState title={denied?'Acesso restrito':'Não foi possível carregar'} message={denied?(view==='audit'?'Somente proprietário e administrador podem consultar a auditoria da empresa.':'Sua conta não tem acesso à equipe desta empresa.'):'Verifique sua conexão e sua sessão e tente novamente. Nenhum dado foi alterado.'} onRetry={()=>setRevision(value=>value+1)} />:null}
     {view==='team'&&team&&!loading&&!error&&<>
       <section className={panel} aria-labelledby="team-members-title">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 id="team-members-title" className="flex items-center gap-2 text-lg font-semibold"><Users size={20} aria-hidden="true" />Pessoas da empresa</h2><StatusBadge>Seu papel: {roles[team.currentRole]||'Não reconhecido'}</StatusBadge></div>
-        <p className="mb-5 text-sm leading-6 orkto-product-muted">Veja quem faz parte da empresa e o papel de cada pessoa. O identificador ajuda a distinguir contas quando o nome não está disponível.</p>
-        {team.members.length===0?<EmptyState title="Nenhum vínculo retornado" description="A consulta não retornou membros para esta empresa." />:<ul className="divide-y orkto-product-border">{team.members.map(member=><li key={member.user_id} className="flex flex-wrap items-center justify-between gap-4 py-4"><div className="min-w-0"><p className="text-sm font-semibold">{member.user_id===team.currentUserId?`${accountName||'Sua conta'} (você)`:`Pessoa ${member.user_id.slice(0,8)}`}</p><p className="mt-1 break-all text-xs orkto-product-muted">ID: {member.user_id}</p><p className="mt-1 text-xs orkto-product-muted">Entrada: {date(member.joined_at)}</p></div><div className="flex flex-wrap gap-2"><StatusBadge>{roles[member.role]||'Papel não reconhecido'}</StatusBadge><StatusBadge tone={member.status==='active'?'success':'neutral'}>{statuses[member.status]||'Estado não reconhecido'}</StatusBadge></div></li>)}</ul>}
+        <p className="mb-4 text-sm orkto-product-muted">{team.members.length} pessoa(s) na consulta · {team.members.filter(member=>member.status==='active').length} ativa(s)</p>
+        <label className="mb-4 flex items-center gap-2 rounded-lg border px-3 orkto-product-control"><Search size={16} aria-hidden="true" /><span className="sr-only">Buscar pessoa ou papel</span><input value={search} onChange={event=>setSearch(event.target.value)} placeholder="Buscar pessoa ou papel" className="min-h-11 min-w-0 flex-1 bg-transparent text-sm outline-none" /></label>
+        {visibleMembers.length===0?<EmptyState title={query ? "Nenhuma pessoa neste filtro" : "Nenhum vínculo retornado"} description={query ? "Tente outro nome, papel ou identificador." : "A consulta não retornou membros para esta empresa."} />:<ul className="divide-y orkto-product-border">{visibleMembers.map(member=><li key={member.user_id} className="flex flex-wrap items-center justify-between gap-4 py-4"><div className="min-w-0"><p className="text-sm font-semibold">{member.user_id===team.currentUserId?`${accountName||'Sua conta'} (você)`:`Pessoa ${member.user_id.slice(0,8)}`}</p><details className="mt-1 text-xs orkto-product-muted"><summary className="cursor-pointer">Identificador da conta</summary><p className="break-all">{member.user_id}</p></details><p className="mt-1 text-xs orkto-product-muted">Entrada: {date(member.joined_at)}</p></div><div className="flex flex-wrap gap-2"><StatusBadge>{roles[member.role]||'Papel não reconhecido'}</StatusBadge><StatusBadge tone={member.status==='active'?'success':'neutral'}>{statuses[member.status]||'Estado não reconhecido'}</StatusBadge></div></li>)}</ul>}
         <p className="mt-4 text-xs orkto-product-muted">Até 200 vínculos, conforme a consulta atual.</p>
       </section>
       {['owner','admin'].includes(team.currentRole)&&<section className={panel} aria-labelledby="team-invites-title"><h2 id="team-invites-title" className="text-base font-semibold">Convites registrados</h2><p className="mt-2 text-sm leading-6 orkto-product-muted">Criar convites, alterar papéis e remover acessos ainda não estão habilitados nesta tela. O piloto continua exigindo aprovação de acesso; nenhum convite representa autorização automática.</p>{team.invites.length===0?<p className="mt-5 text-sm orkto-product-muted">Nenhum convite pendente retornado.</p>:<ul className="mt-4 divide-y orkto-product-border">{team.invites.map(invite=><li key={invite.id} className="py-4 text-sm"><p className="break-all font-medium">{invite.email}</p><p className="mt-1 orkto-product-muted">{roles[invite.role]||invite.role} · {Date.parse(invite.expires_at)<Date.now()?'Expirado':'Expira em'} {date(invite.expires_at)}</p></li>)}</ul>}</section>}
