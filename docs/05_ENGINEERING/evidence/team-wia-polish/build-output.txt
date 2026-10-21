@@ -1,0 +1,64 @@
+
+> orkto@0.0.0 readiness:build
+> node scripts/validate-build.mjs
+
+Build evidence: C:\Users\SOBOOA~1\AppData\Local\Temp\orkto-build-validation-YcUn7X
+[36mvite v6.4.3 [32mbuilding for production...[36m[39m
+
+(!) outDir C:\Users\SOBOOA~1\AppData\Local\Temp\orkto-build-validation-YcUn7X\dist is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+transforming...
+[32m✓[39m 3184 modules transformed.
+rendering chunks...
+computing gzip size...
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[32mindex.html                               [39m[1m[2m  4.59 kB[22m[1m[22m[2m │ gzip:   1.49 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[35massets/index-DL9EtBzg.css                [39m[1m[2m194.15 kB[22m[1m[22m[2m │ gzip:  31.46 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/api-DGF3un-Q.js                   [39m[1m[2m  1.06 kB[22m[1m[22m[2m │ gzip:   0.61 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/WiaInline-Degz4CmP.js             [39m[1m[2m  1.72 kB[22m[1m[22m[2m │ gzip:   0.80 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/PasswordRecovery-C-voKEEO.js      [39m[1m[2m  3.69 kB[22m[1m[22m[2m │ gzip:   1.36 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/shared-states-BKAR3k8t.js         [39m[1m[2m  4.70 kB[22m[1m[22m[2m │ gzip:   1.60 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/WrappedPublicView-hY37HKvE.js     [39m[1m[2m  5.10 kB[22m[1m[22m[2m │ gzip:   1.73 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/canvas-reveal-effect-CABvhsLC.js  [39m[1m[2m  5.86 kB[22m[1m[22m[2m │ gzip:   2.02 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/DemoExperience-DqxtNJUq.js        [39m[1m[2m  6.54 kB[22m[1m[22m[2m │ gzip:   2.38 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/profile-page-4GYHAiWF.js          [39m[1m[2m  7.12 kB[22m[1m[22m[2m │ gzip:   2.55 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/LiveQuoteView-CWjpXsCo.js         [39m[1m[2m  7.76 kB[22m[1m[22m[2m │ gzip:   2.63 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/BillingPage-swcsDyej.js           [39m[1m[2m  8.41 kB[22m[1m[22m[2m │ gzip:   3.19 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/integrations-page-D8ec-7F2.js     [39m[1m[2m  8.59 kB[22m[1m[22m[2m │ gzip:   3.32 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/GraphPage-Det14q3B.js             [39m[1m[2m 10.26 kB[22m[1m[22m[2m │ gzip:   3.71 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/ServicesPage-C31sHmjz.js          [39m[1m[2m 11.83 kB[22m[1m[22m[2m │ gzip:   3.43 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/management-page-CtRA3yIY.js       [39m[1m[2m 13.57 kB[22m[1m[22m[2m │ gzip:   4.71 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/wia-workspace-C27-csCE.js         [39m[1m[2m 16.87 kB[22m[1m[22m[2m │ gzip:   5.36 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/CollectionPage-DtAmU2eC.js        [39m[1m[2m 17.40 kB[22m[1m[22m[2m │ gzip:   5.04 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/SettingsPage-BX71MH9T.js          [39m[1m[2m 20.62 kB[22m[1m[22m[2m │ gzip:   5.38 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/Auth-B3Dz0LTR.js                  [39m[1m[2m 21.93 kB[22m[1m[22m[2m │ gzip:   5.48 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/DealsPage-DEhhflZ6.js             [39m[1m[2m 27.64 kB[22m[1m[22m[2m │ gzip:   7.53 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/QuoteDetail-mgJWDBJc.js           [39m[1m[2m 28.26 kB[22m[1m[22m[2m │ gzip:   7.65 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/ReportsPage-CIczzE0m.js           [39m[1m[2m 28.44 kB[22m[1m[22m[2m │ gzip:   7.03 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/QuotesPage-CvCFg5no.js            [39m[1m[2m 32.26 kB[22m[1m[22m[2m │ gzip:   7.33 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/FinanceDashboard-Db1hCgdT.js      [39m[1m[2m 35.88 kB[22m[1m[22m[2m │ gzip:   8.82 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/vendor-icons-CJIFwt7r.js          [39m[1m[2m 41.26 kB[22m[1m[22m[2m │ gzip:   8.37 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/CreateQuote-CpLnpVSE.js           [39m[1m[2m 41.29 kB[22m[1m[22m[2m │ gzip:  11.50 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/inbox-workspace-azMUOiEm.js       [39m[1m[2m 48.75 kB[22m[1m[22m[2m │ gzip:  12.93 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/ClientsPage-zGk7GUpG.js           [39m[1m[2m 49.22 kB[22m[1m[22m[2m │ gzip:  12.74 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/today-v2-page-BOBPX_U8.js         [39m[1m[2m 79.61 kB[22m[1m[22m[2m │ gzip:  19.15 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/vendor-animation-UK6i7NnC.js      [39m[1m[2m128.70 kB[22m[1m[22m[2m │ gzip:  42.29 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/index-WtECiro6.js                 [39m[1m[2m168.21 kB[22m[1m[22m[2m │ gzip:  43.35 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/vendor-react-SmLouXSA.js          [39m[1m[2m194.26 kB[22m[1m[22m[2m │ gzip:  60.73 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/vendor-supabase-dIChsWQP.js       [39m[1m[2m212.38 kB[22m[1m[22m[2m │ gzip:  54.92 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/vendor-charts-l9xwp-N9.js         [39m[1m[2m336.26 kB[22m[1m[22m[2m │ gzip: 101.13 kB[22m
+[2m../../../../SOBOOA~1/AppData/Local/Temp/orkto-build-validation-YcUn7X/dist/[22m[36massets/vendor-webgl-NFcc56Ai.js          [39m[1m[33m889.34 kB[39m[22m[2m │ gzip: 239.49 kB[22m
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32m✓ built in 37.54s[39m
+[ORKTO] Public metadata rendered for staging Preview.
+
+  ...AppData\Local\Temp\orkto-build-validation-YcUn7X\dist\server.cjs  533.8kb
+  ...ata\Local\Temp\orkto-build-validation-YcUn7X\dist\server.cjs.map  962.3kb
+
+Done in 373ms
+PASS: built production server starts; health, SPA, auth boundary and source protection verified (no external credentials).
+{"scratch":"C:\\Users\\SOBOOA~1\\AppData\\Local\\Temp\\orkto-build-validation-YcUn7X","frontend":true,"publicUrl":true,"server":true,"runtime":true,"distPreserved":true}

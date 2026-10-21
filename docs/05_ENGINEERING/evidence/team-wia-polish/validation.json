@@ -1,0 +1,35 @@
+{
+  "sourceSha": "871f4df32986a0e2894eac539d6f502d08f1eb7b",
+  "environment": "local synthetic fixtures only",
+  "tests": {
+    "application": 317,
+    "tools": 108,
+    "failures": 0,
+    "status": "PASS"
+  },
+  "lint": "PASS",
+  "build": "PASS; isolated runtime smoke; dist preserved",
+  "secretScan": {
+    "scanned": 589,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "logSha256": {
+    "tests": "66cd02232146e31cea1f991abb94c40df1ad6759c6687f61c8738ea8e85401eb",
+    "lint": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479",
+    "build": "7b83c3d410f7c6ced0128d68574999bf4cb8fbbb98ff1041c97a555e9e6e7ea6",
+    "secrets": "b8f8a3e263c8d213cd5da9cb77a5b9dcd157a3f6823b8a5745d8fc42dd392adb"
+  },
+  "browser": {
+    "mobile": "390x844 dark; team search, empty filter, WIA query, response/sources, approvals/history separation",
+    "tablet": "730x728 light; team data and denied state",
+    "desktop": "1440x900 dark; WIA request layout",
+    "horizontalOverflowObserved": false,
+    "liveProvidersTested": false
+  },
+  "productionChanged": false,
+  "deployed": false,
+  "readyForProductionCandidate": "NO"
+}
