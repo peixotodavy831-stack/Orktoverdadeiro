@@ -4,6 +4,7 @@ import type { Quote, SavedClient, UserProfile } from '../../types';
 import { getProductErrorState, productApi } from '../api';
 import type { DealView, InboxConversationView, ProductRequestState, WiaActionView } from '../types';
 import { priorityLabel, BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, Metric, PermissionState, StatusBadge } from '../ui/shared-states';
+import TodayRadarPanel from './today-radar-panel';
 
 interface TodayV2PageProps {
   user?: { displayName?: string | null } | null;
@@ -215,6 +216,7 @@ export default function TodayV2Page({
       </section>
 
       </div>
+      <TodayRadarPanel accessToken={accessToken} refreshKey={retryVersion} onSelectQuote={onSelectQuote} onOpenConversation={onOpenConversation} onOpenDeal={onOpenDeal} />
       <section aria-labelledby="today-work-title" className="today-glass-panel today-operation-footer">
         <div><h2 id="today-work-title" className="today-section-title">Sua operação, a um passo</h2><p className="mt-1 text-xs orkto-product-muted">{dataLoading || dataError ? 'Clientes: aguardando dados do workspace.' : `${clients.length} cliente${clients.length === 1 ? '' : 's'} no workspace`}</p></div>
         <div className="today-footer-actions">

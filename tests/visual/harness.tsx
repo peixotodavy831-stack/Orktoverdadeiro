@@ -7,6 +7,7 @@ import type { Quote, SavedClient, UserProfile } from '../../src/types';
 import { DesktopSidebar } from '../../src/product/navigation/desktop-sidebar';
 import { MobileNavigation } from '../../src/product/navigation/mobile-navigation';
 import TodayV2Page from '../../src/product/screens/today-v2-page';
+import { buildRadarSnapshot } from '../../backend/orkto-core/radar';
 import InboxWorkspace from '../../src/product/screens/inbox-workspace';
 import WiaWorkspace from '../../src/product/screens/wia-workspace';
 import DealsPage from '../../src/components/DealsPage';
@@ -77,11 +78,11 @@ function installVisualApiFixtures() {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input.toString() : input.url, window.location.origin);
     const path = url.pathname;
     const method = (init?.method || 'GET').toUpperCase();
-    const statefulRead = (path === '/api/priority/inbox' || path === '/api/deals' || path === '/api/wia/actions') && method === 'GET';
+    const statefulRead = (path === '/api/priority/inbox' || path === '/api/deals' || path === '/api/wia/actions' || path === '/api/radar') && method === 'GET';
     const statefulAction = path === '/api/wia/route-agent' || path.startsWith('/api/conversations/') && path.endsWith('/send');
     if (scenario === 'loading' && statefulRead) await new Promise(resolve => window.setTimeout(resolve, 800));
     if (['empty', 'error', 'permission', 'configuration', 'backend_pending'].includes(scenario || '') && statefulRead) {
-      if (scenario === 'empty') return json({ data: [] });
+      if (scenario === 'empty' && path !== '/api/radar') return json({ data: [] });
       if (scenario === 'error') return json({ error: 'Falha controlada pelo teste visual.' }, 500);
       if (scenario === 'permission') return json({ error: 'Acesso negado no cenário de teste.', category: 'permission_denied' }, 403);
       if (scenario === 'configuration') return json({ error: 'A configuração do canal é necessária para continuar.', category: 'configuration_required' }, 503);
@@ -89,6 +90,16 @@ function installVisualApiFixtures() {
     }
     if (scenario === 'configuration' && statefulAction) return json({ error: 'Conecte o canal para enviar.', category: 'configuration_required' }, 503);
     if (scenario === 'error' && statefulAction) return json({ error: 'Falha controlada pelo teste visual.' }, 502);
+    if (path === '/api/radar') {
+      const now = Date.parse('2026-10-21T12:00:00.000Z');
+      const data = buildRadarSnapshot(scenario === 'empty' ? {} : {
+        quotes: [{id:'fixture-quote',quote_number:'001',client_name:'Cliente de demonstração',total:100,status:'sent',sent_at:'2026-10-18T12:00:00.000Z',viewed_at:null,approved_at:null,rejected_at:null,deal_id:null}],
+        conversations: [{id:VISUAL_CONVERSATION_ID,contact_name:'Contato de demonstração',contact_phone:null,status:'open',created_at:'2026-10-20T12:00:00.000Z',messages:[{direction:'incoming',sent_at:'2026-10-21T08:00:00.000Z',read_at:null}]}],
+        tasks: [{id:'fixture-task',title:'Revisar prazo de acompanhamento',status:'open',due_at:'2026-10-19T12:00:00.000Z',deal_id:null,customer_ref:null}],
+        deals: [{id:VISUAL_DEAL_ID,title:'Negócio de demonstração',stage:'new',status:'open',expected_close_on:'2026-10-15',customer_ref:null}],
+      }, now);
+      return json({data:{...data,version:'R1',read_only:true,coverage:{partial:scenario==='partial',limited_sources:scenario==='partial'?['quotes']:[],leads_evaluated:true}}});
+    }
     if (path === '/api/priority/inbox') return json({ data: [visualConversation] });
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}`) return json(visualConversationDetail);
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/messages`) return json({ data: visualConversationDetail.messages });

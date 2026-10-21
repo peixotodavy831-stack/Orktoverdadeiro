@@ -73,6 +73,29 @@ export interface WiaActionView {
   run_id?: string | null;
 }
 
+export interface RadarSignalView {
+  id: string;
+  kind: 'unanswered_proposal' | 'unattended_lead' | 'overdue_followup';
+  severity: 'high' | 'medium';
+  title: string;
+  recommendation: string;
+  entity_type: 'quote' | 'conversation' | 'task' | 'deal';
+  entity_ref: string;
+  suggested_view: 'proposals' | 'conversations' | 'deals';
+  evidence: Record<string, unknown>;
+  source?: 'task_due' | 'deal_expected_close';
+  action_query?: { dealId?: string };
+}
+
+export interface RadarSnapshotView {
+  version: 'R1';
+  read_only: true;
+  generated_at: string;
+  counts: { unanswered_proposals: number; unattended_leads: number; overdue_followups: number };
+  signals: RadarSignalView[];
+  coverage: { partial: boolean; limited_sources: string[]; leads_evaluated: boolean };
+}
+
 export interface DealView {
   id: string;
   title: string;

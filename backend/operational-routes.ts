@@ -12,6 +12,7 @@ import { contactInput, contactPatchInput } from './orkto-core/contact-input.js';
 import { serviceInput } from './orkto-core/service-input.js';
 import { dealInput, dealPatchInput } from './orkto-core/deal-input.js';
 import { scheduleRepurchaseCandidate } from './orkto-core/repurchase-scheduler.js';
+import { buildRadarSnapshot } from './orkto-core/radar.js';
 import { applyResponsePipeline } from './wiaos/response-pipeline.js';
 import { buildVerifiedCommercialFact, persistAutomaticMemory } from './orkto-core/memory-engine.js';
 import { logStructured } from './observability/structured-logger.js';
@@ -276,6 +277,53 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if (!db) { res.status(503).json({ error: 'Banco de dados indisponível.', category: 'configuration_error' }); return; }
     next();
   };
+
+  app.get('/api/radar', authenticate, requireDb, async (req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    // Reading Radar never provisions a personal workspace or grants membership.
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    const requestDb = req.authenticatedSupabase || db;
+    const now = Date.now();
+    try {
+      const results = await Promise.all([
+        requestDb.from('quotes').select('id,quote_number,client_name,total,status,sent_at,viewed_at,approved_at,rejected_at,deal_id,archived_at,retention_expires_at').eq('workspace_id', context.id).in('status', ['sent','viewed','pending']).is('archived_at', null).or(`retention_expires_at.is.null,retention_expires_at.gt.${new Date(now).toISOString()}`).order('sent_at', { ascending: true }).order('id', { ascending: true }).limit(200),
+        requestDb.from('orkto_conversations').select('id,contact_name,contact_phone,status,created_at,last_message_at').eq('workspace_id', context.id).in('status', ['open','active']).order('last_message_at', { ascending: true }).order('id', { ascending: true }).limit(250),
+        requestDb.from('orkto_tasks').select('id,title,status,due_at,completed_at,deal_id,customer_ref').eq('workspace_id', context.id).in('status', ['open','in_progress']).not('due_at', 'is', null).order('due_at', { ascending: true }).order('id', { ascending: true }).limit(200),
+        requestDb.from('orkto_deals').select('id,title,stage,status,expected_close_on,customer_ref').eq('workspace_id', context.id).eq('status', 'open').not('expected_close_on', 'is', null).order('expected_close_on', { ascending: true }).order('id', { ascending: true }).limit(500),
+        requestDb.from('orkto_feature_configs').select('config').eq('workspace_id', context.id).eq('feature_key', 'priority_triage').maybeSingle(),
+      ]);
+      for (const result of results) if (result.error) throw result.error;
+      const [quotes, conversations, tasks, deals, config] = results;
+      const ids = (conversations.data || []).map((row: any) => row.id);
+      const messageResult = ids.length
+        ? await requestDb.from('orkto_messages').select('conversation_id,direction,sent_at,read_at').eq('workspace_id', context.id).in('conversation_id', ids).order('sent_at', { ascending: false }).limit(1000)
+        : { data: [], error: null };
+      if (messageResult.error) throw messageResult.error;
+      const messages = messageResult.data || [];
+      // At the query cap completeness is unknown. Never infer an unanswered lead
+      // from a truncated history (an operator response might be missing).
+      const messagesComplete = messages.length < 1000;
+      const grouped = new Map<string, any[]>();
+      for (const message of messages) {
+        const list = grouped.get(message.conversation_id) || [];
+        list.push(message); grouped.set(message.conversation_id, list);
+      }
+      const snapshot = buildRadarSnapshot({
+        quotes: quotes.data || [], tasks: tasks.data || [], deals: deals.data || [],
+        conversations: messagesComplete ? (conversations.data || []).map((row: any) => ({ ...row, messages: grouped.get(row.id) || [] })) : [],
+      }, now, { slaMinutes: config.data?.config?.slaMinutes });
+      const incomplete = [
+        ...(quotes.data?.length >= 200 ? ['quotes'] : []),
+        ...(conversations.data?.length >= 250 ? ['conversations'] : []),
+        ...(tasks.data?.length >= 200 ? ['tasks'] : []),
+        ...(deals.data?.length >= 500 ? ['deals'] : []),
+        ...(!messagesComplete ? ['messages'] : []),
+      ];
+      res.json({ data: { ...snapshot, version: 'R1', read_only: true,
+        coverage: { partial: incomplete.length > 0, limited_sources: incomplete, leads_evaluated: messagesComplete },
+      } });
+    } catch (error) { failure(res, error, 'Não foi possível calcular o Radar.'); }
+  });
 
   app.get('/api/integrations/status', authenticate, requireDb, async (req,res)=>{
     const context=await workspaceContext(req,res,db,false);if(!context)return;
