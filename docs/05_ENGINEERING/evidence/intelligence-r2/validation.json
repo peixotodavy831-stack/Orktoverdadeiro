@@ -1,0 +1,102 @@
+{
+  "date": "2026-10-21",
+  "sourceSha": "c5861c86da19784098767b02208a4d7662787d7f",
+  "environment": "local fixtures; no provider credentials",
+  "branch": "feat/orkto-intelligence-whatsapp-2027",
+  "tests": {
+    "status": "PASS",
+    "application": {
+      "tests": 315,
+      "pass": 315,
+      "fail": 0
+    },
+    "tools": {
+      "tests": 108,
+      "pass": 108,
+      "fail": 0
+    },
+    "exit": 0
+  },
+  "lint": {
+    "status": "PASS",
+    "exit": 0
+  },
+  "build": {
+    "status": "PASS",
+    "exit": 0,
+    "distPreserved": true,
+    "runtimeSmoke": true
+  },
+  "secretScan": {
+    "scanned": 581,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "logSha256": {
+    "tests": "12b213e0974869d5930db18fd19d22d80d952bb749306899b72cdba498c7b1dd",
+    "lint": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479",
+    "build": "0153aa3aff1b9100d32a18db5b870b237d764b6abf527ddda58243a0964ff610",
+    "secrets": "e514889682b822d4ea8caadbc8d4760013b0c1de11ff42ba09181237a0987f8e"
+  },
+  "preservation": {
+    "preservation": "PASS",
+    "trackedModified": 6,
+    "untrackedFiles": 100,
+    "verifiedFiles": 106,
+    "sourceHeadUnchanged": "bff22b7aa29e909e5e560ca4dbf53ea742726d8f",
+    "sourceStatusUnchanged": true,
+    "sourceBranchUnchanged": true,
+    "backupVerified": true
+  },
+  "browser": {
+    "kind": "real browser with synthetic fixture responses",
+    "cases": [
+      {
+        "viewport": "390x844",
+        "theme": "dark",
+        "horizontalOverflow": false,
+        "dockTop": 766.4,
+        "lastPanelBottom": 644.1,
+        "draftEditedWithoutSend": true,
+        "externalComposerEmpty": true,
+        "escapeRestoresFocus": true
+      },
+      {
+        "viewport": "768x1024",
+        "theme": "light",
+        "horizontalOverflow": false,
+        "controlledAssistanceError": true
+      },
+      {
+        "viewport": "1440x900",
+        "theme": "dark",
+        "horizontalOverflow": false,
+        "empty": true,
+        "loading": true
+      }
+    ],
+    "limits": [
+      "Not remote OAuth/RLS/Meta validation",
+      "Not complete WCAG or all-device coverage",
+      "Safe-area and reduced-transparency reviewed in CSS, not device simulation"
+    ],
+    "finalShaRecheck": {
+      "viewport": "1440x900",
+      "editedDraftPreservedAfterRefresh": true,
+      "externalComposerEmpty": true,
+      "sourceSha": "c5861c86da19784098767b02208a4d7662787d7f"
+    }
+  },
+  "remote": {
+    "status": "NOT_TESTED",
+    "meta": "BLOCKED_EXTERNAL",
+    "googleAB": "NOT_TESTED in this branch",
+    "asaas": "BLOCKED_EXTERNAL",
+    "productionChanged": false,
+    "merged": false,
+    "deployed": false
+  },
+  "readyForProductionCandidate": "NO"
+}

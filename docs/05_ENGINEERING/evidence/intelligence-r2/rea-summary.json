@@ -1,0 +1,37 @@
+{
+  "evidence_id": "ev_4bb38dad1189a2ed59f0ddaf229df4a09461f9531620d834c62ddb79779b997c",
+  "subject_sha256": "bf01645ef07e27101392b331fc8bd2d5def92fb8f82b48cf886952ac27b200e4",
+  "provider": {
+    "id": "rea-javascript-application",
+    "name": "REA JavaScript application analyzer",
+    "version": "1"
+  },
+  "operation": "analyze_javascript_application",
+  "parameters": {
+    "format": "auto",
+    "integrity_policy": "fail",
+    "max_semantic_nodes": 5000,
+    "source_paths": [
+      "server.cjs"
+    ],
+    "analysis_timeout_ms": 30000
+  },
+  "selection": {
+    "requested_paths": [
+      "server.cjs"
+    ],
+    "unselected_files": 42
+  },
+  "limitations": [
+    "Caller-selected source analysis leaves 42 inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.",
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "coverage": null,
+  "confidence": "derived",
+  "scope": "own built server.cjs only; not third-party internals or runtime validation"
+}
