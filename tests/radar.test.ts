@@ -349,3 +349,18 @@ test('GET Radar marks capped sources partial and propagates read failure without
   const response = await request(createRadarTestApp(broken,USER_A),'/api/radar',{});
   assert.equal(response.status,503); assert.equal((await response.json()).data,undefined);
 });
+
+test('GET Radar bounds a 100000-message history, performs only eight read queries and never infers leads from truncated history', async () => {
+  const db = new RadarMemoryDatabase();
+  db.tables.orkto_messages=Array.from({length:100000},(_,i)=>({conversation_id:'conv-a',workspace_id:WORKSPACE_A,direction:i%9===0?'outgoing':'incoming',sent_at:iso(-60000-i),read_at:null}));
+  const before=JSON.stringify(db.tables);
+  const started=performance.now();
+  const response=await request(createRadarTestApp(db,USER_A),'/api/radar',{});
+  const elapsed=performance.now()-started;
+  const payload=await response.json();
+  assert.equal(response.status,200);assert.equal(payload.data.coverage.partial,true);
+  assert.equal(payload.data.coverage.leads_evaluated,false);assert.equal(payload.data.counts.unattended_leads,0);
+  assert.equal(db.operations.length,8);assert.ok(db.operations.every(op=>op.startsWith('select:')));
+  assert.equal(JSON.stringify(db.tables),before);
+  console.log(JSON.stringify({scope:'LOCAL_MEMORY_ADAPTER_ONLY_NOT_POSTGRES_BENCHMARK',messageRows:100000,readQueries:db.operations.length,elapsedMs:Math.round(elapsed),responseBytes:JSON.stringify(payload).length,leadsSuppressed:true,writes:0}));
+});

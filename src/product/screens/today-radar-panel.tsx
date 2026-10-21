@@ -37,6 +37,25 @@ interface Props {
   onOpenDeal: (id?: string) => void;
 }
 
+export function radarEvidenceDetails(signal: RadarSignalView): Array<[string, string]> {
+  const evidence = signal.evidence;
+  const date = (value: unknown) => typeof value === 'string' && Number.isFinite(Date.parse(value))
+    ? `${new Date(value).toLocaleString('pt-BR', { timeZone: 'UTC' })} UTC` : 'Não registrado';
+  if (signal.kind === 'unanswered_proposal') return [
+    ['Envio registrado', date(evidence.sent_at)], ['Visualização registrada', date(evidence.viewed_at)],
+    ['Espera desde envio', typeof evidence.waiting_hours === 'number' ? `${evidence.waiting_hours} h` : 'Não registrada'],
+  ];
+  if (signal.kind === 'unattended_lead') return [
+    ['Aguardando desde', date(evidence.waiting_since)], ['Última mensagem', date(evidence.last_message_at)],
+    ['SLA consultado', typeof evidence.sla_minutes === 'number' ? `${evidence.sla_minutes} min` : 'Não registrado'],
+    ['Etapa', evidence.response_scope === 'first_response' ? 'Primeira resposta registrada' : evidence.response_scope === 'next_response' ? 'Próxima resposta registrada' : 'Não registrada'],
+    ['Limite da evidência', 'Mensagem persistida não comprova entrega externa'],
+  ];
+  return signal.source === 'deal_expected_close'
+    ? [['Fechamento previsto', typeof evidence.expected_close_on === 'string' ? `${evidence.expected_close_on} · fim do dia UTC` : 'Não registrado']]
+    : [['Prazo da tarefa', date(evidence.due_at)]];
+}
+
 export function RadarResults({ snapshot, onOpen }: { snapshot: RadarSnapshotView; onOpen: (signal: RadarSignalView) => void }) {
   return <>
     <p className="text-xs orkto-product-muted">{snapshot.signals.length} sinais na consulta · somente leitura · R1</p>
@@ -51,6 +70,10 @@ export function RadarResults({ snapshot, onOpen }: { snapshot: RadarSnapshotView
             <div className="flex flex-wrap items-center gap-2"><h3 className="break-words text-sm font-semibold">{signal.title}</h3><StatusBadge tone={signal.severity === 'high' ? 'critical' : 'attention'}>{signal.severity === 'high' ? 'Prioridade alta' : 'Atenção'}</StatusBadge></div>
             <p className="mt-1 text-sm leading-6 orkto-product-muted">{signal.recommendation}</p>
             <p className="mt-1 text-xs orkto-product-subtle">Fonte: {source}{signal.entity_type === 'task' && !destination ? ' · sem negócio vinculado' : ''}</p>
+            <details className="mt-1 text-xs orkto-product-muted">
+              <summary className="min-h-11 cursor-pointer py-3">Evidências da recomendação</summary>
+              <dl className="space-y-2 pb-2">{radarEvidenceDetails(signal).map(([label, value]) => <div key={label} className="break-words"><dt className="font-semibold">{label}</dt><dd>{value}</dd></div>)}</dl>
+            </details>
           </div>
           {destination && <button type="button" onClick={() => onOpen(signal)} className="today-text-action min-h-11 shrink-0 self-start">{destination.label}<ArrowRight size={14} aria-hidden="true" /></button>}
         </li>;

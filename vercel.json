@@ -14,7 +14,8 @@
   },
   "git": {
     "deploymentEnabled": {
-      "production-readiness/*": false
+      "production-readiness/*": false,
+      "feat/orkto-radar-2027": false
     }
   }
 }

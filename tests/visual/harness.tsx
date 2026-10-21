@@ -80,6 +80,7 @@ function installVisualApiFixtures() {
     const method = (init?.method || 'GET').toUpperCase();
     const statefulRead = (path === '/api/priority/inbox' || path === '/api/deals' || path === '/api/wia/actions' || path === '/api/radar') && method === 'GET';
     const statefulAction = path === '/api/wia/route-agent' || path.startsWith('/api/conversations/') && path.endsWith('/send');
+    if (scenario === 'loading' && path === '/api/radar') await new Promise(() => {}); // Stable fixture only: observe loading without a timing race.
     if (scenario === 'loading' && statefulRead) await new Promise(resolve => window.setTimeout(resolve, 800));
     if (['empty', 'error', 'permission', 'configuration', 'backend_pending'].includes(scenario || '') && statefulRead) {
       if (scenario === 'empty' && path !== '/api/radar') return json({ data: [] });

@@ -24,3 +24,17 @@ test('Radar source/date are explicit and user content is escaped',()=>{
  const html=renderToStaticMarkup(createElement(RadarResults,{snapshot:{...snapshot,signals:[{...signal,title:'<script>alert(1)</script>',entity_type:'deal',entity_ref:'d',source:'deal_expected_close'}]},onOpen:()=>{}}));
  assert.match(html,/UTC/);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
 });
+
+test('Radar UI exposes timestamped evidence for each recommendation without inventing missing fields',()=>{
+ const fixtures:RadarSignalView[]=[
+  {...signal,kind:'unanswered_proposal',entity_type:'quote',suggested_view:'proposals',evidence:{sent_at:'2026-10-18T12:00:00.000Z',viewed_at:null,waiting_hours:72}},
+  {...signal,kind:'unattended_lead',entity_type:'conversation',suggested_view:'conversations',evidence:{waiting_since:'2026-10-21T08:00:00.000Z',last_message_at:'2026-10-21T08:00:00.000Z',sla_minutes:60,response_scope:'first_response'}},
+  {...signal,evidence:{due_at:'2026-10-19T12:00:00.000Z'}},
+  {...signal,entity_type:'deal',source:'deal_expected_close',evidence:{expected_close_on:'2026-10-15'}},
+ ];
+ const html=renderToStaticMarkup(createElement(RadarResults,{snapshot:{...snapshot,signals:fixtures.map((s,i)=>({...s,id:`r-${i}`}))},onOpen:()=>{}}));
+ assert.equal((html.match(/<details/g)||[]).length,4);assert.match(html,/Envio registrado/);assert.match(html,/Não registrado/);
+ assert.match(html,/SLA consultado/);assert.match(html,/60 min/);assert.match(html,/Primeira resposta registrada/);
+ assert.match(html,/Prazo da tarefa/);assert.match(html,/2026-10-15/);assert.match(html,/UTC/);
+ assert.doesNotMatch(html,/href=/);
+});
