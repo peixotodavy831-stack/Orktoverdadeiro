@@ -98,5 +98,11 @@
     "merged": false,
     "deployed": false
   },
-  "readyForProductionCandidate": "NO"
+  "readyForProductionCandidate": "NO",
+  "logFiles": {
+    "tests": "tests-output.txt",
+    "lint": "lint-output.txt",
+    "build": "build-output.txt",
+    "secrets": "secrets-output.txt"
+  }
 }
