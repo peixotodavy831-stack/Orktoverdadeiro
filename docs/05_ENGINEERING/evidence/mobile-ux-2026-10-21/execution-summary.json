@@ -1,0 +1,68 @@
+{
+  "sourceSha": "0c74ff53e2afdaffe2bd0afa246ea9750f4eef4e",
+  "branch": "codex/orkto-mobile-ux-2027",
+  "environment": "LOCAL_FIXTURE_AND_ISOLATED_TESTS",
+  "deployed": false,
+  "readyForProductionCandidate": false,
+  "tests": {
+    "application": {
+      "status": "PASS",
+      "passed": 313,
+      "failed": 0
+    },
+    "tools": {
+      "status": "PASS",
+      "passed": 108,
+      "failed": 0
+    },
+    "typecheck": {
+      "status": "PASS",
+      "exitCode": 0
+    },
+    "build": {
+      "status": "PASS",
+      "frontend": true,
+      "publicUrl": true,
+      "server": true,
+      "runtime": true,
+      "distPreserved": true
+    },
+    "secretScan": {
+      "status": "PASS",
+      "scanned": 565,
+      "findings": 0,
+      "blockers": 0,
+      "scope": "repository including evidence before this summary was written"
+    },
+    "layout": {
+      "status": "PASS_LOCAL",
+      "cases": 270,
+      "pageOrMainOverflow": 0
+    }
+  },
+  "preserved": {
+    "radarHead": "30c2c089aaef356db3760ce68c99811d8b2b572a",
+    "radarClean": true,
+    "pr2Head": "78497da5bfd52166c6852aa14c06ebbf84fa1248",
+    "pr2Clean": true,
+    "originalFilesVerified": 106
+  },
+  "remoteInspection": {
+    "environment": "staging",
+    "projectRef": "ghrjongiodziasupakrk",
+    "appHost": "orkto-staging-21c76du92-peixoto-s-projects1.vercel.app",
+    "runtimeSha": "cd96e879cb0f1d2cb51bba1803ed33f1a1f2d58f",
+    "deploymentState": "READY",
+    "effectiveGeminiTariffs": 0,
+    "activePulsoPolicies": 0,
+    "secretValuesRead": false,
+    "inferenceExecuted": false
+  },
+  "openGates": {
+    "geminiReal": "BLOCKED_EXTERNAL",
+    "goalToCommercialRecords": "NOT_IMPLEMENTED",
+    "authenticatedRemoteFrontend": "NOT_TESTED",
+    "physicalDeviceAndKeyboard": "NOT_TESTED",
+    "fullAccessibilityAndPerformance": "NOT_TESTED"
+  }
+}

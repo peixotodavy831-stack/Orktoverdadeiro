@@ -1,3 +1,9 @@
+# Frontend mobile e diagnóstico WIA — 2026-10-21
+
+Somente nesta branch isolada `codex/orkto-mobile-ux-2027`: frontend `0c74ff53e2afdaffe2bd0afa246ea9750f4eef4e`, 313 testes de aplicação +108 ferramentas PASS local, build/typecheck PASS local. Ver `docs/05_ENGINEERING/ORKTO_MOBILE_UX_REDESIGN_2026.md` e `WIA_DIAGNOSIS_AND_GOAL_FLOW_2026-10-21.md`. Sem publicação. WIA generativa e fluxo completo por objetivos ainda pendentes. `READY_FOR_PRODUCTION_CANDIDATE=NO`.
+
+---
+
 ## Validação local Radar R1 — branch isolada, 21/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** feat/orkto-radar-2027, candidato preparado6be2779, preservando5738f52/2cd2844. [Matriz final](05_ENGINEERING/ORKTO_RADAR_R1_FINAL_VALIDATION_2026-10-21.md):6 layouts claro/escuro nos tamanhos390/768/1280,12 estados e evidências por recomendação PASS local;35 focados e309 aplicação+107 ferramentas, lint/build/smoke PASS. Engine/rota intactas. Preview preparado e não publicado: duas variáveis Google-only ausentes na branch nova, aguardam aprovação/configuração e publicação explícita. Endpoint/RLS/SQL remoto NOT_TESTED. [Playbooks R0](05_ENGINEERING/ORKTO_PLAYBOOKS_R0_TECH_SPEC_2026-10-21.md) proposto, não implementado. PR #2 e produção preservados.

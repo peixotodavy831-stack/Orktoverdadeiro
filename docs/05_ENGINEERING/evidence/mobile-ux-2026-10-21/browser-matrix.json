@@ -1,0 +1,3480 @@
+{
+  "scope": "LOCAL_FIXTURE_BROWSER_ONLY",
+  "baseSha": "30c2c08",
+  "core": [
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "today",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "today",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "wia",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "wia",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "deals",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "deals",
+      "small": [
+        {
+          "h": 40,
+          "text": "",
+          "w": 40
+        },
+        {
+          "h": 32,
+          "text": "Hoje",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Inbox",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Clientes",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Negócios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Propostas",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Catálogo",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "WIA",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Relatórios",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Gestão ",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Auditoria",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Ajuda",
+          "w": 206.40000915527344
+        },
+        {
+          "h": 32,
+          "text": "Claro",
+          "w": 98.4000015258789
+        },
+        {
+          "h": 32,
+          "text": "Escuro",
+          "w": 98.4000015258789
+        }
+      ],
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "today",
+      "small": [],
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "today",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "today",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [],
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "inbox",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "wia",
+      "small": [],
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "wia",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "wia",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "deals",
+      "small": [],
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "deals",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "deals",
+      "small": [
+        "",
+        "Hoje",
+        "Inbox",
+        "Clientes",
+        "Negócios",
+        "Propostas",
+        "Catálogo",
+        "WIA",
+        "Relatórios",
+        "Gestão ",
+        "Auditoria",
+        "Ajuda",
+        "Claro",
+        "Escuro"
+      ],
+      "theme": "light",
+      "width": 1440
+    }
+  ],
+  "administrative": [
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "team",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 2,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 2,
+      "overflow": false,
+      "screen": "audit",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "help",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "profile",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "settings",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "proposals",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 5,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 5,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "create_quote",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 1,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "clients",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "inputBelow16": 0,
+      "overflow": false,
+      "screen": "catalog",
+      "theme": "dark",
+      "width": 1440
+    }
+  ],
+  "extra": [
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "billing",
+      "theme": "dark",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "light",
+      "width": 1440
+    },
+    {
+      "contentOverflow": false,
+      "height": 700,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "contentOverflow": false,
+      "height": 800,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "contentOverflow": false,
+      "height": 812,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 375
+    },
+    {
+      "contentOverflow": false,
+      "height": 844,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "height": 915,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 412
+    },
+    {
+      "contentOverflow": false,
+      "height": 932,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "contentOverflow": false,
+      "height": 1024,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "contentOverflow": false,
+      "height": 768,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 1024
+    },
+    {
+      "contentOverflow": false,
+      "height": 900,
+      "overflow": false,
+      "screen": "integrations",
+      "theme": "dark",
+      "width": 1440
+    }
+  ],
+  "stateCases": [
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Hoje, sua operação em foco.",
+        "Boa tarde, Pessoa",
+        "Central de comando WIA",
+        "Radar comercial",
+        "Nenhum sinal nos dados consultados",
+        "Precisa de você",
+        "Nada parado por aqui",
+        "Atividade da WIA",
+        "Nenhuma ação recente registrada",
+        "Sua operação, a um passo"
+      ],
+      "overflow": false,
+      "scenario": "empty",
+      "screen": "today",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Hoje, sua operação em foco.",
+        "Boa tarde, Pessoa",
+        "Central de comando WIA",
+        "Radar comercial",
+        "O Radar não carregou",
+        "Precisa de você",
+        "A fila da Inbox não carregou",
+        "Os sinais de negócios não carregaram",
+        "Proposta pendente de acompanhamento",
+        "Atividade da WIA",
+        "A atividade da WIA não carregou",
+        "Sua operação, a um passo"
+      ],
+      "overflow": false,
+      "scenario": "error",
+      "screen": "today",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Hoje, sua operação em foco.",
+        "Boa tarde, Pessoa",
+        "Central de comando WIA",
+        "Radar comercial",
+        "Acesso necessário",
+        "Precisa de você",
+        "Acesso necessário",
+        "Acesso necessário",
+        "Proposta pendente de acompanhamento",
+        "Atividade da WIA",
+        "Acesso necessário",
+        "Sua operação, a um passo"
+      ],
+      "overflow": false,
+      "scenario": "permission",
+      "screen": "today",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Hoje, sua operação em foco.",
+        "Boa tarde, Pessoa",
+        "Central de comando WIA",
+        "Radar comercial",
+        "Radar indisponível neste ambiente",
+        "Precisa de você",
+        "Inbox precisa de configuração",
+        "Negócios precisam de configuração",
+        "Proposta pendente de acompanhamento",
+        "Atividade da WIA",
+        "WIA precisa de configuração",
+        "Sua operação, a um passo"
+      ],
+      "overflow": false,
+      "scenario": "configuration",
+      "screen": "today",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Hoje, sua operação em foco.",
+        "Boa tarde, Pessoa",
+        "Central de comando WIA",
+        "Radar comercial",
+        "Precisa de você",
+        "Proposta pendente de acompanhamento",
+        "Atividade da WIA",
+        "Sua operação, a um passo"
+      ],
+      "overflow": false,
+      "scenario": "loading",
+      "screen": "today",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Inbox",
+        "Nenhuma conversa na Inbox",
+        "Escolha uma conversa",
+        "Conversa",
+        "Selecione uma conversa"
+      ],
+      "overflow": false,
+      "scenario": "empty",
+      "screen": "inbox",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Inbox",
+        "Não foi possível carregar as conversas",
+        "Escolha uma conversa",
+        "Conversa",
+        "Selecione uma conversa"
+      ],
+      "overflow": false,
+      "scenario": "error",
+      "screen": "inbox",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Inbox",
+        "Acesso necessário",
+        "Escolha uma conversa",
+        "Conversa",
+        "Selecione uma conversa"
+      ],
+      "overflow": false,
+      "scenario": "permission",
+      "screen": "inbox",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Inbox",
+        "Inbox precisa de configuração",
+        "Escolha uma conversa",
+        "Conversa",
+        "Selecione uma conversa"
+      ],
+      "overflow": false,
+      "scenario": "configuration",
+      "screen": "inbox",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Inbox",
+        "Escolha uma conversa",
+        "Conversa",
+        "Selecione uma conversa"
+      ],
+      "overflow": false,
+      "scenario": "loading",
+      "screen": "inbox",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "WIA",
+        "O que vamos organizar?",
+        "Aguardando aprovação",
+        "Nenhuma aprovação pendente",
+        "Contexto",
+        "Ações registradas"
+      ],
+      "overflow": false,
+      "scenario": "empty",
+      "screen": "wia",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "WIA",
+        "O que vamos organizar?",
+        "Aguardando aprovação",
+        "Não foi possível carregar as aprovações",
+        "Contexto",
+        "Ações registradas"
+      ],
+      "overflow": false,
+      "scenario": "error",
+      "screen": "wia",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "WIA",
+        "O que vamos organizar?",
+        "Aguardando aprovação",
+        "Acesso necessário",
+        "Contexto",
+        "Ações registradas"
+      ],
+      "overflow": false,
+      "scenario": "permission",
+      "screen": "wia",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "WIA",
+        "O que vamos organizar?",
+        "Aguardando aprovação",
+        "Configuração necessária",
+        "Contexto",
+        "Ações registradas"
+      ],
+      "overflow": false,
+      "scenario": "configuration",
+      "screen": "wia",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "WIA",
+        "O que vamos organizar?",
+        "Aguardando aprovação",
+        "Contexto",
+        "Ações registradas"
+      ],
+      "overflow": false,
+      "scenario": "loading",
+      "screen": "wia",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Negócios",
+        "Seu pipeline está vazio"
+      ],
+      "overflow": false,
+      "scenario": "empty",
+      "screen": "deals",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Negócios",
+        "Não foi possível concluir a operação"
+      ],
+      "overflow": false,
+      "scenario": "error",
+      "screen": "deals",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Negócios",
+        "Acesso necessário"
+      ],
+      "overflow": false,
+      "scenario": "permission",
+      "screen": "deals",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Negócios",
+        "Não foi possível concluir a operação"
+      ],
+      "overflow": false,
+      "scenario": "configuration",
+      "screen": "deals",
+      "width": 390
+    },
+    {
+      "contentOverflow": false,
+      "headings": [
+        "Operação",
+        "Inteligência",
+        "Gestão ",
+        "Negócios"
+      ],
+      "overflow": false,
+      "scenario": "loading",
+      "screen": "deals",
+      "width": 390
+    }
+  ],
+  "helpFontRecheck": [
+    {
+      "font": "16px",
+      "width": 320
+    },
+    {
+      "font": "16px",
+      "width": 360
+    },
+    {
+      "font": "16px",
+      "width": 375
+    },
+    {
+      "font": "16px",
+      "width": 390
+    },
+    {
+      "font": "16px",
+      "width": 412
+    },
+    {
+      "font": "16px",
+      "width": 430
+    }
+  ],
+  "physicalDevices": false,
+  "paidInference": false,
+  "realMessages": false,
+  "remoteReadiness": false
+}
