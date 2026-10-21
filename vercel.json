@@ -2,8 +2,14 @@
   "buildCommand": "vite build && node scripts/render-public-url.mjs",
   "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/server" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "/api/server"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ],
   "functions": {
     "api/server.ts": {
@@ -16,7 +22,8 @@
     "deploymentEnabled": {
       "production-readiness/*": false,
       "feat/orkto-radar-2027": false,
-      "codex/orkto-mobile-ux-2027": false
+      "codex/orkto-mobile-ux-2027": false,
+      "feat/orkto-intelligence-whatsapp-2027": false
     }
   }
 }

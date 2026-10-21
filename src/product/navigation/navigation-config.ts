@@ -20,7 +20,7 @@ export const primaryNavigation: NavigationSection[] = [
     label: 'Operação',
     items: [
       { id: 'today', label: 'Hoje', icon: 'today', view: 'dashboard', availability: 'available' },
-      { id: 'inbox', label: 'Inbox', icon: 'inbox', view: 'conversations', availability: 'available' },
+      { id: 'inbox', label: 'Conversas', icon: 'inbox', view: 'conversations', availability: 'available' },
       { id: 'clients', label: 'Clientes', icon: 'clients', view: 'clients', availability: 'available' },
       { id: 'deals', label: 'Negócios', icon: 'deals', view: 'deals', availability: 'available' },
       { id: 'proposals', label: 'Propostas', icon: 'proposals', view: 'quotes', availability: 'available' },

@@ -1,3 +1,4 @@
+import { buildConversationAssistance } from '../../backend/orkto-core/conversation-assistance';
 import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Menu, Moon, Sun } from 'lucide-react';
@@ -126,7 +127,8 @@ function installVisualApiFixtures() {
     }
     if (path === '/api/priority/inbox') return json({ data: [visualConversation] });
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}`) return json(visualConversationDetail);
-    if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/messages`) return json({ data: visualConversationDetail.messages });
+    if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/assistance`) { if (scenario === 'assistance_loading') await new Promise(() => {}); if (scenario === 'assistance_error') return json({error:'Contexto indisponível'},503); if (scenario === 'assistance_permission') return json({error:'Sem acesso'},403); return json(buildConversationAssistance({conversation:{id:VISUAL_CONVERSATION_ID,contact_phone:visualConversation.contact_phone},clients:scenario==='assistance_empty'?[]:[{id:'fixture-client',name:'Marina — demonstração',phone:visualConversation.contact_phone}],clientsComplete:true,messages:scenario==='assistance_empty'?[]:[{id:'fixture-message',direction:'incoming',content:'Dado fictício'}],deals:[]})); }
+      if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/messages`) return json({ data: visualConversationDetail.messages });
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/sussurros`) return json({ data: [] });
     if (path === '/api/operational/workspace') return json({ members: [{ user_id: 'visual-user', role: 'owner' }] });
     if (path === '/api/deals' && (!init?.method || init.method === 'GET')) return json({ data: visualDeals });
@@ -191,7 +193,7 @@ function App() {
         <span className="text-sm font-semibold tracking-wide">ORKTO</span>
         <div className="flex items-center gap-1"><button type="button" onClick={() => setDarkMode(value => !value)} aria-label={darkMode ? 'Ativar tema claro' : 'Ativar tema escuro'} className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted">{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button><button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted"><Menu size={19} /></button></div>
       </header>
-      <div id="visual-main" className={`relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+      <div id="visual-main" className={`orkto-workspace-content relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {screen === 'today' && <TodayV2Page user={{ displayName: 'Marina' }} userProfile={visualProfile} quotes={params.get('scenario') === 'empty' ? [] : [visualQuote]} clients={params.get('scenario') === 'empty' ? [] : [visualClient]} accessToken={accessToken} dataLoading={false} onSelectQuote={() => setScreen('today')} onCreateQuote={() => setScreen('create_quote')} onOpenDeal={() => setScreen('deals')} onOpenConversation={() => { setScreen('inbox'); setMobileThread(true); }} onOpenWia={message => { setWiaInitialMessage(message || ''); setScreen('wia'); }} onOpenSettings={() => undefined} />}
         {screen === 'inbox' && <InboxWorkspace currentView={currentView} accessToken={accessToken} selectedConversationId={mobileThread || window.matchMedia('(min-width: 1024px)').matches ? VISUAL_CONVERSATION_ID : null} onOpenConversation={() => setMobileThread(true)} onBackToInbox={() => setMobileThread(false)} onOpenDeal={() => setScreen('deals')} onOpenSettings={() => undefined} />}
         {screen === 'deals' && <DealsPage clients={[visualClient]} accessToken={accessToken} initialCreate={createDeal} onInitialCreateOpened={() => setCreateDeal(false)} />}

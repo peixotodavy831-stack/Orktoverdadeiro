@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import { buildConversationAssistance } from './orkto-core/conversation-assistance.js';
 import type { Express, Request, RequestHandler, Response } from 'express';
 import { z } from 'zod';
 import {
@@ -277,6 +278,28 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     if (!db) { res.status(503).json({ error: 'Banco de dados indisponível.', category: 'configuration_error' }); return; }
     next();
   };
+
+  app.get('/api/conversations/:conversationId/assistance', authenticate, requireDb, async (req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    if (!z.string().uuid().safeParse(req.params.conversationId).success) return res.status(400).json({ error: 'Conversa inválida.' });
+    const reader = req.authenticatedSupabase || db;
+    try {
+      const conversation = await reader.from('orkto_conversations').select('id,contact_phone').eq('workspace_id', context.id).eq('id', req.params.conversationId).maybeSingle();
+      if (conversation.error) throw conversation.error;
+      if (!conversation.data) return res.status(404).json({ error: 'Conversa não encontrada.' });
+      const [clients, messages, deals] = await Promise.all([
+        reader.from('clients').select('id,name,phone').eq('workspace_id', context.id).is('archived_at', null).order('id', { ascending: true }).limit(501),
+        reader.from('orkto_messages').select('id,direction,sent_at').eq('workspace_id', context.id).eq('conversation_id', conversation.data.id).eq('direction', 'incoming').order('sent_at', { ascending: false }).order('id', { ascending: false }).limit(20),
+        reader.from('orkto_deals').select('id,title,status').eq('workspace_id', context.id).eq('conversation_ref', conversation.data.id).eq('status', 'open').order('id', { ascending: true }).limit(10),
+      ]);
+      for (const result of [clients, messages, deals]) if (result.error) throw result.error;
+      return res.json(buildConversationAssistance({ conversation: conversation.data, clients: clients.data || [], clientsComplete: (clients.data || []).length < 501, messages: messages.data || [], deals: deals.data || [] }));
+    } catch {
+      // Do not log customer text or provider error payloads.
+      return res.status(503).json({ error: 'Contexto indisponível. Tente novamente.', category: 'persistence_unavailable' });
+    }
+  });
 
   app.get('/api/radar', authenticate, requireDb, async (req, res) => {
     res.setHeader('Cache-Control', 'private, no-store');

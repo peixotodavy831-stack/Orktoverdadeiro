@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw, Search, X } from 'lucide-react';
+import { ConversationAssistance } from '../ui/conversation-assistance';
 import ConversationView from '../../components/inbox/ConversationView';
 import type { ProductView } from '../types';
 import type { InboxConversationView, ProductRequestState } from '../types';
@@ -44,7 +45,7 @@ function priorityTone(priority?: string | null) {
   return 'info' as const;
 }
 
-function ContextPanel({ conversation, onClose, onOpenDeal, modal = false }: { conversation: InboxConversationView | null; onClose?: () => void; onOpenDeal: (dealId: string) => void; modal?: boolean }) {
+function ContextPanel({ conversation, onClose, onOpenDeal, accessToken, modal = false }: { conversation: InboxConversationView | null; onClose?: () => void; onOpenDeal: (dealId: string) => void; accessToken: string | null; modal?: boolean }) {
   const reasons = conversation ? reasonsOf(conversation) : [];
   return <aside className={`orkto-inbox-context h-full min-h-0 overflow-y-auto border-l p-4 orkto-product-border orkto-product-surface ${modal ? 'w-full max-w-[420px] shadow-[var(--orkto-shadow-panel)]' : ''}`} aria-label="Contexto da conversa">
     <div className="mb-5 flex items-start justify-between gap-3">
@@ -66,11 +67,11 @@ function ContextPanel({ conversation, onClose, onOpenDeal, modal = false }: { co
       </section>
       <section className="border-t pt-4 orkto-product-border" aria-labelledby="inbox-context-deals">
         <h3 id="inbox-context-deals" className="text-[11px] font-semibold uppercase tracking-[0.1em] orkto-product-subtle">Negócios relacionados</h3>
-        {conversation.related_deal_ids?.length ? <div className="mt-2 space-y-2">{conversation.related_deal_ids.map(dealId => <button key={dealId} type="button" onClick={() => onOpenDeal(dealId)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border px-3 text-left text-xs orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><span>Negócio vinculado</span><span className="font-mono text-[10px] orkto-product-subtle">{dealId.slice(0, 8)}</span></button>)}</div> : <p className="mt-2 text-xs leading-5 orkto-product-muted">Nenhum negócio vinculado foi retornado pela Inbox.</p>}
+        {conversation.related_deal_ids?.length ? <div className="mt-2 space-y-2">{conversation.related_deal_ids.map(dealId => <button key={dealId} type="button" onClick={() => onOpenDeal(dealId)} className="flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border px-3 text-left text-xs orkto-product-border orkto-product-surface hover:orkto-product-surface-muted"><span>Negócio vinculado</span><span className="font-mono text-[10px] orkto-product-subtle">{dealId.slice(0, 8)}</span></button>)}</div> : <p className="mt-2 text-xs leading-5 orkto-product-muted">Nenhum negócio vinculado foi retornado pela Central de Conversas.</p>}
       </section>
       <section className="border-t pt-4 orkto-product-border" aria-labelledby="inbox-context-wia">
         <h3 id="inbox-context-wia" className="text-[11px] font-semibold uppercase tracking-[0.1em] orkto-product-subtle">WIA contextual</h3>
-        <p className="mt-2 text-xs leading-5 orkto-product-muted">Sugestões preparadas e instruções privadas aparecem no histórico desta conversa quando retornadas pelo servidor. Nada é enviado automaticamente.</p>
+        <ConversationAssistance key={conversation.id} conversationId={conversation.id} accessToken={accessToken} />
       </section>
     </div>}
   </aside>;
@@ -140,18 +141,18 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
     else setContextDrawerOpen(true);
   };
 
-  return <section className="orkto-inbox-view" data-mobile-detail={mobileDetail ? 'true' : 'false'} data-nav-hidden={mobileDetail ? 'true' : 'false'} aria-label="Inbox">
+  return <section className="orkto-inbox-view" data-mobile-detail={mobileDetail ? 'true' : 'false'} data-nav-hidden={mobileDetail ? 'true' : 'false'} aria-label="Central de Conversas">
     <div className="orkto-inbox-layout" data-context-open={contextOpen ? 'true' : 'false'}>
       <aside className="orkto-inbox-list min-h-0 overflow-y-auto border-r p-3 orkto-product-border orkto-product-surface" aria-label="Conversas">
-        <div className="mb-3 flex items-center justify-between gap-2 px-1"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Atendimento</p><h1 className="mt-1 text-xl font-semibold">Inbox</h1></div><button type="button" onClick={() => void refresh()} aria-label="Atualizar conversas" className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><RefreshCw size={16} className={listState.status === 'loading' ? 'animate-spin' : ''} /></button></div>
+        <div className="mb-3 flex items-center justify-between gap-2 px-1"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Atendimento</p><h1 className="mt-1 text-xl font-semibold">Central de Conversas</h1></div><button type="button" onClick={() => void refresh()} aria-label="Atualizar conversas" className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><RefreshCw size={16} className={listState.status === 'loading' ? 'animate-spin' : ''} /></button></div>
         <label className="relative block"><span className="sr-only">Buscar conversas</span><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 orkto-product-subtle" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar conversa" className="orkto-product-control min-h-11 w-full rounded-lg pl-9 pr-3 text-sm" /></label>
         <label className="mt-2 block"><span className="sr-only">Filtrar conversas</span><select value={filter} onChange={event => setFilter(event.target.value as PriorityFilter)} className="orkto-product-control min-h-11 w-full rounded-lg px-3 text-xs"><option value="all">Todas as conversas</option><option value="unread">Não lidas</option><option value="priority">Prioritárias</option></select></label>
         {listState.status === 'loading' && <div className="mt-3"><LoadingState rows={5} label="Carregando conversas" /></div>}
-        {listState.status === 'permission_denied' && <div className="mt-3"><PermissionState message="Seu acesso não permite visualizar esta Inbox." /></div>}
-        {listState.status === 'configuration_required' && <div className="mt-3"><ConfigurationRequired title="Inbox precisa de configuração" message={listState.message || 'Conecte a configuração necessária para carregar as conversas.'} action={<button type="button" onClick={onOpenSettings} className="orkto-product-control min-h-11 rounded-lg px-3 text-xs font-semibold">Abrir configurações</button>} /></div>}
-        {listState.status === 'backend_pending' && <div className="mt-3"><BackendPending title="Fila da Inbox pendente neste ambiente" message="O contrato necessário para listar conversas ainda não está disponível aqui." /></div>}
-        {(listState.status === 'error' || listState.status === 'offline') && <div className="mt-3"><ErrorState title="Não foi possível carregar as conversas" message={listState.message || 'A fila da Inbox não respondeu.'} onRetry={() => void refresh()} /></div>}
-        {listState.status === 'success' && visible.length === 0 && <div className="mt-3"><EmptyState title={query || filter !== 'all' ? 'Nenhuma conversa neste filtro' : 'Nenhuma conversa na Inbox'} description={query || filter !== 'all' ? 'Limpe a busca ou escolha outro filtro para ver a fila.' : 'Quando o servidor retornar conversas, elas serão organizadas nesta fila.'} action={(query || filter !== 'all') ? <button type="button" onClick={() => { setQuery(''); setFilter('all'); }} className="min-h-11 rounded-lg border px-3 text-xs font-medium orkto-product-border">Limpar filtros</button> : undefined} /></div>}
+        {listState.status === 'permission_denied' && <div className="mt-3"><PermissionState message="Seu acesso não permite visualizar estas conversas." /></div>}
+        {listState.status === 'configuration_required' && <div className="mt-3"><ConfigurationRequired title="Conversas precisam de configuração" message={listState.message || 'Conecte a configuração necessária para carregar as conversas.'} action={<button type="button" onClick={onOpenSettings} className="orkto-product-control min-h-11 rounded-lg px-3 text-xs font-semibold">Abrir configurações</button>} /></div>}
+        {listState.status === 'backend_pending' && <div className="mt-3"><BackendPending title="Fila de conversas pendente neste ambiente" message="O contrato necessário para listar conversas ainda não está disponível aqui." /></div>}
+        {(listState.status === 'error' || listState.status === 'offline') && <div className="mt-3"><ErrorState title="Não foi possível carregar as conversas" message={listState.message || 'A fila de conversas não respondeu.'} onRetry={() => void refresh()} /></div>}
+        {listState.status === 'success' && visible.length === 0 && <div className="mt-3"><EmptyState title={query || filter !== 'all' ? 'Nenhuma conversa neste filtro' : 'Nenhuma conversa na Central de Conversas'} description={query || filter !== 'all' ? 'Limpe a busca ou escolha outro filtro para ver a fila.' : 'Quando o servidor retornar conversas, elas serão organizadas nesta fila.'} action={(query || filter !== 'all') ? <button type="button" onClick={() => { setQuery(''); setFilter('all'); }} className="min-h-11 rounded-lg border px-3 text-xs font-medium orkto-product-border">Limpar filtros</button> : undefined} /></div>}
         {listState.status === 'success' && visible.length > 0 && <ul className="mt-3 divide-y orkto-product-border">
           {visible.map(item => {
             const active = item.id === selectedConversationId;
@@ -168,12 +169,12 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
         {selectedConversationId ? <InboxThread conversationId={selectedConversationId} onBack={onBackToInbox} onOpenContext={openContext} onOpenConfiguration={onOpenSettings} onRefresh={refresh} /> : <div className="flex h-full min-h-[420px] items-center justify-center p-6"><EmptyState title="Escolha uma conversa" description="A conversa externa, a composição e as ações contextuais serão abertas aqui." /></div>}
       </div>
 
-      <div className="orkto-inbox-context-slot min-h-0" aria-label="Contexto e WIA"><ContextPanel conversation={selected || null} onOpenDeal={onOpenDeal} /></div>
+      <div className="orkto-inbox-context-slot min-h-0" aria-label="Contexto e WIA"><ContextPanel conversation={selected || null} accessToken={accessToken} onOpenDeal={onOpenDeal} /></div>
     </div>
 
     {contextDrawerOpen && <div className="fixed inset-0 z-[130] flex justify-end" onMouseDown={event => { if (event.target === event.currentTarget) setContextDrawerOpen(false); }}>
       <button type="button" className="absolute inset-0 bg-[var(--orkto-overlay)]" aria-label="Fechar contexto" onClick={() => setContextDrawerOpen(false)} />
-      <div ref={contextDrawerRef} role="dialog" aria-modal="true" aria-label="Contexto da conversa" className="relative h-full w-full max-w-[420px]"><ContextPanel conversation={selected || null} onClose={() => setContextDrawerOpen(false)} onOpenDeal={onOpenDeal} modal /></div>
+      <div ref={contextDrawerRef} role="dialog" aria-modal="true" aria-label="Contexto da conversa" className="relative h-full w-full max-w-[420px]"><ContextPanel conversation={selected || null} accessToken={accessToken} onClose={() => setContextDrawerOpen(false)} onOpenDeal={onOpenDeal} modal /></div>
     </div>}
   </section>;
 }

@@ -557,7 +557,7 @@ export default function ConversationView({
             Tentar novamente
           </button>
           {loadStatus === 503 && onOpenConfiguration && <button type="button" onClick={onOpenConfiguration} className="ml-2 min-h-11 rounded-lg px-4 text-xs font-medium orkto-product-muted">Configurar canal</button>}
-          <button type="button" onClick={onBack} className="ml-2 min-h-11 rounded-lg px-4 text-xs font-medium orkto-product-muted">Voltar ao inbox</button>
+          <button type="button" onClick={onBack} className="ml-2 min-h-11 rounded-lg px-4 text-xs font-medium orkto-product-muted">Voltar às conversas</button>
         </div>
       </div>
     );
@@ -573,7 +573,7 @@ export default function ConversationView({
               type="button"
               onClick={onBack}
               className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:text-white"
-              aria-label="Voltar ao inbox"
+              aria-label="Voltar às conversas"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>

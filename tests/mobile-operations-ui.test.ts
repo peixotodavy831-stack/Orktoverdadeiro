@@ -20,7 +20,7 @@ test('WIA configuration never claims verified model availability',()=>{
 });
 test('Mobile dock source keeps five named destinations and the sidebar breakpoint',()=>{
  const nav=read('src/product/navigation/mobile-navigation.tsx');
- for(const label of ['Hoje','Inbox','Negócios','WIA','Mais módulos']) assert.ok(nav.includes(label));
+ for(const label of ['Hoje','Conversas','Negócios','WIA','Mais módulos']) assert.ok(nav.includes(label));
  assert.match(nav,/lg:hidden/);assert.doesNotMatch(nav,/md:hidden/);
  assert.match(nav,/hideDock = currentView === 'conversation'/);
 });

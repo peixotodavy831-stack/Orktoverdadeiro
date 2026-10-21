@@ -1550,7 +1550,7 @@ export default function App() {
           </div>
         </div>
         {/* Router Render with beautiful transitions */}
-        <div className={`relative min-h-0 w-full min-w-0 flex-1 ${currentView === 'conversations' || currentView === 'conversation' ? 'overflow-hidden' : 'pb-28 lg:pb-0'}`}>
+        <div className={`orkto-workspace-content relative min-h-0 w-full min-w-0 flex-1 ${currentView === 'conversations' || currentView === 'conversation' ? 'overflow-hidden' : ''}`}>
           <AnimatePresence mode="wait">
             {currentView === 'dashboard' && !selectedQuoteId && (
               <motion.div

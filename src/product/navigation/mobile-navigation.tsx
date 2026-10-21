@@ -15,7 +15,7 @@ interface MobileNavigationProps {
 
 const dock = [
   { id: 'today', label: 'Hoje', icon: 'today' as const, view: 'dashboard' as ProductView },
-  { id: 'inbox', label: 'Inbox', icon: 'inbox' as const, view: 'conversations' as ProductView },
+  { id: 'inbox', label: 'Conversas', icon: 'inbox' as const, view: 'conversations' as ProductView },
   { id: 'deals', label: 'Negócios', icon: 'deals' as const, view: 'deals' as ProductView },
   { id: 'wia', label: 'WIA', icon: 'wia' as const, view: 'wia' as ProductView },
   { id: 'more', label: 'Mais', icon: null, view: null },
