@@ -1,0 +1,21 @@
+{
+  "scope": "READ_ONLY_VERCEL_PROJECT_IDENTITY",
+  "observedDate": "2026-10-21",
+  "id": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "name": "orkto-staging",
+  "accountId": "team_7mNnmcZNv9miOp7pl7otO6wE",
+  "nodeVersion": "24.x",
+  "ssoProtection": {
+    "enabled": true,
+    "deploymentType": "all_except_custom_domains"
+  },
+  "latestDeployment": {
+    "id": "dpl_7xdpLtbw3U76zMcRK4nBjKGecawM",
+    "url": "orkto-staging-qabzbbu7z-peixoto-s-projects1.vercel.app",
+    "target": null,
+    "readyState": "READY"
+  },
+  "productionTouched": false,
+  "deploymentCreated": false,
+  "readyForProductionCandidate": "NO"
+}

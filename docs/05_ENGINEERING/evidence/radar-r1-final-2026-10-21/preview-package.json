@@ -1,0 +1,15 @@
+{
+  "scope": "LOCAL_SOURCE_PACKAGE_NOT_DEPLOYED",
+  "sourceSha": "6be27794923d2ec3c57075acef689275bd93de28",
+  "branch": "feat/orkto-radar-2027",
+  "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "teamId": "team_7mNnmcZNv9miOp7pl7otO6wE",
+  "environment": "Preview only",
+  "sourceArchiveBytes": 3968437,
+  "sourceArchiveSha256": "6164465772e0efcd5e12cbb690a65ec1acf91da7cd56333d750efd2f46487516",
+  "autoGitDeploymentEnabled": false,
+  "publicationApproved": false,
+  "publicationPerformed": false,
+  "configurationGate": "BLOCKED: two branch-scoped Google-only modes absent",
+  "readyForProductionCandidate": "NO"
+}

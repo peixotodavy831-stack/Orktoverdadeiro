@@ -1,0 +1,448 @@
+{
+  "scope": "LOCAL_FIXTURE_BROWSER_ONLY",
+  "baselineSha": "2cd2844",
+  "sourceSha": "6be27794923d2ec3c57075acef689275bd93de28",
+  "date": "2026-10-21",
+  "layouts": [
+    {
+      "width": 390,
+      "theme": "dark",
+      "controls": [
+        {
+          "height": 44,
+          "text": "Atualizar Radar",
+          "width": 95.8375015258789
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        },
+        {
+          "height": 44,
+          "text": "Abrir conversa",
+          "width": 114.7249984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        },
+        {
+          "height": 44,
+          "text": "Abrir negócio",
+          "width": 107.2375030517578
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        },
+        {
+          "height": 44,
+          "text": "Abrir proposta",
+          "width": 112.8499984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        }
+      ],
+      "documentWidth": 390,
+      "evidenceExpanded": true,
+      "evidenceText": "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+      "panelScrollWidth": 349,
+      "panelWidth": 350.3999938964844,
+      "viewport": 390
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "controls": [
+        {
+          "height": 44,
+          "text": "Atualizar Radar",
+          "width": 95.8375015258789
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        },
+        {
+          "height": 44,
+          "text": "Abrir conversa",
+          "width": 114.7249984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        },
+        {
+          "height": 44,
+          "text": "Abrir negócio",
+          "width": 107.2375030517578
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        },
+        {
+          "height": 44,
+          "text": "Abrir proposta",
+          "width": 112.8499984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 308.8000183105469
+        }
+      ],
+      "documentWidth": 390,
+      "evidenceExpanded": true,
+      "evidenceText": "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+      "panelScrollWidth": 349,
+      "panelWidth": 350.3999938964844,
+      "viewport": 390
+    },
+    {
+      "width": 768,
+      "theme": "dark",
+      "controls": [
+        {
+          "height": 44,
+          "text": "Atualizar Radar",
+          "width": 95.8375015258789
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 538.0250244140625
+        },
+        {
+          "height": 44,
+          "text": "Abrir conversa",
+          "width": 114.7249984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 551.1625366210938
+        },
+        {
+          "height": 44,
+          "text": "Abrir negócio",
+          "width": 107.2375030517578
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 545.5499877929688
+        },
+        {
+          "height": 44,
+          "text": "Abrir proposta",
+          "width": 112.8499984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 440.6750183105469
+        }
+      ],
+      "documentWidth": 768,
+      "evidenceExpanded": true,
+      "evidenceText": "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+      "panelScrollWidth": 710,
+      "panelWidth": 712,
+      "viewport": 768
+    },
+    {
+      "width": 768,
+      "theme": "light",
+      "controls": [
+        {
+          "height": 44,
+          "text": "Atualizar Radar",
+          "width": 95.8375015258789
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 538.0250244140625
+        },
+        {
+          "height": 44,
+          "text": "Abrir conversa",
+          "width": 114.7249984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 551.1625366210938
+        },
+        {
+          "height": 44,
+          "text": "Abrir negócio",
+          "width": 107.2375030517578
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 545.5499877929688
+        },
+        {
+          "height": 44,
+          "text": "Abrir proposta",
+          "width": 112.8499984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 440.6750183105469
+        }
+      ],
+      "documentWidth": 768,
+      "evidenceExpanded": true,
+      "evidenceText": "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+      "panelScrollWidth": 710,
+      "panelWidth": 712,
+      "viewport": 768
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "controls": [
+        {
+          "height": 44,
+          "text": "Atualizar Radar",
+          "width": 95.8375015258789
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 538.0250244140625
+        },
+        {
+          "height": 44,
+          "text": "Abrir conversa",
+          "width": 114.7249984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 647.9000244140625
+        },
+        {
+          "height": 44,
+          "text": "Abrir negócio",
+          "width": 107.2375030517578
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 588.25
+        },
+        {
+          "height": 44,
+          "text": "Abrir proposta",
+          "width": 112.8499984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 440.6750183105469
+        }
+      ],
+      "documentWidth": 1280,
+      "evidenceExpanded": true,
+      "evidenceText": "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+      "panelScrollWidth": 966,
+      "panelWidth": 968,
+      "viewport": 1280
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "controls": [
+        {
+          "height": 44,
+          "text": "Atualizar Radar",
+          "width": 95.8375015258789
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 538.0250244140625
+        },
+        {
+          "height": 44,
+          "text": "Abrir conversa",
+          "width": 114.7249984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 647.9000244140625
+        },
+        {
+          "height": 44,
+          "text": "Abrir negócio",
+          "width": 107.2375030517578
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 588.25
+        },
+        {
+          "height": 44,
+          "text": "Abrir proposta",
+          "width": 112.8499984741211
+        },
+        {
+          "height": 44,
+          "text": "Evidências da recomendação",
+          "width": 440.6750183105469
+        }
+      ],
+      "documentWidth": 1280,
+      "evidenceExpanded": true,
+      "evidenceText": "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+      "panelScrollWidth": 966,
+      "panelWidth": 968,
+      "viewport": 1280
+    }
+  ],
+  "states": [
+    {
+      "width": 390,
+      "scenario": "empty",
+      "text": "Radar comercial\nAtualizar Radar\n\n0 sinais na consulta · somente leitura · R1\n\nNenhum sinal nos dados consultados\n\nRadar procura propostas sem decisão registrada, conversas aguardando resposta e prazos vencidos. Nenhuma ação é executada.",
+      "dimensions": {
+        "documentWidth": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "width": 390,
+      "scenario": "loading",
+      "text": "Radar comercial\nAtualizar Radar\nConsultando sinais do Radar",
+      "dimensions": {
+        "documentWidth": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "width": 390,
+      "scenario": "error",
+      "text": "Radar comercial\nAtualizar Radar\nO Radar não carregou\n\nNão foi possível confirmar os sinais comerciais.\n\nTentar novamente",
+      "dimensions": {
+        "documentWidth": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "width": 390,
+      "scenario": "partial",
+      "text": "Radar comercial\nAtualizar Radar\n\n4 sinais na consulta · somente leitura · R1\n\nConsulta parcial: alguns dados atingiram o limite de leitura. Os números não representam todos os registros.\n\nLead aguardando resposta: Contato de demonstração\nPrioridade alta\n\nLead aguarda resposta há 240 min — responda antes de prospectar novos leads.\n\nFonte: Mensagens registradas\n\nEvidências da recomendação\nAbrir conversa\nFechamento previsto passou: Negócio de demonstração\nAtenção\n\nFechamento previsto para 15/10 e o negócio segue aberto — atualize a etapa ou renegocie a data.\n\nFonte: Data prevista de fechamento (UTC)\n\nEvidências da recomendação\nAbrir negócio\nProposta #001 sem resposta (Cliente de demonstração)\nAtenção\n\nProposta enviada há 72 h, sem visualização registrada — revise o canal e o recebimento.\n\nFonte: Proposta\n\nEvidências da recomendação\nAbrir proposta\nFollow-up vencido: Revisar prazo de acompanhamento\nAtenção\n\nFollow-up vencido há 2 dias — conclua ou renegocie o prazo hoje.\n\nFonte: Tarefa agendada · sem negócio vinculado\n\nEvidências da recomendação",
+      "dimensions": {
+        "documentWidth": 390,
+        "viewport": 390
+      }
+    },
+    {
+      "width": 768,
+      "scenario": "empty",
+      "text": "Radar comercial\nAtualizar Radar\n\n0 sinais na consulta · somente leitura · R1\n\nNenhum sinal nos dados consultados\n\nRadar procura propostas sem decisão registrada, conversas aguardando resposta e prazos vencidos. Nenhuma ação é executada.",
+      "dimensions": {
+        "documentWidth": 768,
+        "viewport": 768
+      }
+    },
+    {
+      "width": 768,
+      "scenario": "loading",
+      "text": "Radar comercial\nAtualizar Radar\nConsultando sinais do Radar",
+      "dimensions": {
+        "documentWidth": 768,
+        "viewport": 768
+      }
+    },
+    {
+      "width": 768,
+      "scenario": "error",
+      "text": "Radar comercial\nAtualizar Radar\nO Radar não carregou\n\nNão foi possível confirmar os sinais comerciais.\n\nTentar novamente",
+      "dimensions": {
+        "documentWidth": 768,
+        "viewport": 768
+      }
+    },
+    {
+      "width": 768,
+      "scenario": "partial",
+      "text": "Radar comercial\nAtualizar Radar\n\n4 sinais na consulta · somente leitura · R1\n\nConsulta parcial: alguns dados atingiram o limite de leitura. Os números não representam todos os registros.\n\nLead aguardando resposta: Contato de demonstração\nPrioridade alta\n\nLead aguarda resposta há 240 min — responda antes de prospectar novos leads.\n\nFonte: Mensagens registradas\n\nEvidências da recomendação\nAbrir conversa\nFechamento previsto passou: Negócio de demonstração\nAtenção\n\nFechamento previsto para 15/10 e o negócio segue aberto — atualize a etapa ou renegocie a data.\n\nFonte: Data prevista de fechamento (UTC)\n\nEvidências da recomendação\nAbrir negócio\nProposta #001 sem resposta (Cliente de demonstração)\nAtenção\n\nProposta enviada há 72 h, sem visualização registrada — revise o canal e o recebimento.\n\nFonte: Proposta\n\nEvidências da recomendação\nAbrir proposta\nFollow-up vencido: Revisar prazo de acompanhamento\nAtenção\n\nFollow-up vencido há 2 dias — conclua ou renegocie o prazo hoje.\n\nFonte: Tarefa agendada · sem negócio vinculado\n\nEvidências da recomendação",
+      "dimensions": {
+        "documentWidth": 768,
+        "viewport": 768
+      }
+    },
+    {
+      "width": 1280,
+      "scenario": "empty",
+      "text": "Radar comercial\nAtualizar Radar\n\n0 sinais na consulta · somente leitura · R1\n\nNenhum sinal nos dados consultados\n\nRadar procura propostas sem decisão registrada, conversas aguardando resposta e prazos vencidos. Nenhuma ação é executada.",
+      "dimensions": {
+        "documentWidth": 1280,
+        "viewport": 1280
+      }
+    },
+    {
+      "width": 1280,
+      "scenario": "loading",
+      "text": "Radar comercial\nAtualizar Radar\nConsultando sinais do Radar",
+      "dimensions": {
+        "documentWidth": 1280,
+        "viewport": 1280
+      }
+    },
+    {
+      "width": 1280,
+      "scenario": "error",
+      "text": "Radar comercial\nAtualizar Radar\nO Radar não carregou\n\nNão foi possível confirmar os sinais comerciais.\n\nTentar novamente",
+      "dimensions": {
+        "documentWidth": 1280,
+        "viewport": 1280
+      }
+    },
+    {
+      "width": 1280,
+      "scenario": "partial",
+      "text": "Radar comercial\nAtualizar Radar\n\n4 sinais na consulta · somente leitura · R1\n\nConsulta parcial: alguns dados atingiram o limite de leitura. Os números não representam todos os registros.\n\nLead aguardando resposta: Contato de demonstração\nPrioridade alta\n\nLead aguarda resposta há 240 min — responda antes de prospectar novos leads.\n\nFonte: Mensagens registradas\n\nEvidências da recomendação\nAbrir conversa\nFechamento previsto passou: Negócio de demonstração\nAtenção\n\nFechamento previsto para 15/10 e o negócio segue aberto — atualize a etapa ou renegocie a data.\n\nFonte: Data prevista de fechamento (UTC)\n\nEvidências da recomendação\nAbrir negócio\nProposta #001 sem resposta (Cliente de demonstração)\nAtenção\n\nProposta enviada há 72 h, sem visualização registrada — revise o canal e o recebimento.\n\nFonte: Proposta\n\nEvidências da recomendação\nAbrir proposta\nFollow-up vencido: Revisar prazo de acompanhamento\nAtenção\n\nFollow-up vencido há 2 dias — conclua ou renegocie o prazo hoje.\n\nFonte: Tarefa agendada · sem negócio vinculado\n\nEvidências da recomendação",
+      "dimensions": {
+        "documentWidth": 1280,
+        "viewport": 1280
+      }
+    }
+  ],
+  "recommendationEvidence": [
+    "Evidências da recomendação\nAguardando desde\n21/10/2026, 08:00:00 UTC\nÚltima mensagem\n21/10/2026, 08:00:00 UTC\nSLA consultado\n60 min\nEtapa\nPrimeira resposta registrada\nLimite da evidência\nMensagem persistida não comprova entrega externa",
+    "Evidências da recomendação\nFechamento previsto\n2026-10-15 · fim do dia UTC",
+    "Evidências da recomendação\nEnvio registrado\n18/10/2026, 12:00:00 UTC\nVisualização registrada\nNão registrado\nEspera desde envio\n72 h",
+    "Evidências da recomendação\nPrazo da tarefa\n19/10/2026, 12:00:00 UTC"
+  ],
+  "navigation": [
+    {
+      "action": "Abrir conversa",
+      "screen": "inbox"
+    },
+    {
+      "action": "Abrir negócio",
+      "screen": "deals"
+    }
+  ],
+  "physicalDevicesTested": false,
+  "remoteTested": false
+}

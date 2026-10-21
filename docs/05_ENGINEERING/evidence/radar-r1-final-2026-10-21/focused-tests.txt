@@ -1,0 +1,224 @@
+TAP version 13
+# Subtest: workspace access derives the tenant from an active membership, not an untrusted workspace ID
+ok 1 - workspace access derives the tenant from an active membership, not an untrusted workspace ID
+  ---
+  duration_ms: 168.677
+  type: 'test'
+  ...
+# Subtest: member cannot create a manager-attributed private instruction
+ok 2 - member cannot create a manager-attributed private instruction
+  ---
+  duration_ms: 120.26
+  type: 'test'
+  ...
+# Subtest: member cannot change workspace settings; admin and owner can
+ok 3 - member cannot change workspace settings; admin and owner can
+  ---
+  duration_ms: 30.0457
+  type: 'test'
+  ...
+# Subtest: workspace settings refuse a write when the audit store is unavailable
+ok 4 - workspace settings refuse a write when the audit store is unavailable
+  ---
+  duration_ms: 43.3651
+  type: 'test'
+  ...
+# Subtest: a workspace member cannot read or edit another workspace deal
+ok 5 - a workspace member cannot read or edit another workspace deal
+  ---
+  duration_ms: 73.3626
+  type: 'test'
+  ...
+# [Operational API] { code: 'unknown', message: 'audit unavailable' }
+# Subtest: deals persist detail, stage history and archive while denying every cross-workspace operation
+ok 6 - deals persist detail, stage history and archive while denying every cross-workspace operation
+  ---
+  duration_ms: 115.2038
+  type: 'test'
+  ...
+# Subtest: clients API keeps CRUD, archive and client-supplied tenant IDs inside the authenticated workspace
+ok 7 - clients API keeps CRUD, archive and client-supplied tenant IDs inside the authenticated workspace
+  ---
+  duration_ms: 230.6069
+  type: 'test'
+  ...
+# Subtest: catalog API keeps create, update, archive and list tenant-scoped
+ok 8 - catalog API keeps create, update, archive and list tenant-scoped
+  ---
+  duration_ms: 98.4489
+  type: 'test'
+  ...
+# Subtest: CSV import preview and commit remain scoped to the workspace that created the job
+ok 9 - CSV import preview and commit remain scoped to the workspace that created the job
+  ---
+  duration_ms: 101.8561
+  type: 'test'
+  ...
+# Subtest: Radar UI never navigates a standalone task ID as a deal
+ok 10 - Radar UI never navigates a standalone task ID as a deal
+  ---
+  duration_ms: 38.23
+  type: 'test'
+  ...
+# Subtest: Radar malformed/missing data is an error, not an empty success
+ok 11 - Radar malformed/missing data is an error, not an empty success
+  ---
+  duration_ms: 5.5017
+  type: 'test'
+  ...
+# Subtest: Radar partial zero result does not promise a complete healthy operation
+ok 12 - Radar partial zero result does not promise a complete healthy operation
+  ---
+  duration_ms: 2.5247
+  type: 'test'
+  ...
+# Subtest: Radar source/date are explicit and user content is escaped
+ok 13 - Radar source/date are explicit and user content is escaped
+  ---
+  duration_ms: 1.7028
+  type: 'test'
+  ...
+# Subtest: Radar UI exposes timestamped evidence for each recommendation without inventing missing fields
+ok 14 - Radar UI exposes timestamped evidence for each recommendation without inventing missing fields
+  ---
+  duration_ms: 56.3206
+  type: 'test'
+  ...
+# Subtest: radar flags proposals sent beyond the threshold and separates viewed from unseen
+ok 15 - radar flags proposals sent beyond the threshold and separates viewed from unseen
+  ---
+  duration_ms: 3.5327
+  type: 'test'
+  ...
+# Subtest: radar flags leads waiting on an incoming message and ignores conversations owned by the operator
+ok 16 - radar flags leads waiting on an incoming message and ignores conversations owned by the operator
+  ---
+  duration_ms: 1.3805
+  type: 'test'
+  ...
+# Subtest: radar flags overdue tasks and deals past expected close, always labeling the source
+ok 17 - radar flags overdue tasks and deals past expected close, always labeling the source
+  ---
+  duration_ms: 36.4003
+  type: 'test'
+  ...
+# Subtest: radar snapshot aggregates counts, sorts high severity first, and caps per kind
+ok 18 - radar snapshot aggregates counts, sorts high severity first, and caps per kind
+  ---
+  duration_ms: 1.3163
+  type: 'test'
+  ...
+# Subtest: GET /api/radar is read-only, workspace-scoped, and returns the deterministic envelope
+ok 19 - GET /api/radar is read-only, workspace-scoped, and returns the deterministic envelope
+  ---
+  duration_ms: 109.3422
+  type: 'test'
+  ...
+# Subtest: GET /api/radar denies a workspace without active membership
+ok 20 - GET /api/radar denies a workspace without active membership
+  ---
+  duration_ms: 24.6488
+  type: 'test'
+  ...
+# Subtest: proposal thresholds, retention, terminal states and future/invalid dates are conservative
+ok 21 - proposal thresholds, retention, terminal states and future/invalid dates are conservative
+  ---
+  duration_ms: 0.7122
+  type: 'test'
+  ...
+# Subtest: first-response SLA starts at oldest pending incoming; internal notes and read markers do not reset it
+ok 22 - first-response SLA starts at oldest pending incoming; internal notes and read markers do not reset it
+  ---
+  duration_ms: 0.4316
+  type: 'test'
+  ...
+# Subtest: overdue tasks ignore completed_at and exact/future deadlines; calendar dates validate and use UTC day end
+ok 23 - overdue tasks ignore completed_at and exact/future deadlines; calendar dates validate and use UTC day end
+  ---
+  duration_ms: 0.4347
+  type: 'test'
+  ...
+# Subtest: GET Radar uses request-bound database exclusively, returns no-store and denies both foreign workspaces
+ok 24 - GET Radar uses request-bound database exclusively, returns no-store and denies both foreign workspaces
+  ---
+  duration_ms: 59.2065
+  type: 'test'
+  ...
+# Subtest: GET Radar does not auto-provision absent or inactive memberships and denies missing auth
+ok 25 - GET Radar does not auto-provision absent or inactive memberships and denies missing auth
+  ---
+  duration_ms: 29.3845
+  type: 'test'
+  ...
+# Subtest: GET Radar excludes archived/retained quotes and skips lead inference for truncated messages
+ok 26 - GET Radar excludes archived/retained quotes and skips lead inference for truncated messages
+  ---
+  duration_ms: 19.4677
+  type: 'test'
+  ...
+# Subtest: GET Radar filters foreign messages even when they reference a selected conversation and allows member reads without elevation
+ok 27 - GET Radar filters foreign messages even when they reference a selected conversation and allows member reads without elevation
+  ---
+  duration_ms: 22.6504
+  type: 'test'
+  ...
+# [Operational API] { code: 'unknown', message: 'read unavailable' }
+# Subtest: GET Radar marks capped sources partial and propagates read failure without a successful empty snapshot
+ok 28 - GET Radar marks capped sources partial and propagates read failure without a successful empty snapshot
+  ---
+  duration_ms: 16.8514
+  type: 'test'
+  ...
+# {"scope":"LOCAL_MEMORY_ADAPTER_ONLY_NOT_POSTGRES_BENCHMARK","messageRows":100000,"readQueries":8,"elapsedMs":120,"responseBytes":1850,"leadsSuppressed":true,"writes":0}
+# Subtest: GET Radar bounds a 100000-message history, performs only eight read queries and never infers leads from truncated history
+ok 29 - GET Radar bounds a 100000-message history, performs only eight read queries and never infers leads from truncated history
+  ---
+  duration_ms: 536.4403
+  type: 'test'
+  ...
+# [dotenv@17.3.1] injecting env (0) from .env -- tip: ⚡️ secrets for agents: https://dotenvx.com/as2
+# Subtest: missing tenant context is denied
+ok 30 - missing tenant context is denied
+  ---
+  duration_ms: 5.5981
+  type: 'test'
+  ...
+# Subtest: tenant scope prevents cross-tenant reads even with a service-role-like query
+ok 31 - tenant scope prevents cross-tenant reads even with a service-role-like query
+  ---
+  duration_ms: 1.8869
+  type: 'test'
+  ...
+# Subtest: tenant scope prevents cross-tenant updates
+ok 32 - tenant scope prevents cross-tenant updates
+  ---
+  duration_ms: 0.424
+  type: 'test'
+  ...
+# Subtest: active workspace is resolved from membership and client-supplied IDs must be members
+ok 33 - active workspace is resolved from membership and client-supplied IDs must be members
+  ---
+  duration_ms: 0.4862
+  type: 'test'
+  ...
+# Subtest: webhook tenant resolution rejects absent and invalid bindings
+ok 34 - webhook tenant resolution rejects absent and invalid bindings
+  ---
+  duration_ms: 0.6596
+  type: 'test'
+  ...
+# Subtest: webhook without persistence remains disabled and creates no state
+ok 35 - webhook without persistence remains disabled and creates no state
+  ---
+  duration_ms: 206.4571
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 12131.3651

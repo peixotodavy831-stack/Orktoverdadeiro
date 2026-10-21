@@ -1,0 +1,2 @@
+> orkto@0.0.0 lint
+> tsc --noEmit

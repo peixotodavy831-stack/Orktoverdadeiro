@@ -1,0 +1,26 @@
+{
+  "scope": "PREVIEW_ENVIRONMENT_READ_ONLY_NO_DEPLOY",
+  "date": "2026-10-21T04:24:04.347Z",
+  "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "teamId": "team_7mNnmcZNv9miOp7pl7otO6wE",
+  "branch": "feat/orkto-radar-2027",
+  "requestedEnvironment": "preview",
+  "checks": {
+    "appStaging": true,
+    "clientStaging": true,
+    "authGoogleOnly": false,
+    "clientAuthGoogleOnly": false,
+    "supabaseStaging": true,
+    "publicKeyRole": true,
+    "noElevatedKey": true
+  },
+  "presence": {
+    "serverAuthMode": false,
+    "clientAuthMode": false
+  },
+  "status": "BLOCKED_CONFIGURATION",
+  "valuesPrinted": false,
+  "storage": "process_memory_only",
+  "deployPerformed": false,
+  "readyForProductionCandidate": "NO"
+}

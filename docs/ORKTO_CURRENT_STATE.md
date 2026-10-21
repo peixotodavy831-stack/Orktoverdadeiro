@@ -1,3 +1,6 @@
+## Validação local Radar R1 — branch isolada, 21/10/2026
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO.** feat/orkto-radar-2027, candidato preparado6be2779, preservando5738f52/2cd2844. [Matriz final](05_ENGINEERING/ORKTO_RADAR_R1_FINAL_VALIDATION_2026-10-21.md):6 layouts claro/escuro nos tamanhos390/768/1280,12 estados e evidências por recomendação PASS local;35 focados e309 aplicação+107 ferramentas, lint/build/smoke PASS. Engine/rota intactas. Preview preparado e não publicado: duas variáveis Google-only ausentes na branch nova, aguardam aprovação/configuração e publicação explícita. Endpoint/RLS/SQL remoto NOT_TESTED. [Playbooks R0](05_ENGINEERING/ORKTO_PLAYBOOKS_R0_TECH_SPEC_2026-10-21.md) proposto, não implementado. PR #2 e produção preservados.
 ## Branch isolada Radar R1 — 21/10/2026
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** Esta atualização pertence somente à feat/orkto-radar-2027 (base78497da), sem alterar PR #2, staging ou produção. Radar R1 somente leitura integrado seletivamente; [relatório e evidências locais](05_ENGINEERING/ORKTO_RADAR_R1_INTEGRATION_2026-10-21.md). Fonte antiga bff22b7 e106 arquivos locais preservados/verificados. Gates remotos anteriores não foram reexecutados nem promovidos a PASS. Histórico abaixo continua sendo referência da homologação, sem implantação do Radar.
