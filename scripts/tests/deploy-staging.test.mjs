@@ -133,12 +133,16 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   const defaultConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.json',import.meta.url)),'utf8'));
   const stagingConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.staging.json',import.meta.url)),'utf8'));
   const productionConfig=JSON.parse(readFileSync(fileURLToPath(new URL('../../vercel.production.json',import.meta.url)),'utf8'));
-  assert.deepEqual(defaultConfig,stagingConfig);
+  // Isolated frontend branches add deny-only Git preview guards to the default
+  // config. Build/runtime settings must still match staging exactly.
+  assert.deepEqual(defaultConfig,{...stagingConfig,git:{...stagingConfig.git,deploymentEnabled:{
+    ...stagingConfig.git.deploymentEnabled,'feat/orkto-radar-2027':false,'codex/orkto-mobile-ux-2027':false,
+  }}});
   assert.equal(stagingConfig.buildCommand,'vite build && node scripts/render-public-url.mjs');
   assert.equal(defaultConfig.functions?.['api/server.ts']?.includeFiles,
     'supabase/functions/orkto-core-mutations/_shared/pilot-access.mjs');
   const {crons,...productionWithoutCrons}=productionConfig;
-  assert.deepEqual(productionWithoutCrons,defaultConfig);
+  assert.deepEqual(productionWithoutCrons,stagingConfig);
   assert.equal(defaultConfig.crons,undefined);
   assert.deepEqual(productionConfig.crons,[{path:'/api/cron/automation-dispatch',schedule:'15 * * * *'}]);
 });

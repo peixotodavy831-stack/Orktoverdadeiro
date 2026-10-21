@@ -23,8 +23,28 @@ import {
 } from './fixtures';
 import '../../src/index.css';
 
-type ScreenName = 'today' | 'inbox' | 'deals' | 'wia';
+import BillingPage from '../../src/components/BillingPage';
+import IntegrationsPage from '../../src/product/screens/integrations-page';
+import ManagementPage from '../../src/product/screens/management-page';
+import ProfilePage from '../../src/product/screens/profile-page';
+import SettingsPage from '../../src/components/SettingsPage';
+import QuotesPage from '../../src/components/QuotesPage';
+import CreateQuote from '../../src/components/CreateQuote';
+import ClientsPage from '../../src/components/ClientsPage';
+import ServicesPage from '../../src/components/ServicesPage';
+
+const additionalScreens = ['team','audit','help','profile','settings','proposals','create_quote','clients','catalog','billing','integrations'] as const;
+const fixtureRequest = async (path: string) => {
+  const scenario = new URLSearchParams(location.search).get('scenario');
+  if (scenario === 'error') throw new Error('Falha de fixture');
+  if (path === '/api/team') return {data:{members:[{user_id:'visual-user',role:'owner',status:'active',joined_at:'2026-10-21T12:00:00Z'}],invites:[],currentRole:'owner',currentUserId:'visual-user'}};
+  return {data:[]};
+};
+const fixtureWriteBlocked = async (): Promise<never> => { throw new Error('Fixture visual: nenhuma gravação permitida.'); };
+
+type ScreenName = 'today' | 'inbox' | 'deals' | 'wia' | typeof additionalScreens[number];
 const screenViews: Record<ScreenName, ProductView> = {
+  billing:'billing',integrations:'integrations',team:'team',audit:'audit',help:'help',profile:'profile',settings:'settings',proposals:'quotes',create_quote:'create_quote',clients:'clients',catalog:'services',
   today: 'dashboard',
   inbox: 'conversations',
   deals: 'deals',
@@ -60,7 +80,7 @@ const visualQuote = {
   updatedAt: new Date() as never,
 } as Quote;
 
-const visualProfile = { companyName: 'Costa Serviços' } as UserProfile;
+const visualProfile = { companyName: 'Costa Serviços', displayName:'Pessoa de demonstração', profession:'Consultor', brandTone:'comercial' } as UserProfile;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
@@ -91,6 +111,9 @@ function installVisualApiFixtures() {
     }
     if (scenario === 'configuration' && statefulAction) return json({ error: 'Conecte o canal para enviar.', category: 'configuration_required' }, 503);
     if (scenario === 'error' && statefulAction) return json({ error: 'Falha controlada pelo teste visual.' }, 502);
+    if (path === '/api/integrations/status') return json({data:{wia:{provider:'gemini',model:'fixture-only',testingOnly:true,state:'configuration_required'},whatsapp:{state:'configuration_required',connected:false,runtimeConfigured:false,connection:null,controls:null},billing:{state:'configuration_required',checkoutEnabled:false},canManage:false}});
+    if (path === '/api/plan/catalog') return json({data:[['starter',7990],['pro',14990],['business',29990],['scale',59990],['enterprise',null]].map(([plan_key,price_cents])=>({plan_key,price_cents,currency:'BRL',price_is_public:price_cents!==null,entitlements:{features:{},limits:{}},version:1}))});
+    if (path === '/api/billing/current') return json({subscription:null,workspacePlan:null,status:'configuration_required',trialEndsAt:null,readOnly:true,configurationRequired:true,entitlements:{features:{},limits:{}},usage:[],checkout:'not_configured',pulso:{state:'configuration_required',allowance:null,used:null,remaining:null}});
     if (path === '/api/radar') {
       const now = Date.parse('2026-10-21T12:00:00.000Z');
       const data = buildRadarSnapshot(scenario === 'empty' ? {} : {
@@ -127,14 +150,16 @@ function installVisualApiFixtures() {
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/send` && init?.method === 'POST') return json({ data: { accepted: true } });
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/sussurros` && init?.method === 'POST') return json({ data: { id: 'visual-sussurro-1', content: '', created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 86_400_000).toISOString() } });
     if (path.startsWith('/api/approval-tasks/')) return json({ data: {} });
-    return originalFetch(input, init);
+    if (url.origin === location.origin && !path.startsWith('/api/')) return originalFetch(input, init);
+    return json({error:'Contrato não coberto pelo fixture visual.'},501);
   };
 }
 
 function App() {
   const params = useMemo(() => new URLSearchParams(window.location.search), []);
-  const validScreen = (value: string | null): value is ScreenName => value === 'today' || value === 'inbox' || value === 'deals' || value === 'wia';
+  const validScreen = (value: string | null): value is ScreenName => value === 'today' || value === 'inbox' || value === 'deals' || value === 'wia' || additionalScreens.some(screen => screen === value);
   const initialScreen = validScreen(params.get('screen')) ? params.get('screen') as ScreenName : 'today';
+  const [wiaInitialMessage, setWiaInitialMessage] = useState('');
   const [screen, setScreen] = useState<ScreenName>(initialScreen);
   const [darkMode, setDarkMode] = useState(params.get('theme') !== 'light');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -153,7 +178,9 @@ function App() {
     if (view === 'wia') { setScreen('wia'); setMobileThread(false); return; }
     if (view === 'conversations' || view === 'conversation') { setScreen('inbox'); setMobileThread(view === 'conversation'); return; }
     if (view === 'dashboard') { setScreen('today'); setMobileThread(false); return; }
-    if (view === 'create_quote') { setScreen('today'); setMobileThread(false); return; }
+    if (view === 'quotes') { setScreen('proposals'); return; }
+    if (view === 'services') { setScreen('catalog'); return; }
+    if (additionalScreens.some(screen => screen === view)) { setScreen(view as ScreenName); setMobileThread(false); return; }
   };
 
   return <div className="orkto-product-shell orkto-glass-shell flex h-dvh min-h-0 overflow-hidden" data-visual-screen={screen} data-visual-theme={darkMode ? 'dark' : 'light'}>
@@ -165,10 +192,19 @@ function App() {
         <div className="flex items-center gap-1"><button type="button" onClick={() => setDarkMode(value => !value)} aria-label={darkMode ? 'Ativar tema claro' : 'Ativar tema escuro'} className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted">{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button><button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted"><Menu size={19} /></button></div>
       </header>
       <div id="visual-main" className={`relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
-        {screen === 'today' && <TodayV2Page user={{ displayName: 'Marina' }} userProfile={visualProfile} quotes={params.get('scenario') === 'empty' ? [] : [visualQuote]} clients={params.get('scenario') === 'empty' ? [] : [visualClient]} accessToken={accessToken} dataLoading={false} onSelectQuote={() => setScreen('today')} onCreateQuote={() => setScreen('today')} onOpenDeal={() => setScreen('deals')} onOpenConversation={() => { setScreen('inbox'); setMobileThread(true); }} onOpenWia={() => setScreen('wia')} onOpenSettings={() => undefined} />}
+        {screen === 'today' && <TodayV2Page user={{ displayName: 'Marina' }} userProfile={visualProfile} quotes={params.get('scenario') === 'empty' ? [] : [visualQuote]} clients={params.get('scenario') === 'empty' ? [] : [visualClient]} accessToken={accessToken} dataLoading={false} onSelectQuote={() => setScreen('today')} onCreateQuote={() => setScreen('create_quote')} onOpenDeal={() => setScreen('deals')} onOpenConversation={() => { setScreen('inbox'); setMobileThread(true); }} onOpenWia={message => { setWiaInitialMessage(message || ''); setScreen('wia'); }} onOpenSettings={() => undefined} />}
         {screen === 'inbox' && <InboxWorkspace currentView={currentView} accessToken={accessToken} selectedConversationId={mobileThread || window.matchMedia('(min-width: 1024px)').matches ? VISUAL_CONVERSATION_ID : null} onOpenConversation={() => setMobileThread(true)} onBackToInbox={() => setMobileThread(false)} onOpenDeal={() => setScreen('deals')} onOpenSettings={() => undefined} />}
         {screen === 'deals' && <DealsPage clients={[visualClient]} accessToken={accessToken} initialCreate={createDeal} onInitialCreateOpened={() => setCreateDeal(false)} />}
-        {screen === 'wia' && <WiaWorkspace accessToken={accessToken} onOpenSettings={() => undefined} />}
+        {['team','audit','help'].includes(screen) && <ManagementPage view={screen as 'team'|'audit'|'help'} request={fixtureRequest} onNavigate={navigate} accountName="Pessoa de demonstração" />}
+        {screen === 'billing' && <BillingPage userProfile={visualProfile} />}
+        {screen === 'integrations' && <IntegrationsPage request={async (path,init) => { if (init?.method && init.method !== 'GET') return fixtureWriteBlocked(); const response=await fetch(path); return response.json(); }} onNavigate={navigate} />}
+        {screen === 'profile' && <ProfilePage profile={visualProfile} account={{displayName:'Pessoa de demonstração',email:'fixture@example.invalid'}} onSave={fixtureWriteBlocked} onOpenSettings={() => setScreen('settings')} onSignOut={() => undefined} />}
+        {screen === 'settings' && <SettingsPage userProfile={visualProfile} onProfileUpdated={fixtureWriteBlocked} />}
+        {screen === 'proposals' && <QuotesPage quotes={[visualQuote]} clients={[visualClient]} userProfile={visualProfile} onSelectQuote={() => undefined} onCreateQuoteClick={() => setScreen('create_quote')} />}
+        {screen === 'create_quote' && <CreateQuote userProfile={visualProfile} savedClients={[visualClient]} savedServices={[]} onQuoteCreated={fixtureWriteBlocked} onCancel={() => setScreen('proposals')} />}
+        {screen === 'clients' && <ClientsPage clients={[visualClient]} quotes={[visualQuote]} userId="visual-user" onClientAdded={fixtureWriteBlocked} onSelectQuote={() => undefined} />}
+        {screen === 'catalog' && <ServicesPage services={[]} userId="visual-user" onServiceAdded={fixtureWriteBlocked} onServiceUpdated={fixtureWriteBlocked} onServiceDeleted={fixtureWriteBlocked} />}
+        {screen === 'wia' && <WiaWorkspace initialMessage={wiaInitialMessage} accessToken={accessToken} onOpenSettings={() => undefined} />}
       </div>
       <MobileNavigation currentView={currentView} onNavigate={navigate} menuOpen={menuOpen} onMenuOpenChange={setMenuOpen} onSignOut={() => undefined} onQuickCreate={(id) => { if (id === 'deal') setCreateDeal(true); }} />
     </div>

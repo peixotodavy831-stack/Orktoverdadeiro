@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
-import { ArrowRight, Plus, X } from 'lucide-react';
+import { ArrowRight, MoreHorizontal, Plus, X } from 'lucide-react';
 import { OrktoIcon } from '../icons/orkto-icon';
 import { primaryNavigation, quickCreateItems, secondaryNavigation, getActiveNavigationId } from './navigation-config';
 import type { ProductView } from '../types';
@@ -16,9 +16,9 @@ interface MobileNavigationProps {
 const dock = [
   { id: 'today', label: 'Hoje', icon: 'today' as const, view: 'dashboard' as ProductView },
   { id: 'inbox', label: 'Inbox', icon: 'inbox' as const, view: 'conversations' as ProductView },
-  { id: 'create', label: 'Criar', icon: null, view: null },
   { id: 'deals', label: 'Negócios', icon: 'deals' as const, view: 'deals' as ProductView },
   { id: 'wia', label: 'WIA', icon: 'wia' as const, view: 'wia' as ProductView },
+  { id: 'more', label: 'Mais', icon: null, view: null },
 ];
 
 const mobileMenuIds = new Set(['clients', 'proposals', 'catalog', 'reports', 'integrations', 'team', 'billing', 'settings', 'profile', 'audit', 'help']);
@@ -59,6 +59,7 @@ export function MobileNavigation({ currentView, onNavigate, menuOpen, onMenuOpen
   const menuRef = useRef<HTMLDivElement>(null);
   const quickRef = useRef<HTMLDivElement>(null);
   const activeId = getActiveNavigationId(currentView);
+  const moreActive = !dock.some(item => item.id === activeId);
   const hideDock = currentView === 'conversation';
   const menuEntries = useMemo(() => primaryNavigation.flatMap(section => section.items).filter(item => mobileMenuIds.has(item.id)).concat(secondaryNavigation.filter(item => mobileMenuIds.has(item.id))), []);
 
@@ -77,11 +78,11 @@ export function MobileNavigation({ currentView, onNavigate, menuOpen, onMenuOpen
 
   return (
     <>
-      {!hideDock && <nav className="orkto-mobile-dock fixed inset-x-0 bottom-0 z-[90] border-t orkto-product-border orkto-product-surface md:hidden" aria-label="Navegação móvel principal">
+      {!hideDock && <nav className="orkto-mobile-dock fixed inset-x-0 bottom-0 z-[90] border-t orkto-product-border orkto-product-surface lg:hidden" aria-label="Navegação móvel principal">
         <div className="mx-auto grid h-16 max-w-xl grid-cols-5 items-center px-2">
           {dock.map(item => {
             const active = activeId === item.id;
-            if (item.id === 'create') return <button key={item.id} type="button" onClick={() => setQuickCreateOpen(true)} aria-label="Criar novo" aria-haspopup="dialog" className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl orkto-product-primary shadow-sm"><Plus size={22} /></button>;
+            if (item.id === 'more') return <button key={item.id} type="button" onClick={() => onMenuOpenChange(true)} aria-label="Mais módulos" aria-haspopup="dialog" aria-expanded={menuOpen} aria-current={moreActive ? 'page' : undefined} style={moreActive ? {color: 'var(--orkto-brand-text)'} : undefined} className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-xs orkto-product-muted"><MoreHorizontal size={21} aria-hidden="true" /><span>Mais</span></button>;
             return <button key={item.id} type="button" onClick={() => item.view && navigate(item.view)} aria-current={active ? 'page' : undefined} aria-label={item.label} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-xl text-[10px] ${active ? 'font-semibold' : 'orkto-product-muted'}`} style={active ? { color: 'var(--orkto-brand-text)' } : undefined}>
               {item.icon && <OrktoIcon name={item.icon} size={21} />}
               <span>{item.label}</span>
@@ -100,6 +101,7 @@ export function MobileNavigation({ currentView, onNavigate, menuOpen, onMenuOpen
             <button type="button" data-autofocus="true" onClick={() => onMenuOpenChange(false)} aria-label="Fechar menu" className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><X size={18} /></button>
           </div>
           <nav className="max-h-[55dvh] overflow-y-auto" aria-label="Todos os módulos">
+            <button type="button" onClick={() => { onMenuOpenChange(false); setQuickCreateOpen(true); }} className="orkto-product-primary mb-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold"><Plus size={18} />Criar novo</button>
             <ul className="grid grid-cols-2 gap-2">
               {menuEntries.map(item => {
                 const disabled = item.availability !== 'available' || !item.view;

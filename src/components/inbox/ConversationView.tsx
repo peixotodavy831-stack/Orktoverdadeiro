@@ -703,7 +703,7 @@ export default function ConversationView({
 
       {/* Barra de composição */}
       <footer className="border-t border-zinc-800/60 bg-zinc-900/50 px-4 lg:px-6 py-3 flex-shrink-0">
-        <form onSubmit={event => void sendSussurro(event)} className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center gap-2 rounded-xl border border-orange-500/20 bg-zinc-950/70 p-2">
+        <details className="inbox-private-composer mx-auto mb-2 max-w-2xl"><summary className="min-h-11 cursor-pointer py-3 text-sm font-medium orkto-product-muted">Instrução privada para a equipe</summary><form onSubmit={event => void sendSussurro(event)} className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center gap-2 rounded-xl border border-orange-500/20 bg-zinc-950/70 p-2">
           <LockKeyhole className="ml-1 h-4 w-4 shrink-0 text-orange-400" />
           <select value={sussurroRecipientId} onChange={event => setSussurroRecipientId(event.target.value)} aria-label="Destinatário do Sussurro" disabled={sussurroSaving} className="min-h-11 max-w-full rounded-lg border border-zinc-800 bg-zinc-900 px-2 text-xs text-zinc-300 outline-none focus:border-orange-500/50 disabled:opacity-50">
             <option value="">Toda a equipe</option>
@@ -711,7 +711,7 @@ export default function ConversationView({
           </select>
           <input value={privateInstruction} onChange={event => setPrivateInstruction(event.target.value)} maxLength={2000} placeholder="Deixe uma instrução privada…" aria-label="Instrução privada, não enviada ao cliente" disabled={sussurroSaving} className="min-h-11 min-w-[10rem] flex-1 bg-transparent px-1 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 disabled:opacity-50" />
           <button type="submit" disabled={sussurroSaving || !privateInstruction.trim()} className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg bg-orange-500/10 px-3 text-xs font-bold text-orange-300 hover:bg-orange-500/20 disabled:cursor-not-allowed disabled:opacity-40" title="Registrar sem enviar ao cliente">{sussurroSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}Privado</button>
-        </form>
+        </form></details>
         {sendStatus === 'error' && sendError && <div role="alert" className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-lg border p-3 text-xs orkto-product-border orkto-product-surface">
           <p className="min-w-0 flex-1 leading-5">{sendError.message} <span className="orkto-product-muted">O rascunho continua disponível e o envio não foi confirmado.</span></p>
           <div className="flex shrink-0 gap-2">{sendError.configurationRequired && onOpenConfiguration && <button type="button" onClick={onOpenConfiguration} className="min-h-10 rounded-lg border px-3 font-medium orkto-product-border orkto-product-control">Configurar canal</button>}<button type="button" onClick={() => void handleSend(newMessage)} disabled={!newMessage.trim()} className="min-h-10 rounded-lg px-3 font-semibold orkto-product-primary disabled:opacity-50">Tentar novamente</button></div>

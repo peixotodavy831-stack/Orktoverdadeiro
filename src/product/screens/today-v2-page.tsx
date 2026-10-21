@@ -20,7 +20,7 @@ interface TodayV2PageProps {
   onCreateQuote: () => void;
   onOpenDeal: (dealId?: string) => void;
   onOpenConversation: (conversationId: string) => void;
-  onOpenWia: () => void;
+  onOpenWia: (message?: string) => void;
 }
 
 interface FeedState<T> {
@@ -71,6 +71,7 @@ export default function TodayV2Page({
   const [deals, setDeals] = useState<FeedState<DealView>>(blankFeed);
   const [wia, setWia] = useState<FeedState<WiaActionView>>(blankFeed);
   const [retryVersion, setRetryVersion] = useState(0);
+  const [wiaMessage, setWiaMessage] = useState('');
 
   const loadInbox = useCallback(async () => {
     setInbox({ status: 'loading', data: [] });
@@ -141,12 +142,13 @@ export default function TodayV2Page({
         </header>
         <aside className="today-wia-command today-glass-panel" aria-labelledby="today-command-title">
           <div className="today-command-heading"><h2 id="today-command-title">Central de comando WIA</h2><ArrowRight size={17} aria-hidden="true" /></div>
-          <p>Seu contexto, suas decisões. A WIA prepara o próximo passo com você.</p>
-          <div className="today-command-body">
-            <div className="today-wia-orbit" aria-hidden="true"><span className="today-orbit-ring" /><span className="today-orbit-ring today-orbit-ring-two" /><span className="today-orbit-ring today-orbit-ring-three" /><span className="today-wia-core">WIA</span><i className="today-orbit-point" /></div>
-            <ul className="today-command-capabilities"><li><Inbox size={15} />Consulte seu contexto</li><li><Sparkles size={15} />Prepare ações</li><li><ShieldCheck size={15} />Revise e aprove</li></ul>
-          </div>
-          <button type="button" onClick={onOpenWia} className="today-command-action">Abrir WIA <ArrowRight size={16} /></button>
+          <p>Conte o que precisa organizar. Revise a resposta antes de agir.</p>
+          <form className="today-wia-composer" onSubmit={event => { event.preventDefault(); onOpenWia(wiaMessage.trim() || undefined); }}>
+            <label htmlFor="today-wia-message" className="sr-only">O que você precisa da WIA?</label>
+            <textarea id="today-wia-message" maxLength={4000} rows={2} value={wiaMessage} onChange={event => setWiaMessage(event.target.value)} placeholder="Ex.: Quais propostas estão pendentes?" className="orkto-product-control" />
+            <button type="submit" className="today-command-action">{wiaMessage.trim() ? 'Continuar na WIA' : 'Abrir WIA'} <ArrowRight size={16} /></button>
+          </form>
+          <p className="today-command-disclaimer">Seu pedido abre para revisão. Nenhum registro é criado aqui.</p>
         </aside>
         <section className="today-metrics" aria-label="Resumo da operação">
           <div className="today-metric today-glass-panel"><Metric label="Conversas prioritárias" value={inbox.status === 'success' ? attentionConversations.length : '—'} note={inbox.status === 'success' ? 'Na fila consultada' : 'Aguardando a Inbox'} icon={<Inbox size={18} />} /></div>
@@ -155,6 +157,7 @@ export default function TodayV2Page({
           <div className="today-metric today-glass-panel"><Metric label="Ações para revisar" value={wia.status === 'success' ? approvalActions.length : '—'} note={wia.status === 'success' ? 'Na lista carregada' : 'Aguardando a WIA'} icon={<ShieldCheck size={18} />} /></div>
         </section>
       </div>
+      <TodayRadarPanel accessToken={accessToken} refreshKey={retryVersion} onSelectQuote={onSelectQuote} onOpenConversation={onOpenConversation} onOpenDeal={onOpenDeal} />
       <div className="today-operation-grid">
 
       <section aria-labelledby="today-attention-title" className="today-glass-panel today-attention-panel space-y-3">
@@ -179,7 +182,7 @@ export default function TodayV2Page({
         <div className="today-attention-list divide-y orkto-product-border">
           {approvalActions.slice(0, 3).map(action => <article key={action.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">Ação da WIA aguarda aprovação</h3><StatusBadge tone="attention">Aguardando aprovação</StatusBadge></div><p className="mt-1 line-clamp-2 text-[13px] leading-5 orkto-product-muted">{actionSummary(action)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}</p></div></div>
-            <button type="button" onClick={onOpenWia} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Revisar ação <ArrowRight size={15} /></button>
+            <button type="button" onClick={() => onOpenWia()} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Revisar ação <ArrowRight size={15} /></button>
           </article>)}
           {attentionConversations.slice(0, Math.max(0, 5 - Math.min(approvalActions.length, 3))).map(item => <article key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted"><Inbox size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">{item.contact_name || 'Conversa sem nome'}</h3>{Number(item.unread_count || 0) > 0 && <StatusBadge tone="info">{item.unread_count} não lida{Number(item.unread_count) === 1 ? '' : 's'}</StatusBadge>}{item.priority && <StatusBadge tone={['urgent', 'high'].includes(String(item.priority).toLowerCase()) ? 'critical' : 'neutral'}>Prioridade {priorityLabel(item.priority)}</StatusBadge>}</div><p className="mt-1 line-clamp-1 text-[13px] orkto-product-muted">{item.last_message || priorityReason(item)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{item.last_message_at ? new Date(item.last_message_at).toLocaleString('pt-BR') : 'Horário não retornado'}{item.source_channel ? ` · ${item.source_channel}` : ''}</p></div></div>
@@ -203,20 +206,20 @@ export default function TodayV2Page({
       </section>
 
       <section aria-labelledby="today-wia-title" className="today-glass-panel today-activity-panel space-y-3">
-        <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="today-wia-title" className="today-section-title">Atividade da WIA</h2><p className="mt-1 text-xs orkto-product-muted">Ações registradas no seu workspace</p></div><button type="button" onClick={onOpenWia} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold" style={{ color: 'var(--orkto-brand-text)' }}>Abrir workspace <ArrowRight size={14} /></button></div>
+        <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="today-wia-title" className="today-section-title">Atividade da WIA</h2><p className="mt-1 text-xs orkto-product-muted">Ações registradas no seu workspace</p></div><button type="button" onClick={() => onOpenWia()} className="inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-xs font-semibold" style={{ color: 'var(--orkto-brand-text)' }}>Abrir workspace <ArrowRight size={14} /></button></div>
         {wia.status === 'loading' && <LoadingState rows={2} label="Carregando ações persistidas da WIA" />}
         {(wia.status === 'error' || wia.status === 'offline') && <ErrorState title="A atividade da WIA não carregou" message={wia.message || 'Não foi possível confirmar ações recentes.'} onRetry={() => void loadWia()} />}
         {wia.status === 'permission_denied' && <PermissionState message="A atividade da WIA exige acesso autorizado. Nenhuma execução foi exibida." />}
         {wia.status === 'configuration_required' && <ConfigurationRequired title="WIA precisa de configuração" message={wia.message || 'A configuração necessária para consultar esta atividade está ausente.'} action={onOpenSettings && <button type="button" onClick={onOpenSettings} className="orkto-product-control min-h-11 rounded-lg px-3 text-xs font-semibold">Abrir configurações</button>} />}
         {wia.status === 'backend_pending' && <BackendPending title="Atividade da WIA pendente neste ambiente" message="A consulta de ações persistidas não está disponível aqui." />}
-        {wia.status === 'success' && wia.data.length === 0 && <EmptyState title="Nenhuma ação recente registrada" description="Consulte a WIA sobre sua operação. As ações registradas aparecerão aqui, com o resultado de cada etapa." icon={<Sparkles size={18} />} action={<button type="button" onClick={onOpenWia} className="today-text-action">Consultar WIA <ArrowRight size={15} aria-hidden="true" /></button>} />}
+        {wia.status === 'success' && wia.data.length === 0 && <EmptyState title="Nenhuma ação recente registrada" description="Consulte a WIA sobre sua operação. As ações registradas aparecerão aqui, com o resultado de cada etapa." icon={<Sparkles size={18} />} action={<button type="button" onClick={() => onOpenWia()} className="today-text-action">Consultar WIA <ArrowRight size={15} aria-hidden="true" /></button>} />}
         {wia.status === 'success' && wia.data.length > 0 && <ol className="today-activity-list divide-y orkto-product-border">
           {wia.data.slice(0, 4).map(action => <li key={action.id} className="flex items-start gap-3 p-4"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: action.status === 'executed' ? 'var(--orkto-success)' : action.status === 'failed' ? 'var(--orkto-critical)' : 'var(--orkto-brand)' }} aria-hidden="true" /><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-medium">{actionSummary(action)}</h3><StatusBadge tone={action.status === 'executed' ? 'success' : action.status === 'failed' ? 'critical' : 'attention'}>{formatActionStatus(action.status)}</StatusBadge></div><p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}{action.rationale ? ` · ${action.rationale}` : ''}</p></div></li>)}
         </ol>}
       </section>
 
       </div>
-      <TodayRadarPanel accessToken={accessToken} refreshKey={retryVersion} onSelectQuote={onSelectQuote} onOpenConversation={onOpenConversation} onOpenDeal={onOpenDeal} />
+
       <section aria-labelledby="today-work-title" className="today-glass-panel today-operation-footer">
         <div><h2 id="today-work-title" className="today-section-title">Sua operação, a um passo</h2><p className="mt-1 text-xs orkto-product-muted">{dataLoading || dataError ? 'Clientes: aguardando dados do workspace.' : `${clients.length} cliente${clients.length === 1 ? '' : 's'} no workspace`}</p></div>
         <div className="today-footer-actions">

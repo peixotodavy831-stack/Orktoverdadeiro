@@ -674,7 +674,7 @@ export default function CreateQuote({
                         <span className="text-[10px] text-zinc-400 italic">Conversão baseada em copy de alta relevância</span>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                         <div>
                           <label className="block text-[10px] text-zinc-400 font-bold tracking-wider mb-1">Quantidade</label>
                           <input

@@ -158,6 +158,7 @@ export default function App() {
   });
 
   // Navigation & Viewing states
+  const [wiaInitialMessage, setWiaInitialMessage] = useState('');
   const [currentView, setCurrentView] = useState<'landing' | 'auth' | 'dashboard' | 'quotes' | 'create_quote' | 'quote_detail' | 'clients' | 'services' | 'settings' | 'profile' | 'team' | 'audit' | 'help' | 'integrations' | 'analytics' | 'billing' | 'conversations' | 'conversation' | 'wia' | 'internal_finance' | 'collections' | 'deals' | 'graph'>(() => resolveSignedOutView('landing', isGooglePilot(import.meta.env.VITE_ORKTO_AUTH_MODE) && Boolean(googleCallbackMessage(window.location.href))));
   const [startClientCreate, setStartClientCreate] = useState(false);
   const [startDealCreate, setStartDealCreate] = useState(false);
@@ -1574,7 +1575,7 @@ export default function App() {
                     onCreateQuote={() => { setSelectedQuoteId(null); setCurrentView('create_quote'); }}
                     onOpenDeal={dealId => { setSelectedDealId(dealId || null); setSelectedQuoteId(null); setCurrentView('deals'); }}
                     onOpenConversation={conversationId => { setSelectedConversationId(conversationId); setCurrentView(window.matchMedia('(max-width: 1023px)').matches ? 'conversation' : 'conversations'); }}
-                    onOpenWia={() => { setSelectedQuoteId(null); setCurrentView('wia'); }}
+                    onOpenWia={message => { setWiaInitialMessage(message || ''); setSelectedQuoteId(null); setCurrentView('wia'); }}
                   />
                 </Suspense>
               </motion.div>
@@ -1921,7 +1922,7 @@ export default function App() {
                         {currentView === 'wia' && (
                           <motion.div key="wiaWorkspace" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
                             <Suspense fallback={<PageFallback />}>
-                              <WiaWorkspace accessToken={accessToken} onOpenSettings={() => setCurrentView('settings')} />
+                              <WiaWorkspace accessToken={accessToken} initialMessage={wiaInitialMessage} onOpenSettings={() => setCurrentView('integrations')} />
                             </Suspense>
                           </motion.div>
                         )}
