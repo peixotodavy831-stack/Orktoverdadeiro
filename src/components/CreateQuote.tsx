@@ -250,10 +250,12 @@ export default function CreateQuote({
     if (currentStep === 1) {
       if (!clientName.trim()) {
         setErrorMessage('Por favor, informe o nome do cliente.');
+        document.getElementById('quote-client-name')?.focus();
         return false;
       }
       if (!clientPhone.trim()) {
         setErrorMessage('Por favor, informe o telefone do cliente.');
+        document.getElementById('quote-client-phone')?.focus();
         return false;
       }
     }
@@ -400,11 +402,12 @@ export default function CreateQuote({
         <div className="lg:col-span-7">
           <AnimatePresence mode="wait">
             {errorMessage && (
-              <motion.div 
+              <motion.div role="alert" id="quote-validation-error"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-2xl flex items-center gap-2 mb-6"
+                className="p-4 border text-sm rounded-xl flex items-center gap-2 mb-6 orkto-product-border"
+                style={{ color: 'var(--orkto-critical)', background:'var(--orkto-surface-1)' }}
               >
                 <AlertCircle className="w-4 h-4" />
                 {errorMessage}
@@ -862,9 +865,9 @@ export default function CreateQuote({
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="text-xs font-extrabold uppercase tracking-widest text-zinc-400 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-              Live Preview do Cliente
+              Prévia da proposta
             </span>
-            <span className="text-[10px] text-zinc-400 font-mono font-bold bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded">PDF-Ready</span>
+            <span className="text-[10px] text-zinc-400 font-medium bg-zinc-200 dark:bg-zinc-800 px-2 py-0.5 rounded">Não salva</span>
           </div>
 
           {/* Quote Bill Mock Container */}
@@ -876,15 +879,15 @@ export default function CreateQuote({
                   {userProfile?.companyName || 'Sua Empresa'}
                 </h4>
                 <p className="text-[9px] text-zinc-400 font-mono mt-0.5">
-                  {userProfile?.address || 'Seu Endereço de Negócio'}
+                  {userProfile?.address || 'Endereço não informado'}
                 </p>
                 <p className="text-[9px] text-zinc-400 font-mono">
-                  WhatsApp: {formatPhone(userProfile?.whatsappNumber || '11999999999')}
+                  WhatsApp: {userProfile?.whatsappNumber ? formatPhone(userProfile.whatsappNumber) : 'não informado'}
                 </p>
               </div>
               <div className="text-right">
                 <span className="text-[8px] font-bold px-1.5 py-0.5 bg-orange-100 text-orange-700 dark:bg-orange-950/20 dark:text-orange-400 rounded-md uppercase">ORÇAMENTO</span>
-                <p className="text-xs font-bold font-mono text-zinc-500 dark:text-zinc-400 mt-1">#1040</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">Número definido ao salvar</p>
                 <p className="text-[8px] text-zinc-400 font-mono">{new Date().toLocaleDateString('pt-BR')}</p>
               </div>
             </div>

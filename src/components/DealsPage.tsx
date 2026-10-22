@@ -4,6 +4,7 @@ import type { SavedClient } from '../types';
 import { getProductErrorState, productApi } from '../product/api';
 import type { ProductRequestState } from '../product/types';
 import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, PageHeader, PermissionState, StatusBadge } from '../product/ui/shared-states';
+import { CommercialProcessPreview } from '../product/screens/operation-previews';
 
 type DealStage = 'new' | 'qualification' | 'proposal' | 'negotiation' | 'won' | 'lost';
 type DealView = 'list' | 'pipeline';
@@ -60,6 +61,7 @@ interface DealsPageProps {
   initialDealId?: string | null;
   onInitialDealOpened?: () => void;
   initialCreate?: boolean;
+  initialCustomerId?: string | null;
   onInitialCreateOpened?: () => void;
   onOpenQuote?: (quoteId: string) => void;
 }
@@ -77,7 +79,7 @@ const formatMoney = (cents: number | null | undefined) => typeof cents === 'numb
   : 'Sem valor informado';
 const riskTone = (score: number) => score >= 70 ? 'critical' as const : score >= 40 ? 'attention' as const : 'info' as const;
 
-export default function DealsPage({ clients, accessToken, initialDealId, onInitialDealOpened, initialCreate, onInitialCreateOpened, onOpenQuote }: DealsPageProps) {
+export default function DealsPage({ clients, accessToken, initialDealId, onInitialDealOpened, initialCreate, initialCustomerId, onInitialCreateOpened, onOpenQuote }: DealsPageProps) {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -140,9 +142,10 @@ export default function DealsPage({ clients, accessToken, initialDealId, onIniti
   }, [deals, initialDealId, onInitialDealOpened]);
   useEffect(() => {
     if (!initialCreate) return;
+    setCustomerRef(initialCustomerId && clients.some(client => client.id === initialCustomerId) ? initialCustomerId : '');
     setShowForm(true);
     onInitialCreateOpened?.();
-  }, [initialCreate, onInitialCreateOpened]);
+  }, [initialCreate, initialCustomerId, clients, onInitialCreateOpened]);
   useEffect(() => {
     if (!selectedDeal) {
       const connectedOpener = openerRef.current?.isConnected ? openerRef.current : null;
@@ -252,6 +255,8 @@ export default function DealsPage({ clients, accessToken, initialDealId, onIniti
   return (
     <div className="orkto-product mx-auto min-h-full w-full max-w-[1600px] space-y-5 px-4 py-5 pb-24 sm:px-6 sm:py-7 lg:px-8 lg:pb-8">
       <PageHeader eyebrow="Operação comercial" title="Negócios" description="Acompanhe oportunidades pela lista; use o pipeline quando precisar reorganizar etapas." actions={<><button type="button" onClick={() => void load()} disabled={loading || saving} className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-control"><RefreshCw size={14} className={loading ? 'animate-spin' : ''} />Atualizar</button><button type="button" onClick={() => setShowForm(open => !open)} className="orkto-product-primary inline-flex min-h-11 items-center gap-2 rounded-lg px-4 text-xs font-semibold"><Plus size={15} />Novo negócio</button></>} />
+
+      <CommercialProcessPreview accessToken={accessToken} />
 
       {error && (errorStatus === 401 || errorStatus === 403 ? <PermissionState message={error} /> : errorStatus === 404 || errorStatus === 501 ? <BackendPending title="Negócios pendente neste ambiente" message={error} /> : <ErrorState title="Não foi possível concluir a operação" message={error} onRetry={() => void load()} />)}
       {notice && <div role="status" className="rounded-lg border p-3 text-sm orkto-product-border orkto-product-surface-muted">{notice}</div>}

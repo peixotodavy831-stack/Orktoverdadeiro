@@ -423,6 +423,7 @@ export default function App() {
   // Conversation/Inbox tracking state
   const [conversations, setConversations] = useState<import('./types').Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [dealDraftCustomerId, setDealDraftCustomerId] = useState<string | null>(null);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
   const [approvalTasks, setApprovalTasks] = useState<import('./types').ApprovalTask[]>([]);
@@ -1734,6 +1735,7 @@ export default function App() {
                   clients={clients}
                   quotes={quotes}
                   userId={user.uid}
+                  onCreateDeal={clientId => { if (!clients.some(client=>client.id===clientId)) return; setDealDraftCustomerId(clientId); setStartDealCreate(true); setCurrentView('deals'); }}
                   initialClientId={selectedClientId}
                   onInitialClientOpened={() => setSelectedClientId(null)}
                   initialCreate={startClientCreate}
@@ -1938,7 +1940,7 @@ export default function App() {
                         {currentView === 'deals' && (
                           <motion.div key="dealsPage" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}>
                             <Suspense fallback={<PageFallback />}>
-                              <DealsPage clients={clients} accessToken={accessToken} initialDealId={selectedDealId} onInitialDealOpened={() => setSelectedDealId(null)} initialCreate={startDealCreate} onInitialCreateOpened={() => setStartDealCreate(false)} onOpenQuote={quoteId => { setSelectedQuoteId(quoteId); setCurrentView('quote_detail'); }} />
+                              <DealsPage clients={clients} accessToken={accessToken} initialDealId={selectedDealId} onInitialDealOpened={() => setSelectedDealId(null)} initialCreate={startDealCreate} initialCustomerId={dealDraftCustomerId} onInitialCreateOpened={() => { setStartDealCreate(false); setDealDraftCustomerId(null); }} onOpenQuote={quoteId => { setSelectedQuoteId(quoteId); setCurrentView('quote_detail'); }} />
                             </Suspense>
                           </motion.div>
                         )}

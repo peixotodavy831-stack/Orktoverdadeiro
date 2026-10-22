@@ -21,16 +21,16 @@ export const primaryNavigation: NavigationSection[] = [
     items: [
       { id: 'today', label: 'Hoje', icon: 'today', view: 'dashboard', availability: 'available' },
       { id: 'inbox', label: 'Conversas', icon: 'inbox', view: 'conversations', availability: 'available' },
-      { id: 'clients', label: 'Clientes', icon: 'clients', view: 'clients', availability: 'available' },
       { id: 'deals', label: 'Negócios', icon: 'deals', view: 'deals', availability: 'available' },
-      { id: 'proposals', label: 'Propostas', icon: 'proposals', view: 'quotes', availability: 'available' },
-      { id: 'catalog', label: 'Catálogo', icon: 'catalog', view: 'services', availability: 'available' },
+      { id: 'wia', label: 'WIA', icon: 'wia', view: 'wia', availability: 'available' },
     ],
   },
   {
-    label: 'Inteligência',
+    label: 'Comercial',
     items: [
-      { id: 'wia', label: 'WIA', icon: 'wia', view: 'wia', availability: 'available' },
+      { id: 'clients', label: 'Clientes', icon: 'clients', view: 'clients', availability: 'available' },
+      { id: 'proposals', label: 'Propostas', icon: 'proposals', view: 'quotes', availability: 'available' },
+      { id: 'catalog', label: 'Catálogo', icon: 'catalog', view: 'services', availability: 'available' },
       { id: 'reports', label: 'Relatórios', icon: 'reports', view: 'analytics', availability: 'available' },
     ],
   },

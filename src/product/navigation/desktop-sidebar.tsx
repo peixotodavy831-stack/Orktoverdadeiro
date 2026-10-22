@@ -36,8 +36,9 @@ export function DesktopSidebar({
   onSignOut,
 }: DesktopSidebarProps) {
   const activeId = getActiveNavigationId(currentView);
+  const sidebarSections = [{...primaryNavigation[0]}, {label:'Mais',items:[...primaryNavigation.slice(1).flatMap(section=>section.items),...secondaryNavigation]}];
   const [managementOpen,setManagementOpen]=useState(false);
-  useEffect(()=>{if(primaryNavigation.find(section=>section.label==='Gestão')?.items.some(item=>item.view===currentView))setManagementOpen(true);},[currentView]);
+  useEffect(()=>{if([...primaryNavigation.slice(1).flatMap(section=>section.items),...secondaryNavigation].some(item=>item.view===currentView))setManagementOpen(true);},[currentView]);
   const upcoming = [...primaryNavigation.flatMap(section => section.items), ...secondaryNavigation].filter(item => item.availability !== 'available' || !item.view);
   return (
     <aside style={{ width: collapsed ? 'var(--orkto-shell-sidebar-compact)' : 'var(--orkto-shell-sidebar)' }} className="orkto-sidebar-glass relative hidden h-dvh shrink-0 flex-col border-r orkto-product-border orkto-product-surface transition-[width] duration-200 lg:flex" aria-label="Navegação principal">
@@ -52,10 +53,10 @@ export function DesktopSidebar({
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4" aria-label="Módulos">
         <div className="flex flex-col gap-2">
-          {primaryNavigation.map(section => ({ ...section, items: section.items.filter(item => item.availability === 'available' && item.view) })).filter(section => section.items.length > 0).map(section => (
+          {sidebarSections.map(section => ({ ...section, items: section.items.filter(item => item.availability === 'available' && item.view) })).filter(section => section.items.length > 0).map(section => (
             <section key={section.label} aria-label={section.label}>
-              {!collapsed && (section.label==='Gestão'?<h2><button type="button" onClick={()=>setManagementOpen(value=>!value)} aria-expanded={managementOpen} aria-controls="orkto-management-links" className="flex w-full items-center justify-between rounded-lg px-3 text-left text-xs font-medium orkto-product-muted">Gestão <ChevronDown size={14} className={managementOpen?'rotate-180':''} aria-hidden="true" /></button></h2>:<h2 className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.09em] orkto-product-subtle">{section.label}</h2>)}
-              <ul id={section.label==='Gestão'?'orkto-management-links':undefined} hidden={!collapsed&&section.label==='Gestão'&&!managementOpen} className="space-y-0.5">
+              {!collapsed && (section.label==='Mais'?<h2><button type="button" onClick={()=>setManagementOpen(value=>!value)} aria-expanded={managementOpen} aria-controls="orkto-management-links" className="flex min-h-11 w-full items-center justify-between rounded-lg px-3 text-left text-xs font-medium orkto-product-muted">Mais <ChevronDown size={14} className={managementOpen?'rotate-180':''} aria-hidden="true" /></button></h2>:<h2 className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-[0.09em] orkto-product-subtle">{section.label}</h2>)}
+              <ul id={section.label==='Mais'?'orkto-management-links':undefined} hidden={!collapsed&&section.label==='Mais'&&!managementOpen} className="space-y-0.5">
                 {section.items.map(item => {
                   const active = activeId === item.id;
                   const disabled = item.availability !== 'available' || !item.view;
@@ -81,8 +82,6 @@ export function DesktopSidebar({
               </ul>
             </section>
           ))}
-
-          <section aria-label="Suporte e controle"><ul className="space-y-1">{secondaryNavigation.filter(item=>item.availability==='available'&&item.view).map(item=><li key={item.id}><button type="button" onClick={()=>item.view&&onNavigate(item.view)} aria-current={currentView===item.view?'page':undefined} aria-label={collapsed?item.label:undefined} title={collapsed?item.label:undefined} className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[13px] ${collapsed?'justify-center px-0':''} ${currentView===item.view?'orkto-product-nav-active font-semibold':'orkto-product-muted hover:orkto-product-surface-muted'}`}><OrktoIcon name={item.icon} size={20} />{!collapsed&&item.label}</button></li>)}</ul></section>
 
           {isInternalAdmin && <section aria-label="Administração interna">
             {!collapsed && <h2 className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Interno</h2>}

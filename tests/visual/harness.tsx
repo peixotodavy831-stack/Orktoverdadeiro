@@ -102,6 +102,22 @@ function installVisualApiFixtures() {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input.toString() : input.url, window.location.origin);
     const path = url.pathname;
     const method = (init?.method || 'GET').toUpperCase();
+    if (path === '/api/wia-efficiency/plan' && method === 'POST') {
+      if (scenario === 'loading') await new Promise(() => {});
+      if (scenario === 'error') return json({error:'Prévia indisponível na fixture.'},503);
+      if (scenario === 'permission') return json({error:'Sessão necessária.'},401);
+      const message = JSON.parse(String(init?.body || '{}')).message || '';
+      return json({data:{tier:/propostas|vendas|aprovações/i.test(message)?1:2,blocked:scenario==='configuration',usage_basis:'zero_inference',block_reasons:[],read_only:true,execution_available:false}});
+    }
+    if (path === '/api/playbooks/proposal_recovery/preview') {
+      if (scenario === 'loading') await new Promise(() => {});
+      if (scenario === 'error' || scenario === 'permission') return json({error:'Prévia indisponível na fixture.'},scenario==='permission'?403:503);
+      return json({data:{title:'Recuperação de proposta sem resposta',when_to_use:'Exemplo fictício: acompanhar uma proposta enviada sem decisão registrada.',read_only:true,execution_available:false,steps:[
+        {id:'read_context',title:'Consultar contexto da proposta',description:'Histórico, negócio e mensagens relacionados.',requires_approval:false},
+        {id:'check_window',title:'Verificar janela de acompanhamento',description:'Mesma regra conservadora de leitura do Radar.',requires_approval:false},
+        {id:'request_approval',title:'Aprovar tarefa de acompanhamento',description:'Decisão humana antes de qualquer criação futura.',requires_approval:true},
+      ]}});
+    }
     const statefulRead = (path === '/api/priority/inbox' || path === '/api/deals' || path === '/api/wia/actions' || path === '/api/radar') && method === 'GET';
     const statefulAction = path === '/api/wia/route-agent' || path.startsWith('/api/conversations/') && path.endsWith('/send');
     if (scenario === 'loading' && path === '/api/radar') await new Promise(() => {}); // Stable fixture only: observe loading without a timing race.
@@ -169,6 +185,7 @@ function App() {
   const [darkMode, setDarkMode] = useState(params.get('theme') !== 'light');
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileThread, setMobileThread] = useState(params.get('thread') === '1');
+  const [draftCustomerId, setDraftCustomerId] = useState<string | null>(null);
   const [createDeal, setCreateDeal] = useState(false);
   const currentView = screen === 'inbox' && mobileThread && window.matchMedia('(max-width: 1023px)').matches ? 'conversation' : screenViews[screen];
   const accessToken = VISUAL_TOKEN;
@@ -199,7 +216,7 @@ function App() {
       <div id="visual-main" className={`orkto-workspace-content relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {screen === 'today' && <TodayV2Page user={{ displayName: 'Marina' }} userProfile={visualProfile} quotes={params.get('scenario') === 'empty' ? [] : [visualQuote]} clients={params.get('scenario') === 'empty' ? [] : [visualClient]} accessToken={accessToken} dataLoading={false} onSelectQuote={() => setScreen('today')} onCreateQuote={() => setScreen('create_quote')} onOpenDeal={() => setScreen('deals')} onOpenConversation={() => { setScreen('inbox'); setMobileThread(true); }} onOpenWia={message => { setWiaInitialMessage(message || ''); setScreen('wia'); }} onOpenSettings={() => undefined} />}
         {screen === 'inbox' && <InboxWorkspace currentView={currentView} accessToken={accessToken} selectedConversationId={mobileThread || window.matchMedia('(min-width: 1024px)').matches ? VISUAL_CONVERSATION_ID : null} onOpenConversation={() => setMobileThread(true)} onBackToInbox={() => setMobileThread(false)} onOpenDeal={() => setScreen('deals')} onOpenSettings={() => undefined} />}
-        {screen === 'deals' && <DealsPage clients={[visualClient]} accessToken={accessToken} initialCreate={createDeal} onInitialCreateOpened={() => setCreateDeal(false)} />}
+        {screen === 'deals' && <DealsPage clients={[visualClient]} accessToken={accessToken} initialCreate={createDeal} initialCustomerId={draftCustomerId} onInitialCreateOpened={() => setCreateDeal(false)} />}
         {['team','audit','help'].includes(screen) && <ManagementPage view={screen as 'team'|'audit'|'help'} request={fixtureRequest} onNavigate={navigate} accountName="Pessoa de demonstração" />}
         {screen === 'billing' && <BillingPage userProfile={visualProfile} />}
         {screen === 'integrations' && <IntegrationsPage request={async (path,init) => { if (init?.method && init.method !== 'GET') return fixtureWriteBlocked(); const response=await fetch(path); return response.json(); }} onNavigate={navigate} />}
@@ -207,7 +224,7 @@ function App() {
         {screen === 'settings' && <SettingsPage userProfile={visualProfile} onProfileUpdated={fixtureWriteBlocked} />}
         {screen === 'proposals' && <QuotesPage quotes={[visualQuote]} clients={[visualClient]} userProfile={visualProfile} onSelectQuote={() => undefined} onCreateQuoteClick={() => setScreen('create_quote')} />}
         {screen === 'create_quote' && <CreateQuote userProfile={visualProfile} savedClients={[visualClient]} savedServices={[]} onQuoteCreated={fixtureWriteBlocked} onCancel={() => setScreen('proposals')} />}
-        {screen === 'clients' && <ClientsPage clients={[visualClient]} quotes={[visualQuote]} userId="visual-user" onClientAdded={fixtureWriteBlocked} onSelectQuote={() => undefined} />}
+        {screen === 'clients' && <ClientsPage clients={[visualClient]} quotes={[visualQuote]} userId="visual-user" onCreateDeal={id=>{setDraftCustomerId(id);setCreateDeal(true);setScreen('deals');}} onClientAdded={fixtureWriteBlocked} onSelectQuote={() => undefined} />}
         {screen === 'catalog' && <ServicesPage services={[]} userId="visual-user" onServiceAdded={fixtureWriteBlocked} onServiceUpdated={fixtureWriteBlocked} onServiceDeleted={fixtureWriteBlocked} />}
         {screen === 'wia' && <WiaWorkspace initialMessage={wiaInitialMessage} accessToken={accessToken} onOpenSettings={() => undefined} />}
       </div>

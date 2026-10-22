@@ -45,6 +45,7 @@ interface ClientsPageProps {
   onInitialClientOpened?: () => void;
   initialCreate?: boolean;
   onInitialCreateOpened?: () => void;
+  onCreateDeal?: (clientId: string) => void;
 }
 
 interface ClientIntelligence {
@@ -120,6 +121,7 @@ export default function ClientsPage({
   onInitialClientOpened,
   initialCreate,
   onInitialCreateOpened,
+  onCreateDeal,
 }: ClientsPageProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -590,7 +592,7 @@ export default function ClientsPage({
             Base de Clientes
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-            Gerencie o histórico de vendas, carros contratados e aprovações de cada cliente.
+            Encontre clientes, consulte o histórico e acompanhe as próximas oportunidades.
           </p>
         </div>
 
@@ -663,9 +665,8 @@ export default function ClientsPage({
       <div className="mb-6">
         <WiaInline
           eyebrow="WIA · memória comercial"
-          title={`${clients.length} cliente${clients.length === 1 ? '' : 's'} com histórico organizado`}
-          description="A WIA usará contexto, recorrência e negociações anteriores para reduzir perguntas repetidas e sugerir a próxima ação adequada."
-          actions={['histórico', 'recorrência', 'valor', 'próxima ação']}
+          title="Do histórico para a próxima oportunidade"
+          description="Abra o histórico de um cliente para consultar propostas e iniciar um negócio com o vínculo já preenchido. Você revisa antes de salvar."
         />
       </div>
 
@@ -933,6 +934,7 @@ export default function ClientsPage({
               aria-label={`Detalhes de ${selectedClientHistory.name}`}
             >
               <div>
+                {onCreateDeal && !isEditing && <button type="button" className="orkto-product-primary mb-4 min-h-11 rounded-lg px-4 text-sm font-semibold" onClick={() => { const id=selectedClientHistory.id; setSelectedClientHistory(null); onCreateDeal(id); }}>Criar negócio para este cliente</button>}
                 <header className="flex justify-between items-center pb-6 border-b border-zinc-100 dark:border-zinc-800 mb-6">
                   {!isEditing ? (
                     <div className="flex-1 mr-4">

@@ -1,11 +1,13 @@
 import { PromptInput } from '../../components/ui/wia-prompt-input';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, LoaderCircle, LockKeyhole, RefreshCw, Sparkles, X } from 'lucide-react';
 import { getProductErrorState, productApi } from '../api';
 import type { ProductRequestState, WiaActionView } from '../types';
 import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, PageHeader, PermissionState, StatusBadge } from '../ui/shared-states';
 
 import WiaRuntimeStatus from './wia-runtime-status';
+import { WiaPlanPreview } from './operation-previews';
+import { loadWiaActions } from '../adapters/wia-actions';
 
 type WiaPhase = 'CONSULTING' | 'ANALYZING' | 'PREPARING_ACTION' | 'WAITING_APPROVAL' | 'EXECUTING' | 'EXECUTED' | 'FAILED' | 'ANALYSIS_READY';
 
@@ -34,7 +36,6 @@ interface WiaActionsState {
   message?: string;
 }
 
-const actionStatuses = ['awaiting_approval', 'prepared', 'executed', 'failed', 'rejected'];
 const phaseLabels: Record<WiaPhase, string> = {
   CONSULTING: 'Consultando…',
   ANALYZING: 'Analisando…',
@@ -84,19 +85,24 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
   const [actionsState, setActionsState] = useState<WiaActionsState>({ status: 'loading', actions: [] });
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<{ action: WiaActionView; externalDelivery?: string | null } | null>(null);
+  const actionRequest = useRef<AbortController | null>(null);
 
   const loadActions = useCallback(async () => {
+    actionRequest.current?.abort();
+    const request = new AbortController();
+    actionRequest.current = request;
     setActionsState({ status: 'loading', actions: [] });
     try {
-      const results = await Promise.all(actionStatuses.map(status => productApi<{ data: WiaActionView[] }>(`/api/wia/actions?status=${status}`, accessToken)));
-      const actions = results.flatMap(result => Array.isArray(result.data) ? result.data : []).sort((left, right) => Date.parse(right.created_at || '') - Date.parse(left.created_at || ''));
+      const actions = await loadWiaActions(section, accessToken, request.signal);
+      if (request.signal.aborted) return;
       setActionsState({ status: 'success', actions });
     } catch (error) {
+      if (request.signal.aborted) return;
       setActionsState({ status: getProductErrorState(error), actions: [], message: error instanceof Error ? error.message : 'Não foi possível carregar as ações registradas.' });
     }
-  }, [accessToken]);
+  }, [accessToken, section]);
 
-  useEffect(() => { void loadActions(); }, [loadActions]);
+  useEffect(() => { void loadActions(); return () => actionRequest.current?.abort(); }, [loadActions]);
 
   const submitPrompt = async (rawMessage: string) => {
     const message = rawMessage.trim();
@@ -164,6 +170,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
           <PromptInput value={prompt} onChange={setPrompt} onSubmit={message => void submitPrompt(message)} busy={requestPending} placeholder="Descreva seu pedido para a WIA…" className="my-6" />
           <div className="wia-query-shortcuts" aria-label="Consultas dos registros existentes">{['Propostas pendentes', 'Aprovações pendentes', 'Vendas hoje'].map(message => <button key={message} type="button" disabled={requestPending} onClick={() => { setPrompt(message); document.getElementById('wia-request')?.focus(); }} className="orkto-product-control">{message}</button>)}</div>
           <p className="mt-3 text-xs leading-5 orkto-product-muted">Os atalhos preenchem o pedido; você decide quando consultar.</p>
+          <WiaPlanPreview message={prompt} accessToken={accessToken} disabled={requestPending} />
         </section>
 
         <details className="wia-configuration"><summary>Disponibilidade e integrações</summary><p className="mt-3 text-xs leading-5 orkto-product-muted">A WIA atual prepara análises e rascunhos; ainda não cadastra clientes ou negócios por comando livre. Linguagem livre depende do modelo, da configuração e dos limites aprovados.</p><WiaRuntimeStatus accessToken={accessToken} onOpenSettings={onOpenSettings} /></details>
