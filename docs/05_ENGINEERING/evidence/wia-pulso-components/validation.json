@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-22",
+  "sourceSha": "6ed137aea1b8c3d1206618708f0389c726c277f9",
+  "environment": "local visual fixtures; no live providers",
+  "providedComponents": [
+    {
+      "id": "755aff50-58e6-47d2-a240-7828859d15aa",
+      "sha256": "f2882118a19b3cb534c142995ec7bfa30bcb11c6e506966816c19f562dec4a43"
+    },
+    {
+      "id": "06570b1e-7fc8-45a7-a498-a5246482bc82",
+      "sha256": "ed3c323c25f1725a6d36470168c9dc0f6489d7e5368a83ad289e2719785f4bbf"
+    }
+  ],
+  "tests": {
+    "application": 320,
+    "tools": 108,
+    "failures": 0,
+    "status": "PASS"
+  },
+  "lint": "PASS",
+  "build": "PASS; isolated build/runtime smoke; dist preserved",
+  "secretScan": {
+    "scanned": 599,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "logSha256": {
+    "tests": "c6b999ba8513c191d9eed0775732ef8662563d98891c8ec084589a3bb300a7da",
+    "lint": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479",
+    "build": "cda4ade481baec3669531a5fe9a0b4807cd2cdc8b1238ea9700ad4b89eaabab8",
+    "secrets": "3b77b8109db8c8f42b81fd6469d4077eda1a22bcda3580b57aaae93642285a34"
+  },
+  "browser": {
+    "cases": [
+      "390x844 dark: WIA expansion, Enter, Shift+Enter; quota fixture 742/1000 and plans navigation",
+      "730x728 light/dark: zero quota, unknown quota, WIA error retains text",
+      "1440x900 dark: WIA expanded width 480; no horizontal overflow"
+    ],
+    "configuredQuotaIsSynthetic": true,
+    "remoteAuthenticationTested": false,
+    "paidInferenceInvoked": false
+  },
+  "legacyInputUnchanged": true,
+  "packageDependenciesChanged": false,
+  "backendContractsChanged": false,
+  "deployed": false,
+  "productionChanged": false,
+  "readyForProductionCandidate": "NO"
+}
