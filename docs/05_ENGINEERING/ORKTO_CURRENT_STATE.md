@@ -1,4 +1,10 @@
-# Current evidence pointer — 2026-10-15
+# Product Excellence evidence pointer — 2026-10-22
+
+Somente na branch isolada `feat/orkto-product-excellence-2027`: fonte `7cd5ba7af72da5dba0f81494890b7754f2bc8f06`. [Matriz, provas locais e pendências externas](ORKTO_PRODUCT_EXCELLENCE_2026-10-22.md). PR #2 e ambientes remotos preservados. **READY_FOR_PRODUCTION_CANDIDATE=NO.** O ponteiro abaixo é histórico; não comprova o estado do novo código.
+
+---
+
+# Historical evidence pointer — 2026-10-15
 
 Current state: [../ORKTO_CURRENT_STATE.md](../ORKTO_CURRENT_STATE.md). Authoritative gate matrix: [GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md](GOOGLE_ONLY_PILOT_CLOSURE_2026-10-15.md). Staging 44/44 reconciled, migration 44 not reapplied. Runtime c9584fe / Preview dpl_5C2FZVYGJrgqixp5btBKKRh7XK9D unchanged. CI 91e6041 passed. Google OFF, admissions 0; real OAuth/A-B E2E NOT RUN. Current Site URL/redirect corrected; no privileged Preview variable names. One origin-unknown account and checkpoint preserved. BLOCKED_EXTERNAL_OWNER_ACCESS; no snapshot or production approval.
 

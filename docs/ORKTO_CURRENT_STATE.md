@@ -1,3 +1,9 @@
+# Product Excellence — 2026-10-22 (somente nesta branch isolada)
+
+Fonte local `7cd5ba7af72da5dba0f81494890b7754f2bc8f06`, branch `feat/orkto-product-excellence-2027`. Navegação simplificada, Playbooks/Efficiency integrados como prévias somente leitura, planejamento POST privado, jornada cliente → negócio e melhorias mobile. 348 testes de aplicação +108 ferramentas PASS local; lint/build/smoke PASS local. [Relatório e limites](05_ENGINEERING/ORKTO_PRODUCT_EXCELLENCE_2026-10-22.md). Sem push, publicação, merge ou alteração da PR #2. Evidência local não substitui gates reais. **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 # Frontend mobile e diagnóstico WIA — 2026-10-21
 
 Somente nesta branch isolada `codex/orkto-mobile-ux-2027`: frontend `0c74ff53e2afdaffe2bd0afa246ea9750f4eef4e`, 313 testes de aplicação +108 ferramentas PASS local, build/typecheck PASS local. Ver `docs/05_ENGINEERING/ORKTO_MOBILE_UX_REDESIGN_2026.md` e `WIA_DIAGNOSIS_AND_GOAL_FLOW_2026-10-21.md`. Sem publicação. WIA generativa e fluxo completo por objetivos ainda pendentes. `READY_FOR_PRODUCTION_CANDIDATE=NO`.

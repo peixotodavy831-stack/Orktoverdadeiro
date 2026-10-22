@@ -1,0 +1,50 @@
+{
+  "sourceSha": "7cd5ba7af72da5dba0f81494890b7754f2bc8f06",
+  "environment": "local browser fixtures only",
+  "checks": [
+    {
+      "case": "Client history to deal",
+      "result": "PASS",
+      "observed": "Known client preselected in new deal form; no save performed",
+      "width": 390
+    },
+    {
+      "case": "Proposal required name",
+      "result": "PASS",
+      "observed": "Error announced as alert; focus returned to quote-client-name",
+      "width": 320
+    },
+    {
+      "case": "Proposal deterministic amounts",
+      "result": "PASS",
+      "input": {
+        "quantity": 2,
+        "unitPrice": 1000,
+        "discountPercent": 10
+      },
+      "observedTotal": 1800,
+      "width": 320
+    },
+    {
+      "case": "Proposal failed persistence",
+      "result": "PASS",
+      "observed": "Fixture denies save; UI remains on step 3 and displays persistence error"
+    },
+    {
+      "case": "WIA stale preview",
+      "result": "PASS",
+      "observed": "Editing prompt cancels pending preview and restores preview control"
+    },
+    {
+      "case": "Mobile conversation context",
+      "result": "PASS",
+      "observed": "Context opens as dialog; dock absent in conversation; root has no horizontal overflow",
+      "width": 390
+    },
+    {
+      "case": "Natural Google expiration / paid AI / Meta delivery / sandbox billing",
+      "result": "NOT_TESTED",
+      "observed": "Excluded from isolated UI validation; external readiness unchanged"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "heading": "Equipe",
+    "screen": "team",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Auditoria",
+    "screen": "audit",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Como podemos ajudar?",
+    "screen": "help",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Meu perfil",
+    "screen": "profile",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Configurações do Sistema",
+    "screen": "settings",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Gestão de Orçamentos",
+    "screen": "proposals",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Catálogo de Serviços",
+    "screen": "catalog",
+    "scroll": 320,
+    "width": 320
+  },
+  {
+    "heading": "Integrações",
+    "screen": "integrations",
+    "scroll": 320,
+    "width": 320
+  }
+]

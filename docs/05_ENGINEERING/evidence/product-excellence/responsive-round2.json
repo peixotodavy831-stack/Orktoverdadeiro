@@ -1,0 +1,345 @@
+[
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 320,
+    "theme": "light",
+    "width": 320
+  },
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 360,
+    "theme": "light",
+    "width": 360
+  },
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 390,
+    "theme": "light",
+    "width": 390
+  },
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 430,
+    "theme": "light",
+    "width": 430
+  },
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 768,
+    "theme": "dark",
+    "width": 768
+  },
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 1024,
+    "theme": "dark",
+    "width": 1024
+  },
+  {
+    "heading": "Hoje, sua operação em foco.",
+    "screen": "today",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  },
+  {
+    "heading": "Central de Conversas",
+    "screen": "inbox",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  },
+  {
+    "heading": "Negócios",
+    "screen": "deals",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  },
+  {
+    "heading": "WIA",
+    "screen": "wia",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  },
+  {
+    "heading": "Criar Nova Proposta",
+    "screen": "create_quote",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  },
+  {
+    "heading": "Base de Clientes",
+    "screen": "clients",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  },
+  {
+    "heading": "Plano & cobrança",
+    "screen": "billing",
+    "scroll": 1440,
+    "theme": "dark",
+    "width": 1440
+  }
+]

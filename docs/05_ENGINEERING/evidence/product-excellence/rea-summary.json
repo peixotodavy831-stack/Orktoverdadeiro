@@ -1,0 +1,50 @@
+{
+  "sourceSha": "7cd5ba7af72da5dba0f81494890b7754f2bc8f06",
+  "evidence_id": "ev_842afba8f2aeb13c19c7960c0ff6baefe2c3117d2151ec2f2494e66a91f8daf5",
+  "provider": {
+    "id": "rea-javascript-application",
+    "name": "REA JavaScript application analyzer",
+    "version": "1"
+  },
+  "operation": "analyze_javascript_application",
+  "artifactSha256": "615e5d7e48edeacf035cf158c971b916d197ab0274159686452b3ffffdaf295d",
+  "serverSha256": "e9287a605f781c5856833742ae1ccf01ef340bc8b4b2070f3b53b6431fde0294",
+  "parameters": {
+    "format": "auto",
+    "integrity_policy": "fail",
+    "max_semantic_nodes": 5000,
+    "source_paths": [
+      "server.cjs"
+    ],
+    "analysis_timeout_ms": 30000
+  },
+  "selection": {
+    "requested_paths": [
+      "server.cjs"
+    ],
+    "unselected_files": 44
+  },
+  "statistics": {
+    "relevant_files": 45,
+    "nested_asar_containers": 0,
+    "text_bytes_read": 576025,
+    "invalid_utf8_files": 0,
+    "parsed_javascript_files": 1,
+    "skipped_javascript_files": 0,
+    "visited_ast_nodes": 88449,
+    "findings": 262,
+    "modules": 10,
+    "parse_failures": 0
+  },
+  "limitations": [
+    "Caller-selected source analysis leaves 44 inventoried files outside analysis scope. Inventory identity covers the complete artifact; relationships through unselected sources remain unknown.",
+    "CommonJS and ESM binding relationships were recovered from inert syntax and resolved only within the inventoried artifact container.",
+    "Graph coverage is incomplete; unavailable facts remain explicit and must not be read as absence.",
+    "JavaScript and HTML were parsed as inert text; bundle bootstrap code was never executed.",
+    "Static imports, entrypoints, workers, endpoints, and storage relationships do not prove runtime execution.",
+    "Static paths and relationships may remain unresolved when expressions are dynamic or obfuscated.",
+    "Webpack/Rspack factories were recovered from AST literals; REA did not invoke push handlers or bundle bootstrap code."
+  ],
+  "confidence": "derived",
+  "scope": "Own built server.cjs only. Static syntax, not a vulnerability verdict or remote validation."
+}

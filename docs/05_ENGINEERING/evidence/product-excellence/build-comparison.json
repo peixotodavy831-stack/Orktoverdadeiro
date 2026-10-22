@@ -1,0 +1,101 @@
+{
+  "scope": "Local isolated build, no runtime latency or production claim",
+  "baselineSha": "afb2f9e324fc2c1ca7381ee7d6c06029856acb89",
+  "sourceSha": "7cd5ba7af72da5dba0f81494890b7754f2bc8f06",
+  "baseline": {
+    "checks": {
+      "frontend": true,
+      "server": true,
+      "runtime": true,
+      "publicUrl": true,
+      "distPreserved": true
+    },
+    "files": [
+      {
+        "file": "index-BswU6CWQ.js",
+        "bytes": 168251,
+        "gzipBytes": 43374,
+        "sha256": "d09aa731fbc34d116beada43aed1ccb7a60aa98bf6123607ca2f34d13c888c1b"
+      },
+      {
+        "file": "index-CP5rGk4f.css",
+        "bytes": 197508,
+        "gzipBytes": 32098,
+        "sha256": "6a9fa3bd9e260b95b712dc14312b5a763de7b639d7d68c599cf0428973fe805e"
+      },
+      {
+        "file": "vendor-webgl-PQJ82c29.js",
+        "bytes": 889340,
+        "gzipBytes": 239493,
+        "sha256": "07a2b54309c46b434d4fddfd753b9b79a37328d2e2bbddb718a02cad98506bd7"
+      },
+      {
+        "file": "wia-workspace-DDEvwUqX.js",
+        "bytes": 17737,
+        "gzipBytes": 5776,
+        "sha256": "12d3b22ca0208d23d37baa45474a1d96737abfc07c0203cf7605605c33564572"
+      }
+    ],
+    "htmlPreloads": [
+      "/assets/vendor-react-SmLouXSA.js",
+      "/assets/vendor-supabase-dIChsWQP.js",
+      "/assets/vendor-icons-4MHynSiB.js",
+      "/assets/vendor-animation-UK6i7NnC.js"
+    ],
+    "server": {
+      "bytes": 546612,
+      "sha256": "d56d321debbcc3d387895cdf30b334cba561d700f551c0f42b688deaf0898d0e"
+    }
+  },
+  "final": {
+    "checks": {
+      "frontend": true,
+      "server": true,
+      "runtime": true,
+      "publicUrl": true,
+      "distPreserved": true
+    },
+    "files": [
+      {
+        "file": "index-D-XBilsS.js",
+        "bytes": 167840,
+        "gzipBytes": 43396,
+        "sha256": "918732d1d5bcda48f3e48889feb02c6b0cf3baafd91460724870cf36fb7cfb7b"
+      },
+      {
+        "file": "index-DNdb1mb4.css",
+        "bytes": 198816,
+        "gzipBytes": 32317,
+        "sha256": "1e18390bab121eb79514aa67debaff5665026c3900de1da3755143119e24482a"
+      },
+      {
+        "file": "operation-previews-CHuhoppl.js",
+        "bytes": 5333,
+        "gzipBytes": 2082,
+        "sha256": "1f8b75ff8a933af6c9e399ef69bee07e48f405d836721a032560f7ff1f41ac79"
+      },
+      {
+        "file": "vendor-webgl-PQJ82c29.js",
+        "bytes": 889340,
+        "gzipBytes": 239493,
+        "sha256": "07a2b54309c46b434d4fddfd753b9b79a37328d2e2bbddb718a02cad98506bd7"
+      },
+      {
+        "file": "wia-workspace-_ENpXPnp.js",
+        "bytes": 18163,
+        "gzipBytes": 5931,
+        "sha256": "7b9144a0304cb6c90334a4994f3af19bffa5cb4133cf3e273ddd9038f1e76859"
+      }
+    ],
+    "htmlPreloads": [
+      "/assets/vendor-react-SmLouXSA.js",
+      "/assets/vendor-supabase-dIChsWQP.js",
+      "/assets/vendor-icons-xOpEjcHi.js",
+      "/assets/vendor-animation-UK6i7NnC.js"
+    ],
+    "server": {
+      "bytes": 576025,
+      "sha256": "e9287a605f781c5856833742ae1ccf01ef340bc8b4b2070f3b53b6431fde0294"
+    }
+  }
+}

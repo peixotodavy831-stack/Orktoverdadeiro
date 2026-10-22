@@ -1,0 +1,48 @@
+{
+  "sourceSha": "7cd5ba7af72da5dba0f81494890b7754f2bc8f06",
+  "environment": "isolated local fixtures; no remote sessions or provider execution",
+  "application": {
+    "tests": 348,
+    "pass": 348,
+    "fail": 0
+  },
+  "tools": {
+    "tests": 108,
+    "pass": 108,
+    "fail": 0
+  },
+  "rawTestLogSha256": "c1fc7de81dc200172d1236823bc6fc21b6c499f2a2912f4955767a15fec84761",
+  "focused": {
+    "tests": 28,
+    "pass": 28,
+    "fail": 0,
+    "logSha256": "a9d99f288f6d3f11a295c5db7e2b02f525e339229bfed35aacd311497ae43c8d"
+  },
+  "lint": {
+    "command": "npm run lint",
+    "logSha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+  },
+  "sourcePreservation": {
+    "verifiedFiles": 106,
+    "modifiedTracked": 6,
+    "untracked": 100,
+    "head": "bff22b7aa29e909e5e560ca4dbf53ea742726d8f",
+    "backupVerified": true
+  },
+  "rea": "static local selected source only",
+  "remote": "NOT_TESTED",
+  "READY_FOR_PRODUCTION_CANDIDATE": "NO",
+  "secretScan": {
+    "scanned": 618,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "pr2": {
+    "state": "OPEN",
+    "draft": true,
+    "head": "78497da5bfd52166c6852aa14c06ebbf84fa1248",
+    "operation": "read-only final confirmation"
+  }
+}

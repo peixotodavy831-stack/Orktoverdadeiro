@@ -1,0 +1,18 @@
+{
+  "cli": "rea-agents@6.7.0",
+  "codexMcpExposed": false,
+  "healthy": false,
+  "checks": [
+    {
+      "name": "node",
+      "ok": true,
+      "classification": "healthy"
+    },
+    {
+      "name": "registration:codex",
+      "ok": false,
+      "classification": "config_drift"
+    }
+  ],
+  "action": "Used available CLI for own inert JavaScript artifact; no global setup or native analysis engine installation."
+}

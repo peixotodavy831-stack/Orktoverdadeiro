@@ -1,0 +1,72 @@
+[
+  {
+    "file": "client-to-deal-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "290dfd7cd98d3bad72b61a4f8cf0898dee1eb1473e84669db30e8f33aec4d470"
+  },
+  {
+    "file": "conversation-context-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "f8d9ef4a5eea9d7fae09b8f52cd2dd9463bffb5f86c096afd17f2d529fc04b3d"
+  },
+  {
+    "file": "deals-processes-desktop-light.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 1440,
+    "height": 900,
+    "sha256": "268a9016558c44c51fbfc2e2570ccf4b29e160c35f37fe551845f62da69a4996"
+  },
+  {
+    "file": "proposal-review-320.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 320,
+    "height": 740,
+    "sha256": "bd245874f54eebff81e48616d1251fbd66487614aeed837717448b6dae2adb16"
+  },
+  {
+    "file": "wia-after-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "80d27b4bdbbc8d5fa2efd0b49927c11e2c54ac72582f58dd5dd5af1036a6ef72"
+  },
+  {
+    "file": "wia-after-desktop.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 1440,
+    "height": 900,
+    "sha256": "37daa821e518aa8c0cb307674d3b57750912be6afba2b0b65d2096409d18bf3c"
+  },
+  {
+    "file": "wia-before-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "65370d4b9150a13568bc4788959337bedcc9feb08112077616ac5cf155a3a542"
+  },
+  {
+    "file": "wia-preview-error-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "5ac47039a5fe34f6573bf993ed20545df403a491183f1345bf4093a9416d7768"
+  },
+  {
+    "file": "wia-preview-loading-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "297fffe6cfd4691d038a326f4a3ca1f3a56af5d7b70035e1a538f11e790b2092"
+  },
+  {
+    "file": "wia-preview-permission-390.jpg",
+    "format": "JPEG returned by browser screenshot API",
+    "width": 390,
+    "height": 843,
+    "sha256": "5ac47039a5fe34f6573bf993ed20545df403a491183f1345bf4093a9416d7768"
+  }
+]

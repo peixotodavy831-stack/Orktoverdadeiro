@@ -1,0 +1,27 @@
+[
+  {
+    "overflow": false,
+    "preview": "Ver prévia do pedidoSomente planejamento. Não consulta seus registros, não usa IA e não consome Pulsos.Prévia indisponível. Confira sua sessão e tente novamente. Nenhuma ação foi executada.",
+    "scenario": "error"
+  },
+  {
+    "overflow": false,
+    "preview": "Ver prévia do pedidoSomente planejamento. Não consulta seus registros, não usa IA e não consome Pulsos.Prévia indisponível. Confira sua sessão e tente novamente. Nenhuma ação foi executada.",
+    "scenario": "permission"
+  },
+  {
+    "overflow": false,
+    "preview": "Calculando prévia…Somente planejamento. Não consulta seus registros, não usa IA e não consome Pulsos.",
+    "scenario": "loading"
+  },
+  {
+    "preview": "Processos comerciais Playbooks · préviaVeja como organizar o acompanhamento de propostas. A R1 não inicia processos nem cria tarefas.Não foi possível carregar a prévia. Nenhum processo foi iniciado.Tentar novamente",
+    "scenario": "error",
+    "screen": "deals"
+  },
+  {
+    "preview": "Processos comerciais Playbooks · préviaVeja como organizar o acompanhamento de propostas. A R1 não inicia processos nem cria tarefas.Carregando processo…",
+    "scenario": "loading",
+    "screen": "deals"
+  }
+]
