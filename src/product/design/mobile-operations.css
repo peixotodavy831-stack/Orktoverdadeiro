@@ -1,4 +1,37 @@
 /* Mobile operational layer. Keeps desktop tokens and all authorization contracts. */
+.orkto-prompt-input { width: 100%; max-width: 320px; margin-inline: auto; transition: max-width .4s cubic-bezier(.175,.885,.32,1.275); }
+.orkto-prompt-input[data-expanded="true"] { max-width: 480px; }
+.orkto-prompt-card { position: relative; min-height: 56px; overflow: hidden; border: 1px solid var(--orkto-glass-edge); border-radius: 24px; background: var(--orkto-glass-control); }
+.orkto-prompt-card:focus-within { outline: 2px solid var(--orkto-brand-text); outline-offset: 3px; }
+.orkto-prompt-card textarea { display: block; width: 100%; min-height: 52px; max-height: 160px; padding: 14px 60px 14px 18px; resize: none; border: 0; outline: none; background: transparent; color: var(--orkto-text-primary); font: inherit; font-size: 16px; line-height: 24px; }
+.orkto-prompt-card textarea::placeholder { color: var(--orkto-text-secondary); }
+.orkto-prompt-input[data-expanded="false"] textarea { white-space: nowrap; overflow: hidden; }
+.orkto-prompt-card textarea:focus-visible { outline: none !important; box-shadow: none !important; }
+.orkto-prompt-input[data-expanded="true"] textarea { padding: 16px 18px; }
+.orkto-prompt-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; min-height: 48px; padding: 0 60px 10px 14px; font-size: 12px; }
+.orkto-prompt-model { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 12px; background: var(--orkto-glass-soft); font-weight: 600; }
+.orkto-prompt-review { color: var(--orkto-text-secondary); }
+.orkto-prompt-send { position: absolute; right: 6px; bottom: 6px; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--orkto-brand); color: var(--orkto-brand-on-fill); }
+.orkto-prompt-send:disabled { opacity: .45; cursor: not-allowed; }
+.orkto-prompt-hint { margin-top: 10px; color: var(--orkto-text-secondary); font-size: 11px; line-height: 1.6; text-align: center; }
+.orkto-quota-banner { display: flex; align-items: flex-start; gap: 12px; padding: 20px; border: 1px solid var(--orkto-glass-edge); border-radius: 16px; background: var(--orkto-glass-fill); color: var(--orkto-text-primary); }
+.orkto-quota-icon { display: grid; place-items: center; flex: none; width: 38px; height: 38px; border-radius: 10px; background: var(--orkto-glass-soft); color: var(--orkto-brand-text); }
+.orkto-quota-body { flex: 1; min-width: 0; }
+.orkto-quota-body h2 { color: var(--orkto-text-secondary); font-size: 14px; font-weight: 500; }
+.orkto-quota-numbers { margin-top: 4px; font-size: 24px; line-height: 1.3; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.orkto-quota-numbers span { font-size: 16px; color: var(--orkto-text-secondary); font-weight: 400; }
+.orkto-quota-caption { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--orkto-text-secondary); font-variant-numeric: tabular-nums; }
+.orkto-quota-track { height: 6px; margin-top: 14px; overflow: hidden; border-radius: 8px; background: var(--orkto-glass-soft); }
+.orkto-quota-track > div { height: 100%; border-radius: inherit; background: var(--orkto-brand); }
+.orkto-quota-track [data-tone="warning"] { background: var(--orkto-warning, #ad7400); }
+.orkto-quota-track [data-tone="critical"] { background: var(--orkto-critical, #dc2626); }
+.orkto-quota-unknown { margin-top: 6px; font-size: 18px; font-weight: 600; }
+.orkto-quota-plans { display: inline-flex; align-items: center; justify-content: center; flex: none; gap: 6px; min-height: 44px; padding: 8px 12px; border-radius: 12px; background: var(--orkto-brand); color: var(--orkto-brand-on-fill); font-size: 13px; font-weight: 600; }
+@media (max-width: 600px) {
+  .orkto-quota-banner { flex-wrap: wrap; padding: 16px; }
+  .orkto-quota-body { flex-basis: calc(100% - 50px); }
+  .orkto-quota-plans { margin-left: 50px; }
+}
 .today-wia-composer { display: grid; gap: 10px; margin-top: 16px; }
 .today-wia-composer textarea { width: 100%; min-height: 88px; padding: 12px; resize: vertical; border-radius: 10px; font-size: 16px; line-height: 1.5; }
 .today-wia-composer .today-command-action { margin-top: 0; }

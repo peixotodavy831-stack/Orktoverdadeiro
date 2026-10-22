@@ -1,3 +1,4 @@
+import QuotaBanner from './ui/quota-banner';
 import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, Check, Clock3, CreditCard, Loader2, RefreshCw, ShieldCheck } from 'lucide-react';
 import type { UserProfile } from '../types';
@@ -111,8 +112,8 @@ export default function BillingPage({ userProfile }: BillingPageProps) {
         {usageByFeature.size ? <div className="mt-3 grid gap-2 sm:grid-cols-2">{[...usageByFeature.values()].map(item => <div key={`${item.period_start}:${item.feature_key}`} className="rounded-lg bg-zinc-50 px-3 py-2 text-xs dark:bg-zinc-800/60"><span className="text-zinc-500">{FEATURE_NAMES[item.feature_key] || item.feature_key}</span><strong className="float-right">{Number(item.quantity).toLocaleString('pt-BR')}</strong></div>)}</div> : <p className="mt-2 text-xs text-zinc-500">Sem dados de uso registrados para este período.</p>}
       </section>
 
-      <section className="mb-6" aria-label="Saldo de Pulso"><h2 className="font-semibold">Pulso</h2><p className="mt-2 text-sm text-zinc-500">{current.pulso?.state==='configured'?`Saldo: ${current.pulso.remaining} · utilizado/reservado: ${current.pulso.used} · franquia: ${current.pulso.allowance}`:'Franquia ainda não aprovada. Consultas determinísticas continuam disponíveis; uso generativo exige limite aprovado.'}</p></section>
-      <CommercialPlans onProposal={()=>setProposalOpen(true)} />
+      <QuotaBanner className="mb-6" label="Pulso" limit={current.pulso?.state === 'configured' ? current.pulso.allowance : null} used={current.pulso?.state === 'configured' ? current.pulso.used : null} remaining={current.pulso?.remaining} onUpgrade={() => document.getElementById('orkto-commercial-plans')?.scrollIntoView({block:'start',behavior:'auto'})} />
+      <div id="orkto-commercial-plans"><CommercialPlans onProposal={()=>setProposalOpen(true)} /></div>
       {proposalOpen&&<form onSubmit={requestProposal} className="my-6 space-y-3 rounded-xl border border-zinc-500/30 p-5"><h2 className="text-lg font-semibold">Solicitar proposta Enterprise</h2><label className="block text-sm">O que sua empresa precisa?<textarea required minLength={10} maxLength={3000} value={requirements} onChange={event=>setRequirements(event.target.value)} className="mt-2 block min-h-32 w-full rounded-lg border border-zinc-500/40 bg-transparent p-3" placeholder="Volume, usuários, integrações, segurança e condições desejadas" /></label><button disabled={proposalSaving} className="rounded-lg bg-[#ff5c00] px-4 py-3 font-semibold text-[#1a1816] disabled:opacity-60">{proposalSaving?'Registrando…':'Registrar solicitação'}</button>{proposalStatus&&<p role="status" className="text-sm">{proposalStatus}</p>}</form>}
       <div className="mt-5 flex items-start gap-2 rounded-xl border border-zinc-200 p-3 text-[11px] leading-relaxed text-zinc-500 dark:border-zinc-800"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />As limitações de trial, recursos e uso são verificadas no servidor. O checkout está desligado até aprovação comercial; esta tela não cria pagamento ou assinatura.</div>
     </>}

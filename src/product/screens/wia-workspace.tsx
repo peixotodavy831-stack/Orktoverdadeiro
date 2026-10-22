@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
-import { Check, LoaderCircle, LockKeyhole, RefreshCw, Send, Sparkles, X } from 'lucide-react';
+import { PromptInput } from '../../components/ui/wia-prompt-input';
+import { useCallback, useEffect, useState } from 'react';
+import { Check, LoaderCircle, LockKeyhole, RefreshCw, Sparkles, X } from 'lucide-react';
 import { getProductErrorState, productApi } from '../api';
 import type { ProductRequestState, WiaActionView } from '../types';
 import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, PageHeader, PermissionState, StatusBadge } from '../ui/shared-states';
@@ -118,10 +119,6 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
     }
   };
 
-  const run = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    void submitPrompt(prompt);
-  };
 
   const decide = async (action: WiaActionView, decision: 'approve' | 'reject') => {
     setBusyAction(action.id);
@@ -164,11 +161,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
 
         <section aria-labelledby="wia-input-title" className="rounded-xl border p-4 sm:p-5 orkto-product-border orkto-product-surface">
           <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={19} /></span><div><h2 id="wia-input-title" className="text-sm font-semibold">O que vamos organizar?</h2><p className="mt-1 text-xs leading-5 orkto-product-muted">Descreva seu pedido ou comece por uma consulta.</p></div></div>
-          <form onSubmit={run} className="wia-request-composer mt-4 space-y-3">
-            <label htmlFor="wia-request" className="sr-only">Pergunta para a WIA</label>
-            <textarea id="wia-request" value={prompt} onChange={event => setPrompt(event.target.value)} disabled={requestPending} rows={3} maxLength={4000} placeholder="Descreva seu pedido ou escolha uma consulta abaixo…" className="orkto-product-control min-h-28 w-full resize-y rounded-lg p-3 text-sm leading-6 placeholder:orkto-product-subtle disabled:opacity-60" />
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><p className="text-[11px] orkto-product-subtle">Você revisa antes de agir.</p><button type="submit" disabled={!prompt.trim() || requestPending} className="orkto-product-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-55">{requestPending ? <LoaderCircle size={15} className="animate-spin" /> : <Send size={15} />}{requestPending ? phaseLabels[phase!] : 'Consultar WIA'}</button></div>
-          </form>
+          <PromptInput value={prompt} onChange={setPrompt} onSubmit={message => void submitPrompt(message)} busy={requestPending} placeholder="Descreva seu pedido para a WIA…" className="my-6" />
           <div className="wia-query-shortcuts" aria-label="Consultas dos registros existentes">{['Propostas pendentes', 'Aprovações pendentes', 'Vendas hoje'].map(message => <button key={message} type="button" disabled={requestPending} onClick={() => { setPrompt(message); document.getElementById('wia-request')?.focus(); }} className="orkto-product-control">{message}</button>)}</div>
           <p className="mt-3 text-xs leading-5 orkto-product-muted">Os atalhos preenchem o pedido; você decide quando consultar.</p>
         </section>
