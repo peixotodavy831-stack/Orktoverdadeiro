@@ -13,6 +13,8 @@ import { contactInput, contactPatchInput } from './orkto-core/contact-input.js';
 import { serviceInput } from './orkto-core/service-input.js';
 import { dealInput, dealPatchInput } from './orkto-core/deal-input.js';
 import { scheduleRepurchaseCandidate } from './orkto-core/repurchase-scheduler.js';
+import { buildPlaybookPreview, getPlaybookDefinition } from './orkto-core/playbooks.js';
+import { aggregateEfficiencyUsage, estimatePlanCost, latestTariffFor, planExecution } from './wiaos/efficiency.js';
 import { buildRadarSnapshot } from './orkto-core/radar.js';
 import { applyResponsePipeline } from './wiaos/response-pipeline.js';
 import { buildVerifiedCommercialFact, persistAutomaticMemory } from './orkto-core/memory-engine.js';
@@ -88,7 +90,7 @@ function importValidationError(message: string, code: 'import_validation_error' 
   return Object.assign(new Error(message), { code });
 }
 
-async function workspaceContext(req: Request, res: Response, db: Database, allowPersonalWorkspaceProvision = true, planCheckInGateway = false): Promise<WorkspaceContext | null> {
+async function workspaceContext(req: Request, res: Response, db: Database, allowPersonalWorkspaceProvision = true, planCheckInGateway = false, operation: 'default' | 'read_only' = 'default'): Promise<WorkspaceContext | null> {
   // Every Preview request must keep the caller's JWT-bound RLS context. The
   // shared public client is only a construction fallback; using it here turns
   // a valid membership into an anonymous query and incorrectly returns 503.
@@ -107,7 +109,7 @@ async function workspaceContext(req: Request, res: Response, db: Database, allow
       if (workspaceError) throw workspaceError;
       if (!workspace?.owner_user_id) { res.status(409).json({ error:'Workspace sem proprietário válido.' }); return null; }
       const context = { id: membership.workspace_id, ownerUserId:workspace.owner_user_id, role: membership.role } as WorkspaceContext;
-      if (!planCheckInGateway && !['GET','HEAD','OPTIONS'].includes(req.method)) {
+      if (operation !== 'read_only' && !planCheckInGateway && !['GET','HEAD','OPTIONS'].includes(req.method)) {
         const access = await loadWorkspacePlanAccess(db, context.id);
         if (access.configurationRequired) { res.status(503).json({ error:'Plano/workspace ainda não está configurado para escrita.', category:'configuration_required' }); return null; }
         if (access.readOnly) { res.status(423).json({ error:'Este workspace está somente para leitura. Verifique o trial ou o status da assinatura.', category:'workspace_read_only', status:access.status, trialEndsAt:access.trialEndsAt }); return null; }
@@ -346,6 +348,80 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         coverage: { partial: incomplete.length > 0, limited_sources: incomplete, leads_evaluated: messagesComplete },
       } });
     } catch (error) { failure(res, error, 'Não foi possível calcular o Radar.'); }
+  });
+
+  app.get('/api/playbooks/:key/preview', authenticate, requireDb, async (req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    const requestDb = req.authenticatedSupabase || db;
+    const definition = getPlaybookDefinition(String(req.params.key || ''));
+    if (!definition) return res.status(404).json({ error: 'Playbook não encontrado.', category: 'not_found' });
+    try {
+      const configResult = await requestDb.from('orkto_feature_configs').select('status').eq('workspace_id', context.id).eq('feature_key', definition.key).maybeSingle();
+      if (configResult.error) throw configResult.error;
+      const row = configResult.data as { status?: unknown } | null;
+      const featureState = row && row.status === 'ACTIVE' ? 'active' : row ? 'inactive' : 'off_by_default';
+      const preview = buildPlaybookPreview(definition, { featureKey: definition.key, featureState });
+      res.json({ data: { ...preview, read_only: true, execution_available: false } });
+    } catch (error) { failure(res, error, 'Não foi possível calcular a prévia do Playbook.'); }
+  });
+
+  // WIA Efficiency R1: rotas somente leitura. O plano não executa inferência,
+  // não reserva Pulso e não traz dados pessoais; métricas agregam o ledger por
+  // workspace. Tarifas/ledger usam o client configurado do backend; as grants
+  // existentes permanecem intactas. Sem acesso, a rota falha explicitamente.
+  // Legacy URLs are rejected without inspecting or reflecting the message.
+  app.get('/api/wia-efficiency/plan', authenticate, requireDb, (_req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('Allow', 'POST');
+    res.status(405).json({ error: 'Use POST com corpo JSON.', category: 'method_not_allowed' });
+  });
+  app.post('/api/wia-efficiency/plan', authenticate, requireDb, async (req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    // POST carries private input; this route performs no mutation and must also
+    // work for an existing read-only membership, without provisioning a tenant.
+    const context = await workspaceContext(req, res, db, false, false, 'read_only'); if (!context) return;
+    if (!req.is('application/json')) return res.status(415).json({ error: 'Envie um corpo JSON.', category: 'validation_error' });
+    const messageInput = z.object({ message: z.string().trim().min(1).max(2000) }).strict().safeParse(req.body);
+    if (!messageInput.success) return res.status(400).json({ error: 'Envie uma mensagem de 1 a 2000 caracteres no corpo JSON.', category: 'validation_error' });
+    try {
+      const plan = planExecution({ message: messageInput.data.message, env: process.env });
+      if (plan.tier > 1 && plan.authorized_model) {
+        const tariffResult = await db.from('orkto_model_tariffs').select('provider,model,version,input_microusd_per_million,output_microusd_per_million,cached_microusd_per_million,effective_from,effective_until')
+          .eq('provider', plan.authorized_model.provider).eq('model', plan.authorized_model.model_id)
+          .order('version', { ascending: false }).limit(10);
+        if (tariffResult.error) throw tariffResult.error;
+        const tariff = latestTariffFor((tariffResult.data || []) as Record<string, unknown>[], plan.authorized_model.provider, plan.authorized_model.model_id);
+        const cost = estimatePlanCost(plan, tariff);
+        res.json({ data: { ...plan, read_only: true, execution_available: false, cost_estimate: { ...cost, provenance: cost.valid ? 'heuristic_tokens_with_approved_tariff' : 'unavailable_without_effective_tariff' } } });
+      } else {
+        res.json({ data: { ...plan, read_only: true, execution_available: false, cost_estimate: { microusd: null, valid: false, tariffVersion: null, provenance: 'zero_inference' } } });
+      }
+    } catch {
+      // Never log the supplied message, tariff errors or provider credentials.
+      res.status(503).json({ error: 'A prévia está indisponível. Tente novamente.', category: 'configuration_required' });
+    }
+  });
+
+  app.get('/api/wia-efficiency/metrics', authenticate, requireDb, async (req, res) => {
+    res.setHeader('Cache-Control', 'private, no-store');
+    const context = await workspaceContext(req, res, db, false); if (!context) return;
+    try {
+      const rawMonth = req.query.month;
+      if (rawMonth !== undefined && (typeof rawMonth !== 'string' || !/^\d{4}-(0[1-9]|1[0-2])$/.test(rawMonth))) {
+        return res.status(400).json({ error: 'Mês inválido. Use o formato AAAA-MM.', category: 'validation_error' });
+      }
+      const month = rawMonth ? `${rawMonth}-01` : `${new Date().toISOString().slice(0, 7)}-01`;
+      const usageResult = await db.from('orkto_model_usage').select('provider,model,task_class,gateway,prompt_tokens,cached_input_tokens,completion_tokens,total_tokens,latency_ms,mode,created_at')
+        .eq('workspace_id', context.id).eq('billing_period_start', month).order('created_at', { ascending: false }).limit(5000);
+      if (usageResult.error) throw usageResult.error;
+      const summary = aggregateEfficiencyUsage(usageResult.data || []);
+      res.json({ data: { ...summary, read_only: true, billing_period_start: month, coverage: {
+        ...summary.coverage, records_returned: (usageResult.data || []).length,
+        limit: 5000, possibly_truncated: (usageResult.data || []).length >= 5000,
+        totals_scope: 'returned_rows_only',
+      } } });
+    } catch (error) { failure(res, error, 'Não foi possível agregar o consumo de eficiência.'); }
   });
 
   app.get('/api/integrations/status', authenticate, requireDb, async (req,res)=>{
