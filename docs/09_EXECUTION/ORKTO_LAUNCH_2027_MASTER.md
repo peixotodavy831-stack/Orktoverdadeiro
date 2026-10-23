@@ -168,3 +168,8 @@ Referência: ORKTO_LAUNCH_R2_EXECUTION_2026-10-23.md. Este bloco atualiza as lim
 - A ambiguidade cliente/telefone no ingest Meta permanece defeito aberto de engenharia. G01–G12/B01–B13, fornecedores reais, recuperação gerenciada, termos e política comercial permanecem bloqueados. Nenhum push, deploy, merge, compra ou efeito real.
 
 READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+
+## Uso comercial R3 — 23/10/2026
+
+Relatório vigente: ORKTO_SELLABLE_R3_2026-10-23.md. Código 748a625, correção Meta d7ba958. Corrigido o vínculo automático ambíguo de cliente/telefone em migration aditiva 51, preservando ACL, RLS e vínculos existentes. Radar abre rascunho contextual na WIA sem copiar UUID, sem enviar pedido ou mensagem automaticamente. PASS_LOCAL: 374 aplicação +108 ferramentas; lint, Edge typecheck, build/smoke, scan, replay PG17 51/51 e upgrade 44/44. Controle negativo reproduz defeito antigo; versão corrigida passa. QA fixture em 390/768/1280 px sem overflow e com rascunho correto. Nenhuma publicação ou validação remota. Condições comerciais, Google A/B, Asaas, fornecedores e recuperação gerenciada continuam gates externos. READY_FOR_PRODUCTION_CANDIDATE=NO.

@@ -1,4 +1,11 @@
-# Retomada vigente — R2 de 23/10/2026
+# Retomada vigente — R3 de 23/10/2026
+
+Ler primeiro ORKTO_SELLABLE_R3_2026-10-23.md. Código 748a625, correção Meta d7ba958: associação somente a cliente ativo único, migration 51, fluxo contextual Radar → WIA sem copiar ID. Regressão local 374+108; replay 51/51 e upgrade 44/44; nenhuma homologação remota nova. Evidências em evidence/sellable-r3. A ambiguidade descrita no histórico abaixo foi corrigida localmente, ainda sem deploy.
+
+Próximo passo: publicação isolada autorizada e gates reais Google A/B, Asaas e recuperação gerenciada. Preservar PR #2, contas e workspaces já aprovados. Não repetir/recriar os motores. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
+# Histórico R2 de 23/10/2026
 
 Ler primeiro ORKTO_LAUNCH_R2_EXECUTION_2026-10-23.md e o último bloco R2 do MASTER. Abaixo permanece o histórico, inclusive limitações que esta rodada resolveu localmente.
 

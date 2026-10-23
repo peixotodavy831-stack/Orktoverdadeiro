@@ -1,0 +1,137 @@
+{
+  "recordedAt": "2026-10-23T16:32:47.781Z",
+  "environment": "local_disposable_and_visual_fixtures",
+  "sourceCommit": "748a625d1148d7f60cd452b367ef1f0f809f7b17",
+  "branch": "feat/orkto-launch-2027",
+  "readiness": "NO",
+  "remoteValidation": "NOT_TESTED",
+  "tests": {
+    "application": 374,
+    "tools": 108,
+    "failed": 0
+  },
+  "migration": {
+    "status": "PASS",
+    "runId": "migration-replay-20261023T162228779Z-67f3af05",
+    "count": 51,
+    "postgres": "17.11"
+  },
+  "upgrade": {
+    "status": "PASS",
+    "runId": "migration-replay-20261023T162758484Z-01213fbc",
+    "selected": 44
+  },
+  "negativeControl": "old implementation rejects scenario 2; fixed implementation passes all scenarios",
+  "build": {
+    "frontend": true,
+    "publicUrl": true,
+    "server": true,
+    "runtime": true,
+    "distPreserved": true
+  },
+  "lint": "PASS_LOCAL",
+  "edgeTypecheck": "PASS_LOCAL_NOT_DENO_RUNTIME",
+  "visual": {
+    "fixtureOnly": true,
+    "viewports": [
+      {
+        "width": 390,
+        "height": 844,
+        "theme": "dark"
+      },
+      {
+        "width": 768,
+        "height": 1024,
+        "theme": "dark"
+      },
+      {
+        "width": 1280,
+        "height": 900,
+        "theme": "light"
+      }
+    ],
+    "overflow": false,
+    "contextDraftCorrect": true,
+    "requestSubmitted": false
+  },
+  "preservation": {
+    "originalFiles": 106,
+    "originalStateUnchanged": true,
+    "pr2Head": "78497da5bfd52166c6852aa14c06ebbf84fa1248"
+  },
+  "logs": [
+    {
+      "path": ".tmp-launch/r3-tests-final.log",
+      "sha256": "4faa29f04d72c9c9e56812003d89eaf91bcb3c5e7f5a400078036c2eac48f2ba"
+    },
+    {
+      "path": ".tmp-launch/r3-lint.log",
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+    },
+    {
+      "path": ".tmp-launch/r3-edge.log",
+      "sha256": "e56125d844cf396e19d56cd2e2df7a374e84f5ddee0ce1d2302538562c0527eb"
+    },
+    {
+      "path": ".tmp-launch/r3-build-final.log",
+      "sha256": "b431b9ee686a51991ab8228e16788e0c03c9711e9554a254a6ea7d651195abb7"
+    },
+    {
+      "path": ".tmp-launch/r3-meta-sql.log",
+      "sha256": "ac3db632b6d604a4dcf0d400870e5bb0b7002bd52a7beda6cdc2651b8d16510b"
+    },
+    {
+      "path": ".tmp-launch/r3-meta-negative-control.log",
+      "sha256": "5394b530de06c5c3eca01b7999b687db10cb2ef49ceaec5e08186a09f2b58ff9"
+    },
+    {
+      "path": ".tmp-launch/r3-pg-replay.log",
+      "sha256": "bbcc3e76068ced1565b518730f1dd635a4fc23ed7e550b463f84df76d3d1b3b9"
+    },
+    {
+      "path": ".tmp-launch/r3-upgrade.log",
+      "sha256": "b2c357cbc38d0b6902d62ed5a56e6d7e98403c0850f3dfc14ca221264197202c"
+    },
+    {
+      "path": ".tmp-launch/r3-upgrade-asserts.log",
+      "sha256": "1f1025cbf02d0b7931f757370f1953c507cda504e3201533b509fb9e8950e5c8"
+    },
+    {
+      "path": ".tmp-launch/r3-scan-final.log",
+      "sha256": "c7465e100f0e96b84ec88c899ddc87a062ea6d764281ca19054b3a551067e0d0"
+    }
+  ],
+  "sourceHashes": [
+    {
+      "path": "supabase/migrations/20261023162021_meta_unique_client_match.sql",
+      "sha256": "eb0dbcd611efdd95fea4fe38fa73ba28817602362be78355182b64ca9915caa5"
+    },
+    {
+      "path": "supabase/tests/assert_meta_unique_client_match.sql",
+      "sha256": "2aa4254253756563bf769439645cbe45c0bf1cc72134c5b9a3c5f7468a29f6da"
+    },
+    {
+      "path": "src/product/proposal-recovery-draft.ts",
+      "sha256": "28b8f89c46de16148189bc52085ef21b1a9f28b37571ec538b848d3253d64aab"
+    },
+    {
+      "path": "src/product/screens/today-radar-panel.tsx",
+      "sha256": "5309900ca62242b4ce7772f127ce473c8844d514ee1cbf72d1756276dac4f933"
+    },
+    {
+      "path": "src/product/screens/today-v2-page.tsx",
+      "sha256": "3f5a3c585d882a15a9e152c5ca51b248947d171e2edf6692c4cc3f6045380d56"
+    },
+    {
+      "path": "tests/proposal-recovery-draft.test.ts",
+      "sha256": "c425bd69640d159c2399036022cd7b00caab68587064c401b0dda9dfce066471"
+    }
+  ],
+  "secretScan": {
+    "scanned": 653,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  }
+}
