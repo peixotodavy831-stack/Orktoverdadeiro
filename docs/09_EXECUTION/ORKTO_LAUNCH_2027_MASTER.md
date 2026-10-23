@@ -73,3 +73,11 @@ Inventário inicial concluído. Implementações, SHAs, comandos, resultados e e
 - Referência primária: [coleção oficial Meta — Get Phone Numbers](https://www.postman.com/meta/whatsapp-business-platform/request/e9ady51/get-phone-numbers). A página developers.facebook.com retornou 429; não houve acesso a contas, tokens ou Graph real nesta prova.
 - NOT_TESTED: Embedded Signup e recibo real em staging. Associação ambígua de clientes no ingest SQL continua pendente; não corrigida implicitamente por estas mudanças.
 - Proteção explícita da nova branch em `vercel.json`: deployment Git desabilitado. Sem push/deploy.
+
+### Ciclo 2 — planos comerciais
+
+- Componente de pricing fornecido integrado a CommercialPlans, usado por landing e billing. Cinco planos e preços aprovados, somente mensal, comparação acessível e condições sem checkout. Enterprise mantém o formulário já existente. Nenhum desconto, franquia, assento ou direito inventado.
+- PASS_LOCAL: 23/23 testes de catálogo/billing; typecheck. Navegador local de fixtures: cinco preços, comparação e abertura Enterprise; nenhuma solicitação enviada.
+- Prova visual: `evidence/launch-2027/pricing-comparison-dark-1280.jpg`. Ambiente localhost:4177, não staging.
+- Limitação: o override de viewport 390x844 retornou DOM de 1280px em duas abas. Desktop observado; mobile/tablet NOT_TESTED nesta rodada, não inferidos do CSS responsivo.
+- Alterações concorrentes detectadas em backend/core-app.ts, backend/finance/finance-model.ts, FinanceDashboard.tsx e tests/finance-model.test.ts: preservadas, não incluídas neste commit.

@@ -1,0 +1,21 @@
+.orkto-pricing { --pricing-text:var(--orkto-text-primary,#171717);--pricing-muted:var(--orkto-text-secondary,#625c55);--pricing-border:var(--orkto-border,#ddd8d0);--pricing-surface:var(--orkto-glass-fill,#fff);padding-block:40px;color:var(--pricing-text); }
+.orkto-landing .orkto-pricing { --pricing-text:#fdf9ee;--pricing-muted:#bcb5aa;--pricing-border:#fdf9ee26;--pricing-surface:#ffffff04; }
+.orkto-pricing-header { display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px; }
+.orkto-pricing-header h2 { font-size:clamp(24px,3vw,34px);line-height:1.2;font-weight:600;letter-spacing:-.025em; }
+.orkto-pricing-header p,.orkto-pricing-policy { max-width:70ch;margin-top:14px;font-size:14px;line-height:1.7;color:var(--pricing-muted); }
+.orkto-pricing-cycle { flex:none;border:1px solid var(--pricing-border);border-radius:8px;padding:8px 12px;font-size:12px;white-space:nowrap; }
+.orkto-pricing-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px; }
+.orkto-pricing-card { display:flex;flex-direction:column;min-width:0;border:1px solid var(--pricing-border);border-radius:14px;background:var(--pricing-surface); }
+.orkto-pricing-card-header { padding:24px 20px 16px; }.orkto-pricing-card-title { font-size:20px;font-weight:600; }
+.orkto-pricing-card-description { min-height:44px;margin-top:8px;font-size:12px;line-height:1.7;color:var(--pricing-muted); }
+.orkto-pricing-price { margin-top:24px;font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.4; }.orkto-pricing-price span { font-size:12px;font-weight:400;color:var(--pricing-muted); }
+.orkto-pricing-card-content { flex:1;padding:0 20px 20px; }.orkto-pricing-card-content ul { list-style:none;padding:0; }
+.orkto-pricing-card-content li { display:flex;gap:10px;padding-block:10px;border-top:1px solid var(--pricing-border); }.orkto-pricing-card-content li svg { flex:none;margin-top:3px;color:var(--pricing-muted); }
+.orkto-pricing-card-content li span { display:block;font-size:13px; }.orkto-pricing-card-content small { display:block;margin-top:3px;color:var(--pricing-muted);font-size:12px;line-height:1.5; }
+.orkto-pricing-card-footer { padding:0 20px 24px; }.orkto-pricing .orkto-pricing-button { width:100%;min-height:44px;white-space:normal;padding:10px 12px;border:1px solid var(--pricing-border);background:transparent;color:var(--pricing-text);border-radius:8px;font-size:13px; }
+.orkto-pricing .orkto-pricing-button:hover { background:#ff5a0014;border-color:#ff5a00; }.orkto-pricing-policy { margin-block:24px; }
+.orkto-pricing-comparison { border-block:1px solid var(--pricing-border); }.orkto-pricing-comparison summary { padding-block:16px;min-height:44px;cursor:pointer;font-size:14px;font-weight:600; }
+.orkto-pricing-table-wrap { overflow-x:auto;margin-bottom:20px; }.orkto-pricing table { width:100%;border-collapse:collapse;font-size:12px;min-width:640px; }
+.orkto-pricing th,.orkto-pricing td { padding:14px 12px;border-top:1px solid var(--pricing-border);text-align:left; }.orkto-pricing td { color:var(--pricing-muted); }
+.orkto-plan-conditions { margin-block:24px;padding:20px;border:1px solid var(--orkto-border,#aaa29755);border-radius:12px; }.orkto-plan-conditions h3 { font-size:18px;font-weight:600; }.orkto-plan-conditions p { margin-top:12px;font-size:14px;line-height:1.7; }
+@media(max-width:600px) { .orkto-pricing-header { flex-direction:column;gap:16px; }.orkto-pricing {padding-block:28px;} }
