@@ -136,7 +136,7 @@ test('CLI Preview excludes local environment and synthetic runner material', () 
   // Isolated frontend branches add deny-only Git preview guards to the default
   // config. Build/runtime settings must still match staging exactly.
   assert.deepEqual(defaultConfig,{...stagingConfig,git:{...stagingConfig.git,deploymentEnabled:{
-    ...stagingConfig.git.deploymentEnabled,'feat/orkto-radar-2027':false,'codex/orkto-mobile-ux-2027':false,'feat/orkto-intelligence-whatsapp-2027':false,'feat/orkto-product-excellence-2027':false,
+    ...stagingConfig.git.deploymentEnabled,'feat/orkto-radar-2027':false,'codex/orkto-mobile-ux-2027':false,'feat/orkto-intelligence-whatsapp-2027':false,'feat/orkto-product-excellence-2027':false,'feat/orkto-launch-2027':false,
   }}});
   assert.equal(stagingConfig.buildCommand,'vite build && node scripts/render-public-url.mjs');
   assert.equal(defaultConfig.functions?.['api/server.ts']?.includeFiles,

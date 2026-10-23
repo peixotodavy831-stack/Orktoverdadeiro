@@ -18,3 +18,14 @@ export async function metaMessageFingerprint(input:{eventId:string;phoneNumberId
  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(canonical));
  return Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
 }
+
+/** The delivery ledger returns a decision even when its RPC transport succeeds.
+ * Conflicts must remain failed audit entries, never confirmed delivery. */
+export function metaReceiptOutcome(decision:unknown):{
+ status:'processed'|'ignored'|'failed';failureCategory:string|null;retry:boolean;
+}{
+ if(decision==='APPLIED'||decision==='DUPLICATE')return{status:'processed',failureCategory:null,retry:false};
+ if(decision==='STALE_IGNORED'||decision==='NOT_FOUND')return{status:'ignored',failureCategory:null,retry:false};
+ if(decision==='EVENT_CONFLICT'||decision==='PROVIDER_REFERENCE_CONFLICT')return{status:'failed',failureCategory:'delivery_ledger_conflict',retry:false};
+ return{status:'failed',failureCategory:'delivery_decision_unrecognized',retry:true};
+}

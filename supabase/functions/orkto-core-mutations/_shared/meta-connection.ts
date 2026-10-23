@@ -58,6 +58,25 @@ export async function completeMetaEmbeddedSignup(input:{
   },send);
   if(phone.id!==input.phoneNumberId||typeof phone.display_phone_number!=='string'||typeof phone.verified_name!=='string')
     throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
+  // Access to two assets independently does not prove they belong together.
+  // Keep pagination on our own Graph URL; never follow provider paging.next.
+  let cursor:string|null=null;let bound=false;const seen=new Set<string>();
+  for(let page=0;page<5;page++){
+    const params=new URLSearchParams({fields:'id',limit:'100'});
+    if(cursor)params.set('after',cursor);
+    const listed=await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.wabaId}/phone_numbers?${params}`,{
+      method:'GET',headers:{authorization:`Bearer ${accessToken}`},
+    },send);
+    if(!Array.isArray(listed.data))throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
+    bound=listed.data.some(row=>row&&typeof row==='object'&&!Array.isArray(row)&&(row as Record<string,unknown>).id===input.phoneNumberId);
+    if(bound)break;
+    const paging=listed.paging as {next?:unknown;cursors?:{after?:unknown}}|undefined;
+    if(!paging?.next)break;
+    const after=paging.cursors?.after;
+    if(typeof after!=='string'||!after||after.length>1024||seen.has(after))throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
+    seen.add(after);cursor=after;
+  }
+  if(!bound)throw new MetaConnectionError('PROVIDER_REJECTED');
   await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.wabaId}/subscribed_apps`,{
     method:'POST',headers:{authorization:`Bearer ${accessToken}`,'content-type':'application/json'},body:'{}',
   },send);

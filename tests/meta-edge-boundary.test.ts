@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readMetaBody,metaMessageFingerprint} from '../supabase/functions/orkto-meta-webhook/event-boundary.ts';
+import {readMetaBody,metaMessageFingerprint,metaReceiptOutcome} from '../supabase/functions/orkto-meta-webhook/event-boundary.ts';
 
 test('Meta content is part of the durable fingerprint; same ID with changed text is a conflict, not a duplicate',async()=>{
  const base={eventId:'message:synthetic',phoneNumberId:'123456',wabaId:'654321',from:'5511999990000',type:'text',at:'2026-10-19T00:00:00Z',text:'synthetic one'};
@@ -24,4 +24,11 @@ test('Meta body preserves exact bytes for signature verification and releases re
  assert.deepEqual(await readMetaBody(null),new Uint8Array());
  const broken=new ReadableStream<Uint8Array>({start(controller){controller.error(new Error('synthetic failure'));}});
  await assert.rejects(readMetaBody(broken));assert.equal(broken.locked,false);
+});
+
+test('Meta receipt conflicts and unknown ledger decisions never become processed delivery',()=>{
+ for(const decision of ['APPLIED','DUPLICATE'])assert.deepEqual(metaReceiptOutcome(decision),{status:'processed',failureCategory:null,retry:false});
+ for(const decision of ['STALE_IGNORED','NOT_FOUND'])assert.deepEqual(metaReceiptOutcome(decision),{status:'ignored',failureCategory:null,retry:false});
+ for(const decision of ['EVENT_CONFLICT','PROVIDER_REFERENCE_CONFLICT'])assert.deepEqual(metaReceiptOutcome(decision),{status:'failed',failureCategory:'delivery_ledger_conflict',retry:false});
+ for(const decision of [null,undefined,{},[],{decision:'APPLIED'},'UNRECOGNIZED'])assert.deepEqual(metaReceiptOutcome(decision),{status:'failed',failureCategory:'delivery_decision_unrecognized',retry:true});
 });

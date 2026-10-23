@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import {readMetaBody,metaMessageFingerprint} from './event-boundary.ts';
+import {readMetaBody,metaMessageFingerprint,metaReceiptOutcome} from './event-boundary.ts';
 
 const numericId=z.string().regex(/^\d{5,30}$/);
 const unixTime=z.string().regex(/^\d{1,12}$/);
@@ -97,13 +97,15 @@ Deno.serve(async(req:Request)=>{
       if(lookupError){retryRequired=true;continue}
        if(!send?.id){await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});continue}
       const mapped=item.status==='sent'?'PROVIDER_ACKNOWLEDGED':item.status==='failed'?'FAILED':'DELIVERED';
-      const {error:receiptError}=await admin.rpc('orkto_record_channel_delivery_event',{
+      const {data:receiptDecision,error:receiptError}=await admin.rpc('orkto_record_channel_delivery_event',{
         p_workspace_id:claim.workspace_id,p_send_request_id:send.id,p_provider:'meta_whatsapp_cloud',
         p_provider_event_id:eventId,p_payload_fingerprint:fingerprint,p_provider_message_id:item.id,
         p_status:mapped,p_failure_category:item.status==='failed'?'provider_transient':null,p_occurred_at:at,
       });
        if(receiptError){retryRequired=true;await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'delivery_persistence_error'});continue}
-       await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'processed',p_failure_category:null});
+       const outcome=metaReceiptOutcome(receiptDecision);
+       const {error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:outcome.status,p_failure_category:outcome.failureCategory});
+       if(outcome.retry||finishError)retryRequired=true;
     }
   }
   return retryRequired?json(503,'RETRY_REQUIRED',requestId):json(200,'ACCEPTED',requestId);
