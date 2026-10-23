@@ -184,3 +184,9 @@ Planejamento é estimativa, sem consumo confirmado. A UI não apresenta referên
 8. As suspeitas de integração Meta já registradas no relatório R0 permanecem fora desta alteração; uma revisão futura deve verificar associação inequívoca de cliente, vínculo phone/WABA e decisões de recibos. A regressão local não encerra essa auditoria.
 
 **Conclusão:** incremento implementado e validado localmente, com navegação mais simples, jornadas com contexto, prévias governadas e menos consultas iniciais da WIA. Sem liberação comercial ou de produção. **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+## 10. Ajuste posterior — contador de Pulsos em Hoje
+
+Após a entrega inicial, o proprietário apontou a ausência do contador na tela Hoje. Ele existia apenas em Plano & cobrança. O novo `pulso-counter.tsx` apresenta saldo disponível e consumo no topo de Hoje, consultando o endpoint existente `GET /api/billing/current` e reutilizando `quotaSnapshot`. Não cria créditos, franquias, cobranças ou equivalência com tokens. Há estados distintos para loading, falha, franquia ausente e saldo inconsistente, com cancelamento de leitura pendente e atualização pelo botão Atualizar Hoje.
+
+O atalho “Ver consumo” abre Plano & cobrança. Conferência local no navegador: estado não configurado visível, cenário sintético de 258 disponíveis / 742 utilizados ou reservados / 1.000 de franquia e navegação até consumo aprovados. Esses números são exclusivamente da fixture `quota-demo`; não são franquia comercial aprovada. [Captura padrão, sem saldo inventado](evidence/pulso-counter/today-counter.jpg). Typecheck `npm run lint` PASS; as suítes e builds acima pertencem à fonte `7cd5ba7` e não foram reexecutados para este ajuste. Sem validação remota ou deploy. A aba atualizada usa a porta local 4176; 4175 permanece na versão anterior. **READY_FOR_PRODUCTION_CANDIDATE=NO.**

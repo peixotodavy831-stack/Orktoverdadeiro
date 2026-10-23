@@ -1573,6 +1573,7 @@ export default function App() {
                     onRetryAppData={() => user?.uid && void loadUserData(user.uid)}
                     onOpenSettings={() => setCurrentView('settings')}
                     onSelectQuote={quoteId => { setSelectedQuoteId(quoteId); setCurrentView('quote_detail'); }}
+                    onOpenBilling={() => setCurrentView('billing')}
                     onCreateQuote={() => { setSelectedQuoteId(null); setCurrentView('create_quote'); }}
                     onOpenDeal={dealId => { setSelectedDealId(dealId || null); setSelectedQuoteId(null); setCurrentView('deals'); }}
                     onOpenConversation={conversationId => { setSelectedConversationId(conversationId); setCurrentView(window.matchMedia('(max-width: 1023px)').matches ? 'conversation' : 'conversations'); }}

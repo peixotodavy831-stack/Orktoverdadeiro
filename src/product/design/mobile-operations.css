@@ -1,4 +1,13 @@
 /* Mobile operational layer. Keeps desktop tokens and all authorization contracts. */
+.today-pulso-counter { display:flex; align-items:center; gap:12px; margin-top:24px; padding-block:16px; border-block:1px solid var(--orkto-border); }
+.today-pulso-counter > svg { flex:none; color:var(--orkto-brand-text); }
+.today-pulso-counter h3 { font-size:12px; font-weight:600; color:var(--orkto-text-secondary); }
+.today-pulso-counter p { font-size:12px; line-height:1.6; color:var(--orkto-text-secondary); overflow-wrap:anywhere; }
+.today-pulso-counter .today-pulso-value { font-size:24px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--orkto-text-primary); }
+.today-pulso-value span { font-size:12px; font-weight:400; }
+.today-pulso-counter .today-pulso-status { font-size:14px; font-weight:600; color:var(--orkto-text-primary); }
+.today-pulso-link { display:inline-flex; align-items:center; gap:6px; min-height:44px; flex:none; color:var(--orkto-brand-text); font-size:12px; font-weight:600; }
+@media(max-width:430px) { .today-pulso-counter { flex-wrap:wrap; } .today-pulso-link { margin-left:32px; } }
 .orkto-prompt-input { width: 100%; max-width: 320px; margin-inline: auto; transition: max-width .4s cubic-bezier(.175,.885,.32,1.275); }
 .orkto-prompt-input[data-expanded="true"] { max-width: 480px; }
 .orkto-prompt-card { position: relative; min-height: 56px; overflow: hidden; border: 1px solid var(--orkto-glass-edge); border-radius: 24px; background: var(--orkto-glass-control); }

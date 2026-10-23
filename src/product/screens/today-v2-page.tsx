@@ -5,6 +5,7 @@ import { getProductErrorState, productApi } from '../api';
 import type { DealView, InboxConversationView, ProductRequestState, WiaActionView } from '../types';
 import { priorityLabel, BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, Metric, PermissionState, StatusBadge } from '../ui/shared-states';
 import TodayRadarPanel from './today-radar-panel';
+import PulsoCounter from './pulso-counter';
 
 interface TodayV2PageProps {
   user?: { displayName?: string | null } | null;
@@ -21,6 +22,7 @@ interface TodayV2PageProps {
   onOpenDeal: (dealId?: string) => void;
   onOpenConversation: (conversationId: string) => void;
   onOpenWia: (message?: string) => void;
+  onOpenBilling?: () => void;
 }
 
 interface FeedState<T> {
@@ -66,6 +68,7 @@ export default function TodayV2Page({
   onOpenDeal,
   onOpenConversation,
   onOpenWia,
+  onOpenBilling,
 }: TodayV2PageProps) {
   const [inbox, setInbox] = useState<FeedState<InboxConversationView>>(blankFeed);
   const [deals, setDeals] = useState<FeedState<DealView>>(blankFeed);
@@ -139,6 +142,7 @@ export default function TodayV2Page({
           <h2>{displayName ? `${greeting}, ${displayName}` : greeting}</h2>
           <p className="today-intro-description">Veja o que precisa de atenção e escolha o próximo passo.</p>
           <div className="today-intro-actions"><button type="button" onClick={onCreateQuote} className="today-primary-action"><Plus size={16} aria-hidden="true" />Criar proposta</button><button type="button" onClick={() => onOpenDeal()} className="today-text-action">Ver negócios <ArrowRight size={15} aria-hidden="true" /></button></div>
+          <PulsoCounter accessToken={accessToken} onOpenBilling={onOpenBilling} refreshKey={retryVersion} />
         </header>
         <aside className="today-wia-command today-glass-panel" aria-labelledby="today-command-title">
           <div className="today-command-heading"><h2 id="today-command-title">Central de comando WIA</h2><ArrowRight size={17} aria-hidden="true" /></div>
