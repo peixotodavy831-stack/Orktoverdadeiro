@@ -88,10 +88,13 @@ export async function prepareTrustedRequest(db: any, input: {
     }
   } catch(error) {
     if(!route)await db.rpc('orkto_finish_pulso',{p_workspace_id:input.workspaceId,p_request_key:input.traceId,p_state:'unknown',p_usage:{status:'unknown'}});
-    const category=error instanceof TrustedModelError?error.category:'trusted_context_query_failed';
+    const configurationRequired=error instanceof Error&&error.message==='PLAYBOOK_CONFIGURATION_REQUIRED';
+    const category=error instanceof TrustedModelError?error.category:configurationRequired?'playbook_configuration_required':'trusted_context_query_failed';
     const failed=await db.rpc('orkto_wia_finish_request',{...common,p_status:'failed',p_payload:{errorCategory:category}});
     if(failed.error)throw new WiaRequestError(503,'INTERNAL_ERROR');
+    if(configurationRequired)throw new WiaRequestError(423,'CONFIGURATION_REQUIRED');
     if(error instanceof WiaRequestError)throw error;
+    if(route)throw new WiaRequestError(503,'INTERNAL_ERROR');
     throw new WiaRequestError(503,'MODEL_UNAVAILABLE');
   }
   const {data:completed,error:completeError}=await db.rpc('orkto_wia_finish_request',{

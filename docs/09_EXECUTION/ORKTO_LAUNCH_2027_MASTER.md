@@ -81,3 +81,11 @@ Inventário inicial concluído. Implementações, SHAs, comandos, resultados e e
 - Prova visual: `evidence/launch-2027/pricing-comparison-dark-1280.jpg`. Ambiente localhost:4177, não staging.
 - Limitação: o override de viewport 390x844 retornou DOM de 1280px em duas abas. Desktop observado; mobile/tablet NOT_TESTED nesta rodada, não inferidos do CSS responsivo.
 - Alterações concorrentes detectadas em backend/core-app.ts, backend/finance/finance-model.ts, FinanceDashboard.tsx e tests/finance-model.test.ts: preservadas, não incluídas neste commit.
+
+### Ciclo 3 — Playbook governado de recuperação
+
+- Implementada preparação determinística no dispatcher WIA atual, reutilizando Radar, claim/finish com fingerprint, quota e auditoria. Gate proposal_recovery ACTIVE obrigatório, desligado por padrão; nenhuma ativação externa.
+- Resultado elegível aguarda aprovação no fluxo existente. Aprovação reutiliza a RPC que cria somente tarefa interna idempotente; não há novo executor, grants, migrations, inferência ou envio. Legado PREPARE_WIA_T0 não aceita esta preparação com efeitos.
+- UI WIA valida UUID e coloca pedido no composer sem enviar automaticamente. A seleção por UUID é uma limitação de UX, não uma jornada contextual completa.
+- PASS_LOCAL: 20/20 Playbook + WIA focados. Contratos com doubles, não SQL real. Interface de erro/rascunho observada em localhost:4177, 1280px.
+- Especificação e limites: PLAYBOOK_PROPOSAL_RECOVERY_SLICE.md. SQL real/remote E2E continuam NOT_TESTED/BLOCKED_EXTERNAL.

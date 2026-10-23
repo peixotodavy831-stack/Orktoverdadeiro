@@ -771,7 +771,8 @@ Deno.serve(async (req: Request) => {
       if (limit === undefined || (limit !== null && (!Number.isInteger(limit)||limit<0)))
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const route=routeT0Request(String(canonical.message));
-      if (!route) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      // Preparation with effects uses the fingerprinted request lifecycle only.
+      if (!route || route.name === 'prepare_proposal_recovery') return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const agent=t0Agent(route.name);
       const traceId=await traceUuid(`${membership.workspace_id}:${user.id}:${idempotencyKey}`);
       const common={p_actor_user_id:user.id,p_workspace_id:membership.workspace_id,p_trace_id:traceId,

@@ -2,6 +2,8 @@ export type T0Route = { name: string; input: Record<string, unknown>; clarificat
 
 export function routeT0Request(message: string): T0Route | null {
   const text = message.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const recovery = text.trim().match(/^preparar recuperacao da proposta ([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/);
+  if (recovery) return { name: 'prepare_proposal_recovery', input: { quoteId: recovery[1] } };
   if (/\b(vendas?|vendemos|vendeu|faturamento)\b/.test(text) && /\bhoje\b/.test(text)) return { name: 'get_sales_today', input: {} };
   if (/\b(or[cç]amentos?|propostas?)\b/.test(text) && /\b(abertos?|pendentes?|sem resposta)\b/.test(text)) return { name: 'get_open_quotes', input: {} };
   if (/\b(aprovacoes?|decisoes?)\b/.test(text) && /\b(pendentes?|aguardando|esperando)\b/.test(text)) return { name: 'get_pending_approvals', input: {} };

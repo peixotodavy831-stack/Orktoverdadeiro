@@ -1,4 +1,5 @@
 import { PromptInput } from '../../components/ui/wia-prompt-input';
+import { ProposalRecoveryRequest } from './proposal-recovery-request';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, LoaderCircle, LockKeyhole, RefreshCw, Sparkles, X } from 'lucide-react';
 import { getProductErrorState, productApi } from '../api';
@@ -48,6 +49,7 @@ const phaseLabels: Record<WiaPhase, string> = {
 };
 
 function actionTitle(action: WiaActionView) {
+  if(action.action_type==='send_proposal_followup')return 'Revisar follow-up da proposta';
   return action.action_type.replaceAll('_', ' ');
 }
 
@@ -168,6 +170,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
         <section aria-labelledby="wia-input-title" className="rounded-xl border p-4 sm:p-5 orkto-product-border orkto-product-surface">
           <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={19} /></span><div><h2 id="wia-input-title" className="text-sm font-semibold">O que vamos organizar?</h2><p className="mt-1 text-xs leading-5 orkto-product-muted">Descreva seu pedido ou comece por uma consulta.</p></div></div>
           <PromptInput value={prompt} onChange={setPrompt} onSubmit={message => void submitPrompt(message)} busy={requestPending} placeholder="Descreva seu pedido para a WIA…" className="my-6" />
+          <ProposalRecoveryRequest onDraft={setPrompt} />
           <div className="wia-query-shortcuts" aria-label="Consultas dos registros existentes">{['Propostas pendentes', 'Aprovações pendentes', 'Vendas hoje'].map(message => <button key={message} type="button" disabled={requestPending} onClick={() => { setPrompt(message); document.getElementById('wia-request')?.focus(); }} className="orkto-product-control">{message}</button>)}</div>
           <p className="mt-3 text-xs leading-5 orkto-product-muted">Os atalhos preenchem o pedido; você decide quando consultar.</p>
           <WiaPlanPreview message={prompt} accessToken={accessToken} disabled={requestPending} />
