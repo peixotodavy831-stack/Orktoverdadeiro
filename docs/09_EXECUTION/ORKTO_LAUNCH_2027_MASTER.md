@@ -31,10 +31,10 @@ Os SHAs acima foram verificados com `git worktree list` e branches locais. A pre
 | Playbooks | PARTIAL | Definição/validador/prévia R1 | Fatia executável precisa reutilizar gateways e ações existentes | Contexto→aprovação→tarefa→resultado auditado, sem envio automático |
 | Efficiency | PARTIAL | Planejamento POST autenticado, estimativas, métricas limitadas | Tarifa/modelos/ledger reais não homologados nesta branch | Classificação sem inferência e execução com Cost Governor |
 | Pulso/Cost Governor | PARTIAL | Ledger, reservas, classes, saldo e contador em Hoje | Franquias comerciais e validação de concorrência remota | Consumo versionado/autorizado, sem saldo inventado |
-| Central Econômica | PARTIAL | Simulador de cenários existente e reserva planejada 40% | Auditar cobertura de operações/modelos/tarifas sem duplicar simulador | Hipóteses separadas de caixa e custo confirmado |
+| Central Econômica | PARTIAL | Simulador existente; projeção local ampliada para 0–1.000 empresas, taxas, tributos hipotéticos, Opex, pró-labore e capacidade da reserva | Dados de tarifa, contratos e custos operacionais reais ainda não homologados | Cálculos locais e premissas editáveis; confirmação contábil e custos observados |
 | Asaas | BLOCKED_EXTERNAL | Ciclo nativo e preflight GET-only existentes | Customer sintético, notificações OFF, secrets e autorização B01–B13 | Eventos reais sandbox e reconciliação sem cobrança comercial |
 | Meta | PARTIAL | Cloud API, Embedded Signup, assinatura, dedup, persistência, handoff | Associação phone/WABA e decisões de recibos merecem correção antes de ativar | Binding inequívoco, replay protegido e resultado auditável |
-| Planos/landing | PARTIAL | Cinco preços aprovados, checkout OFF, proposta Enterprise | Integrar pricing fornecido sem três planos fictícios ou desconto anual | UI responsiva, oferta honesta, interesse sem falso checkout |
+| Planos/landing | PARTIAL | Cinco preços aprovados, checkout OFF, proposta Enterprise; landing ganhou casos de uso e FAQ | Viewport real de celular/tablet e jornada de contato ainda precisam de confirmação local | UI responsiva, oferta honesta, interesse sem falso checkout |
 | Mobile/PWA | PARTIAL | Navegação e layouts, manifesto e ícones existentes | Teclado/aparelho/instalação reais; nenhum Capacitor encontrado na rodada anterior | Jornadas confortáveis e instalação verificada no escopo autorizado |
 | Recuperação/operação | BLOCKED_EXTERNAL | Runbooks e ferramentas existentes | Restauração real e infraestrutura contratada não revalidadas | Backup/restauração efetivos sem copiar dados pessoais |
 | ORKTO Pilot 01 | NOT_TESTED | Jornada alvo definida | Falta empresa participante autorizada e uso real | Métricas observadas sem transformar fixtures em resultados |
@@ -49,7 +49,7 @@ Escala qualitativa: impacto/risco/reutilização/esforço. Reavaliar após cada 
 | 2 | Não promover recibo de webhook quando o ledger rejeitar/conflictar | Alto | Alto | RPC e event boundary atuais | Médio | A investigar |
 | 3 | Integrar pricing-card na oferta de cinco planos, sem ciclo anual ou recursos inventados | Alto | Médio | CommercialPlans e catálogo aprovados | Médio | Planejado |
 | 4 | Implementar fatia Playbooks usando tarefa/aprovação existentes | Alto | Alto | WIAOS/Mutation Gateway | Médio/alto | Inspecionar contratos antes de escrever |
-| 5 | Auditar simulador, landing/onboarding, preparar Pilot 01 e runbooks | Médio | Médio | Central Econômica, testes e docs atuais | Médio | Planejado |
+| 5 | Auditar simulador, landing/onboarding, preparar Pilot 01 e runbooks | Médio | Médio | Central Econômica, testes e docs atuais | Médio | Entregas financeiras locais concluídas; browser QA NOT_VERIFIED |
 
 ## Regras de evidência e execução
 
@@ -97,6 +97,17 @@ Inventário inicial concluído. Implementações, SHAs, comandos, resultados e e
 - PASS_LOCAL: conjunto combinado Meta + Playbook/WIA 39/39. Nenhuma chamada real Graph, token ou configuração cloud.
 - Continuação prioritária: associação ambígua cliente/telefone no ingest SQL; exige migration aditiva e replay PostgreSQL antes de qualquer rollout. Não foi alterada nesta rodada.
 
+### Ciclo 5 — planejamento financeiro, crescimento e localização
+
+- Preparados seis documentos de lançamento com pesquisa datada, premissas, fontes e limitações: plano financeiro mestre, orçamento do primeiro mês, economia unitária, crescimento, internacionalização e finanças do fundador.
+- Atualizada a Central Econômica existente com escala até 1.000 empresas, separação entre empresas e clientes atendidos, taxa percentual/fixa de pagamento, tributo parametrizado, custo direto, Opex, pró-labore e capacidade da reserva de 40%. A fonte continua local; campos hipotéticos não são custos realizados. A interface explicita que caixa estimado não é saldo bancário nem lançamento contábil.
+- Pricing localizado por `Intl` em pt-BR, en-US e es-419; casos de uso e FAQ acrescentados à landing. Isso forma uma base de formato e copy, não uma tradução integral nem disponibilidade de checkout.
+- Workbook com fórmulas entregue, com abas de resumo, premissas, projeções e fontes. Foi exportado e reimportado, recalculado com mudanças de imposto e recebimento, e a inspeção de erros retornou zero. WhatsApp permanece excluído do cálculo até confirmar preço e contrato.
+- `PASS_LOCAL`: 26/26 testes focados de finanças, localização, pricing e estimativa WhatsApp; lint sem erro; `readiness:build` isolado com frontend/public URL/servidor/runtime aprovados e `distPreserved=true`. O build ainda alerta que o chunk WebGL excede 500 KB (aprox. 889 KB); desempenho em navegador não foi medido.
+- SEO verificado apenas no código-fonte: title, descrição, canonical parametrizado, robots, sitemap e metadados sociais estão presentes. A inspeção visual e de interações no browser, inclusive viewport móvel e acessibilidade com teclado/leitor, ficou `NOT_VERIFIED`: a tentativa de servidor local foi bloqueada pelo Windows (WinError 10013) e a política do browser recusou `file:` e não permite contornar essa restrição. Não inferir QA de viewport a partir do build.
+- Próxima ação financeira: confirmar com contador regime/CNAE/fator R, auditar faturas e contratos efetivos e obter rate card Meta; maior bloqueio técnico em paralelo continua sendo a associação ambígua cliente/telefone no ingest Meta com replay PostgreSQL 17 descartável.
+- Nenhum gate remoto ou de produção recebe PASS por esta rodada. `READY_FOR_PRODUCTION_CANDIDATE=NO` e G01–G12/B01–B13 permanecem bloqueados.
+
 ## Matriz atual — validação desta branch (2026-10-22)
 
 O snapshot de código validado é **134de66ea0d514b674a090f6f10e3e8fde7d0922**, exportado por git archive para `.tmp-launch/review-source`. Não inclui as alterações concorrentes presentes no worktree. Commits apenas documentais posteriores não constituem novo runtime homologado.
@@ -123,13 +134,13 @@ O snapshot de código validado é **134de66ea0d514b674a090f6f10e3e8fde7d0922**, 
 | Preservação checkout original | PASS_LOCAL | Verificador: 106/106, head bff22b7/status/branch inalterados, backup verificado |
 | PR #2 local | PASS_LOCAL | Checkout de origem preservado em 78497da; nenhum merge/push/deploy nesta rodada |
 
-### Ocorrências de ambiente e trabalho concorrente
+### Ocorrências da validação do snapshot 134de66
 
 - Primeira regressão no sandbox: 291/367, 76 falhas, principalmente fetch loopback bloqueado. Não é prova de vulnerabilidade remota.
 - Repetição fora do sandbox no worktree misto: 366/367. Única falha: teste de localização concorrente es-419 esperava outra separação numérica. Ferramentas não rodaram, porque o runner interrompe após falha de aplicação. Não alterar silenciosamente trabalho concorrente.
 - Build inicial no sandbox falhou ao resolver vite; execução autorizada fora do sandbox passou. O build limpo do snapshot também passou.
 - Warning de bundle grande permanece. Não houve medição de desempenho em aparelho, rede real ou grande tenant; não declarar melhora de tempo sem medir.
-- Finanças: simulador/Cost Governor/Central Econômica existentes preservados; não foi criado simulador duplicado. Alterações concorrentes dessas áreas não foram incluídas nos quatro commits nem recebem PASS desta validação limpa.
+- Naquele snapshot, simulador/Cost Governor/Central Econômica existentes foram preservados; não foi criado simulador duplicado. As alterações de finanças aqui registradas no Ciclo 5 pertencem a uma validação posterior e não estavam contidas nos quatro commits daquele snapshot.
 
 ### Produto e sequência
 
@@ -142,3 +153,18 @@ Pilot 01 preparado em ORKTO_PILOT_01_PROTOCOL.md. Próxima engenharia: tratar as
 ### Fechamento da validação limpa
 
 PASS_LOCAL no snapshot 134de66: **362/362 aplicação +108/108 ferramentas**, npm run test:all exit 0. Não confundir com a execução do worktree misto que falhou no teste concorrente de localização. Manifesto sanitizado com SHA, comandos e hashes dos logs: evidence/launch-2027/validation-134de66.json.
+
+## Continuação executiva R2 — 23/10/2026 (revisão vigente)
+
+Referência: ORKTO_LAUNCH_R2_EXECUTION_2026-10-23.md. Este bloco atualiza as limitações históricas, sem reclassificar provas locais como remotas.
+
+- Localização: a expectativa incorreta já estava corrigida nas alterações locais; 23 testes focados passaram no início. Consolidada sem mudar padrão pt-BR.
+- Engenharia: corrigidos stress de taxas no equilíbrio, seletor dark do Tailwind e precedência mobile da landing. Reutilizado simulador, adicionado planejamento técnico Pulso sem reserva/ledger/franquia.
+- PASS_LOCAL: 372 aplicação +108 ferramentas, lint, lint Edge, build/smoke, secret scan. Runtime consolidado e1e680e. Preservação do checkout antigo 106/106 e PR #2 local intacta.
+- PASS_LOCAL_SQL: PostgreSQL portátil 17.11, replay 50/50 migrations, upgrade Supabase-like 43/43 posteriores ao baseline, asserts existentes e novo Playbook A↔B, aprovação/rejeição/replay/papel suspenso. pg_dump/restore de fixtures e novo assert passaram. Não há migration/grant ou banco remoto alterado.
+- PASS_LOCAL visual: nove telas × mobile 390×844/tablet 768×1024, sem overflow horizontal. Contraste corrigido, thread oculta dock, erro de proposta foca campo e FAQ/comparação funcionam. Dispositivo físico/leitor e Central Econômica autenticada remota continuam NOT_TESTED.
+- Finanças obrigatórias entregues: XLSX recalculado/reimportado, três cenários, sete volumes, fontes datadas e premissas. B modela R$1.414,33/mês, capital R$5.847,60 e equilíbrio 13 contas do mix ou 27 com reserva de 40%; não é cotação, franquia ou lucro garantido.
+- Estratégia: calendário orgânico de 30 dias, primeiros cinco clientes, roteiros, SEO e funil manual; comparação de cinco regiões recomenda Brasil primeiro. Nenhuma campanha ou demanda comprovada.
+- A ambiguidade cliente/telefone no ingest Meta permanece defeito aberto de engenharia. G01–G12/B01–B13, fornecedores reais, recuperação gerenciada, termos e política comercial permanecem bloqueados. Nenhum push, deploy, merge, compra ou efeito real.
+
+READY_FOR_PRODUCTION_CANDIDATE=NO.

@@ -1,0 +1,164 @@
+[
+  {
+    "screen": "today",
+    "theme": "dark",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Hoje, sua operação em foco.",
+    "width": 390
+  },
+  {
+    "screen": "wia",
+    "theme": "dark",
+    "headingColor": "rgb(245, 245, 245)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "WIA",
+    "width": 390
+  },
+  {
+    "screen": "inbox",
+    "theme": "dark",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Central de Conversas",
+    "width": 390
+  },
+  {
+    "screen": "deals",
+    "theme": "dark",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Negócios",
+    "width": 390
+  },
+  {
+    "screen": "clients",
+    "theme": "dark",
+    "headingColor": "rgb(255, 255, 255)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Base de Clientes",
+    "width": 390
+  },
+  {
+    "screen": "proposals",
+    "theme": "dark",
+    "headingColor": "rgb(255, 255, 255)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Gestão de Orçamentos",
+    "width": 390
+  },
+  {
+    "screen": "create_quote",
+    "theme": "dark",
+    "headingColor": "rgb(255, 255, 255)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Criar Nova Proposta",
+    "width": 390
+  },
+  {
+    "screen": "team",
+    "theme": "dark",
+    "headingColor": "rgb(245, 245, 245)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Equipe",
+    "width": 390
+  },
+  {
+    "screen": "billing",
+    "theme": "dark",
+    "headingColor": "rgb(255, 255, 255)",
+    "height": 844,
+    "scrollWidth": 390,
+    "title": "Plano & cobrança",
+    "width": 390
+  },
+  {
+    "screen": "today",
+    "theme": "light",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Hoje, sua operação em foco.",
+    "width": 768
+  },
+  {
+    "screen": "wia",
+    "theme": "light",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "WIA",
+    "width": 768
+  },
+  {
+    "screen": "inbox",
+    "theme": "light",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Central de Conversas",
+    "width": 768
+  },
+  {
+    "screen": "deals",
+    "theme": "light",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Negócios",
+    "width": 768
+  },
+  {
+    "screen": "clients",
+    "theme": "light",
+    "headingColor": "oklch(0.21 0.006 285.885)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Base de Clientes",
+    "width": 768
+  },
+  {
+    "screen": "proposals",
+    "theme": "light",
+    "headingColor": "rgb(255, 255, 255)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Gestão de Orçamentos",
+    "width": 768
+  },
+  {
+    "screen": "create_quote",
+    "theme": "light",
+    "headingColor": "oklch(0.21 0.006 285.885)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Criar Nova Proposta",
+    "width": 768
+  },
+  {
+    "screen": "team",
+    "theme": "light",
+    "headingColor": "rgb(23, 23, 23)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Equipe",
+    "width": 768
+  },
+  {
+    "screen": "billing",
+    "theme": "light",
+    "headingColor": "oklch(0.21 0.006 285.885)",
+    "height": 1024,
+    "scrollWidth": 768,
+    "title": "Plano & cobrança",
+    "width": 768
+  }
+]

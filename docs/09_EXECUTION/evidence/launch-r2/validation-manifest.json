@@ -1,0 +1,76 @@
+{
+  "freshReplay": {
+    "selected": 50,
+    "passed": 50
+  },
+  "logs": [
+    {
+      "path": ".tmp-launch/r2-final-tests.log",
+      "sha256": "8597fb35fdb2f5667b5abb90c52fd0cb77f1252523ddc525cf05718a184ea2af"
+    },
+    {
+      "path": ".tmp-launch/r2-final-lint.log",
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+    },
+    {
+      "path": ".tmp-launch/r2-final-edge.log",
+      "sha256": "e56125d844cf396e19d56cd2e2df7a374e84f5ddee0ce1d2302538562c0527eb"
+    },
+    {
+      "path": ".tmp-launch/r2-final-build.log",
+      "sha256": "46a00fcdedc34970970550791697eb0da9a1a7d66bf5b5bce3ad82121453be57"
+    },
+    {
+      "path": ".tmp-launch/r2-final-scan.log",
+      "sha256": "7b6cab225bbc255eca0df3305ffa85dd2321283cff90ba31aeeb7d87d8fec670"
+    },
+    {
+      "path": ".tmp-launch/r2-replay.log",
+      "sha256": "06e093f6ba265455106bb3af77346cf193d158d7b00a0e1f7e4aa49e85864143"
+    },
+    {
+      "path": ".tmp-launch/r2-upgrade.log",
+      "sha256": "c079bea20381c19e6fc42ede9f29e95159aee5e16f1edc531a29fc8f707299c2"
+    },
+    {
+      "path": ".tmp-launch/r2-playbook-final.sql.log",
+      "sha256": "4910831fc9fded0a696bec5e530e2776ab05593e173b5aac0317b542f9d336c4"
+    },
+    {
+      "path": ".tmp-launch/r2-restore-playbook.log",
+      "sha256": "4910831fc9fded0a696bec5e530e2776ab05593e173b5aac0317b542f9d336c4"
+    }
+  ],
+  "workbookSha256": "5b61c72e576726158484ac261c16343652ad7084299f0af14025c3881c86774f",
+  "environment": "LOCAL_ONLY",
+  "restore": "PASS_LOCAL_FIXTURES_ONLY",
+  "remoteGates": "NOT_TESTED_OR_BLOCKED_EXTERNAL",
+  "workbook": {
+    "authoring": "artifact-tool",
+    "scenarios": 3,
+    "exportReimport": true,
+    "errors": 0
+  },
+  "applicationTests": 372,
+  "viewport": {
+    "screens": 18,
+    "widths": [
+      390,
+      768
+    ],
+    "basis": "fixture_geometry_and_targeted_interactions",
+    "overflow": 0
+  },
+  "toolTests": 108,
+  "runtimeSourceSha": "e1e680e",
+  "playbookSql": "PASS_LOCAL_WITH_ROLLBACK",
+  "sqlAssertionSha256": "942ef1671657919291cd804e99bf323a1f291651cdc29b704ce0a0673e8a8ab6",
+  "productionReadiness": "NO",
+  "upgradeReplay": {
+    "selected": 43,
+    "passed": 43
+  },
+  "postgres": "17.11",
+  "failedTests": 0,
+  "date": "2026-10-23"
+}
