@@ -77,13 +77,15 @@ export async function completeMetaEmbeddedSignup(input:{
     seen.add(after);cursor=after;
   }
   if(!bound)throw new MetaConnectionError('PROVIDER_REJECTED');
-  await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.wabaId}/subscribed_apps`,{
+  const subscription=await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.wabaId}/subscribed_apps`,{
     method:'POST',headers:{authorization:`Bearer ${accessToken}`,'content-type':'application/json'},body:'{}',
   },send);
+  if(subscription.success!==true)throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
   return{
     accessToken,businessId:input.businessId,wabaId:input.wabaId,phoneNumberId:input.phoneNumberId,
     displayPhoneNumber:phone.display_phone_number.slice(0,80),verifiedName:phone.verified_name.slice(0,180),
-    coexistenceState:input.coexistenceState,grantedScopes:grantedScopes.slice(0,32),
+    // Embedded Signup input is a client claim, not provider verification.
+    coexistenceState:input.coexistenceState==='not_requested'?'not_requested' as const:'unknown' as const,grantedScopes:grantedScopes.slice(0,32),
     metadata:{qualityRating:typeof phone.quality_rating==='string'?phone.quality_rating.slice(0,40):null,graphVersion:config.graphVersion},
   };
 }

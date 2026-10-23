@@ -62,6 +62,23 @@ test('Embedded Signup rejects an independently accessible phone outside the WABA
  assert.equal(provider.calls.some(url=>url.endsWith('/subscribed_apps')),false);
 });
 
+test('coexistence claims from the browser remain unknown until provider verification exists',async()=>{
+ for(const coexistenceState of ['enabled','eligible','ineligible','unknown'] as const){
+  const provider=bindingProvider([{data:[{id:input.phoneNumberId}]}]);
+  const result=await completeMetaEmbeddedSignup({...input,coexistenceState},env,provider.send);
+  assert.equal(result.coexistenceState,'unknown');
+ }
+});
+
+test('HTTP 200 without explicit subscription success never becomes a connected result',async()=>{
+ for(const reply of [{success:false},{},null]){
+  const provider=bindingProvider([{data:[{id:input.phoneNumberId}]}]);
+  const send:typeof fetch=(url,init)=>String(url).endsWith('/subscribed_apps')?Promise.resolve(Response.json(reply)):provider.send(url,init);
+  await assert.rejects(completeMetaEmbeddedSignup(input,env,send),(error:unknown)=>
+   error instanceof MetaConnectionError&&error.code==='PROVIDER_RESPONSE_INVALID');
+ }
+});
+
 test('WABA binding paginates by cursor on the fixed Graph origin and never follows paging.next',async()=>{
  const provider=bindingProvider([{data:[{id:'4444444444'}],paging:{next:'https://untrusted.example.test/steal',cursors:{after:'safe cursor'}}},{data:[{id:input.phoneNumberId}]}]);
  await completeMetaEmbeddedSignup(input,env,provider.send);

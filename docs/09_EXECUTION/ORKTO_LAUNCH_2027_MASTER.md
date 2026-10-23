@@ -89,3 +89,10 @@ Inventário inicial concluído. Implementações, SHAs, comandos, resultados e e
 - UI WIA valida UUID e coloca pedido no composer sem enviar automaticamente. A seleção por UUID é uma limitação de UX, não uma jornada contextual completa.
 - PASS_LOCAL: 20/20 Playbook + WIA focados. Contratos com doubles, não SQL real. Interface de erro/rascunho observada em localhost:4177, 1280px.
 - Especificação e limites: PLAYBOOK_PROPOSAL_RECOVERY_SLICE.md. SQL real/remote E2E continuam NOT_TESTED/BLOCKED_EXTERNAL.
+
+### Ciclo 4 — confirmação Meta sem falso sucesso
+
+- Inscrição na WABA exige resposta success=true, além de HTTP válido. Resposta vazia/false não conclui conexão.
+- Coexistência enviada pelo navegador não comprova elegibilidade/habilitação; retornos enabled/eligible/ineligible do cliente ficam unknown até existir verificação do fornecedor. not_requested é somente preferência, não autorização de canal.
+- PASS_LOCAL: conjunto combinado Meta + Playbook/WIA 39/39. Nenhuma chamada real Graph, token ou configuração cloud.
+- Continuação prioritária: associação ambígua cliente/telefone no ingest SQL; exige migration aditiva e replay PostgreSQL antes de qualquer rollout. Não foi alterada nesta rodada.
