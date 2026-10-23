@@ -8,8 +8,8 @@ export function ProposalRecoveryRequest({onDraft}:{onDraft:(message:string)=>voi
   const [quoteId,setQuoteId]=useState('');
   const [invalid,setInvalid]=useState(false);
   return <details className="my-4 border-t orkto-product-border pt-3">
-    <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Recuperar uma proposta sem resposta</summary>
-    <p className="mb-3 text-sm orkto-product-muted">Informe o ID da proposta. A WIA confere o envio e a ausência de decisão usando as regras do Radar. Exige Playbook habilitado para a empresa; preparar não cria tarefa nem envia mensagem.</p>
+    <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">Informar uma proposta pelo ID</summary>
+    <p className="mb-3 text-sm orkto-product-muted">Na tela Hoje, use “Preparar com a WIA” em uma proposta do Radar para trazer o contexto automaticamente. Se você já tem o ID, pode informá-lo aqui. A WIA confere a elegibilidade; exige Playbook habilitado para a empresa.</p>
     <label htmlFor={id} className="block text-sm font-semibold">ID da proposta</label>
     <input id={id} value={quoteId} onChange={event=>{setQuoteId(event.target.value);setInvalid(false);}} aria-invalid={invalid} aria-describedby={invalid?`${id}-error`:undefined} className="mt-2 min-h-11 w-full rounded-lg border orkto-product-border bg-transparent px-3 text-sm" autoComplete="off" spellCheck={false}/>
     {invalid&&<p id={`${id}-error`} role="alert" className="mt-2 text-sm">Use o ID completo da proposta, no formato UUID.</p>}

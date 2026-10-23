@@ -161,7 +161,7 @@ export default function TodayV2Page({
           <div className="today-metric today-glass-panel"><Metric label="Ações para revisar" value={wia.status === 'success' ? approvalActions.length : '—'} note={wia.status === 'success' ? 'Na lista carregada' : 'Aguardando a WIA'} icon={<ShieldCheck size={18} />} /></div>
         </section>
       </div>
-      <TodayRadarPanel accessToken={accessToken} refreshKey={retryVersion} onSelectQuote={onSelectQuote} onOpenConversation={onOpenConversation} onOpenDeal={onOpenDeal} />
+      <TodayRadarPanel accessToken={accessToken} refreshKey={retryVersion} onSelectQuote={onSelectQuote} onOpenConversation={onOpenConversation} onOpenDeal={onOpenDeal} onOpenWia={onOpenWia} />
       <div className="today-operation-grid">
 
       <section aria-labelledby="today-attention-title" className="today-glass-panel today-attention-panel space-y-3">

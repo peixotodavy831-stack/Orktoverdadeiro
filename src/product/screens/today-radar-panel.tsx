@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, Radar } from 'lucide-react';
 import { z } from 'zod';
+import { proposalRecoveryDraft } from '../proposal-recovery-draft.js';
 import { getProductErrorState, productApi } from '../api.js';
 import type { ProductRequestState, RadarSignalView, RadarSnapshotView } from '../types';
 import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingState, PermissionState, StatusBadge } from '../ui/shared-states.js';
@@ -35,6 +36,7 @@ interface Props {
   onSelectQuote: (id: string) => void;
   onOpenConversation: (id: string) => void;
   onOpenDeal: (id?: string) => void;
+  onOpenWia?: (message: string) => void;
 }
 
 export function radarEvidenceDetails(signal: RadarSignalView): Array<[string, string]> {
@@ -56,7 +58,7 @@ export function radarEvidenceDetails(signal: RadarSignalView): Array<[string, st
     : [['Prazo da tarefa', date(evidence.due_at)]];
 }
 
-export function RadarResults({ snapshot, onOpen }: { snapshot: RadarSnapshotView; onOpen: (signal: RadarSignalView) => void }) {
+export function RadarResults({ snapshot, onOpen, onOpenWia }: { snapshot: RadarSnapshotView; onOpen: (signal: RadarSignalView) => void; onOpenWia?: (message: string) => void }) {
   return <>
     <p className="text-xs orkto-product-muted">{snapshot.signals.length} sinais na consulta · somente leitura · R1</p>
     {snapshot.coverage.partial && <p role="status" className="text-sm orkto-product-muted">Consulta parcial: alguns dados atingiram o limite de leitura. Os números não representam todos os registros.{!snapshot.coverage.leads_evaluated && ' Leads não foram avaliados porque o histórico de mensagens está incompleto.'}</p>}
@@ -64,6 +66,7 @@ export function RadarResults({ snapshot, onOpen }: { snapshot: RadarSnapshotView
     <ul className="divide-y orkto-product-border">
       {snapshot.signals.slice(0, 6).map(signal => {
         const destination = radarDestination(signal);
+        const recoveryDraft = proposalRecoveryDraft(signal);
         const source = signal.entity_type === 'quote' ? 'Proposta' : signal.entity_type === 'conversation' ? 'Mensagens registradas' : signal.source === 'deal_expected_close' ? 'Data prevista de fechamento (UTC)' : 'Tarefa agendada';
         return <li key={signal.id} className="flex min-w-0 flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
@@ -75,7 +78,13 @@ export function RadarResults({ snapshot, onOpen }: { snapshot: RadarSnapshotView
               <dl className="space-y-2 pb-2">{radarEvidenceDetails(signal).map(([label, value]) => <div key={label} className="break-words"><dt className="font-semibold">{label}</dt><dd>{value}</dd></div>)}</dl>
             </details>
           </div>
-          {destination && <button type="button" onClick={() => onOpen(signal)} className="today-text-action min-h-11 shrink-0 self-start">{destination.label}<ArrowRight size={14} aria-hidden="true" /></button>}
+          <div className="flex shrink-0 flex-col items-start gap-1 sm:max-w-48">
+            {destination && <button type="button" onClick={() => onOpen(signal)} className="today-text-action min-h-11">{destination.label}<ArrowRight size={14} aria-hidden="true" /></button>}
+            {recoveryDraft && onOpenWia && <>
+              <button type="button" onClick={() => onOpenWia(recoveryDraft)} className="today-text-action min-h-11 text-left">Preparar com a WIA<ArrowRight size={14} aria-hidden="true" /></button>
+              <p className="text-xs leading-5 orkto-product-subtle">Abre um rascunho. Você revisa e envia o pedido; nenhum contato é disparado.</p>
+            </>}
+          </div>
         </li>;
       })}
     </ul>
@@ -83,7 +92,7 @@ export function RadarResults({ snapshot, onOpen }: { snapshot: RadarSnapshotView
   </>;
 }
 
-export default function TodayRadarPanel({ accessToken, refreshKey, onSelectQuote, onOpenConversation, onOpenDeal }: Props) {
+export default function TodayRadarPanel({ accessToken, refreshKey, onSelectQuote, onOpenConversation, onOpenDeal, onOpenWia }: Props) {
   const [retry, setRetry] = useState(0);
   const [feed, setFeed] = useState<{ token: string | null; status: ProductRequestState; data?: RadarSnapshotView; message?: string }>({ token: null, status: 'loading' });
   useEffect(() => {
@@ -112,6 +121,6 @@ export default function TodayRadarPanel({ accessToken, refreshKey, onSelectQuote
     {status === 'permission_denied' && <PermissionState message="O Radar exige sessão e membership ativa neste workspace." />}
     {status === 'configuration_required' && <ConfigurationRequired title="Radar indisponível neste ambiente" message="Confira a configuração do banco antes de consultar os sinais." />}
     {status === 'backend_pending' && <BackendPending title="Radar ainda não disponível" message="Este ambiente ainda não possui o contrato Radar R1." />}
-    {status === 'success' && feed.data && <RadarResults snapshot={feed.data} onOpen={open} />}
+    {status === 'success' && feed.data && <RadarResults snapshot={feed.data} onOpen={open} onOpenWia={onOpenWia} />}
   </section>;
 }

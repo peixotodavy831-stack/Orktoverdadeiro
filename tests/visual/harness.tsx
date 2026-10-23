@@ -137,7 +137,7 @@ function installVisualApiFixtures() {
     if (path === '/api/radar') {
       const now = Date.parse('2026-10-21T12:00:00.000Z');
       const data = buildRadarSnapshot(scenario === 'empty' ? {} : {
-        quotes: [{id:'fixture-quote',quote_number:'001',client_name:'Cliente de demonstração',total:100,status:'sent',sent_at:'2026-10-18T12:00:00.000Z',viewed_at:null,approved_at:null,rejected_at:null,deal_id:null}],
+        quotes: [{id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',quote_number:'001',client_name:'Cliente de demonstração',total:100,status:'sent',sent_at:'2026-10-18T12:00:00.000Z',viewed_at:null,approved_at:null,rejected_at:null,deal_id:null}],
         conversations: [{id:VISUAL_CONVERSATION_ID,contact_name:'Contato de demonstração',contact_phone:null,status:'open',created_at:'2026-10-20T12:00:00.000Z',messages:[{direction:'incoming',sent_at:'2026-10-21T08:00:00.000Z',read_at:null}]}],
         tasks: [{id:'fixture-task',title:'Revisar prazo de acompanhamento',status:'open',due_at:'2026-10-19T12:00:00.000Z',deal_id:null,customer_ref:null}],
         deals: [{id:VISUAL_DEAL_ID,title:'Negócio de demonstração',stage:'new',status:'open',expected_close_on:'2026-10-15',customer_ref:null}],
