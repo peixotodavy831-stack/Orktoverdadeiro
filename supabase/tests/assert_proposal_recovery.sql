@@ -12,7 +12,7 @@ declare
  a uuid:='97500000-0000-4000-8000-000000000001';
  b uuid:='97500000-0000-4000-8000-000000000002';
  m uuid:='97500000-0000-4000-8000-000000000003';
- q uuid:=gen_random_uuid();trace uuid:=gen_random_uuid();request uuid:=gen_random_uuid();
+ q uuid:=gen_random_uuid();qb uuid:=gen_random_uuid();trace uuid:=gen_random_uuid();request uuid:=gen_random_uuid();
  action_id uuid; rejected_id uuid; task_id uuid; r jsonb; payload jsonb;
 begin
  insert into public.quotes(id,user_id,workspace_id,quote_number,client_name,client_phone,status,sent_at,total)
@@ -59,12 +59,31 @@ begin
   perform public.orkto_wia_decide_command(a,a,action_id,'APPROVE',request,null);
   raise exception 'Suspended actor replay allowed';
  exception when sqlstate 'P0001' then if sqlerrm<>'ORKTO_PERMISSION_DENIED' then raise;end if;end;
+ update public.orkto_workspace_members set status='active' where workspace_id=a and user_id=a;
+ insert into public.quotes(id,user_id,workspace_id,quote_number,client_name,client_phone,status,sent_at,total)
+ values(qb,b,b,'R2-fixture-B','Synthetic B','00000000001','sent',now()-interval '72 hours',200);
+ trace:=gen_random_uuid();
+ payload:=jsonb_set(jsonb_set(payload,'{contextRefs}',jsonb_build_array('quote:'||qb)),'{decision,sourceIds}',jsonb_build_array('quote:'||qb));
+ perform public.orkto_wia_claim_request(b,b,trace,'sales_agent',request,10,repeat('e',64));
+ r:=public.orkto_wia_finish_request(b,b,trace,'sales_agent','succeeded',payload,request);
+ perform public.orkto_wia_decide_command(b,b,(r->>'action_id')::uuid,'APPROVE',request,null);
+ if exists(select 1 from public.orkto_messages where workspace_id in (a,b)) then raise exception 'Unexpected message';end if;
+ if exists(select 1 from public.orkto_pulso_ledger where workspace_id in (a,b)) then raise exception 'Unexpected Pulso reservation';end if;
 end $$;
 
 -- RLS reads are executed as the browser role, never as the database owner.
+select set_config('request.jwt.claim.sub','97500000-0000-4000-8000-000000000001',true);
+set local role authenticated;
+do $$ begin
+ if (select count(*) from public.orkto_tasks where workspace_id='97500000-0000-4000-8000-000000000001')<>1 then raise exception 'Own task unavailable';end if;
+ if exists(select 1 from public.orkto_tasks where workspace_id='97500000-0000-4000-8000-000000000002') then raise exception 'Reverse task RLS leak';end if;
+ if exists(select 1 from public.quotes where workspace_id='97500000-0000-4000-8000-000000000002') then raise exception 'Reverse quote RLS leak';end if;
+end $$;
+reset role;
 select set_config('request.jwt.claim.sub','97500000-0000-4000-8000-000000000002',true);
 set local role authenticated;
 do $$ begin
+ if (select count(*) from public.orkto_tasks where workspace_id='97500000-0000-4000-8000-000000000002')<>1 then raise exception 'Own B task unavailable';end if;
  if exists(select 1 from public.orkto_tasks where workspace_id='97500000-0000-4000-8000-000000000001') then raise exception 'Task RLS leak';end if;
  if exists(select 1 from public.quotes where workspace_id='97500000-0000-4000-8000-000000000001') then raise exception 'Quote RLS leak';end if;
 end $$;
