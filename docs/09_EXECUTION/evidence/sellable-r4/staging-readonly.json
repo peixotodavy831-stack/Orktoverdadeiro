@@ -1,0 +1,325 @@
+{
+  "checkedAt": "2026-10-23T20:23:44.419Z",
+  "project": "ghrjongiodziasupakrk",
+  "environment": "staging",
+  "scope": "READ_ONLY_CATALOG_AND_ADVISORS_NOT_E2E",
+  "sourceReference": "41a86e259534b6ad8da2c15d46b58cbb8d316a5f",
+  "readyForProductionCandidate": "NO",
+  "securityAdvisors": [
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "count": 19,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "count": 5,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+    },
+    {
+      "name": "auth_leaked_password_protection",
+      "level": "WARN",
+      "count": 1,
+      "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+    }
+  ],
+  "performanceAdvisors": [
+    {
+      "name": "unindexed_foreign_keys",
+      "level": "INFO",
+      "count": 80,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys"
+    },
+    {
+      "name": "unused_index",
+      "level": "INFO",
+      "count": 38,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index"
+    }
+  ],
+  "noPolicyTables": [
+    {
+      "relname": "admissions",
+      "anon_schema": false,
+      "schema_name": "orkto_pilot_private",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": false,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "audit",
+      "anon_schema": false,
+      "schema_name": "orkto_pilot_private",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": false,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "configuration",
+      "anon_schema": false,
+      "schema_name": "orkto_pilot_private",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": false,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "recovery_checkpoints",
+      "anon_schema": false,
+      "schema_name": "orkto_pilot_private",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": false,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "recovery_rows",
+      "anon_schema": false,
+      "schema_name": "orkto_pilot_private",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": false,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_billing_bindings",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_billing_customers",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_channel_connections",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_commercial_requests",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_model_tariffs",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_pulso_ledger",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_pulso_policies",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_subscription_commands",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_subscription_events",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_subscription_lifecycle_events",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_whatsapp_controls",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_whatsapp_rate_cards",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_whatsapp_usage_events",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    },
+    {
+      "relname": "orkto_whatsapp_webhook_events",
+      "anon_schema": true,
+      "schema_name": "public",
+      "anon_any_dml": false,
+      "relrowsecurity": true,
+      "authenticated_schema": true,
+      "authenticated_any_dml": false
+    }
+  ],
+  "helperFunctions": [
+    {
+      "name": "orkto_google_pilot_session_allowed",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "anonExecute": false,
+      "authenticatedExecute": true,
+      "review": "Boolean policy/session helper, no data mutation; caller identity/session checked in helper chain",
+      "definition": "CREATE OR REPLACE FUNCTION public.orkto_google_pilot_session_allowed()\n RETURNS boolean\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_claims jsonb; v_session uuid;\nbegin\n  if not orkto_pilot_private.is_enabled() then return false; end if;\n  if auth.uid() is null or not orkto_pilot_private.identity_allowed(auth.uid()) then return false; end if;\n  v_claims := auth.jwt();\n  if not coalesce(v_claims->'amr' @> '[{\"method\":\"oauth\"}]'::jsonb,false) then return false; end if;\n  begin v_session := (v_claims->>'session_id')::uuid;\n  exception when invalid_text_representation then return false; end;\n  return exists(select 1 from auth.sessions s where s.id=v_session and s.user_id=auth.uid()\n    and (s.not_after is null or s.not_after>now()));\nend;\n$function$\n"
+    },
+    {
+      "name": "orkto_is_workspace_admin",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "anonExecute": false,
+      "authenticatedExecute": true,
+      "review": "Boolean policy/session helper, no data mutation; caller identity/session checked in helper chain",
+      "definition": "CREATE OR REPLACE FUNCTION public.orkto_is_workspace_admin(target_workspace uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select public.orkto_pilot_session_allowed() and exists(select 1 from public.orkto_workspace_members m\n    where m.workspace_id=target_workspace and m.user_id=auth.uid() and m.status='active' and m.role in ('owner','admin'));\n$function$\n"
+    },
+    {
+      "name": "orkto_is_workspace_member",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "anonExecute": false,
+      "authenticatedExecute": true,
+      "review": "Boolean policy/session helper, no data mutation; caller identity/session checked in helper chain",
+      "definition": "CREATE OR REPLACE FUNCTION public.orkto_is_workspace_member(target_workspace uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select public.orkto_pilot_session_allowed() and exists(select 1 from public.orkto_workspace_members m\n    where m.workspace_id=target_workspace and m.user_id=auth.uid() and m.status='active');\n$function$\n"
+    },
+    {
+      "name": "orkto_legacy_owner_matches",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "anonExecute": false,
+      "authenticatedExecute": true,
+      "review": "Boolean policy/session helper, no data mutation; caller identity/session checked in helper chain",
+      "definition": "CREATE OR REPLACE FUNCTION public.orkto_legacy_owner_matches(target_workspace uuid, legacy_user uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select exists (\n    select 1 from public.orkto_workspaces w\n    where w.id=target_workspace and w.owner_user_id=legacy_user\n      and public.orkto_is_workspace_member(target_workspace)\n  );\n$function$\n"
+    },
+    {
+      "name": "orkto_pilot_session_allowed",
+      "settings": [
+        "search_path=\"\""
+      ],
+      "anonExecute": false,
+      "authenticatedExecute": true,
+      "review": "Boolean policy/session helper, no data mutation; caller identity/session checked in helper chain",
+      "definition": "CREATE OR REPLACE FUNCTION public.orkto_pilot_session_allowed()\n RETURNS boolean\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_claims jsonb; v_session uuid;\nbegin\n  if not orkto_pilot_private.is_enabled() then return true; end if;\n  if auth.uid() is null or not orkto_pilot_private.identity_allowed(auth.uid()) then return false; end if;\n  v_claims := auth.jwt();\n  if not coalesce(v_claims->'amr' @> '[{\"method\":\"oauth\"}]'::jsonb,false) then return false; end if;\n  begin v_session := (v_claims->>'session_id')::uuid;\n  exception when invalid_text_representation then return false; end;\n  return exists(select 1 from auth.sessions s where s.id=v_session and s.user_id=auth.uid()\n    and (s.not_after is null or s.not_after>now()));\nend;\n$function$\n"
+    }
+  ],
+  "sandboxCustomerBindings": 0,
+  "metaUniqueMatchDeployed": false,
+  "migrationCount": 50,
+  "lastMigration": {
+    "version": "20261016183159",
+    "name": "billing_native_lifecycle"
+  },
+  "edgeFunctions": [
+    {
+      "slug": "orkto-readiness-bootstrap-20261003",
+      "version": 6,
+      "verifyJwt": true,
+      "status": "ACTIVE",
+      "sha256": "5edac0c878298c490ebe43e58a914fb677a9126fce2ce6c5a505df3d754a7769"
+    },
+    {
+      "slug": "orkto-core-mutations",
+      "version": 32,
+      "verifyJwt": true,
+      "status": "ACTIVE",
+      "sha256": "a1e627f2641e1b8aa5b4ee95aa7f436091c0c1a48e95ec83f5d98fec30866c13"
+    },
+    {
+      "slug": "orkto-public-proposals",
+      "version": 2,
+      "verifyJwt": false,
+      "status": "ACTIVE",
+      "sha256": "762b496426dca21453e8496dfe7d17d63340760d3db735b412eebdca4217bd05"
+    },
+    {
+      "slug": "orkto-meta-webhook",
+      "version": 3,
+      "verifyJwt": false,
+      "status": "ACTIVE",
+      "sha256": "2d429432f57ebf51ad45d4be23c2db1975a9780a1f11c2162d65f6dc4590b93f"
+    },
+    {
+      "slug": "orkto-billing-webhook",
+      "version": 3,
+      "verifyJwt": false,
+      "status": "ACTIVE",
+      "sha256": "1c9deb58f3d9e8d130608571db4c6d28bab6c629e684d50928f9182070807b47"
+    }
+  ],
+  "organizationPlan": "free",
+  "googleExecutorProbe": {
+    "isolatedContexts": "PASS_LOCAL",
+    "googleLogin": "NOT_TESTED",
+    "sessionExported": false
+  },
+  "asaasPreflight": {
+    "status": "BLOCKED_EXTERNAL",
+    "reason": "EXACT_STAGING_ENVIRONMENT_REQUIRED",
+    "providerRequests": 0,
+    "note": "Local invocation had no configured environment or key; does not prove remote key absence"
+  },
+  "mutations": 0,
+  "globalCatalogChecks": {"pilot_enabled":true,"public_tables_without_rls":[],"public_security_definer_anon_executable":[],"public_security_definer_unfixed_search_path":[]}
+}

@@ -1,4 +1,9 @@
-# Retomada vigente — R3 de 23/10/2026
+# Retomada vigente — R4 de 23/10/2026
+
+Ler ORKTO_PUBLIC_RELEASE_BLOCKERS_R4_2026-10-23.md. Auditoria real somente leitura confirmou staging saudável, 50 migrations (migration 51 local ainda não implantada), core32/Meta3/billing3, piloto ativo, 19 tabelas sem políticas mas sem grants DML de anon/authenticated, cinco helpers booleanos com ACL/search_path restritos. Nenhum vínculo customer Asaas sandbox aprovado. Organização free; backup gerenciado/restore e proteção de senha vazada não podem ser presumidos. Evidência em evidence/sellable-r4/staging-readonly.json. Nenhuma mudança remota ou teste G/B real. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
+# Histórico R3 de 23/10/2026
 
 Ler primeiro ORKTO_SELLABLE_R3_2026-10-23.md. Código 748a625, correção Meta d7ba958: associação somente a cliente ativo único, migration 51, fluxo contextual Radar → WIA sem copiar ID. Regressão local 374+108; replay 51/51 e upgrade 44/44; nenhuma homologação remota nova. Evidências em evidence/sellable-r3. A ambiguidade descrita no histórico abaixo foi corrigida localmente, ainda sem deploy.
 
