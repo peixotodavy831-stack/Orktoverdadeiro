@@ -1,0 +1,63 @@
+{
+  "status": "PASS_LOCAL",
+  "branch": "feat/orkto-launch-2027",
+  "environment": "LOCAL_CLEAN_GIT_ARCHIVE",
+  "secretScan": {
+    "scanned": 630,
+    "blockers": 0,
+    "findings": 0
+  },
+  "toolTests": {
+    "passed": 108,
+    "failed": 0
+  },
+  "sourceSha": "134de66ea0d514b674a090f6f10e3e8fde7d0922",
+  "build": {
+    "frontend": true,
+    "server": true,
+    "runtime": true,
+    "distPreserved": true,
+    "publicUrl": true
+  },
+  "productionReadiness": "NO",
+  "applicationTests": {
+    "passed": 362,
+    "failed": 0
+  },
+  "logs": [
+    {
+      "sha256": "c5270e5c66bec8f210351ef718d98a333930e225ba1a6a44825ccd011a759ecc",
+      "path": ".tmp-launch/clean-regression-134de66.log"
+    },
+    {
+      "sha256": "359b70710ec42f039edb0e60e9c66afd69e0d897328510707e3037bc27653358",
+      "path": ".tmp-launch/clean-build-134de66.log"
+    },
+    {
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479",
+      "path": ".tmp-launch/clean-lint-134de66.log"
+    },
+    {
+      "sha256": "e56125d844cf396e19d56cd2e2df7a374e84f5ddee0ce1d2302538562c0527eb",
+      "path": ".tmp-launch/clean-edge-134de66.log"
+    },
+    {
+      "sha256": "1880106571e75f65080d005482ae3533da351d49ac44322fff5c3ab9b7413fbe",
+      "path": ".tmp-launch/clean-secrets-134de66.log"
+    }
+  ],
+  "commands": [
+    "npm run test:all",
+    "npm run lint",
+    "npm run lint:edge",
+    "npm run readiness:build",
+    "npm run readiness:secret-scan"
+  ],
+  "remoteValidation": "NOT_TESTED",
+  "notes": [
+    "Does not include concurrent worktree edits",
+    "Browser images are local fixtures, not authenticated staging",
+    "No cloud mutation, deployment, merge, external send, charge or paid inference"
+  ],
+  "sourceArchiveSha256": "eb470d952b9d852f6bb0936fc12c09c2c7d3df95a3bf6ff1aaece8d040269af6"
+}

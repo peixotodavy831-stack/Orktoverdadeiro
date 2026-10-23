@@ -96,3 +96,49 @@ Inventário inicial concluído. Implementações, SHAs, comandos, resultados e e
 - Coexistência enviada pelo navegador não comprova elegibilidade/habilitação; retornos enabled/eligible/ineligible do cliente ficam unknown até existir verificação do fornecedor. not_requested é somente preferência, não autorização de canal.
 - PASS_LOCAL: conjunto combinado Meta + Playbook/WIA 39/39. Nenhuma chamada real Graph, token ou configuração cloud.
 - Continuação prioritária: associação ambígua cliente/telefone no ingest SQL; exige migration aditiva e replay PostgreSQL antes de qualquer rollout. Não foi alterada nesta rodada.
+
+## Matriz atual — validação desta branch (2026-10-22)
+
+O snapshot de código validado é **134de66ea0d514b674a090f6f10e3e8fde7d0922**, exportado por git archive para `.tmp-launch/review-source`. Não inclui as alterações concorrentes presentes no worktree. Commits apenas documentais posteriores não constituem novo runtime homologado.
+
+| Gate | Estado | Evidência / limite |
+|---|---|---|
+| Binding phone/WABA, paginação e recibos Meta | PASS_LOCAL | Testes focados e regressão; sem Graph real |
+| Confirmação de inscrição/coexistência Meta | PASS_LOCAL | HTTP 200 sem success=true recusado; claim do navegador não vira habilitado |
+| Pricing de cinco planos mensais | PASS_LOCAL | Catálogo, billing e QA de fixtures; checkout permanece OFF |
+| Playbook preparação e aprovação obrigatória | PASS_LOCAL | Parser, Radar, tenant, gate, replay e commit com doubles; sem ativação |
+| Tarefa/auditoria de Playbook em SQL real | NOT_TESTED | Reusa RPC existente; falta replay PostgreSQL descartável desta branch |
+| Typecheck frontend/backend e Edge | PASS_LOCAL | clean-lint-134de66.log e clean-edge-134de66.log; Edge compile, não runtime remoto |
+| Build e smoke HTTP | PASS_LOCAL | clean-build-134de66.log: frontend/publicUrl/server/runtime true, distPreserved true |
+| Secret scan | PASS_LOCAL | clean-secrets-134de66.log: 630 arquivos, 0 findings/0 blockers |
+| Regressão aplicação | PASS_LOCAL | clean-regression-134de66.log: 362/362; ferramentas registradas separadamente ao terminar |
+| CI remoto deste código | NOT_TESTED | Sem push, workflow remoto ou deployment |
+| Mobile/tablet, teclado e instalação real | NOT_TESTED | Override CUA não alterou viewport; DOM observado permaneceu 1280px |
+| Google A/B real e G01–G12 | BLOCKED_EXTERNAL | Sem duas sessões legítimas controladas nesta rodada; histórico não substitui novo runtime |
+| Asaas B01–B13 | BLOCKED_EXTERNAL | Customer sintético, notificações OFF, secret store e autorização de rodada ainda sem prova atual |
+| Meta/Gemini reais | BLOCKED_EXTERNAL | Não habilitados/testados nesta branch; nenhuma mensagem ou inferência paga |
+| Recuperação gerenciada de banco | BLOCKED_EXTERNAL | Recurso e restauração real não verificados |
+| Franquias, assentos, termos e término de acesso | BLOCKED_EXTERNAL | Decisões comerciais do proprietário, sem números inventados |
+| ORKTO Pilot 01 | NOT_TESTED | Protocolo preparado; sem participante ou resultado real alegado |
+| Preservação checkout original | PASS_LOCAL | Verificador: 106/106, head bff22b7/status/branch inalterados, backup verificado |
+| PR #2 local | PASS_LOCAL | Checkout de origem preservado em 78497da; nenhum merge/push/deploy nesta rodada |
+
+### Ocorrências de ambiente e trabalho concorrente
+
+- Primeira regressão no sandbox: 291/367, 76 falhas, principalmente fetch loopback bloqueado. Não é prova de vulnerabilidade remota.
+- Repetição fora do sandbox no worktree misto: 366/367. Única falha: teste de localização concorrente es-419 esperava outra separação numérica. Ferramentas não rodaram, porque o runner interrompe após falha de aplicação. Não alterar silenciosamente trabalho concorrente.
+- Build inicial no sandbox falhou ao resolver vite; execução autorizada fora do sandbox passou. O build limpo do snapshot também passou.
+- Warning de bundle grande permanece. Não houve medição de desempenho em aparelho, rede real ou grande tenant; não declarar melhora de tempo sem medir.
+- Finanças: simulador/Cost Governor/Central Econômica existentes preservados; não foi criado simulador duplicado. Alterações concorrentes dessas áreas não foram incluídas nos quatro commits nem recebem PASS desta validação limpa.
+
+### Produto e sequência
+
+Agora o pricing tem comparação e condições honestas; Enterprise mantém solicitação existente. A WIA tem entrada explícita para recuperação com revisão e sem falso envio. Meta deixa de aceitar claims/sucessos não comprovados. A fatia permanece gated e não representa automação externa pronta.
+
+Pilot 01 preparado em ORKTO_PILOT_01_PROTOCOL.md. Próxima engenharia: tratar associação ambígua de cliente no ingest Meta, validar aprovação/tarefa com SQL real e melhorar seleção contextual de proposta. Instruções de retomada em NEXT. Produção permanece intocada.
+
+**READY_FOR_PRODUCTION_CANDIDATE=NO**
+
+### Fechamento da validação limpa
+
+PASS_LOCAL no snapshot 134de66: **362/362 aplicação +108/108 ferramentas**, npm run test:all exit 0. Não confundir com a execução do worktree misto que falhou no teste concorrente de localização. Manifesto sanitizado com SHA, comandos e hashes dos logs: evidence/launch-2027/validation-134de66.json.
