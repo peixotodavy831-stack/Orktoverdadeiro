@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, CircleDollarSign, Loader2, RefreshCw, Save, Wallet, Plus } from 'lucide-react';
 import { formatBRL } from '../../utils/format';
-import type { AiModelRate, ChannelUsageCostSummary, FinanceAssumptions, FinancePlanKey, FinanceProjection, FinanceScenarioKey } from '../../../backend/finance/finance-model';
+import { PulsoScenario } from './PulsoScenario';
+import { calculatePlanUnitEconomics, type AiModelRate, type ChannelUsageCostSummary, type FinanceAssumptions, type FinancePlanKey, type FinanceProjection, type FinanceScenarioKey } from '../../../backend/finance/finance-model';
 
 type Transaction = {
   id: string;
@@ -48,7 +49,7 @@ const plans: Array<{ key: FinancePlanKey; label: string }> = [
 const scenarios: Array<{ key: FinanceScenarioKey; label: string }> = [
   { key: 'pok', label: 'POK' }, { key: 'base', label: 'Base' }, { key: 'favorable', label: 'Favorável' },
 ];
-const customerVolumes = [10, 100, 1000, 10000];
+const customerVolumes = [0, 1, 5, 10, 25, 50, 100, 200, 250, 500, 1000];
 const categories = [
   { key: 'infrastructure', label: 'Infraestrutura' }, { key: 'ai', label: 'IA' }, { key: 'channel', label: 'Canal' },
   { key: 'payment_processor', label: 'Processador de pagamentos' }, { key: 'people', label: 'Equipe' },
@@ -69,15 +70,21 @@ function Metric({ label, value, hint, icon: Icon }: { label: string; value: stri
 
 function ProjectionCard({ projection, label }: { projection: FinanceProjection; label: string }) {
   return <div className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-    <div className="mb-3 flex items-center justify-between"><h3 className="font-semibold">{label}</h3><span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{projection.customers.toLocaleString('pt-BR')} clientes</span></div>
+    <div className="mb-3 flex items-center justify-between"><h3 className="font-semibold">{label}</h3><span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{projection.companies.toLocaleString('pt-BR')} empresas assinantes</span></div>
     <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+      <dt className="text-zinc-500">Clientes atendidos</dt><dd className="text-right font-medium">{projection.servedCustomers.toLocaleString('pt-BR')} · hipótese</dd>
       <dt className="text-zinc-500">MRR projetado</dt><dd className="text-right font-medium">{fmt(projection.mrrCents)}</dd>
       <dt className="text-zinc-500">ARR projetado</dt><dd className="text-right font-medium">{fmt(projection.arrCents)}</dd>
       <dt className="text-zinc-500">COGS técnico</dt><dd className="text-right font-medium">{fmt(projection.technicalCogsCents)} · {percent(projection.technicalCogsPercent)}</dd>
       <dt className="text-zinc-500">Margem econômica</dt><dd className="text-right font-medium">{fmt(projection.economicMarginCents)}</dd>
-      <dt className="text-zinc-500">Canal (separado)</dt><dd className="text-right font-medium">{fmt(projection.channelCostsCents)}</dd>
-      <dt className="text-zinc-500">Caixa projetado</dt><dd className="text-right font-medium">{fmt(projection.pokCashEndCents)}</dd>
-      <dt className="text-zinc-500">Clientes para equilíbrio</dt><dd className="text-right font-medium">{projection.breakEvenCustomers?.toLocaleString('pt-BR') ?? 'Não calculável'}</dd>
+      <dt className="text-zinc-500">Canais</dt><dd className="text-right font-medium">{fmt(projection.channelCostsCents)}</dd>
+      <dt className="text-zinc-500">Pagamento · tributos</dt><dd className="text-right font-medium">{fmt(projection.paymentFeesCents)} · {fmt(projection.taxesCents)}</dd>
+      <dt className="text-zinc-500">Despesas operacionais</dt><dd className="text-right font-medium">{fmt(projection.operationalExpensesCents)}</dd>
+      <dt className="text-zinc-500">Pró-labore planejado</dt><dd className="text-right font-medium">{fmt(projection.founderCompensationCents)}</dd>
+      <dt className="text-zinc-500">Resultado operacional estimado</dt><dd className="text-right font-medium">{fmt(projection.channelAdjustedOperatingResultCents)}</dd>
+      <dt className="text-zinc-500">Caixa final projetado</dt><dd className="text-right font-medium">{fmt(projection.pokCashEndCents)}</dd>
+      <dt className="text-zinc-500">Meta de reserva · capacidade</dt><dd className="text-right font-medium">{fmt(projection.plannedReserveCents)} · {projection.reserveShortfallCents > 0 ? `falta ${fmt(projection.reserveShortfallCents)}` : 'cabe no caixa projetado'}</dd>
+      <dt className="text-zinc-500">Empresas para equilíbrio</dt><dd className="text-right font-medium">{projection.breakEvenCustomers?.toLocaleString('pt-BR') ?? 'Não calculável'}</dd>
     </dl>
     {projection.alerts.map(alert => <p key={alert} className="mt-3 flex gap-2 text-[11px] text-amber-600 dark:text-amber-400"><AlertTriangle className="h-4 w-4 shrink-0" />{alert}</p>)}
   </div>;
@@ -111,6 +118,8 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
   const [rateCachedInput, setRateCachedInput] = useState('');
   const [rateOutput, setRateOutput] = useState('');
   const [rateEffectiveFrom, setRateEffectiveFrom] = useState(new Date().toISOString().slice(0,10));
+  const [personalExpenses, setPersonalExpenses] = useState('');
+  const [personalReserveMonths, setPersonalReserveMonths] = useState(6);
 
   const load = useCallback(async () => {
     if (!accessToken) { setError('Sessão necessária para carregar o financeiro interno.'); setLoading(false); return; }
@@ -129,6 +138,12 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
   const headers = useMemo(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken || ''}` }), [accessToken]);
   const update = <K extends keyof FinanceAssumptions>(key: K, value: FinanceAssumptions[K]) => setAssumptions(current => current ? { ...current, [key]: value } : current);
   const projections = useMemo(() => data?.projections.filter(item => item.customers === customers) || [], [data, customers]);
+  const unitEconomics = useMemo(() => assumptions ? calculatePlanUnitEconomics(assumptions, scenario) : [], [assumptions, scenario]);
+  const personalExpensesCents = centsInput(personalExpenses);
+  const personalReserveTargetCents = personalExpensesCents * personalReserveMonths;
+  const personalMonthlyDifferenceCents = assumptions
+    ? assumptions.monthlyFounderCompensationCents - personalExpensesCents
+    : 0;
 
   const saveAssumptions = async () => {
     if (!assumptions || !accessToken) return;
@@ -255,20 +270,28 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
         </form>
       </section>
       <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/70">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-4"><div><h2 className="font-semibold">Simulador de cenários</h2><p className="mt-1 text-xs text-zinc-500">Projeção de receita não é lucro; canais e margem aparecem separados.</p></div><label className="text-xs text-zinc-500">Carteira de clientes<select value={customers} onChange={event => setCustomers(Number(event.target.value))} className="ml-2 rounded-lg border border-zinc-200 bg-transparent p-2 text-sm text-zinc-900 dark:border-zinc-700 dark:text-white">{customerVolumes.map(count => <option key={count} value={count}>{count.toLocaleString('pt-BR')}</option>)}</select></label></div>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-4"><div><h2 className="font-semibold">Simulador de cenários</h2><p className="mt-1 text-xs text-zinc-500">Empresas assinantes e clientes atendidos são volumes separados. Receita, resultado, caixa e reserva são projeções; o caixa estimado não representa saldo bancário nem lançamento contábil.</p></div><label className="text-xs text-zinc-500">Empresas assinantes<select value={customers} onChange={event => setCustomers(Number(event.target.value))} className="ml-2 rounded-lg border border-zinc-200 bg-transparent p-2 text-sm text-zinc-900 dark:border-zinc-700 dark:text-white">{customerVolumes.map(count => <option key={count} value={count}>{count.toLocaleString('pt-BR')}</option>)}</select></label></div>
         <div className="mb-4 flex flex-wrap gap-2">{scenarios.map(item => <button key={item.key} onClick={() => setScenario(item.key)} className={`rounded-full border px-3 py-1.5 text-xs ${scenario === item.key ? 'border-orange-500 bg-orange-500/10 text-orange-600' : 'border-zinc-200 text-zinc-500 dark:border-zinc-700'}`}>{item.label}</button>)}<span className="self-center text-[11px] text-zinc-500">A seleção destaca o cenário de referência; compare os três abaixo.</span></div>
         <div className="grid gap-3 lg:grid-cols-3">{projections.map(projection => <ProjectionCard key={projection.scenario} projection={projection} label={scenarios.find(item => item.key === projection.scenario)!.label} />)}</div>
+        <PulsoScenario />
+        {assumptions && <div className="mt-6 overflow-x-auto rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"><h3 className="font-medium">Economia unitária por plano · {scenarios.find(item => item.key === scenario)?.label}</h3><p className="mb-3 mt-1 text-[11px] text-zinc-500">Contribuição considera preço, tributo, taxa de pagamento e custos variáveis informados. Custo fixo e pró-labore planejado entram no ponto de equilíbrio. Valores ausentes precisam ser preenchidos antes de usar como previsão.</p><table className="w-full min-w-[760px] text-xs"><thead><tr className="border-b text-left text-zinc-500 dark:border-zinc-800"><th className="pb-2">Plano</th><th className="pb-2 text-right">Receita/conta</th><th className="pb-2 text-right">Pagamento</th><th className="pb-2 text-right">Tributos</th><th className="pb-2 text-right">Custo variável</th><th className="pb-2 text-right">Contribuição</th><th className="pb-2 text-right">Margem</th><th className="pb-2 text-right">Contas p/ equilíbrio</th></tr></thead><tbody>{unitEconomics.map(row=><tr key={row.plan} className="border-b last:border-0 dark:border-zinc-800"><th className="py-2 text-left font-medium">{plans.find(item=>item.key===row.plan)?.label}</th><td className="text-right">{fmt(row.priceCents)}</td><td className="text-right">{fmt(row.paymentFeesCents)}</td><td className="text-right">{fmt(row.taxesCents)}</td><td className="text-right">{fmt(row.variableCostCents)}</td><td className="text-right">{fmt(row.contributionCents)}</td><td className="text-right">{percent(row.contributionPercent)}</td><td className="text-right">{row.breakEvenCompanies?.toLocaleString('pt-BR') ?? 'Indisponível'}</td></tr>)}</tbody></table></div>}
+        {assumptions && <div className="mt-4 grid gap-4 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800 lg:grid-cols-[1fr_1fr]"><div><h3 className="font-medium">Planejamento pessoal do fundador</h3><p className="mt-1 text-[11px] text-zinc-500">Estimativa local no navegador; não é salva no ledger da empresa. O pró-labore é bruto planejado. Tributos e retiradas dependem de orientação contábil e jurídica.</p><div className="mt-3 grid grid-cols-2 gap-2"><label className="text-[11px] text-zinc-500">Despesas pessoais/mês (R$)<input type="number" min="0" step="0.01" value={personalExpenses} onChange={event => setPersonalExpenses(event.target.value)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label><label className="text-[11px] text-zinc-500">Reserva pessoal (meses)<input type="number" min="0" max="120" step="1" value={personalReserveMonths} onChange={event => setPersonalReserveMonths(Math.min(120, Math.max(0, Math.floor(Number(event.target.value) || 0)) ))} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label></div></div><dl className="grid grid-cols-2 content-start gap-x-3 gap-y-2 text-xs"><dt className="text-zinc-500">Pró-labore bruto planejado</dt><dd className="text-right font-medium">{fmt(assumptions.monthlyFounderCompensationCents)}</dd><dt className="text-zinc-500">Diferença antes de tributos pessoais</dt><dd className="text-right font-medium">{fmt(personalMonthlyDifferenceCents)}</dd><dt className="text-zinc-500">Meta da reserva pessoal</dt><dd className="text-right font-medium">{fmt(personalReserveTargetCents)}</dd><dt className="text-zinc-500">Empresas no plano para equilíbrio</dt><dd className="text-right font-medium">Use a tabela de economia unitária acima</dd></dl></div>}
       </section>
       {assumptions && <section className="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/70">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h2 className="font-semibold">Premissas · versão {data.assumptions?.version ?? 'inicial'}</h2><p className="mt-1 text-xs text-zinc-500">Salvar cria um novo rascunho versionado; a cobrança pública não é alterada.</p></div><span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-[10px] font-medium uppercase text-amber-600">Hipótese · não aprovado</span></div>
         <div className="grid gap-4 xl:grid-cols-[1.1fr_.9fr]">
           <div className="space-y-3"><h3 className="text-sm font-medium">Planos aprovados e distribuição simulada (%)</h3><div className="overflow-x-auto"><table className="w-full min-w-[520px] text-xs"><thead><tr className="text-left text-zinc-500"><th className="pb-2">Plano</th><th className="pb-2">Preço base (R$)</th><th className="pb-2">Mix (%)</th></tr></thead><tbody>{plans.map(plan => <tr key={plan.key} className="border-t border-zinc-100 dark:border-zinc-800"><td className="py-2.5">{plan.label}</td><td>{plan.key==='enterprise'?<span>Sob consulta</span>:<input aria-label={`Preço ${plan.label}`} type="number" disabled={true} min="0" step="0.01" value={moneyInput(assumptions.planPricesCents[plan.key])} onChange={event => setPlanField('planPricesCents', plan.key, centsInput(event.target.value))} className="w-32 rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 dark:border-zinc-700" />}</td><td><input aria-label={`Mix ${plan.label}`} type="number" min="0" max="100" step="0.1" value={assumptions.planMixPercent[plan.key]} onChange={event => setPlanField('planMixPercent', plan.key, Number(event.target.value) || 0)} className="w-24 rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 dark:border-zinc-700" /></td></tr>)}</tbody></table></div><p className="text-[11px] text-zinc-500">A soma do mix precisa ser 100%. Os quatro preços fixos são imutáveis nesta tela. Enterprise não entra no cenário sem contrato negociado.</p></div>
-          <div className="space-y-3"><h3 className="text-sm font-medium">Custos e metas econômicas</h3><div className="grid grid-cols-2 gap-2">{[
-            ['monthlyFixedPlatformCostCents', 'Custo fixo mensal (R$)'], ['infrastructurePerWorkspaceCents', 'Infra por workspace/mês (R$)'],
-            ['aiPerWorkspaceCents', 'IA por workspace/mês (R$)'], ['channelPerWorkspaceCents', 'Canal por workspace/mês (R$)'],
+          <div className="space-y-3"><h3 className="text-sm font-medium">Custos, tributos e capacidade de reserva</h3><div className="grid grid-cols-2 gap-2">{[
+            ['monthlyFixedPlatformCostCents', 'Plataforma fixa/mês (R$)'], ['monthlyOperationalExpenseCents', 'Operação fixa/mês (R$)'],
+            ['monthlyFounderCompensationCents', 'Pró-labore planejado/mês (R$)'], ['fixedPaymentFeeCentsPerCompany', 'Tarifa fixa por pagamento (R$)'],
+            ['infrastructurePerWorkspaceCents', 'Infra por empresa/mês (R$)'], ['aiPerWorkspaceCents', 'IA por empresa/mês (R$)'],
+            ['channelPerWorkspaceCents', 'Canal por empresa/mês (R$)'], ['directCostPerServedCustomerCents', 'Canal por cliente atendido/mês (R$)'],
             ['openingCashCents', 'Caixa de abertura (R$)'],
           ].map(([key, label]) => <label key={key} className="text-[11px] text-zinc-500">{label}<input type="number" min="0" step="0.01" value={moneyInput(assumptions[key as keyof FinanceAssumptions] as number)} onChange={event => update(key as keyof FinanceAssumptions, centsInput(event.target.value) as never)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm text-zinc-900 dark:border-zinc-700 dark:text-white" /></label>)}
             <label className="text-[11px] text-zinc-500">Taxa do processador (%)<input type="number" min="0" max="100" step="0.01" value={assumptions.paymentProcessingPercent} onChange={event => update('paymentProcessingPercent', Number(event.target.value) || 0)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label>
+            <label className="text-[11px] text-zinc-500">Tributos estimados (%)<input type="number" min="0" max="100" step="0.01" value={assumptions.taxRatePercent} onChange={event => update('taxRatePercent', Number(event.target.value) || 0)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label>
+            <label className="text-[11px] text-zinc-500">Clientes atendidos por empresa<input type="number" min="0" step="0.1" value={assumptions.servedCustomersPerCompany} onChange={event => update('servedCustomersPerCompany', Number(event.target.value) || 0)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label>
+            <label className="text-[11px] text-zinc-500">Meta de reserva (% da receita)<input type="number" min="0" max="100" step="0.1" value={assumptions.plannedReservePercent} onChange={event => update('plannedReservePercent', Number(event.target.value) || 0)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label>
             <label className="text-[11px] text-zinc-500">Meta COGS (%)<input type="number" min="0" max="100" value={assumptions.cogsTargetPercent} onChange={event => update('cogsTargetPercent', Number(event.target.value) || 0)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label>
             <label className="text-[11px] text-zinc-500">Hard cap COGS (%)<input type="number" min="0" max="100" value={assumptions.cogsHardCapPercent} onChange={event => update('cogsHardCapPercent', Number(event.target.value) || 0)} className="mt-1 w-full rounded-md border border-zinc-200 bg-transparent px-2 py-1.5 text-sm dark:border-zinc-700" /></label>
           </div>

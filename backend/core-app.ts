@@ -485,10 +485,10 @@ app.get('/api/internal/finance/dashboard', authenticate, async (req, res) => {
       cashForecast:cashForecast13Weeks(cashClosingEstimateCents,forecastResult.data||[]),
       growth:{cac:null,churn:null,retention:null,nrr:null,payback:null,reason:'cohort_and_acquisition_data_not_reconciled'},
       cashCoverage:'13-week forecast uses registered forecast entries only; missing entries are not expected zero costs.',
-      assumptions: history[0] || null,
+      assumptions: history[0] ? { ...history[0], assumptions } : null,
       assumptionsHistory: history,
       assumptionsFallback: history.length === 0 ? assumptions : null,
-      projections: [10, 100, 1000, 10000].flatMap(customers => (['pok', 'base', 'favorable'] as const).map(scenario => ({
+      projections: [0, 1, 5, 10, 25, 50, 100, 200, 250, 500, 1000].flatMap(customers => (['pok', 'base', 'favorable'] as const).map(scenario => ({
         ...projectFinance(assumptions, customers, scenario),
         projectionKey: `${customers}:${scenario}`,
       }))),

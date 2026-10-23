@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateObservedFinanceMetrics, DEFAULT_FINANCE_ASSUMPTIONS, estimateAiUsageCost, isTechnicalCogsCategory, projectFinance, summarizeChannelUsageCosts, validateFinanceAssumptions } from '../backend/finance/finance-model.js';
+import { calculateObservedFinanceMetrics, calculatePlanUnitEconomics, DEFAULT_FINANCE_ASSUMPTIONS, estimateAiUsageCost, estimatePulsoWorkload, isTechnicalCogsCategory, projectFinance, summarizeChannelUsageCosts, validateFinanceAssumptions } from '../backend/finance/finance-model.js';
 
 const configured = {
   ...DEFAULT_FINANCE_ASSUMPTIONS,
@@ -12,12 +12,17 @@ const configured = {
   openingCashCents: 500_000,
 };
 
+test('Pulso scenario reuses technical weights without approving policy or money conversion',()=>{
+ assert.deepEqual(estimatePulsoWorkload({deterministic:1000,simple:4,light:2,normal:1,complex:1}),{milli:7000,pulso:7,basis:'technical_reference_only',policyApproved:false});
+ for(const counts of [{normal:-1},{normal:1.5},{normal:Infinity},{normal:1000001},{other:1}])assert.throws(()=>estimatePulsoWorkload(counts as never),/PULSO_SCENARIO_INVALID/);
+});
+
 test('simulador calcula receita recorrente, ARR, ARPA e ponto de equilíbrio', () => {
   const result = projectFinance(configured, 100, 'base');
   assert.equal(result.arpaCents, 14_540);
   assert.equal(result.mrrCents, 1_454_000);
   assert.equal(result.arrCents, 17_448_000);
-  assert.equal(result.breakEvenCustomers, 16);
+  assert.equal(result.breakEvenCustomers, 17);
 });
 
 test('custos de canal são separados do COGS técnico e da margem econômica', () => {
@@ -116,8 +121,11 @@ test('POK, Base e Favorável usam fatores versionáveis sem alterar os volumes s
   assert.ok(favorable.technicalCogsCents < Math.round(favorable.mrrCents * 0.9));
 });
 
-test('aceita somente volumes do simulador e mix de planos de 100%', () => {
-  assert.throws(() => projectFinance(DEFAULT_FINANCE_ASSUMPTIONS, 11, 'base'), /10, 100/);
+test('aceita zero e qualquer volume inteiro de empresas e exige mix de planos de 100%', () => {
+  assert.equal(projectFinance(DEFAULT_FINANCE_ASSUMPTIONS, 0, 'base').mrrCents, 0);
+  assert.equal(projectFinance(DEFAULT_FINANCE_ASSUMPTIONS, 11, 'base').companies, 11);
+  assert.throws(() => projectFinance(DEFAULT_FINANCE_ASSUMPTIONS, -1, 'base'), /quantidade inteira/);
+  assert.throws(() => projectFinance(DEFAULT_FINANCE_ASSUMPTIONS, 1_000_001, 'base'), /quantidade inteira/);
   assert.throws(() => validateFinanceAssumptions({
     ...DEFAULT_FINANCE_ASSUMPTIONS,
     planMixPercent: { ...DEFAULT_FINANCE_ASSUMPTIONS.planMixPercent, starter: 61 },
@@ -131,6 +139,55 @@ test('aceita somente volumes do simulador e mix de planos de 100%', () => {
     ...DEFAULT_FINANCE_ASSUMPTIONS,
     aiPerWorkspaceCents: 12.5,
   }), /fora dos limites/);
+});
+
+test('separa empresas assinantes dos clientes atendidos e testa reserva após obrigações', () => {
+  const assumptions = validateFinanceAssumptions({
+    ...configured,
+    monthlyOperationalExpenseCents: 5_000,
+    monthlyFounderCompensationCents: 2_500,
+    fixedPaymentFeeCentsPerCompany: 49,
+    taxRatePercent: 6,
+    plannedReservePercent: 40,
+    servedCustomersPerCompany: 3.5,
+    directCostPerServedCustomerCents: 10,
+    openingCashCents: 0,
+  });
+  const one = projectFinance(assumptions, 1, 'base');
+  assert.equal(one.companies, 1);
+  assert.equal(one.customers, 1, 'legacy field remains the subscriber-account count');
+  assert.equal(one.servedCustomers, 4);
+  assert.equal(one.plannedReserveCents, Math.round(one.mrrCents * 0.4));
+  assert.ok(one.reserveShortfallCents > 0);
+  assert.ok(one.channelAdjustedOperatingResultCents < 0);
+  assert.ok(one.alerts.some(alert => alert.includes('reserva')));
+  assert.equal(one.reserveShortfallCents, Math.max(0, one.plannedReserveCents - one.pokCashEndCents));
+});
+
+test('percentual de COGS fica indisponível sem receita projetada', () => {
+  const noRevenue = projectFinance(configured, 0, 'base');
+  assert.equal(noRevenue.technicalCogsPercent, null);
+});
+
+test('calcula economia unitária por plano e não inventa equilíbrio quando custo fixo falta', () => {
+  const unconfigured = calculatePlanUnitEconomics(DEFAULT_FINANCE_ASSUMPTIONS);
+  assert.equal(unconfigured.length, 4);
+  assert.ok(unconfigured.every(row => row.breakEvenCompanies === null));
+  const configuredPlans = calculatePlanUnitEconomics({
+    ...configured,
+    monthlyOperationalExpenseCents: 50_000,
+    taxRatePercent: 6,
+    fixedPaymentFeeCentsPerCompany: 49,
+    servedCustomersPerCompany: 10,
+    directCostPerServedCustomerCents: 5,
+  });
+  const start = configuredPlans.find(row => row.plan === 'starter')!;
+  assert.equal(start.priceCents, 7_990);
+  assert.equal(start.taxesCents, 479);
+  assert.equal(start.paymentFeesCents, Math.round(7_990 * 0.02 + 49));
+  assert.equal(start.variableCostCents, 1_850);
+  assert.ok(start.contributionCents > 0);
+  assert.equal(start.breakEvenCompanies, Math.ceil(250_000 / start.contributionCents));
 });
 
 test('tarifas configuradas estimam custo Gemini por tokens sem misturar simulações', () => {
@@ -219,4 +276,28 @@ test('premissas rejeitam tarifas duplicadas, negativas e câmbio ausente é marc
     aiModelRates: [{ provider: 'gemini', model: 'flash', inputUsdPerMillionTokens: 1, outputUsdPerMillionTokens: 1, active: true }],
   });
   assert.equal(estimate.unpricedEvents, 1);
+});
+
+test('premissas antigas recebem padrões de planejamento sem alterar os campos aprovados', () => {
+  const { monthlyOperationalExpenseCents: _opEx, monthlyFounderCompensationCents: _founder,
+    fixedPaymentFeeCentsPerCompany: _fixedFee, taxRatePercent: _tax,
+    servedCustomersPerCompany: _served, directCostPerServedCustomerCents: _perCustomer,
+    plannedReservePercent: _reserve, ...legacyAssumptions } = DEFAULT_FINANCE_ASSUMPTIONS;
+  const migrated = validateFinanceAssumptions(legacyAssumptions);
+  assert.equal(migrated.monthlyOperationalExpenseCents, 0);
+  assert.equal(migrated.taxRatePercent, 0);
+  assert.equal(migrated.plannedReservePercent, 40);
+  assert.equal(migrated.planPricesCents.starter, 7990);
+});
+
+test('equilíbrio e margem por plano usam o mesmo stress de taxas que o fluxo de caixa', () => {
+  const assumption={...configured,planMixPercent:{...DEFAULT_FINANCE_ASSUMPTIONS.planMixPercent,starter:100,pro:0,business:0,scale:0},
+    fixedPaymentFeeCentsPerCompany:199,taxRatePercent:6,
+    scenarios:{...configured.scenarios,base:{revenueFactor:1,costFactor:2}}};
+  const projection=projectFinance(assumption,1,'base');
+  const start=calculatePlanUnitEconomics(assumption,'base').find(row=>row.plan==='starter')!;
+  assert.equal(start.paymentFeesCents,projection.paymentFeesCents);
+  const count=projection.breakEvenCustomers!;
+  assert.ok(projectFinance(assumption,count,'base').channelAdjustedOperatingResultCents>=0);
+  assert.ok(projectFinance(assumption,count-1,'base').channelAdjustedOperatingResultCents<0);
 });

@@ -1,4 +1,17 @@
+import { REFERENCE_PULSO_MILLI, type OperationClass } from '../../supabase/functions/orkto-core-mutations/_shared/cost-governor.js';
 export type FinanceScenarioKey = 'pok' | 'base' | 'favorable';
+
+/** Scenario only: technical class weights, never an allowance or ledger write. */
+export function estimatePulsoWorkload(counts: Partial<Record<OperationClass,number>>) {
+  if(!counts||typeof counts!=='object'||Array.isArray(counts)||Object.keys(counts).some(key=>!Object.hasOwn(REFERENCE_PULSO_MILLI,key)))throw new Error('PULSO_SCENARIO_INVALID');
+  let milli=0;
+  for(const [key,weight] of Object.entries(REFERENCE_PULSO_MILLI)){
+    const count=counts[key as OperationClass]??0;
+    if(!Number.isSafeInteger(count)||count<0||count>1_000_000)throw new Error('PULSO_SCENARIO_INVALID');
+    milli+=count*weight;
+  }
+  return {milli,pulso:milli/1000,basis:'technical_reference_only' as const,policyApproved:false as const};
+}
 export type FinancePlanKey = 'starter' | 'pro' | 'business' | 'scale' | 'enterprise' | 'founders' | 'legacy_standard';
 
 export interface AiModelRate {
@@ -16,11 +29,18 @@ export interface FinanceAssumptions {
   cogsTargetPercent: number;
   cogsHardCapPercent: number;
   monthlyFixedPlatformCostCents: number;
+  monthlyOperationalExpenseCents: number;
+  monthlyFounderCompensationCents: number;
   infrastructurePerWorkspaceCents: number;
   aiPerWorkspaceCents: number;
   paymentProcessingPercent: number;
+  fixedPaymentFeeCentsPerCompany: number;
+  taxRatePercent: number;
   channelPerWorkspaceCents: number;
+  servedCustomersPerCompany: number;
+  directCostPerServedCustomerCents: number;
   openingCashCents: number;
+  plannedReservePercent: number;
   planPricesCents: Record<FinancePlanKey, number>;
   planMixPercent: Record<FinancePlanKey, number>;
   scenarios: Record<FinanceScenarioKey, { revenueFactor: number; costFactor: number }>;
@@ -71,18 +91,38 @@ export interface ObservedFinanceMetrics {
 
 export interface FinanceProjection {
   scenario: FinanceScenarioKey;
+  companies: number;
+  servedCustomers: number;
+  /** @deprecated Alias for companies retained for older dashboard clients. */
   customers: number;
   arpaCents: number;
   mrrCents: number;
   arrCents: number;
   technicalCogsCents: number;
   channelCostsCents: number;
-  technicalCogsPercent: number;
+  paymentFeesCents: number;
+  taxesCents: number;
+  operationalExpensesCents: number;
+  founderCompensationCents: number;
+  technicalCogsPercent: number | null;
   economicMarginCents: number;
   channelAdjustedOperatingResultCents: number;
   pokCashEndCents: number;
+  plannedReserveCents: number;
+  reserveShortfallCents: number;
   breakEvenCustomers: number | null;
   alerts: string[];
+}
+
+export interface PlanUnitEconomics {
+  plan: Exclude<FinancePlanKey, 'enterprise' | 'founders' | 'legacy_standard'>;
+  priceCents: number;
+  paymentFeesCents: number;
+  taxesCents: number;
+  variableCostCents: number;
+  contributionCents: number;
+  contributionPercent: number | null;
+  breakEvenCompanies: number | null;
 }
 
 export const DEFAULT_FINANCE_ASSUMPTIONS: FinanceAssumptions = {
@@ -90,11 +130,18 @@ export const DEFAULT_FINANCE_ASSUMPTIONS: FinanceAssumptions = {
   cogsTargetPercent: 15,
   cogsHardCapPercent: 20,
   monthlyFixedPlatformCostCents: 0,
+  monthlyOperationalExpenseCents: 0,
+  monthlyFounderCompensationCents: 0,
   infrastructurePerWorkspaceCents: 0,
   aiPerWorkspaceCents: 0,
   paymentProcessingPercent: 0,
+  fixedPaymentFeeCentsPerCompany: 0,
+  taxRatePercent: 0,
   channelPerWorkspaceCents: 0,
+  servedCustomersPerCompany: 0,
+  directCostPerServedCustomerCents: 0,
   openingCashCents: 0,
+  plannedReservePercent: 40,
   // Four owner-approved prices; Enterprise zero is an excluded simulation placeholder, never an offer.
   planPricesCents: { starter: 7990, pro: 14990, business: 29990, scale: 59990, enterprise: 0, founders: 7990, legacy_standard: 0 },
   // A draft portfolio mix; edit and version before using this as a forecast.
@@ -211,6 +258,22 @@ export function validateFinanceAssumptions(value: unknown): FinanceAssumptions {
     || !cents(input.openingCashCents)
     || !plans || !mix || !scenarios) throw new Error('Revise valores ausentes ou fora dos limites permitidos.');
 
+  // New planning fields default only when loading an older versioned assumption record.
+  // A displayed zero remains an editable scenario input, never a registered actual.
+  const monthlyOperationalExpenseCents = input.monthlyOperationalExpenseCents ?? 0;
+  const monthlyFounderCompensationCents = input.monthlyFounderCompensationCents ?? 0;
+  const fixedPaymentFeeCentsPerCompany = input.fixedPaymentFeeCentsPerCompany ?? 0;
+  const taxRatePercent = input.taxRatePercent ?? 0;
+  const servedCustomersPerCompany = input.servedCustomersPerCompany ?? 0;
+  const directCostPerServedCustomerCents = input.directCostPerServedCustomerCents ?? 0;
+  const plannedReservePercent = input.plannedReservePercent ?? 40;
+  if (!cents(monthlyOperationalExpenseCents) || !cents(monthlyFounderCompensationCents)
+    || !cents(fixedPaymentFeeCentsPerCompany) || !percentage(taxRatePercent)
+    || !finiteNonNegative(servedCustomersPerCompany) || servedCustomersPerCompany > 1_000_000
+    || !cents(directCostPerServedCustomerCents) || !percentage(plannedReservePercent)) {
+    throw new Error('Revise custos operacionais, tributos, clientes atendidos e meta de reserva.');
+  }
+
   const planKeys: FinancePlanKey[] = ['starter', 'pro', 'business', 'scale', 'enterprise', 'founders', 'legacy_standard'];
   const normalizedPrices = { ...DEFAULT_FINANCE_ASSUMPTIONS.planPricesCents, ...plans };
   const normalizedMix = { ...DEFAULT_FINANCE_ASSUMPTIONS.planMixPercent, ...mix };
@@ -252,7 +315,20 @@ export function validateFinanceAssumptions(value: unknown): FinanceAssumptions {
     if (seenModelRates.has(key)) throw new Error('Provider, modelo e vigência não podem ter tarifas duplicadas.');
     seenModelRates.add(key);
   }
-  return { ...input, planPricesCents: normalizedPrices, planMixPercent: normalizedMix, usdBrlExchangeRate, aiModelRates } as FinanceAssumptions;
+  return {
+    ...input,
+    monthlyOperationalExpenseCents,
+    monthlyFounderCompensationCents,
+    fixedPaymentFeeCentsPerCompany,
+    taxRatePercent,
+    servedCustomersPerCompany,
+    directCostPerServedCustomerCents,
+    plannedReservePercent,
+    planPricesCents: normalizedPrices,
+    planMixPercent: normalizedMix,
+    usdBrlExchangeRate,
+    aiModelRates,
+  } as FinanceAssumptions;
 }
 
 export function estimateAiUsageCost(records: AiUsageRecord[], assumptionsInput: FinanceAssumptions): AiUsageCostEstimate {
@@ -317,8 +393,8 @@ export function projectFinance(
   scenario: FinanceScenarioKey,
 ): FinanceProjection {
   const assumptions = validateFinanceAssumptions(assumptionsInput);
-  if (!Number.isInteger(customers) || ![10, 100, 1000, 10000].includes(customers)) {
-    throw new Error('O simulador aceita 10, 100, 1.000 ou 10.000 clientes.');
+  if (!Number.isSafeInteger(customers) || customers < 0 || customers > 1_000_000) {
+    throw new Error('Informe uma quantidade inteira de empresas entre 0 e 1.000.000.');
   }
   const factors = assumptions.scenarios[scenario];
   const planKeys: FinancePlanKey[] = ['starter', 'pro', 'business', 'scale', 'enterprise', 'founders', 'legacy_standard'];
@@ -326,31 +402,84 @@ export function projectFinance(
   const arpaCents = roundCents(weightedArpa * factors.revenueFactor);
   const mrrCents = arpaCents * customers;
   const arrCents = mrrCents * 12;
+  const servedCustomers = roundCents(customers * assumptions.servedCustomersPerCompany);
   const fixedCogs = assumptions.monthlyFixedPlatformCostCents;
   const workspaceInfra = assumptions.infrastructurePerWorkspaceCents * customers;
   const workspaceAi = assumptions.aiPerWorkspaceCents * customers;
-  const processing = mrrCents * assumptions.paymentProcessingPercent / 100;
+  const processing = mrrCents * assumptions.paymentProcessingPercent / 100
+    + customers * assumptions.fixedPaymentFeeCentsPerCompany;
   const technicalCogsCents = roundCents((fixedCogs + workspaceInfra + workspaceAi) * factors.costFactor);
-  const channelCostsCents = roundCents(assumptions.channelPerWorkspaceCents * customers * factors.costFactor);
-  const technicalCogsPercent = mrrCents > 0 ? technicalCogsCents / mrrCents * 100 : 0;
+  const channelCostsCents = roundCents((assumptions.channelPerWorkspaceCents * customers
+    + assumptions.directCostPerServedCustomerCents * servedCustomers) * factors.costFactor);
+  const paymentFeesCents = roundCents(processing * factors.costFactor);
+  const taxesCents = roundCents(mrrCents * assumptions.taxRatePercent / 100);
+  const operationalExpensesCents = assumptions.monthlyOperationalExpenseCents;
+  const founderCompensationCents = assumptions.monthlyFounderCompensationCents;
+  const technicalCogsPercent = mrrCents > 0 ? technicalCogsCents / mrrCents * 100 : null;
   const economicMarginCents = mrrCents - technicalCogsCents;
-  const channelAdjustedOperatingResultCents = economicMarginCents - channelCostsCents - roundCents(processing * factors.costFactor);
-  const contributionPerWorkspace = arpaCents * (1 - assumptions.paymentProcessingPercent / 100)
-    - (assumptions.infrastructurePerWorkspaceCents + assumptions.aiPerWorkspaceCents) * factors.costFactor;
-  const breakEvenCustomers = contributionPerWorkspace > 0
-    ? Math.ceil(fixedCogs * factors.costFactor / contributionPerWorkspace)
+  const channelAdjustedOperatingResultCents = economicMarginCents - channelCostsCents - paymentFeesCents
+    - taxesCents - operationalExpensesCents - founderCompensationCents;
+  const contributionPerCompany = arpaCents * (1 - assumptions.taxRatePercent / 100)
+    - (arpaCents * assumptions.paymentProcessingPercent / 100 + assumptions.fixedPaymentFeeCentsPerCompany) * factors.costFactor
+    - (assumptions.infrastructurePerWorkspaceCents + assumptions.aiPerWorkspaceCents + assumptions.channelPerWorkspaceCents
+      + assumptions.directCostPerServedCustomerCents * assumptions.servedCustomersPerCompany) * factors.costFactor;
+  const fixedMonthlyCosts = fixedCogs * factors.costFactor + operationalExpensesCents + founderCompensationCents;
+  const breakEvenCustomers = fixedMonthlyCosts > 0 && contributionPerCompany > 0
+    ? Math.ceil(fixedMonthlyCosts / contributionPerCompany)
     : null;
-  const alerts: string[] = [];
-  if (technicalCogsCents === 0) alerts.push('Custos técnicos não informados; margem e ponto de equilíbrio ainda não são confiáveis.');
-  if (technicalCogsCents > 0 && technicalCogsPercent > assumptions.cogsTargetPercent) alerts.push(`COGS acima da meta de ${assumptions.cogsTargetPercent}%.`);
-  if (technicalCogsCents > 0 && technicalCogsPercent > assumptions.cogsHardCapPercent) alerts.push(`COGS acima do hard cap de ${assumptions.cogsHardCapPercent}%.`);
-  if (channelCostsCents > 0) alerts.push('Custos de canal aparecem à parte e não entram no COGS técnico da assinatura.');
+  const plannedReserveCents = roundCents(mrrCents * assumptions.plannedReservePercent / 100);
   const pokCashEndCents = assumptions.openingCashCents + channelAdjustedOperatingResultCents;
+  // Negative closing cash adds to the capital needed before the reserve target is met.
+  const reserveShortfallCents = Math.max(0, plannedReserveCents - pokCashEndCents);
+  const alerts: string[] = [];
+  if (fixedMonthlyCosts === 0) alerts.push('Custos fixos mensais não informados; ponto de equilíbrio indisponível.');
+  if (technicalCogsCents === 0 && assumptions.infrastructurePerWorkspaceCents === 0 && assumptions.aiPerWorkspaceCents === 0) alerts.push('Custos técnicos não informados; margem econômica ainda é estimativa incompleta.');
+  if (technicalCogsCents > 0 && technicalCogsPercent !== null && technicalCogsPercent > assumptions.cogsTargetPercent) alerts.push(`COGS acima da meta de ${assumptions.cogsTargetPercent}%.`);
+  if (technicalCogsCents > 0 && technicalCogsPercent !== null && technicalCogsPercent > assumptions.cogsHardCapPercent) alerts.push(`COGS acima do hard cap de ${assumptions.cogsHardCapPercent}%.`);
+  if (channelCostsCents > 0) alerts.push('Custos de canal aparecem à parte e não entram no COGS técnico da assinatura.');
+  if (assumptions.taxRatePercent === 0) alerts.push('Tributos não parametrizados; o resultado não representa receita líquida fiscal.');
+  if (assumptions.paymentProcessingPercent === 0 && assumptions.fixedPaymentFeeCentsPerCompany === 0) alerts.push('Taxas de pagamento não parametrizadas; o resultado não representa recebimento líquido.');
+  if (assumptions.servedCustomersPerCompany === 0) alerts.push('Quantidade de clientes atendidos por empresa não informada; custos por atendimento podem estar incompletos.');
+  if (reserveShortfallCents > 0) alerts.push('A meta de reserva não cabe no caixa final projetado após as obrigações parametrizadas.');
   if (pokCashEndCents < 0) alerts.push('Alerta POK Caixa: caixa final projetado abaixo de zero.');
   return {
-    scenario, customers, arpaCents, mrrCents, arrCents, technicalCogsCents, channelCostsCents,
-    technicalCogsPercent: Number(technicalCogsPercent.toFixed(2)), economicMarginCents,
-    channelAdjustedOperatingResultCents, pokCashEndCents,
+    scenario, companies: customers, customers, servedCustomers, arpaCents, mrrCents, arrCents, technicalCogsCents, channelCostsCents,
+    paymentFeesCents, taxesCents, operationalExpensesCents, founderCompensationCents,
+    technicalCogsPercent: technicalCogsPercent === null ? null : Number(technicalCogsPercent.toFixed(2)), economicMarginCents,
+    channelAdjustedOperatingResultCents, pokCashEndCents, plannedReserveCents, reserveShortfallCents,
     breakEvenCustomers, alerts,
   };
+}
+
+export function calculatePlanUnitEconomics(
+  assumptionsInput: FinanceAssumptions,
+  scenario: FinanceScenarioKey = 'base',
+): PlanUnitEconomics[] {
+  const assumptions = validateFinanceAssumptions(assumptionsInput);
+  const factors = assumptions.scenarios[scenario];
+  const keys = ['starter', 'pro', 'business', 'scale'] as const;
+  const fixedMonthlyCosts = assumptions.monthlyFixedPlatformCostCents * factors.costFactor
+    + assumptions.monthlyOperationalExpenseCents + assumptions.monthlyFounderCompensationCents;
+  return keys.map(plan => {
+    const priceCents = roundCents(assumptions.planPricesCents[plan] * factors.revenueFactor);
+    const taxesCents = roundCents(priceCents * assumptions.taxRatePercent / 100);
+    const paymentFeesCents = roundCents((priceCents * assumptions.paymentProcessingPercent / 100
+      + assumptions.fixedPaymentFeeCentsPerCompany) * factors.costFactor);
+    const variableCostCents = roundCents((assumptions.infrastructurePerWorkspaceCents
+      + assumptions.aiPerWorkspaceCents + assumptions.channelPerWorkspaceCents
+      + assumptions.directCostPerServedCustomerCents * assumptions.servedCustomersPerCompany) * factors.costFactor);
+    const contributionCents = priceCents - taxesCents - paymentFeesCents - variableCostCents;
+    return {
+      plan,
+      priceCents,
+      paymentFeesCents,
+      taxesCents,
+      variableCostCents,
+      contributionCents,
+      contributionPercent: priceCents > 0 ? Number((contributionCents / priceCents * 100).toFixed(2)) : null,
+      breakEvenCompanies: fixedMonthlyCosts > 0 && contributionCents > 0
+        ? Math.ceil(fixedMonthlyCosts / contributionCents)
+        : null,
+    };
+  });
 }
