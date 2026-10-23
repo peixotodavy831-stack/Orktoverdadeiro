@@ -109,6 +109,7 @@ jobs:
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_personal_profile.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_wia_request_provenance.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_proposal_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_whatsapp_connections.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
@@ -195,6 +196,7 @@ jobs:
         run: |
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_personal_profile.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_proposal_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_whatsapp_connections.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
