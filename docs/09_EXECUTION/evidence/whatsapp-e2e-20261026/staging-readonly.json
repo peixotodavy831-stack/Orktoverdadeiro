@@ -1,0 +1,66 @@
+{
+  "observedAt": "2026-10-26T17:11:51.504Z",
+  "project": "ghrjongiodziasupakrk",
+  "environment": "staging",
+  "scope": "READ_ONLY_CATALOG_AND_REAL_HTTP_NEGATIVES_NOT_BUSINESS_E2E",
+  "counts": {
+    "connections": 0,
+    "send_requests": 0,
+    "webhook_events": 0,
+    "approved_service_rate_cards": 0
+  },
+  "logsWindow": "provider_default_last_24h",
+  "logSources": [
+    {
+      "events": 2,
+      "source": "auth_audit_logs"
+    },
+    {
+      "events": 24,
+      "source": "auth_logs"
+    },
+    {
+      "events": 151,
+      "source": "edge_logs"
+    },
+    {
+      "events": 10721,
+      "source": "pgbouncer_logs"
+    },
+    {
+      "events": 12,
+      "source": "postgres_logs"
+    }
+  ],
+  "logReferenceCounts": [
+    {
+      "core_mutation_events": 0,
+      "edge_events": 152,
+      "meta_webhook_events": 0
+    }
+  ],
+  "remoteMetaWebhook": {
+    "version": 3,
+    "verifyJwt": false,
+    "sha256": "2d429432f57ebf51ad45d4be23c2db1975a9780a1f11c2162d65f6dc4590b93f"
+  },
+  "httpProbes": [
+    {
+      "method": "GET",
+      "case": "invalid verification challenge",
+      "status": 403,
+      "result": "FORBIDDEN"
+    },
+    {
+      "method": "POST",
+      "case": "unsigned empty JSON",
+      "status": 401,
+      "result": "SIGNATURE_INVALID"
+    }
+  ],
+  "businessMessagesSent": 0,
+  "providerValidSignatureTest": "NOT_TESTED",
+  "secretsRead": false,
+  "remoteMutations": false,
+  "readyForProductionCandidate": "NO"
+}

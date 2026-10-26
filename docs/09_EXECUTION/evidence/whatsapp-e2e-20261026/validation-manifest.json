@@ -1,0 +1,81 @@
+{
+  "date": "2026-10-26",
+  "sourceSha": "4e2787037e4a6df256b3cfc7e3d9ca9d334de2c1",
+  "branch": "codex/orkto-whatsapp-e2e",
+  "applicationTests": 389,
+  "toolsTests": 108,
+  "lint": "PASS",
+  "edgeTypecheck": "PASS_LOCAL_SHIM",
+  "isolatedBuild": "PASS_DIST_PRESERVED",
+  "postgres17": {
+    "wiaApprovalAssertions": "PASS_BOTH_FIXTURE_DATABASES",
+    "upgradeMigrations": 45,
+    "freshMigrations": 52
+  },
+  "secretScan": {
+    "status": "PASS",
+    "findings": 0,
+    "scanned": 683,
+    "blockers": 0,
+    "scope": "final source, reports and manifest; tmp and env exclusions apply"
+  },
+  "staging": {
+    "realPositiveE2E": "BLOCKED_EXTERNAL",
+    "metaSecretsPresent": false,
+    "webhookEvents": 0,
+    "sendRequests": 0,
+    "realNegativeHttp": [
+      403,
+      401
+    ],
+    "approvedServiceRateCards": 0,
+    "metaWebhookVersion": 3,
+    "connections": 0,
+    "billingWebhookVersion": 3,
+    "coreVersion": 32,
+    "project": "ghrjongiodziasupakrk"
+  },
+  "deployment": "NOT_EXECUTED",
+  "remoteCI": "NOT_TESTED",
+  "externalMessagesSent": 0,
+  "readiness": "NO",
+  "ignoredLocalLogHashes": [
+    {
+      "path": ".tmp-whatsapp/tests-confirmed.log",
+      "sha256": "54c493f89954d6e171f991c09af20debd0407c098382927abdc31e851f2e3112"
+    },
+    {
+      "path": ".tmp-whatsapp/lint-confirmed.log",
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+    },
+    {
+      "path": ".tmp-whatsapp/edge-confirmed.log",
+      "sha256": "e56125d844cf396e19d56cd2e2df7a374e84f5ddee0ce1d2302538562c0527eb"
+    },
+    {
+      "path": ".tmp-whatsapp/build-confirmed.log",
+      "sha256": "cfde2e77bf61b65dda72b69546d2cfe772ec3422ba743f45ae2db0575d8e8325"
+    },
+    {
+      "path": ".tmp-whatsapp/pg-fresh/result.json",
+      "sha256": "fc2a0abf9e4516910e6632c7165faaaf8306960cc4cbf4e3ddae0efc74d7df9e"
+    },
+    {
+      "path": ".tmp-whatsapp/pg-upgrade/result.json",
+      "sha256": "81d971ea003c75baf8286e67d1c65bd949e7230a091c3ba7df46a2d909190bee"
+    },
+    {
+      "path": ".tmp-whatsapp/reply-sql-fresh.log",
+      "sha256": "90711394800fe5a1a4537b3f2cbbae90b18e3ef39020c13e95559453c7bd5d89"
+    },
+    {
+      "path": ".tmp-whatsapp/reply-sql-upgrade.log",
+      "sha256": "90711394800fe5a1a4537b3f2cbbae90b18e3ef39020c13e95559453c7bd5d89"
+    },
+    {
+      "path": ".tmp-whatsapp/secret-scan-final.log",
+      "sha256": "b1d867b10f2bfad340ccbafcbb137f363cc9e0820083d481f81b3ce53bafe587"
+    }
+  ],
+  "screenshotLimitations": "wia-request-desktop.jpg is an intermediate capture and is not used as desktop screenshot proof; use authentication-error-desktop.jpg and visual-checks.json"
+}

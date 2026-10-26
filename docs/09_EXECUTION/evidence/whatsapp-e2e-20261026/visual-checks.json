@@ -1,0 +1,39 @@
+{
+  "scope": "LOCAL_FIXTURES_ONLY",
+  "measures": [
+    {
+      "screen": "saved-mobile",
+      "scroll": 390,
+      "width": 390
+    },
+    {
+      "screen": "auth-error-desktop",
+      "scroll": 1280,
+      "width": 1280
+    },
+    {
+      "screen": "verified-tablet",
+      "scroll": 768,
+      "width": 768
+    },
+    {
+      "screen": "disconnected-tablet",
+      "scroll": 768,
+      "width": 768
+    },
+    {
+      "request": "Preparar resposta WhatsApp da conversa 11111111-2222-4333-8444-555555555555",
+      "screen": "wia-context-desktop",
+      "scroll": 1280,
+      "width": 1280
+    },
+    {
+      "request": "Preparar resposta WhatsApp da conversa 11111111-2222-4333-8444-555555555555",
+      "screen": "wia-context-mobile",
+      "scroll": 390,
+      "width": 390
+    }
+  ],
+  "requestSubmitted": false,
+  "externalMessagesSent": false
+}

@@ -1,3 +1,7 @@
+## Atualização WhatsApp — 26/10/2026
+
+Implementação isolada em codex/orkto-whatsapp-e2e, código 4e2787037e4a6df256b3cfc7e3d9ca9d334de2c1. Ler [relatório e matriz](WHATSAPP_E2E_RESULT_2026-10-26.md) e [configuração externa](WHATSAPP_META_OWNER_SETUP_2026-10-26.md). Testes locais não substituem Meta real. Sem configuração Meta, conexão ou tabela de tarifas aprovada no staging; nenhuma publicação/envio executado. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
 # Retomada vigente — R4 de 23/10/2026
 
 Ler ORKTO_PUBLIC_RELEASE_BLOCKERS_R4_2026-10-23.md. Auditoria real somente leitura confirmou staging saudável, 50 migrations (migration 51 local ainda não implantada), core32/Meta3/billing3, piloto ativo, 19 tabelas sem políticas mas sem grants DML de anon/authenticated, cinco helpers booleanos com ACL/search_path restritos. Nenhum vínculo customer Asaas sandbox aprovado. Organização free; backup gerenciado/restore e proteção de senha vazada não podem ser presumidos. Evidência em evidence/sellable-r4/staging-readonly.json. Nenhuma mudança remota ou teste G/B real. READY_FOR_PRODUCTION_CANDIDATE=NO.

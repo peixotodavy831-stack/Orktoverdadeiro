@@ -1,3 +1,7 @@
+## Atualização WhatsApp — 26/10/2026
+
+Implementação isolada em codex/orkto-whatsapp-e2e, código 4e2787037e4a6df256b3cfc7e3d9ca9d334de2c1. Ler [relatório e matriz](WHATSAPP_E2E_RESULT_2026-10-26.md) e [configuração externa](WHATSAPP_META_OWNER_SETUP_2026-10-26.md). Testes locais não substituem Meta real. Sem configuração Meta, conexão ou tabela de tarifas aprovada no staging; nenhuma publicação/envio executado. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
 # ORKTO Launch Control 2027
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO**
