@@ -3,7 +3,7 @@
  * This module is imported only by tests/visual and is never part of the app entry.
  */
 export const VISUAL_TOKEN = 'visual-qa-only';
-export const VISUAL_CONVERSATION_ID = 'visual-conversation-1';
+export const VISUAL_CONVERSATION_ID = '11111111-2222-4333-8444-555555555555';
 export const VISUAL_DEAL_ID = 'visual-deal-1';
 
 const recent = (minutes: number) => new Date(Date.now() - minutes * 60_000).toISOString();

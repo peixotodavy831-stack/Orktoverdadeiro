@@ -1903,6 +1903,7 @@ export default function App() {
                           >
                             <Suspense fallback={<PageFallback />}>
                               <InboxWorkspace
+                                onOpenWia={message=>{setWiaInitialMessage(message);setCurrentView('wia');}}
                                 currentView={currentView}
                                 accessToken={accessToken}
                                 selectedConversationId={selectedConversationId}

@@ -6,6 +6,12 @@ export class MetaSendError extends Error{
   constructor(readonly category:MetaSendFailure,readonly retryAfterMs?:number){super(category);this.name='MetaSendError'}
 }
 
+export function metaServiceWindowOpen(sentAt:unknown,now=Date.now()):boolean {
+  if(typeof sentAt!=='string')return false;
+  const at=Date.parse(sentAt);
+  return Number.isFinite(at)&&at<=now&&now-at<24*60*60*1000;
+}
+
 export async function sendMetaText(input:{
   phoneNumberId:string;recipient:string;content:string;accessToken:string;graphVersion:string;
 },send:typeof fetch=fetch){
@@ -25,7 +31,8 @@ export async function sendMetaText(input:{
   if(!response.ok){
     const retryAfter=Number(response.headers.get('retry-after')||'');
     const retryAfterMs=Number.isFinite(retryAfter)&&retryAfter>=0?Math.min(retryAfter*1000,3_600_000):undefined;
-    if(response.status===401||response.status===403)throw new MetaSendError('authentication');
+    const providerCode=(body as {error?:{code?:unknown}}|null)?.error?.code;
+    if(response.status===401||response.status===403||providerCode===190)throw new MetaSendError('authentication');
     if(response.status===429)throw new MetaSendError('rate_limit',retryAfterMs);
     if(response.status>=500)throw new MetaSendError('provider_transient',retryAfterMs);
     throw new MetaSendError('invalid_request');

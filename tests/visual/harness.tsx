@@ -131,7 +131,14 @@ function installVisualApiFixtures() {
     }
     if (scenario === 'configuration' && statefulAction) return json({ error: 'Conecte o canal para enviar.', category: 'configuration_required' }, 503);
     if (scenario === 'error' && statefulAction) return json({ error: 'Falha controlada pelo teste visual.' }, 502);
-    if (path === '/api/integrations/status') return json({data:{wia:{provider:'gemini',model:'fixture-only',testingOnly:true,state:'configuration_required'},whatsapp:{state:'configuration_required',connected:false,runtimeConfigured:false,connection:null,controls:null},billing:{state:'configuration_required',checkoutEnabled:false},canManage:false}});
+    if (path === '/api/integrations/status') {
+      const demo=scenario?.startsWith('meta-');
+      const state=scenario==='meta-auth-error'?'authentication_error':scenario==='meta-revoked'?'disconnected':demo?'connected':'configuration_required';
+      return json({data:{wia:{provider:'gemini',model:'fixture-only',testingOnly:true,state:'configuration_required'},
+        whatsapp:{state,connected:state==='connected',runtimeConfigured:!!demo,
+          connection:demo?{status:scenario==='meta-revoked'?'revoked':'connected',display_phone_number:'Número fictício · +55 11 00000-0000',verified_name:'Empresa de demonstração',coexistence_state:'unknown',service_mode:'manual',verified_at:scenario==='meta-verified'?new Date().toISOString():'2020-01-01T00:00:00Z'}:null,controls:demo?{human_takeover:true}:null},
+        billing:{state:'configuration_required',checkoutEnabled:false},canManage:!!demo}});
+    }
     if (path === '/api/plan/catalog') return json({data:[['starter',7990],['pro',14990],['business',29990],['scale',59990],['enterprise',null]].map(([plan_key,price_cents])=>({plan_key,price_cents,currency:'BRL',price_is_public:price_cents!==null,entitlements:{features:{},limits:{}},version:1}))});
     if (path === '/api/billing/current') return json({subscription:null,workspacePlan:null,status:'configuration_required',trialEndsAt:null,readOnly:true,configurationRequired:true,entitlements:{features:{},limits:{}},usage:[],checkout:'not_configured',pulso:scenario === 'quota-demo' ? {state:'configured',allowance:1000,used:742,remaining:258} : scenario === 'quota-zero' ? {state:'configured',allowance:0,used:0,remaining:0} : {state:'configuration_required',allowance:null,used:null,remaining:null}});
     if (path === '/api/radar') {
@@ -215,7 +222,7 @@ function App() {
       </header>
       <div id="visual-main" className={`orkto-workspace-content relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {screen === 'today' && <TodayV2Page user={{ displayName: 'Marina' }} userProfile={visualProfile} quotes={params.get('scenario') === 'empty' ? [] : [visualQuote]} clients={params.get('scenario') === 'empty' ? [] : [visualClient]} accessToken={accessToken} dataLoading={false} onSelectQuote={() => setScreen('today')} onCreateQuote={() => setScreen('create_quote')} onOpenDeal={() => setScreen('deals')} onOpenConversation={() => { setScreen('inbox'); setMobileThread(true); }} onOpenWia={message => { setWiaInitialMessage(message || ''); setScreen('wia'); }} onOpenBilling={() => setScreen('billing')} onOpenSettings={() => undefined} />}
-        {screen === 'inbox' && <InboxWorkspace currentView={currentView} accessToken={accessToken} selectedConversationId={mobileThread || window.matchMedia('(min-width: 1024px)').matches ? VISUAL_CONVERSATION_ID : null} onOpenConversation={() => setMobileThread(true)} onBackToInbox={() => setMobileThread(false)} onOpenDeal={() => setScreen('deals')} onOpenSettings={() => undefined} />}
+        {screen === 'inbox' && <InboxWorkspace onOpenWia={message=>{setWiaInitialMessage(message);setScreen('wia');}} currentView={currentView} accessToken={accessToken} selectedConversationId={mobileThread || window.matchMedia('(min-width: 1024px)').matches ? VISUAL_CONVERSATION_ID : null} onOpenConversation={() => setMobileThread(true)} onBackToInbox={() => setMobileThread(false)} onOpenDeal={() => setScreen('deals')} onOpenSettings={() => undefined} />}
         {screen === 'deals' && <DealsPage clients={[visualClient]} accessToken={accessToken} initialCreate={createDeal} initialCustomerId={draftCustomerId} onInitialCreateOpened={() => setCreateDeal(false)} />}
         {['team','audit','help'].includes(screen) && <ManagementPage view={screen as 'team'|'audit'|'help'} request={fixtureRequest} onNavigate={navigate} accountName="Pessoa de demonstração" />}
         {screen === 'billing' && <BillingPage userProfile={visualProfile} />}

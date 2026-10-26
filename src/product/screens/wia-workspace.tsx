@@ -49,6 +49,7 @@ const phaseLabels: Record<WiaPhase, string> = {
 };
 
 function actionTitle(action: WiaActionView) {
+  if(action.action_type==='request_approval')return 'Revisar ação preparada pela WIA';
   if(action.action_type==='send_proposal_followup')return 'Revisar follow-up da proposta';
   return action.action_type.replaceAll('_', ' ');
 }

@@ -102,7 +102,7 @@ jobs:
 
       - name: Replay fixture and migrations
         shell: bash
-        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 51 --security-assertion supabase/tests/assert_security_contract.sql
+        run: node scripts/validate-migrations.mjs --target ci --evidence-dir "$ORKTO_MIGRATION_EVIDENCE_DIR" --expected-count 52 --security-assertion supabase/tests/assert_security_contract.sql
 
       - name: Google pilot adversarial SQL (disposable only)
         run: |
@@ -112,6 +112,8 @@ jobs:
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_proposal_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_whatsapp_connections.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_unique_client_match.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_disconnect.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_whatsapp_reply_approval.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
 
@@ -187,7 +189,7 @@ jobs:
         run: |
           node scripts/validate-migrations.mjs \
             --target ci \
-            --expected-count 51 \
+            --expected-count 52 \
             --fixture "$RUNNER_TEMP/orkto-supabase-like.sql" \
             --start-after 20260923225648 \
             --pre-assertion supabase/tests/assert_remote_upgrade.sql \
@@ -201,6 +203,8 @@ jobs:
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_google_pilot_recovery.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_whatsapp_connections.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_unique_client_match.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_meta_disconnect.sql
+          psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_whatsapp_reply_approval.sql
           psql --no-psqlrc --set=ON_ERROR_STOP=1 --file supabase/tests/assert_existing_google_owner_transition.sql
 
       - name: Upload security evidence

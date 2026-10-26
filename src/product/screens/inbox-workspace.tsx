@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw, Search, X } from 'lucide-react';
 import { ConversationAssistance } from '../ui/conversation-assistance';
+import {whatsappReplyDraft} from '../whatsapp-reply-draft';
 import ConversationView from '../../components/inbox/ConversationView';
 import type { ProductView } from '../types';
 import type { InboxConversationView, ProductRequestState } from '../types';
@@ -16,6 +17,7 @@ interface InboxWorkspaceProps {
   onOpenDeal: (dealId: string) => void;
   onOpenSettings: () => void;
   onRefresh?: () => Promise<void>;
+  onOpenWia?: (message:string) => void;
 }
 
 type PriorityFilter = 'all' | 'unread' | 'priority';
@@ -45,8 +47,9 @@ function priorityTone(priority?: string | null) {
   return 'info' as const;
 }
 
-function ContextPanel({ conversation, onClose, onOpenDeal, accessToken, modal = false }: { conversation: InboxConversationView | null; onClose?: () => void; onOpenDeal: (dealId: string) => void; accessToken: string | null; modal?: boolean }) {
+function ContextPanel({ conversation, onClose, onOpenDeal, accessToken, onOpenWia, modal = false }: { conversation: InboxConversationView | null; onClose?: () => void; onOpenDeal: (dealId: string) => void; accessToken: string | null; onOpenWia?: (message:string)=>void; modal?: boolean }) {
   const reasons = conversation ? reasonsOf(conversation) : [];
+  const wiaDraft=conversation?whatsappReplyDraft(conversation.id,conversation.source_channel):null;
   return <aside className={`orkto-inbox-context h-full min-h-0 overflow-y-auto border-l p-4 orkto-product-border orkto-product-surface ${modal ? 'w-full max-w-[420px] shadow-[var(--orkto-shadow-panel)]' : ''}`} aria-label="Contexto da conversa">
     <div className="mb-5 flex items-start justify-between gap-3">
       <div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Contexto comercial</p><h2 className="mt-1 text-base font-semibold">Conversa</h2></div>
@@ -72,12 +75,16 @@ function ContextPanel({ conversation, onClose, onOpenDeal, accessToken, modal = 
       <section className="border-t pt-4 orkto-product-border" aria-labelledby="inbox-context-wia">
         <h3 id="inbox-context-wia" className="text-[11px] font-semibold uppercase tracking-[0.1em] orkto-product-subtle">WIA contextual</h3>
         <ConversationAssistance key={conversation.id} conversationId={conversation.id} accessToken={accessToken} />
+        {onOpenWia&&wiaDraft&&<>
+          <button type="button" onClick={()=>onOpenWia(wiaDraft)} className="mt-3 min-h-11 w-full rounded-lg border px-3 text-left text-sm font-semibold orkto-product-border">Preparar resposta na WIA</button>
+          <p className="mt-2 text-xs leading-5 orkto-product-muted">Abre um pedido para revisão. Preparar exige confirmação; aprovar cria tarefa interna. Nenhuma mensagem é enviada automaticamente.</p>
+        </>}
       </section>
     </div>}
   </aside>;
 }
 
-export default function InboxWorkspace({ currentView, accessToken, selectedConversationId, onOpenConversation, onBackToInbox, onOpenDeal, onOpenSettings, onRefresh }: InboxWorkspaceProps) {
+export default function InboxWorkspace({ currentView, accessToken, selectedConversationId, onOpenConversation, onBackToInbox, onOpenDeal, onOpenSettings, onRefresh, onOpenWia }: InboxWorkspaceProps) {
   const [listState, setListState] = useState<{ status: ProductRequestState; data: InboxConversationView[]; message?: string }>({ status: 'loading', data: [] });
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<PriorityFilter>('all');
@@ -169,12 +176,12 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
         {selectedConversationId ? <InboxThread conversationId={selectedConversationId} onBack={onBackToInbox} onOpenContext={openContext} onOpenConfiguration={onOpenSettings} onRefresh={refresh} /> : <div className="flex h-full min-h-[420px] items-center justify-center p-6"><EmptyState title="Escolha uma conversa" description="A conversa externa, a composição e as ações contextuais serão abertas aqui." /></div>}
       </div>
 
-      <div className="orkto-inbox-context-slot min-h-0" aria-label="Contexto e WIA"><ContextPanel conversation={selected || null} accessToken={accessToken} onOpenDeal={onOpenDeal} /></div>
+      <div className="orkto-inbox-context-slot min-h-0" aria-label="Contexto e WIA"><ContextPanel conversation={selected || null} accessToken={accessToken} onOpenDeal={onOpenDeal} onOpenWia={onOpenWia} /></div>
     </div>
 
     {contextDrawerOpen && <div className="fixed inset-0 z-[130] flex justify-end" onMouseDown={event => { if (event.target === event.currentTarget) setContextDrawerOpen(false); }}>
       <button type="button" className="absolute inset-0 bg-[var(--orkto-overlay)]" aria-label="Fechar contexto" onClick={() => setContextDrawerOpen(false)} />
-      <div ref={contextDrawerRef} role="dialog" aria-modal="true" aria-label="Contexto da conversa" className="relative h-full w-full max-w-[420px]"><ContextPanel conversation={selected || null} accessToken={accessToken} onClose={() => setContextDrawerOpen(false)} onOpenDeal={onOpenDeal} modal /></div>
+      <div ref={contextDrawerRef} role="dialog" aria-modal="true" aria-label="Contexto da conversa" className="relative h-full w-full max-w-[420px]"><ContextPanel conversation={selected || null} accessToken={accessToken} onClose={() => setContextDrawerOpen(false)} onOpenDeal={onOpenDeal} onOpenWia={onOpenWia} modal /></div>
     </div>}
   </section>;
 }

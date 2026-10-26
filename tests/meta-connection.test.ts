@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {completeMetaEmbeddedSignup,MetaConnectionError,metaRuntimeConfig} from '../supabase/functions/orkto-core-mutations/_shared/meta-connection.ts';
+import {completeMetaEmbeddedSignup,inspectMetaPhoneBinding,MetaConnectionError,metaRuntimeConfig} from '../supabase/functions/orkto-core-mutations/_shared/meta-connection.ts';
 
 const values:Record<string,string>={
   META_APP_ID:'1234567890',META_APP_SECRET:'test-meta-secret',META_EMBEDDED_SIGNUP_CONFIG_ID:'9876543210',
@@ -8,6 +8,17 @@ const values:Record<string,string>={
 };
 const env={get:(name:string)=>values[name]};
 const input={code:'one-time-code',businessId:'1111111111',wabaId:'2222222222',phoneNumberId:'3333333333',coexistenceState:'not_requested' as const};
+
+test('explicit health check is GET-only, validates binding and classifies revoked token',async()=>{
+ const methods:string[]=[];
+ const result=await inspectMetaPhoneBinding({accessToken:'synthetic',wabaId:input.wabaId,phoneNumberId:input.phoneNumberId,graphVersion:'v25.0'},async(url,init)=>{
+  methods.push(init?.method||'GET');assert.ok(init?.signal instanceof AbortSignal);
+  return String(url).includes('/phone_numbers?')?Response.json({data:[{id:input.phoneNumberId}]}):Response.json({id:input.phoneNumberId,display_phone_number:'Synthetic',verified_name:'Synthetic'});
+ });
+ assert.equal(result.verified_name,'Synthetic');assert.deepEqual(methods,['GET','GET']);
+ await assert.rejects(inspectMetaPhoneBinding({accessToken:'synthetic',wabaId:input.wabaId,phoneNumberId:input.phoneNumberId,graphVersion:'v25.0'},async()=>Response.json({error:{code:190}},{status:400})),
+  (error:unknown)=>error instanceof MetaConnectionError&&error.code==='PROVIDER_AUTHENTICATION');
+});
 
 test('Meta runtime fails closed when any server credential or identifier is invalid',()=>{
   assert.equal(metaRuntimeConfig({get:()=>undefined}),null);

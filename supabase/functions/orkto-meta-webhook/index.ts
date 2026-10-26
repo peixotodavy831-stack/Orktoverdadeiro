@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
-import {readMetaBody,metaMessageFingerprint,metaReceiptOutcome} from './event-boundary.ts';
+import {readMetaBody,metaMessageFingerprint,metaReceiptOutcome,metaIngestConfirmed,metaRecipientMatches} from './event-boundary.ts';
 
 const numericId=z.string().regex(/^\d{5,30}$/);
 const unixTime=z.string().regex(/^\d{1,12}$/);
@@ -68,16 +68,18 @@ Deno.serve(async(req:Request)=>{
       });
       const claim=Array.isArray(claimed)?claimed[0]:claimed;
       if(claimError){retryRequired=true;continue}
-       if(claim?.decision==='DUPLICATE'||claim?.decision==='IN_PROGRESS')continue;
+       if(claim?.decision==='DUPLICATE')continue;
+       if(claim?.decision==='IN_PROGRESS'){retryRequired=true;continue;}
        if(claim?.decision!=='CLAIMED'||typeof claim.connection_id!=='string'||typeof claim.claim_token!=='string')continue;
       if(item.type!=='text'||!item.text){
-         await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});continue;
+         const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});
+         if(finishError||finished!==true)retryRequired=true;continue;
       }
       const {data:stored,error:storeError}=await admin.rpc('orkto_ingest_meta_text_message',{
          p_connection_id:claim.connection_id,p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_external_message_id:item.id,
         p_sender_phone:item.from,p_text:item.text.body,p_occurred_at:at,
       });
-      if(storeError||!stored){
+      if(storeError||!metaIngestConfirmed(stored)){
          retryRequired=true;await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'persistence_error'});
       }
     }
@@ -90,12 +92,20 @@ Deno.serve(async(req:Request)=>{
       });
       const claim=Array.isArray(claimed)?claimed[0]:claimed;
       if(claimError){retryRequired=true;continue}
-       if(claim?.decision==='DUPLICATE'||claim?.decision==='IN_PROGRESS')continue;
+       if(claim?.decision==='DUPLICATE')continue;
+       if(claim?.decision==='IN_PROGRESS'){retryRequired=true;continue;}
        if(claim?.decision!=='CLAIMED'||typeof claim.workspace_id!=='string'||typeof claim.claim_token!=='string')continue;
-      const {data:send,error:lookupError}=await admin.from('orkto_channel_send_requests').select('id')
+      const {data:send,error:lookupError}=await admin.from('orkto_channel_send_requests').select('id,conversation_id')
         .eq('workspace_id',claim.workspace_id).eq('provider','meta_whatsapp_cloud').eq('provider_message_id',item.id).maybeSingle();
       if(lookupError){retryRequired=true;continue}
-       if(!send?.id){await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});continue}
+       if(!send?.id){const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});if(finishError||finished!==true)retryRequired=true;continue}
+      const {data:conversation,error:conversationError}=await admin.from('orkto_conversations').select('contact_phone')
+        .eq('workspace_id',claim.workspace_id).eq('id',send.conversation_id).maybeSingle();
+      if(conversationError){retryRequired=true;continue;}
+      if(!metaRecipientMatches(item.recipient_id,conversation?.contact_phone)){
+        const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'recipient_mismatch'});
+        if(finishError||finished!==true)retryRequired=true;continue;
+      }
       const mapped=item.status==='sent'?'PROVIDER_ACKNOWLEDGED':item.status==='failed'?'FAILED':'DELIVERED';
       const {data:receiptDecision,error:receiptError}=await admin.rpc('orkto_record_channel_delivery_event',{
         p_workspace_id:claim.workspace_id,p_send_request_id:send.id,p_provider:'meta_whatsapp_cloud',
@@ -104,8 +114,8 @@ Deno.serve(async(req:Request)=>{
       });
        if(receiptError){retryRequired=true;await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'delivery_persistence_error'});continue}
        const outcome=metaReceiptOutcome(receiptDecision);
-       const {error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:outcome.status,p_failure_category:outcome.failureCategory});
-       if(outcome.retry||finishError)retryRequired=true;
+       const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:outcome.status,p_failure_category:outcome.failureCategory});
+       if(outcome.retry||finishError||finished!==true)retryRequired=true;
     }
   }
   return retryRequired?json(503,'RETRY_REQUIRED',requestId):json(200,'ACCEPTED',requestId);

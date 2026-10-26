@@ -11,8 +11,9 @@ import { routeT0Request } from './_shared/wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './_shared/wia-trusted.ts';
 import { prepareTrustedRequest, WiaRequestError } from './_shared/wia-request.ts';
 import { geminiTestConfiguration } from './_shared/wia-gemini.ts';
-import { completeMetaEmbeddedSignup, MetaConnectionError, metaRuntimeConfig } from './_shared/meta-connection.ts';
-import { MetaSendError, sendMetaText } from './_shared/meta-send.ts';
+import { completeMetaEmbeddedSignup, inspectMetaPhoneBinding, MetaConnectionError, metaRuntimeConfig } from './_shared/meta-connection.ts';
+import {metaConnectionStatus} from './_shared/meta-status.ts';
+import { MetaSendError, sendMetaText, metaServiceWindowOpen } from './_shared/meta-send.ts';
 import { COMMERCIAL_PLANS } from './_shared/commercial-catalog.ts';
 import { asaasSandbox } from './_shared/asaas-sandbox.ts';
 import {changeSandboxSubscription} from './_shared/billing-lifecycle.ts';
@@ -113,7 +114,7 @@ Deno.serve(async (req: Request) => {
     let argumentsForCommand: Record<string,unknown>;
     let eventType: string;
     if (command === 'READ_PLAN_CATALOG' || command === 'READ_BILLING_CURRENT' || command === 'READ_WIA_RUNTIME'
-        || command === 'READ_WHATSAPP_CONNECTION' || command === 'BEGIN_WHATSAPP_CONNECTION') {
+        || command === 'READ_WHATSAPP_CONNECTION' || command === 'READ_WHATSAPP_HEALTH' || command === 'DISCONNECT_WHATSAPP' || command === 'BEGIN_WHATSAPP_CONNECTION') {
       if (!suppliedPayload || typeof suppliedPayload !== 'object' || Array.isArray(suppliedPayload)
           || Object.keys(suppliedPayload).length !== 0) return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
       canonical = {};
@@ -478,7 +479,17 @@ Deno.serve(async (req: Request) => {
     if (membershipError) return response(503, 'INTERNAL_ERROR', requestId, undefined, origin);
     if (!membership || membership.status !== 'active') return response(403, 'WORKSPACE_ACCESS_DENIED', requestId, undefined, origin);
     if (!['owner','admin','manager','member'].includes(membership.role)) return response(403, 'PERMISSION_DENIED', requestId, undefined, origin);
-    if (command === 'READ_WHATSAPP_CONNECTION') {
+    if(command==='DISCONNECT_WHATSAPP'){
+      if(!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
+      const result=await admin.rpc('orkto_disconnect_meta_connection',{p_workspace_id:membership.workspace_id,p_actor_user_id:user.id});
+      if(result.error)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      if(result.data==='RECONCILIATION_REQUIRED')return response(409,'CONFLICT',requestId,undefined,origin);
+      if(result.data==='NOT_FOUND')return response(404,'NOT_FOUND',requestId,undefined,origin);
+      if(!['DISCONNECTED','REPLAY'].includes(String(result.data)))return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+      return response(200,'OK',requestId,{result:result.data},origin);
+    }
+    if (command === 'READ_WHATSAPP_CONNECTION' || command === 'READ_WHATSAPP_HEALTH') {
+      if(command==='READ_WHATSAPP_HEALTH'&&!['owner','admin'].includes(membership.role))return response(403,'PERMISSION_DENIED',requestId,undefined,origin);
       const [connectionResult,controlsResult]=await Promise.all([
         admin.from('orkto_channel_connections')
           .select('id,status,business_id,waba_id,phone_number_id,display_phone_number,verified_name,coexistence_state,service_mode,granted_scopes,verified_at,webhook_subscribed_at,last_error_category,updated_at')
@@ -489,10 +500,26 @@ Deno.serve(async (req: Request) => {
       ]);
       if(connectionResult.error||controlsResult.error)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
       const runtime=metaRuntimeConfig(Deno.env);
+      let connection=connectionResult.data;
+      if(command==='READ_WHATSAPP_HEALTH'&&connection?.status==='connected'&&runtime){
+        const token=await admin.rpc('orkto_read_meta_token',{p_connection_id:connection.id});
+        if(token.error||typeof token.data!=='string'||!token.data)return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+        try{
+          await inspectMetaPhoneBinding({accessToken:token.data,wabaId:connection.waba_id,phoneNumberId:connection.phone_number_id,graphVersion:runtime.graphVersion});
+          const current=await admin.from('orkto_channel_connections').select('status,updated_at')
+            .eq('workspace_id',membership.workspace_id).eq('id',connection.id).maybeSingle();
+          if(current.error)return response(503,'INTERNAL_ERROR',requestId,undefined,origin);
+          connection=current.data?.status==='connected'&&current.data.updated_at===connection.updated_at
+            ?{...connection,verified_at:new Date().toISOString(),last_error_category:null}
+            :{...connection,status:current.data?.status||'error',last_error_category:'connection_changed'};
+        }catch(error){
+          connection={...connection,status:'error',last_error_category:error instanceof MetaConnectionError&&error.code==='PROVIDER_AUTHENTICATION'?'authentication':'provider_verification_failed'};
+        }
+      }
       return response(200,'OK',requestId,{result:'READ',whatsapp:{
-        state:connectionResult.data?.status||(runtime?'ready_to_connect':'configuration_required'),
-        connected:connectionResult.data?.status==='connected',runtimeConfigured:runtime!==null,
-        connection:connectionResult.data||null,controls:controlsResult.data||null,
+        ...metaConnectionStatus(connection,runtime!==null),runtimeConfigured:runtime!==null,
+        verificationScope:'phone_and_waba_only',deliveryVerified:false,
+        connection:connection||null,controls:controlsResult.data||null,
       }},origin);
     }
     if (command === 'BEGIN_WHATSAPP_CONNECTION') {
@@ -674,8 +701,7 @@ Deno.serve(async (req: Request) => {
       const connection=connectionResult.data,controls=controlsResult.data;
       if(!connection||connection.status!=='connected'||!controls)
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
-      const lastInbound=Date.parse(lastInboundResult.data?.sent_at||'');
-      if(!Number.isFinite(lastInbound)||now.getTime()-lastInbound>24*60*60*1000)
+      if(!metaServiceWindowOpen(lastInboundResult.data?.sent_at,now.getTime()))
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       if(typeof controls.pricing_market!=='string'||!/^[A-Z]{2}$/.test(controls.pricing_market))
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
@@ -772,7 +798,7 @@ Deno.serve(async (req: Request) => {
         return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const route=routeT0Request(String(canonical.message));
       // Preparation with effects uses the fingerprinted request lifecycle only.
-      if (!route || route.name === 'prepare_proposal_recovery') return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
+      if (!route || ['prepare_proposal_recovery','prepare_whatsapp_reply'].includes(route.name)) return response(423,'CONFIGURATION_REQUIRED',requestId,undefined,origin);
       const agent=t0Agent(route.name);
       const traceId=await traceUuid(`${membership.workspace_id}:${user.id}:${idempotencyKey}`);
       const common={p_actor_user_id:user.id,p_workspace_id:membership.workspace_id,p_trace_id:traceId,

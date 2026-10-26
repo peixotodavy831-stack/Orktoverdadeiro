@@ -443,6 +443,22 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     } catch {return res.status(503).json({error:'Não foi possível consultar as integrações.',category:'configuration_required'});}
   });
 
+  app.post('/api/integrations/whatsapp/disconnect',authenticate,requireDb,async(req,res)=>{
+    if(req.body?.confirm!==true||Object.keys(req.body).some(key=>key!=='confirm'))return res.status(400).json({error:'Confirme a desconexão local.'});
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem desconectar canais.'});
+    const result=await invokeCoreMutation(req,res,context,'DISCONNECT_WHATSAPP',{});if(!result)return;
+    return res.json({data:{result:result.result,scope:'orkto_local',providerRevocationPerformed:false}});
+  });
+
+  app.post('/api/integrations/whatsapp/verify',authenticate,requireDb,async(req,res)=>{
+    const context=await workspaceContext(req,res,db,false,true);if(!context)return;
+    if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem verificar canais.'});
+    const result=await invokeCoreMutation(req,res,context,'READ_WHATSAPP_HEALTH',{});if(!result)return;
+    if(!result.whatsapp)return res.status(503).json({error:'Estado do provedor não confirmado.',category:'configuration_required'});
+    return res.json({data:result.whatsapp});
+  });
+
   app.post('/api/integrations/whatsapp/start',authenticate,requireDb,async(req,res)=>{
     const context=await workspaceContext(req,res,db,false,true);if(!context)return;
     if(!['owner','admin'].includes(context.role))return res.status(403).json({error:'Somente administradores podem conectar canais.'});

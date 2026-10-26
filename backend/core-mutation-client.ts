@@ -17,7 +17,7 @@ export type CoreMutationCommand =
   | 'SET_CONVERSATION_PRIORITY' | 'MARK_CONVERSATION_READ' | 'SET_CONVERSATION_STATUS'
   | 'AUDIT_MESSAGE_CONFIGURATION_REQUIRED' | 'START_WIA_RUN' | 'COMPLETE_WIA_RUN'
   | 'READ_PLAN_CATALOG' | 'READ_BILLING_CURRENT' | 'READ_WIA_RUNTIME' | 'PREPARE_WIA_T0' | 'PREPARE_WIA_REQUEST'
-  | 'READ_WHATSAPP_CONNECTION' | 'BEGIN_WHATSAPP_CONNECTION' | 'COMPLETE_WHATSAPP_CONNECTION' | 'SET_WHATSAPP_MODE'
+  | 'READ_WHATSAPP_CONNECTION' | 'READ_WHATSAPP_HEALTH' | 'DISCONNECT_WHATSAPP' | 'BEGIN_WHATSAPP_CONNECTION' | 'COMPLETE_WHATSAPP_CONNECTION' | 'SET_WHATSAPP_MODE'
   | 'SEND_WHATSAPP_MESSAGE' | 'REQUEST_COMMERCIAL_PROPOSAL' | 'BEGIN_SUBSCRIPTION_SANDBOX' | 'CHANGE_SUBSCRIPTION_SANDBOX';
 
 export type CoreMutationResult = {
@@ -116,7 +116,7 @@ export class CoreMutationClient {
           authorization: req.get('authorization') || '', 'x-orkto-workspace': workspaceId,
           'x-idempotency-key': idempotencyKey, 'x-request-id': req.requestId || crypto.randomUUID() },
         body: JSON.stringify({ command, payload }), signal: AbortSignal.timeout(
-          command==='PREPARE_WIA_REQUEST'||command==='COMPLETE_WHATSAPP_CONNECTION'?25_000:10_000),
+          command==='PREPARE_WIA_REQUEST'||command==='COMPLETE_WHATSAPP_CONNECTION'||command==='READ_WHATSAPP_HEALTH'?25_000:10_000),
       });
       const result = await gateway.json() as { code?: string; data?: CoreMutationResult };
       if (!gateway.ok) {

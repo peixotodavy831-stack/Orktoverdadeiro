@@ -391,7 +391,8 @@ before(async () => {
         if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
         return ok({result:'READ',wia:{provider:'gemini',model:'gemini-3.8-flash',state:'configuration_required',testingOnly:true}});
       }
-      if (request.command === 'READ_WHATSAPP_CONNECTION') {
+      if (request.command === 'DISCONNECT_WHATSAPP') return ok({result:'DISCONNECTED'});
+      if (request.command === 'READ_WHATSAPP_CONNECTION'||request.command === 'READ_WHATSAPP_HEALTH') {
         if(Object.keys(payload).length)return Response.json({code:'VALIDATION_FAILED'},{status:400});
         return ok({result:'READ',whatsapp:{state:'configuration_required',connected:false,
           runtimeConfigured:false,connection:null,controls:null}});
@@ -881,6 +882,19 @@ test('integration status never claims external activation or exposes keys',async
   const payload=await response.json() as {data:{whatsapp:{connected:boolean};billing:{checkoutEnabled:boolean}}};assert.equal(payload.data.whatsapp.connected,false);assert.equal(payload.data.billing.checkoutEnabled,false);
   assert.ok(!JSON.stringify(payload).includes('apiKey'));
   assert.equal((await api(base,CLIENT_TOKEN_A,'/api/integrations/status',{headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+});
+
+test('WhatsApp health and local disconnect require owner/admin and reject foreign workspace',async()=>{
+  resetDatabase();const base=await serve(app);
+  const disconnect={method:'POST',body:JSON.stringify({confirm:true})};
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/integrations/whatsapp/disconnect',{method:'POST',body:JSON.stringify({confirm:false})})).status,400);
+  assert.equal((await api(base,CLIENT_TOKEN_A_OTHER,'/api/integrations/whatsapp/disconnect',disconnect)).status,403);
+  assert.equal((await api(base,CLIENT_TOKEN_A_OTHER,'/api/integrations/whatsapp/verify',{method:'POST',body:'{}'})).status,403);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/integrations/whatsapp/disconnect',{...disconnect,headers:{'x-orkto-workspace':WORKSPACE_B}})).status,403);
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/integrations/whatsapp/verify',{method:'POST',body:'{}'})).status,200);
+  const response=await api(base,CLIENT_TOKEN_A,'/api/integrations/whatsapp/disconnect',disconnect);
+  assert.equal(response.status,200);
+  const result=await response.json();assert.equal(result.data.scope,'orkto_local');assert.equal(result.data.providerRevocationPerformed,false);
 });
 
 test('plan catalog uses membership-scoped Edge read and masks unpublished prices', async () => {

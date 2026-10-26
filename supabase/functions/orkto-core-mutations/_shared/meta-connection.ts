@@ -3,7 +3,7 @@ const GRAPH_VERSION=/^v\d{1,2}\.\d{1,2}$/;
 
 export type MetaRuntimeConfig={appId:string;configId:string;graphVersion:string;redirectUri:string|null};
 export class MetaConnectionError extends Error{
-  constructor(readonly code:'CONFIGURATION_REQUIRED'|'PROVIDER_REJECTED'|'PROVIDER_UNAVAILABLE'|'PROVIDER_RESPONSE_INVALID'){super(code);this.name='MetaConnectionError'}
+  constructor(readonly code:'CONFIGURATION_REQUIRED'|'PROVIDER_REJECTED'|'PROVIDER_AUTHENTICATION'|'PROVIDER_UNAVAILABLE'|'PROVIDER_RESPONSE_INVALID'){super(code);this.name='MetaConnectionError'}
 }
 
 export function metaRuntimeConfig(env:{get(name:string):string|undefined}):MetaRuntimeConfig|null{
@@ -23,7 +23,10 @@ async function providerJson(url:string,init:RequestInit,send:typeof fetch,timeou
   try{response=await send(url,{...init,redirect:'error',signal:AbortSignal.timeout(timeout)})}
   catch{throw new MetaConnectionError('PROVIDER_UNAVAILABLE')}
   let body:unknown;try{body=await response.json()}catch{throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID')}
-  if(!response.ok)throw new MetaConnectionError(response.status>=500||response.status===429?'PROVIDER_UNAVAILABLE':'PROVIDER_REJECTED');
+  if(!response.ok){
+    const code=(body as {error?:{code?:unknown}}|null)?.error?.code;
+    throw new MetaConnectionError(response.status===401||response.status===403||code===190?'PROVIDER_AUTHENTICATION':response.status>=500||response.status===429?'PROVIDER_UNAVAILABLE':'PROVIDER_REJECTED');
+  }
   if(!body||typeof body!=='object'||Array.isArray(body))throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
   return body as Record<string,unknown>;
 }
@@ -33,6 +36,8 @@ export async function completeMetaEmbeddedSignup(input:{
   coexistenceState:'unknown'|'eligible'|'enabled'|'ineligible'|'not_requested';
 },env:{get(name:string):string|undefined},send:typeof fetch=fetch){
   const config=metaRuntimeConfig(env);if(!config)throw new MetaConnectionError('CONFIGURATION_REQUIRED');
+  const budget=AbortSignal.timeout(18_000),provider=send;
+  send=(url:RequestInfo|URL,init:RequestInit={})=>provider(url,{...init,signal:AbortSignal.any([budget,...(init.signal?[init.signal]:[])])});
   if(!input.code||input.code.length>4096||!NUMERIC_ID.test(input.wabaId)||!NUMERIC_ID.test(input.phoneNumberId)
     ||input.businessId!==null&&!NUMERIC_ID.test(input.businessId))throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
   const body=new URLSearchParams({client_id:config.appId,client_secret:(env.get('META_APP_SECRET')||'').trim(),code:input.code});
@@ -53,6 +58,26 @@ export async function completeMetaEmbeddedSignup(input:{
   });
   const requiredScopes=['whatsapp_business_management','whatsapp_business_messaging'];
   if(requiredScopes.some(scope=>!grantedScopes.includes(scope)))throw new MetaConnectionError('PROVIDER_REJECTED');
+  const phone=await inspectMetaPhoneBinding({accessToken,wabaId:input.wabaId,phoneNumberId:input.phoneNumberId,graphVersion:config.graphVersion},send);
+  const subscription=await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.wabaId}/subscribed_apps`,{
+    method:'POST',headers:{authorization:`Bearer ${accessToken}`,'content-type':'application/json'},body:'{}',
+  },send);
+  if(subscription.success!==true)throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
+  return{
+    accessToken,businessId:input.businessId,wabaId:input.wabaId,phoneNumberId:input.phoneNumberId,
+    displayPhoneNumber:phone.display_phone_number.slice(0,80),verifiedName:phone.verified_name.slice(0,180),
+    // Embedded Signup input is a client claim, not provider verification.
+    coexistenceState:input.coexistenceState==='not_requested'?'not_requested' as const:'unknown' as const,grantedScopes:grantedScopes.slice(0,32),
+    metadata:{qualityRating:typeof phone.quality_rating==='string'?phone.quality_rating.slice(0,40):null,graphVersion:config.graphVersion},
+  };
+}
+
+/** Read-only provider check; shared by onboarding and explicit health refresh. */
+export async function inspectMetaPhoneBinding(input:{accessToken:string;wabaId:string;phoneNumberId:string;graphVersion:string},send:typeof fetch=fetch){
+  if(!input.accessToken||!NUMERIC_ID.test(input.wabaId)||!NUMERIC_ID.test(input.phoneNumberId)||!GRAPH_VERSION.test(input.graphVersion))throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
+  const accessToken=input.accessToken,config={graphVersion:input.graphVersion};
+  const budget=AbortSignal.timeout(18_000),provider=send;
+  send=(url:RequestInfo|URL,init:RequestInit={})=>provider(url,{...init,signal:AbortSignal.any([budget,...(init.signal?[init.signal]:[])])});
   const phone=await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.phoneNumberId}?fields=id,display_phone_number,verified_name,quality_rating`,{
     method:'GET',headers:{authorization:`Bearer ${accessToken}`},
   },send);
@@ -77,15 +102,5 @@ export async function completeMetaEmbeddedSignup(input:{
     seen.add(after);cursor=after;
   }
   if(!bound)throw new MetaConnectionError('PROVIDER_REJECTED');
-  const subscription=await providerJson(`https://graph.facebook.com/${config.graphVersion}/${input.wabaId}/subscribed_apps`,{
-    method:'POST',headers:{authorization:`Bearer ${accessToken}`,'content-type':'application/json'},body:'{}',
-  },send);
-  if(subscription.success!==true)throw new MetaConnectionError('PROVIDER_RESPONSE_INVALID');
-  return{
-    accessToken,businessId:input.businessId,wabaId:input.wabaId,phoneNumberId:input.phoneNumberId,
-    displayPhoneNumber:phone.display_phone_number.slice(0,80),verifiedName:phone.verified_name.slice(0,180),
-    // Embedded Signup input is a client claim, not provider verification.
-    coexistenceState:input.coexistenceState==='not_requested'?'not_requested' as const:'unknown' as const,grantedScopes:grantedScopes.slice(0,32),
-    metadata:{qualityRating:typeof phone.quality_rating==='string'?phone.quality_rating.slice(0,40):null,graphVersion:config.graphVersion},
-  };
+  return {...phone,display_phone_number:phone.display_phone_number as string,verified_name:phone.verified_name as string,quality_rating:phone.quality_rating};
 }

@@ -1,5 +1,6 @@
 import { messageForTool, type T0Route } from './wia-t0.ts';
 import { prepareProposalRecovery } from './proposal-recovery.ts';
+import {prepareWhatsAppReply} from './whatsapp-reply.ts';
 
 type QueryResult = { data: any; error: { message: string } | null };
 function requireData(result: QueryResult) {
@@ -25,6 +26,12 @@ export function t0Agent(name: string) {
 export async function executeTrustedT0(db: any, workspaceId: string, route: T0Route) {
   const began = Date.now();
   let output: Record<string,unknown>;
+  if(route.name==='prepare_whatsapp_reply'){
+    const decision=await prepareWhatsAppReply(db,workspaceId,String(route.input.conversationId));
+    const durationMs=Date.now()-began;
+    return {decision,sourceIds:decision.sourceIds,durationMs,
+      toolExecutions:[{toolName:route.name,status:'succeeded',sourceIds:decision.sourceIds,durationMs}]};
+  }
   if (route.name === 'prepare_proposal_recovery') {
     const decision = await prepareProposalRecovery(db, workspaceId, String(route.input.quoteId));
     const durationMs = Date.now() - began;

@@ -29,3 +29,20 @@ export function metaReceiptOutcome(decision:unknown):{
  if(decision==='EVENT_CONFLICT'||decision==='PROVIDER_REFERENCE_CONFLICT')return{status:'failed',failureCategory:'delivery_ledger_conflict',retry:false};
  return{status:'failed',failureCategory:'delivery_decision_unrecognized',retry:true};
 }
+
+/** RPC HTTP success is not proof that the inbound message was committed. */
+export function metaIngestConfirmed(value:unknown):boolean {
+ const row=Array.isArray(value)?(value.length===1?value[0]:null):value;
+ if(!row||typeof row!=='object')return false;
+ const result=row as Record<string,unknown>;
+ const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+ return (result.decision==='APPLIED'||result.decision==='DUPLICATE')
+   &&typeof result.message_id==='string'&&uuid.test(result.message_id)
+   &&(result.decision==='DUPLICATE'||typeof result.conversation_id==='string'&&uuid.test(result.conversation_id));
+}
+
+/** Provider receipts must belong to the persisted conversation recipient. */
+export function metaRecipientMatches(received:unknown,phone:unknown):boolean {
+ if(typeof received!=='string'||typeof phone!=='string'||!/^\d{5,30}$/.test(received))return false;
+ return received===phone.replace(/\D/g,'');
+}

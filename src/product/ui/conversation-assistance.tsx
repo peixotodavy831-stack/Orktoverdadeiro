@@ -4,20 +4,21 @@ import type { buildConversationAssistance } from '../../../backend/orkto-core/co
 type Brief = ReturnType<typeof buildConversationAssistance>;
 
 export function ConversationAssistance({ conversationId, accessToken }: { conversationId: string; accessToken: string | null }) {
-  const [result, setResult] = useState<{ id: string; data?: Brief; error?: string; loading?: boolean } | null>(null);
+  const [result, setResult] = useState<{ id: string; token:string|null; data?: Brief; error?: string; loading?: boolean } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [draft, setDraft] = useState('');
   useEffect(() => {
     if (!attempt) return;
     let active = true;
     const controller = new AbortController();
-    setResult({ id: conversationId, loading: true });
+    setResult({ id: conversationId, token:accessToken, loading: true });
+    setDraft('');
     void productApi<Brief>(`/api/conversations/${encodeURIComponent(conversationId)}/assistance`, accessToken, { signal: controller.signal })
-      .then(data => { if (active) { setResult({ id: conversationId, data }); setDraft(previous => previous || data.draft || ''); } })
-      .catch(error => { if (active) setResult({ id: conversationId, error: error instanceof ProductApiError && error.status === 403 ? 'Você não tem acesso a este contexto.' : error instanceof ProductApiError && error.status === 401 ? 'Sessão expirada. Entre novamente.' : 'Não foi possível preparar o contexto. Tente novamente.' }); });
+      .then(data => { if (active) { setResult({ id: conversationId, token:accessToken, data }); setDraft(data.draft || ''); } })
+      .catch(error => { if (active) setResult({ id: conversationId, token:accessToken, error: error instanceof ProductApiError && error.status === 403 ? 'Você não tem acesso a este contexto.' : error instanceof ProductApiError && error.status === 401 ? 'Sessão expirada. Entre novamente.' : 'Não foi possível preparar o contexto. Tente novamente.' }); });
     return () => { active = false; controller.abort(); };
   }, [conversationId, accessToken, attempt]);
-  const current = result?.id === conversationId ? result : null;
+  const current = result?.id === conversationId && result.token===accessToken ? result : null;
   const brief = current?.data;
   return <div className="mt-3 space-y-3 text-xs leading-5">
     <p className="orkto-product-muted">Use os registros desta conversa para revisar o próximo passo. Sem IA paga, criação de registros ou envio.</p>
