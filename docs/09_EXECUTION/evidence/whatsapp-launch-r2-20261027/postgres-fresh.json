@@ -1,0 +1,539 @@
+{
+  "runId": "migration-replay-20261027T113330305Z-633ea53b",
+  "status": "PASS",
+  "phase": "TARGET_SCHEMA_INVENTORY",
+  "startedAt": "2026-10-27T11:33:30.308Z",
+  "endedAt": "2026-10-27T11:33:54.615Z",
+  "target": "local",
+  "postgres": {
+    "server_version": "17.11",
+    "server_version_num": 170011,
+    "server_version_full": "PostgreSQL 17.11 on x86_64-windows, compiled by msvc-19.44.35228, 64-bit"
+  },
+  "connection": {
+    "host": "127.0.0.1",
+    "port": "55438",
+    "user": "postgres",
+    "database": "orkto_whatsapp_r2_final"
+  },
+  "expectedMigrationCount": 53,
+  "discoveredMigrationCount": 53,
+  "appliedMigrationCount": 53,
+  "startAfter": "",
+  "candidateStatus": "NOT_APPLICABLE",
+  "securityStatus": "PASS",
+  "migrations": [
+    {
+      "name": "20260905220031_initial_secure_orkto_schema.sql",
+      "version": "20260905220031",
+      "sha256": "9d92b7107486a944ae58001c4c33d207c6bad656ef7234dc00e6e11105ab16ac",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:31.155Z",
+      "endedAt": "2026-10-27T11:33:31.536Z",
+      "error": null
+    },
+    {
+      "name": "20260906145611_harden_billing_and_profiles.sql",
+      "version": "20260906145611",
+      "sha256": "62f7e293ffda2092de626077caf7f41086d9d7e76ce9e6ec3b937750596aa5c9",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:31.536Z",
+      "endedAt": "2026-10-27T11:33:31.819Z",
+      "error": null
+    },
+    {
+      "name": "20260908094252_quote_retention.sql",
+      "version": "20260908094252",
+      "sha256": "9c36a555b21453645105a4b8404dbb3092f3ad75ce0ecc77de95975b3c4c93c9",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:31.819Z",
+      "endedAt": "2026-10-27T11:33:32.148Z",
+      "error": null
+    },
+    {
+      "name": "20260908094655_quote_retention_cleanup.sql",
+      "version": "20260908094655",
+      "sha256": "8f1c0922256a31f0df36d6434b393617c5a5ff72fa62a3e9145337d95dbb27d5",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:32.148Z",
+      "endedAt": "2026-10-27T11:33:32.542Z",
+      "error": null
+    },
+    {
+      "name": "20260908184808_launch_hardening_verified_empty_legacy_columns.sql",
+      "version": "20260908184808",
+      "sha256": "338c0c6cff694624f8c945e0a8c8d74dffe794a126381d883d147caf6b721706",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:32.542Z",
+      "endedAt": "2026-10-27T11:33:32.910Z",
+      "error": null
+    },
+    {
+      "name": "20260908184908_launch_hardening_followup.sql",
+      "version": "20260908184908",
+      "sha256": "7d6982cd9c92cd9b4952f7b5d7c95317c5c2d45f8ff1007d951cafc5d17b656f",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:32.910Z",
+      "endedAt": "2026-10-27T11:33:33.277Z",
+      "error": null
+    },
+    {
+      "name": "20260923225648_create_tony_persistent_memory.sql",
+      "version": "20260923225648",
+      "sha256": "c6d8145b447ccdb50bc1b29ebecbd42b95cc91ff81d8d14609e0ced8f5250afa",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:33.277Z",
+      "endedAt": "2026-10-27T11:33:33.750Z",
+      "error": null
+    },
+    {
+      "name": "20260924000000_orkto_conversations_and_messages.sql",
+      "version": "20260924000000",
+      "sha256": "1b1d9ba65c8bb255c9a3731a1950425496515637817881ca1edb911ec1d388fd",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:33.750Z",
+      "endedAt": "2026-10-27T11:33:34.112Z",
+      "error": null
+    },
+    {
+      "name": "20260925000100_wiaos_model_usage.sql",
+      "version": "20260925000100",
+      "sha256": "e68db8a96191c6b39ed4593dd3a4cfee2130891161ac1d964bdd8d2167f8a722",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:34.112Z",
+      "endedAt": "2026-10-27T11:33:34.479Z",
+      "error": null
+    },
+    {
+      "name": "20260926000100_internal_finance_pok.sql",
+      "version": "20260926000100",
+      "sha256": "f86879bdd1d7c8e45c06df7a04a13b1a6bdb266e508714c2febd37969db72eac",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:34.479Z",
+      "endedAt": "2026-10-27T11:33:34.955Z",
+      "error": null
+    },
+    {
+      "name": "20260926192349_orkto_full_operational_v01.sql",
+      "version": "20260926192349",
+      "sha256": "7477df343416449cac89e83a84b8e7a6cc22958e619f330cad331fd81fda3054",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:34.955Z",
+      "endedAt": "2026-10-27T11:33:35.555Z",
+      "error": null
+    },
+    {
+      "name": "20260927120000_workspace_legacy_ownership.sql",
+      "version": "20260927120000",
+      "sha256": "44557ae2449a5a4c2a44c2533864e03f2211016e423a4299116a5294efd0f63b",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:35.555Z",
+      "endedAt": "2026-10-27T11:33:35.987Z",
+      "error": null
+    },
+    {
+      "name": "20260927150000_core_commercial_relations.sql",
+      "version": "20260927150000",
+      "sha256": "2c428a2f95d34b207a4a23888c3b2ff058e018c9c98256911d2b92858e7c5cd1",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:35.987Z",
+      "endedAt": "2026-10-27T11:33:36.284Z",
+      "error": null
+    },
+    {
+      "name": "20260927160000_sussurro_recipient_acl.sql",
+      "version": "20260927160000",
+      "sha256": "32f9ab59e735d659cb2cd20b52b4acaf432a9338a8cf3c2327347e28ed26f549",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:36.284Z",
+      "endedAt": "2026-10-27T11:33:36.528Z",
+      "error": null
+    },
+    {
+      "name": "20260927170000_billing_finance_convergence.sql",
+      "version": "20260927170000",
+      "sha256": "2cc23d38176d51f99b3b477f3730b23da34d0cf9aaf74cbfd0561559303c5bf4",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:36.528Z",
+      "endedAt": "2026-10-27T11:33:36.837Z",
+      "error": null
+    },
+    {
+      "name": "20260927180000_advanced_convergence6.sql",
+      "version": "20260927180000",
+      "sha256": "868ef0acde34f8c418abb881b588916026b783842065848056242c42db504e01",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:36.837Z",
+      "endedAt": "2026-10-27T11:33:37.232Z",
+      "error": null
+    },
+    {
+      "name": "20260928120000_security_reconciliation.sql",
+      "version": "20260928120000",
+      "sha256": "96684377537661d30c7a9dbac7efd30a00b554cbf99f4511e565bc3bd50effef",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:37.232Z",
+      "endedAt": "2026-10-27T11:33:37.771Z",
+      "error": null
+    },
+    {
+      "name": "20260928130000_durable_payment_and_delivery_ledgers.sql",
+      "version": "20260928130000",
+      "sha256": "103354a8fe3290fe38de7796b8be1ae38d4aafffcd76bd700e9b1c9ad7b7edde",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:37.771Z",
+      "endedAt": "2026-10-27T11:33:38.505Z",
+      "error": null
+    },
+    {
+      "name": "20261003234000_core_client_mutation_gateway.sql",
+      "version": "20261003234000",
+      "sha256": "9447ddaba553251dffe64776660c093dd0970bbf89b19a3a8f25bbf3621b3fd9",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:38.505Z",
+      "endedAt": "2026-10-27T11:33:38.872Z",
+      "error": null
+    },
+    {
+      "name": "20261004000000_core_client_update_archive_gateway.sql",
+      "version": "20261004000000",
+      "sha256": "2e062c87139524b045236702a92a8db1d25578f1aae22b5c985bb911ca5a5a10",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:38.872Z",
+      "endedAt": "2026-10-27T11:33:39.412Z",
+      "error": null
+    },
+    {
+      "name": "20261004002000_core_catalog_mutation_gateway.sql",
+      "version": "20261004002000",
+      "sha256": "cad1ceb5d5b7431ff467a7a7bbf716f10c3da8029e5f98694f7bd072b71d9c12",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:39.412Z",
+      "endedAt": "2026-10-27T11:33:39.893Z",
+      "error": null
+    },
+    {
+      "name": "20261004004000_core_deal_mutation_gateway.sql",
+      "version": "20261004004000",
+      "sha256": "f125c2d423df66bccdf49114997e1963c2b1a94a8e729c1c6d67e9004cac7d3f",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:39.893Z",
+      "endedAt": "2026-10-27T11:33:40.374Z",
+      "error": null
+    },
+    {
+      "name": "20261004010000_core_wia_decision_gateway.sql",
+      "version": "20261004010000",
+      "sha256": "86127c721f85c2de8288ebd0a7df2db19eebb907bb347b83ed49c11e4322beb1",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:40.374Z",
+      "endedAt": "2026-10-27T11:33:40.872Z",
+      "error": null
+    },
+    {
+      "name": "20261004012000_core_quote_create_gateway.sql",
+      "version": "20261004012000",
+      "sha256": "ef33c25f650bbd1204328a6619f120b086003d0a04795b26a8d81999e0724c6a",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:40.872Z",
+      "endedAt": "2026-10-27T11:33:41.208Z",
+      "error": null
+    },
+    {
+      "name": "20261004014000_core_inbox_priority_gateway.sql",
+      "version": "20261004014000",
+      "sha256": "e12331873f332d38f51ded80076d4adafd15954ccfaba8d34f43f0dd8fb41d9f",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:41.208Z",
+      "endedAt": "2026-10-27T11:33:41.521Z",
+      "error": null
+    },
+    {
+      "name": "20261004020000_core_quote_customer_match_guard.sql",
+      "version": "20261004020000",
+      "sha256": "e864d4f7981344bc1ecbd21b946cdec8b30a3cbb32388b890177d92f582f957f",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:41.521Z",
+      "endedAt": "2026-10-27T11:33:41.843Z",
+      "error": null
+    },
+    {
+      "name": "20261005010000_core_profile_onboarding_gateway.sql",
+      "version": "20261005010000",
+      "sha256": "5426026ed7129d837e161df79b524c9bf67faec277a5e2d61cc55c488ab58df6",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:41.843Z",
+      "endedAt": "2026-10-27T11:33:42.092Z",
+      "error": null
+    },
+    {
+      "name": "20261007003905_core_inbox_state_gateway.sql",
+      "version": "20261007003905",
+      "sha256": "7f550ada984d331a4248d3b622bfb1d38049aa2a53304e68a4c167e7440fd7f1",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:42.092Z",
+      "endedAt": "2026-10-27T11:33:42.319Z",
+      "error": null
+    },
+    {
+      "name": "20261007010000_core_quote_archive_gateway.sql",
+      "version": "20261007010000",
+      "sha256": "1c3a9df5507ebb9f0c1cf6eb3d375a19dc9e193157ab3211416edfc10594b0ed",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:42.319Z",
+      "endedAt": "2026-10-27T11:33:42.609Z",
+      "error": null
+    },
+    {
+      "name": "20261007020000_core_quote_update_gateway.sql",
+      "version": "20261007020000",
+      "sha256": "cd80c289f066b197f710d496fa94f735954fecde2951ee5c09cae1ea1e3c8c80",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:42.609Z",
+      "endedAt": "2026-10-27T11:33:42.980Z",
+      "error": null
+    },
+    {
+      "name": "20261007030000_quote_legacy_link_invalidation.sql",
+      "version": "20261007030000",
+      "sha256": "ec1f4f40a659a4f137a574b5268e5756c9df17ebe03e2a3ec8469b5fe77da877",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:42.980Z",
+      "endedAt": "2026-10-27T11:33:43.360Z",
+      "error": null
+    },
+    {
+      "name": "20261007040000_core_deal_outcome_gateway.sql",
+      "version": "20261007040000",
+      "sha256": "f62f2fd0a1e77cbbb91d1d51d3cdd05b2b7d3dbb5b432961b7146990b2c31ca4",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:43.360Z",
+      "endedAt": "2026-10-27T11:33:43.756Z",
+      "error": null
+    },
+    {
+      "name": "20261008000000_core_wia_prepare_gateway.sql",
+      "version": "20261008000000",
+      "sha256": "52fc2b25ea16b590575a3b29184a839ea8c031aacf99d8cf872ff054cbf748c8",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:43.756Z",
+      "endedAt": "2026-10-27T11:33:44.143Z",
+      "error": null
+    },
+    {
+      "name": "20261008010000_core_live_quote_gateway.sql",
+      "version": "20261008010000",
+      "sha256": "269d4f73458720c2fc0e3282688b8b05c6ce3c52be60f826cc3689a4acbef367",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:44.143Z",
+      "endedAt": "2026-10-27T11:33:44.421Z",
+      "error": null
+    },
+    {
+      "name": "20261009000000_core_quote_retention_gateway.sql",
+      "version": "20261009000000",
+      "sha256": "e1078541de7a13b62254f42bab7511081aef5e1203d3305624d4c7f65233eb06",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:44.421Z",
+      "endedAt": "2026-10-27T11:33:44.683Z",
+      "error": null
+    },
+    {
+      "name": "20261009010000_quote_retention_workspace_plan.sql",
+      "version": "20261009010000",
+      "sha256": "824ab166cd00402f106f9edfdf8dd749449aaace9ee01fec0b18e2871bdb8a61",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:44.683Z",
+      "endedAt": "2026-10-27T11:33:44.951Z",
+      "error": null
+    },
+    {
+      "name": "20261009175400_core_approval_task_decision_gateway.sql",
+      "version": "20261009175400",
+      "sha256": "1e405ddb6c3415a9d988dd148c308b6172a095e67db1b7731d559c0c7a812468",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:44.951Z",
+      "endedAt": "2026-10-27T11:33:45.322Z",
+      "error": null
+    },
+    {
+      "name": "20261009190000_core_contact_mutation_gateway.sql",
+      "version": "20261009190000",
+      "sha256": "756f6a4a134d893027b1bec4b5bc302e35f107f663025ef45076cef14e3fa8d6",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:45.322Z",
+      "endedAt": "2026-10-27T11:33:45.621Z",
+      "error": null
+    },
+    {
+      "name": "20261010160000_live_quote_audit_actor_fix.sql",
+      "version": "20261010160000",
+      "sha256": "4f6fe61637077b45a850a424caf4458ce88ad068a294d2886e2c74b881f38680",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:45.621Z",
+      "endedAt": "2026-10-27T11:33:45.865Z",
+      "error": null
+    },
+    {
+      "name": "20261010170000_live_quote_publication_state.sql",
+      "version": "20261010170000",
+      "sha256": "458141cb489758165fd8fea63ab7760f3fa96852c496455ef15768e87279dcfa",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:45.865Z",
+      "endedAt": "2026-10-27T11:33:46.120Z",
+      "error": null
+    },
+    {
+      "name": "20261010180000_auth_profile_provisioning.sql",
+      "version": "20261010180000",
+      "sha256": "cbac47121edd1fdd42b18fd74bcff2f1bbcaaa1197010b357370bb6410143189",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:46.120Z",
+      "endedAt": "2026-10-27T11:33:46.480Z",
+      "error": null
+    },
+    {
+      "name": "20261014145836_google_only_closed_pilot.sql",
+      "version": "20261014145836",
+      "sha256": "cf63c9b41e045e9c6686e7c3bbf4f816d31973bac204e500166b451bebbab4a0",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:46.480Z",
+      "endedAt": "2026-10-27T11:33:46.852Z",
+      "error": null
+    },
+    {
+      "name": "20261014152518_restrict_pilot_recovery_to_synthetic_scope.sql",
+      "version": "20261014152518",
+      "sha256": "e6688f783b424917e9b026aedebf57259d529edad31d43cb455f328584a18c35",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:46.852Z",
+      "endedAt": "2026-10-27T11:33:47.217Z",
+      "error": null
+    },
+    {
+      "name": "20261014160000_google_pilot_gate_fails_closed.sql",
+      "version": "20261014160000",
+      "sha256": "0e270ab99981f128e1617408f667e4c2cd23ca0733342dba5db77a16eafe255c",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:47.217Z",
+      "endedAt": "2026-10-27T11:33:47.568Z",
+      "error": null
+    },
+    {
+      "name": "20261016010000_personal_profile_gateway.sql",
+      "version": "20261016010000",
+      "sha256": "12735b92f3327f3b8376a7b47d617455a0b2838db1d7122118a1560e7389eafa",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:47.568Z",
+      "endedAt": "2026-10-27T11:33:47.835Z",
+      "error": null
+    },
+    {
+      "name": "20261016020000_wia_request_provenance.sql",
+      "version": "20261016020000",
+      "sha256": "a51a3c7e932faaf6daf8fecdb1055d054a03d25d05916e6a176d960a482e1258",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:47.835Z",
+      "endedAt": "2026-10-27T11:33:48.070Z",
+      "error": null
+    },
+    {
+      "name": "20261016030000_meta_whatsapp_connections.sql",
+      "version": "20261016030000",
+      "sha256": "fa154b94c7e8aae6dcd626c69975746562eb22694424aed3b0bab2b3ca3f7432",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:48.070Z",
+      "endedAt": "2026-10-27T11:33:48.454Z",
+      "error": null
+    },
+    {
+      "name": "20261016050000_meta_whatsapp_performance_indexes.sql",
+      "version": "20261016050000",
+      "sha256": "6e46bfa3dbe23fef63166e8fb92dd6315f7b85243e9a37424e4ba1c08afa85ca",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:48.454Z",
+      "endedAt": "2026-10-27T11:33:48.996Z",
+      "error": null
+    },
+    {
+      "name": "20261016060000_commercial_billing_pulso.sql",
+      "version": "20261016060000",
+      "sha256": "aaba842e2303947f47f2ac0cb6ad1f264dca0b90becbd4a8f0248244b9ebb093",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:48.996Z",
+      "endedAt": "2026-10-27T11:33:49.430Z",
+      "error": null
+    },
+    {
+      "name": "20261016182215_billing_native_lifecycle.sql",
+      "version": "20261016182215",
+      "sha256": "6f2d9e1eaab9baebc8038d1de1804efe32b2a9b3fce5bf6ab16e4351447c25c6",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:49.430Z",
+      "endedAt": "2026-10-27T11:33:49.931Z",
+      "error": null
+    },
+    {
+      "name": "20261023162021_meta_unique_client_match.sql",
+      "version": "20261023162021",
+      "sha256": "7f80a967668d167a8e0f157dc61883134c72f417ae3c06c3a84bf86f91d5abd4",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:49.931Z",
+      "endedAt": "2026-10-27T11:33:50.328Z",
+      "error": null
+    },
+    {
+      "name": "20261026164542_meta_disconnect_guard.sql",
+      "version": "20261026164542",
+      "sha256": "68152b5f3eb982874a3f365b5e7f60137389a74bcd2a712b6de1321e4ed51d31",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:50.328Z",
+      "endedAt": "2026-10-27T11:33:50.731Z",
+      "error": null
+    },
+    {
+      "name": "20261027111004_meta_unsupported_message_notice.sql",
+      "version": "20261027111004",
+      "sha256": "6210551b25e6b70a30e12eb6a48a04f4bda414f8b1e31dd4410fe977df96b6c3",
+      "status": "PASS",
+      "startedAt": "2026-10-27T11:33:50.731Z",
+      "endedAt": "2026-10-27T11:33:51.367Z",
+      "error": null
+    }
+  ],
+  "assertions": [
+    {
+      "name": "RLS and browser grants",
+      "status": "PASS"
+    },
+    {
+      "name": "workspace memberships and legacy backfills",
+      "status": "PASS"
+    },
+    {
+      "name": "tenant A/B isolation and cross-tenant constraints",
+      "status": "PASS"
+    },
+    {
+      "name": "constraints, foreign keys, and indexes",
+      "status": "PASS"
+    },
+    {
+      "name": "legacy rows and trigger restoration",
+      "status": "PASS"
+    },
+    {
+      "name": "Starter active proposal limit: fixture 1 + 4 = 5; next rejected",
+      "status": "PASS"
+    },
+    {
+      "name": "Scale entitlement and expired-trial rejection",
+      "status": "PASS"
+    }
+  ],
+  "inventory": "target-schema-inventory.json",
+  "inventorySha256": "f0e937f729bcc8e5ef4a4f91e0c35eec8969881c43ef1de198f24ce75f124e57",
+  "remoteComparison": "NOT_EVALUATED_IN_REPLAY",
+  "authGate": "MANUAL_AUTH_CONFIGURATION_REQUIRED",
+  "failure": null
+}

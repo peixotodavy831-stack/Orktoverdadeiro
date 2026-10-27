@@ -1,0 +1,55 @@
+[
+  {
+    "screen": "conversation-mobile",
+    "documentWidth": 390,
+    "readReceipt": true,
+    "unsupported": true,
+    "width": 390
+  },
+  {
+    "screen": "conversation-tablet",
+    "documentWidth": 768,
+    "unsupported": true,
+    "width": 768
+  },
+  {
+    "screen": "planning-tablet",
+    "documentWidth": 768,
+    "rows": 3,
+    "simulation": true,
+    "width": 768
+  },
+  {
+    "screen": "planning-mobile",
+    "documentWidth": 390,
+    "rows": 3,
+    "width": 390
+  },
+  {
+    "screen": "planning-desktop",
+    "documentWidth": 1280,
+    "inputs": 0,
+    "rows": 0,
+    "width": 1280
+  },
+  {
+    "screen": "conversation-desktop",
+    "documentWidth": 1280,
+    "readReceipt": true,
+    "unsupported": true,
+    "width": 1280
+  },
+  {
+    "screen": "conversation-polling-draft",
+    "draft": "Rascunho sintético: não enviar",
+    "loading": false,
+    "readReceipt": true
+  },
+  {
+    "screen": "planning-desktop-confirmed",
+    "cac": true,
+    "documentWidth": 1280,
+    "rows": 3,
+    "width": 1280
+  }
+]

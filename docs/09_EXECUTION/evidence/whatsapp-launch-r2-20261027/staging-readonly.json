@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-27",
+  "project": "ghrjongiodziasupakrk",
+  "mode": "READ_ONLY_AGGREGATE",
+  "metaConnections": 0,
+  "webhookEvents": 0,
+  "metaSendRequests": 0,
+  "approvedRateCards": 0,
+  "positiveProviderE2E": "BLOCKED_EXTERNAL",
+  "secretNameInspection": "HISTORICAL_2026-10-26_ONLY",
+  "remoteMutations": 0,
+  "externalMessagesSent": 0,
+  "readyForProductionCandidate": "NO"
+}

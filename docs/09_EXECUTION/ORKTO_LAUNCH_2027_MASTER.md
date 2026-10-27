@@ -1,3 +1,8 @@
+## Retomada vigente — WhatsApp/planejamento R2 de 27/10/2026
+
+Ler [execução e matriz R2](ORKTO_WHATSAPP_PLANNING_R2_2026-10-27.md), [inventário de 40 requisitos](ORKTO_PLANNING_2027_REQUIREMENTS.md) e [manual de configuração real](ORKTO_WHATSAPP_LIVE_SETUP.md). Código WhatsApp 3f0e179; fonte final d57cff0. Regressão local399+108, replay53/53 e upgrade46/46; nenhum deploy ou E2E positivo Meta. Fonte publicada do planner bloqueada por autorização de origem; cópia local lida com hashes. Conexões/envios/tarifas Meta continuam0 no staging em27/10. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
 ## Atualização WhatsApp — 26/10/2026
 
 Implementação isolada em codex/orkto-whatsapp-e2e, código 4e2787037e4a6df256b3cfc7e3d9ca9d334de2c1. Ler [relatório e matriz](WHATSAPP_E2E_RESULT_2026-10-26.md) e [configuração externa](WHATSAPP_META_OWNER_SETUP_2026-10-26.md). Testes locais não substituem Meta real. Sem configuração Meta, conexão ou tabela de tarifas aprovada no staging; nenhuma publicação/envio executado. READY_FOR_PRODUCTION_CANDIDATE=NO.

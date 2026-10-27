@@ -1,0 +1,142 @@
+{
+  "date": "2026-10-27",
+  "sourceSha": "d57cff0f54c40a0f63b8f03635fdd9a3241f2aaf",
+  "whatsappCommit": "3f0e17919c0159a1b515766c79599a545d9e478e",
+  "branch": "codex/orkto-whatsapp-e2e",
+  "scope": "LOCAL_SOURCE_AND_DISPOSABLE_POSTGRES_ONLY",
+  "tests": {
+    "application": 399,
+    "tools": 108,
+    "failures": 0,
+    "lint": "PASS",
+    "edge": "PASS_TYPESCRIPT_SHIM_NOT_REMOTE_DENO",
+    "build": "PASS_DIST_PRESERVED",
+    "plannerOriginalChecks": 12
+  },
+  "postgres": [
+    {
+      "file": "postgres-fresh.json",
+      "status": "PASS",
+      "migrations": 53,
+      "migrationSha256": "6210551b25e6b70a30e12eb6a48a04f4bda414f8b1e31dd4410fe977df96b6c3",
+      "assertions": "PASS_LOCAL_TRANSACTION_ROLLBACK"
+    },
+    {
+      "file": "postgres-upgrade.json",
+      "status": "PASS",
+      "migrations": 46,
+      "migrationSha256": "6210551b25e6b70a30e12eb6a48a04f4bda414f8b1e31dd4410fe977df96b6c3",
+      "assertions": "PASS_LOCAL_TRANSACTION_ROLLBACK"
+    }
+  ],
+  "performance": {
+    "syntheticRows": 10000,
+    "returnedRows": 201,
+    "indexUsed": true,
+    "executionMs": 0.162,
+    "scope": "ONE_LOCAL_EXPLAIN_NOT_REMOTE_P95"
+  },
+  "secretScan": {
+    "status": "PASS",
+    "scanned": 703,
+    "findings": 0,
+    "blockers": 0,
+    "scope": "Final source, reports and manifest; .tmp and env exclusions apply"
+  },
+  "planning": {
+    "requirements": 40,
+    "administrative": 29,
+    "commercial": 11,
+    "plannerLocal": 18,
+    "implementedLocal": 3,
+    "partial": 11,
+    "blockedExternal": 8,
+    "localAssertionSubset": 25,
+    "publishedSourceComparison": "BLOCKED_SOURCE_ORIGIN_APPROVAL"
+  },
+  "staging": {
+    "project": "ghrjongiodziasupakrk",
+    "query": "READ_ONLY_AGGREGATE",
+    "connections": 0,
+    "events": 0,
+    "sends": 0,
+    "approvedRateCards": 0,
+    "metaSecretNames": "HISTORICAL_26_OCT_NOT_RECHECKED_27_OCT"
+  },
+  "remotePositiveE2E": "BLOCKED_EXTERNAL",
+  "remoteCI": "NOT_TESTED",
+  "deploymentsExecuted": 0,
+  "externalMessagesSent": 0,
+  "paidInferenceCalls": 0,
+  "readyForProductionCandidate": "NO",
+  "verificationLogs": [
+    {
+      "path": ".tmp-whatsapp-r2/tests-head-d57cff0.log",
+      "sha256": "d7a68cbc1643e1b1b8d36646280697efb48dc0211e1d0d4264528be22b84ff45",
+      "bytes": 119748
+    },
+    {
+      "path": ".tmp-whatsapp-r2/lint-head-d57cff0.log",
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479",
+      "bytes": 40
+    },
+    {
+      "path": ".tmp-whatsapp-r2/edge-head-d57cff0.log",
+      "sha256": "e56125d844cf396e19d56cd2e2df7a374e84f5ddee0ce1d2302538562c0527eb",
+      "bytes": 64
+    },
+    {
+      "path": ".tmp-whatsapp-r2/build-head-d57cff0.log",
+      "sha256": "44d44f71f8168d88337263c07facbfe165179ab50ed9b3ca379a0fb3b7ab94c0",
+      "bytes": 8868
+    },
+    {
+      "path": ".tmp-whatsapp-r2/planner-original-tests.log",
+      "sha256": "9418889814e087c5a8e5fabf9af474238408e631bbb4fe8bb8cfaedd994f4283",
+      "bytes": 936
+    },
+    {
+      "path": ".tmp-whatsapp-r2/planner-original-artifact.log",
+      "sha256": "7be4093f6399abe3b8b35e37405a6d2f014e33cdabe815db70096fe89800adff",
+      "bytes": 143
+    },
+    {
+      "path": ".tmp-whatsapp-r2/pg-final.log",
+      "sha256": "5393614000928a50f0625cc38f3a999d52ccdc52530a0eb66f3fc0695ae18fbf",
+      "bytes": 125852
+    },
+    {
+      "path": ".tmp-whatsapp-r2/pg-final-assertions.log",
+      "sha256": "acb470e06b6e1e7dcbaaffae8951b9083f406362ad3264d35d27e380dfc31d9e",
+      "bytes": 84
+    },
+    {
+      "path": ".tmp-whatsapp-r2/pg-upgrade-final.log",
+      "sha256": "b19b0f1b946c4facd8f286ef511e759e3de0c143d3bdd42ca0a265468704fa82",
+      "bytes": 166853
+    },
+    {
+      "path": ".tmp-whatsapp-r2/pg-upgrade-final-assertions.log",
+      "sha256": "acb470e06b6e1e7dcbaaffae8951b9083f406362ad3264d35d27e380dfc31d9e",
+      "bytes": 84
+    },
+    {
+      "path": ".tmp-whatsapp-r2/history-performance.log",
+      "sha256": "d995a5cf1ae44cb9fef07d6b8ef786cb86a211140f887e30f9f6d72dcf04fcfc",
+      "bytes": 3803
+    },
+    {
+      "path": ".tmp-whatsapp-r2/scan-delivery.log",
+      "sha256": "6d14c2446ba703ad05efcfb30f5de32a8891f34c2061deda863db28c7ced2e40",
+      "bytes": 154
+    }
+  ],
+  "visualProof": "visual-checks.json; synthetic fixtures only",
+  "limitations": [
+    "No physical Android/iPhone or virtual-keyboard test",
+    "No positive Meta message receipt or send",
+    "Media content processing/templates/Coexistence unimplemented or unverified",
+    "Finance scenario inputs are session-only",
+    "Fixture console reports missing Supabase configuration; not a live session"
+  ]
+}
