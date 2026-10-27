@@ -1,0 +1,118 @@
+BEGIN
+INSERT 0 1
+INSERT 0 10000
+ANALYZE
+[
+  {
+    "Plan": {
+      "Node Type": "Limit",
+      "Parallel Aware": false,
+      "Async Capable": false,
+      "Startup Cost": 0.38,
+      "Total Cost": 26.16,
+      "Plan Rows": 201,
+      "Plan Width": 148,
+      "Actual Startup Time": 0.048,
+      "Actual Total Time": 0.132,
+      "Actual Rows": 201,
+      "Actual Loops": 1,
+      "Shared Hit Blocks": 9,
+      "Shared Read Blocks": 0,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0,
+      "Plans": [
+        {
+          "Node Type": "Incremental Sort",
+          "Parent Relationship": "Outer",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.38,
+          "Total Cost": 1283.08,
+          "Plan Rows": 9999,
+          "Plan Width": 148,
+          "Actual Startup Time": 0.047,
+          "Actual Total Time": 0.115,
+          "Actual Rows": 201,
+          "Actual Loops": 1,
+          "Sort Key": ["sent_at DESC", "id DESC"],
+          "Presorted Key": ["sent_at"],
+          "Full-sort Groups": {
+            "Group Count": 7,
+            "Sort Methods Used": ["quicksort"],
+            "Sort Space Memory": {
+              "Average Sort Space Used": 33,
+              "Peak Sort Space Used": 33
+            }
+          },
+          "Shared Hit Blocks": 9,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Backward",
+              "Index Name": "orkto_messages_conversation_sent_idx",
+              "Relation Name": "orkto_messages",
+              "Alias": "orkto_messages",
+              "Startup Cost": 0.29,
+              "Total Cost": 833.16,
+              "Plan Rows": 9999,
+              "Plan Width": 148,
+              "Actual Startup Time": 0.016,
+              "Actual Total Time": 0.061,
+              "Actual Rows": 202,
+              "Actual Loops": 1,
+              "Index Cond": "(conversation_id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee'::uuid)",
+              "Rows Removed by Index Recheck": 0,
+              "Filter": "(workspace_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid)",
+              "Rows Removed by Filter": 0,
+              "Shared Hit Blocks": 9,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        }
+      ]
+    },
+    "Planning": {
+      "Shared Hit Blocks": 85,
+      "Shared Read Blocks": 0,
+      "Shared Dirtied Blocks": 0,
+      "Shared Written Blocks": 0,
+      "Local Hit Blocks": 0,
+      "Local Read Blocks": 0,
+      "Local Dirtied Blocks": 0,
+      "Local Written Blocks": 0,
+      "Temp Read Blocks": 0,
+      "Temp Written Blocks": 0
+    },
+    "Planning Time": 6.251,
+    "Triggers": [
+    ],
+    "Execution Time": 0.162
+  }
+]
+ROLLBACK
