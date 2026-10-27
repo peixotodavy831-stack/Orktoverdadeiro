@@ -39,6 +39,7 @@ import { formatPhone, formatBRL } from '../../utils/format';
 import OrktoLogo from '../OrktoLogo';
 import { confirmedSendMessage, confirmedSendState } from '../../product/inbox-delivery-status';
 import { conversationApproval, conversationMessage, persistedMessageReceipt } from '../../product/conversation-message';
+import {visiblePrivateInstructions} from '../../product/private-instruction-state.js';
 
 function mergeMessages(older:ConversationMessage[],newer:ConversationMessage[]){
  return [...new Map([...older,...newer].map(message=>[message.id,message])).values()]
@@ -125,6 +126,8 @@ export default function ConversationView({
   const [newMessage, setNewMessage] = useState('');
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [sussurros, setSussurros] = useState<PrivateInstruction[]>([]);
+  const [showReadInstructions,setShowReadInstructions]=useState(false);
+  const activeInstructions=visiblePrivateInstructions(sussurros,showReadInstructions);
   const [privateInstruction, setPrivateInstruction] = useState('');
   const [sussurroLoading, setSussurroLoading] = useState(false);
   const [sussurroSaving, setSussurroSaving] = useState(false);
@@ -704,7 +707,8 @@ export default function ConversationView({
           </div>
           {sussurroError && <p role="alert" className="mt-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-[10px] text-amber-200">{sussurroError}</p>}
           {sussurroNotice && <p role="status" className="mt-3 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-[10px] text-emerald-200">{sussurroNotice}</p>}
-          {sussurros.length > 0 ? <div className="mt-3 space-y-2">{sussurros.slice(-10).map(note => <article key={note.id} className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-3">
+          {sussurros.some(note=>Boolean(note.read_at))&&<button type="button" onClick={()=>setShowReadInstructions(value=>!value)} aria-pressed={showReadInstructions} className="mt-2 min-h-11 rounded-lg border border-zinc-700 px-3 text-xs text-zinc-400">{showReadInstructions?'Ocultar instruções lidas':'Ver instruções lidas'}</button>}
+          {activeInstructions.length > 0 ? <div className="mt-3 space-y-2">{activeInstructions.slice(-10).map(note => <article key={note.id} className="rounded-xl border border-zinc-800 bg-zinc-900/80 p-3">
             <div className="flex items-start justify-between gap-3"><p className="whitespace-pre-wrap text-xs leading-5 text-zinc-200">{note.content}</p>{!note.read_at && <span className="shrink-0 rounded-full bg-orange-500/10 px-2 py-0.5 text-[9px] font-semibold text-orange-300">Não lido</span>}</div>
             <div className="mt-2 flex flex-wrap items-center justify-between gap-2"><p className="text-[9px] text-zinc-500">{note.source === 'wia' ? 'WIA' : 'Equipe'} · {note.to_user_id ? `Para ${note.to_user_id === currentUserId ? 'você' : note.to_user_id.slice(0, 8)}` : 'Toda a equipe'} · {formatTimestamp(note.created_at)} · expira {formatTimestamp(note.expires_at)}</p>{!note.read_at && (!note.to_user_id || note.to_user_id === currentUserId) && <button type="button" onClick={() => void markSussurroRead(note.id)} className="inline-flex min-h-11 items-center gap-1 rounded-lg px-2 text-[10px] font-semibold text-zinc-400 hover:bg-zinc-800 hover:text-white"><Eye className="h-3 w-3" />Marcar lido</button>}{!note.read_at && note.to_user_id && note.to_user_id !== currentUserId && <span className="text-[9px] text-zinc-500">Aguardando leitura</span>}</div>
           </article>)}</div> : !sussurroLoading && !sussurroError && <p className="mt-3 rounded-lg bg-zinc-900/60 px-3 py-2 text-[10px] text-zinc-500">Nenhuma instrução privada ativa nesta conversa.</p>}

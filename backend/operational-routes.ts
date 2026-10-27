@@ -1470,7 +1470,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
     try {
       const { data, error } = await db.from('orkto_sussurros').update({ read_at: new Date().toISOString() })
         .eq('workspace_id',context.id).eq('conversation_id',req.params.conversationId).eq('id',req.params.sussurroId)
-        .is('read_at',null).or(`to_user_id.is.null,to_user_id.eq.${req.user?.id}`).select('id,read_at').maybeSingle();
+        .is('read_at',null).gt('expires_at',new Date().toISOString()).or(`to_user_id.is.null,to_user_id.eq.${req.user?.id}`).select('id,read_at').maybeSingle();
       if (error) throw error;
       if (!data) return res.status(404).json({ error: 'Instrução não encontrada, expirada ou já lida.' });
       await addAudit(db,context.id,req.user?.id,'sussurro.read','sussurro',data.id,{});

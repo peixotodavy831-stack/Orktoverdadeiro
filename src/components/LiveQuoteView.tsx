@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, CheckCircle2, Clock3, FileText, LoaderCircle } from 'lucide-react';
 import { formatBRL } from '../utils/format';
+import {ArtifactSignature} from './ArtifactSignature.js';
+import OrktoLogo from './OrktoLogo.js';
 
 type LiveQuoteSnapshot = {
   clientName?: string;
@@ -20,6 +22,11 @@ type LiveQuoteSnapshot = {
 type LiveQuote = { id: string; version: number; snapshot: LiveQuoteSnapshot; status: string; validUntil: string | null };
 
 export default function LiveQuoteView({ token }: { token: string }) {
+  // A different public link must never reuse the prior link's data or acceptance state.
+  return <LiveQuoteResource key={token} token={token}/>;
+}
+
+function LiveQuoteResource({token}:{token:string}){
   const [quote, setQuote] = useState<LiveQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -74,7 +81,7 @@ export default function LiveQuoteView({ token }: { token: string }) {
     <main className="min-h-screen bg-[#0b0b0b] px-4 py-8 text-[#f5f5f5] sm:px-6 sm:py-12">
       <div className="mx-auto max-w-2xl">
         <div className="mb-7 flex items-center justify-between border-b border-white/10 pb-5">
-          <div className="text-sm font-semibold tracking-[0.2em]">ORKTO</div>
+          <OrktoLogo size="sm" darkMode/>
           <div className="text-xs text-white/50">Proposta digital · versão {quote?.version || '—'}</div>
         </div>
 
@@ -132,7 +139,7 @@ export default function LiveQuoteView({ token }: { token: string }) {
               )}
               {error && <p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
             </div>
-            {quote.snapshot.signature?.label && <div className="px-6 pb-5 text-center text-[11px] tracking-wide text-white/35 sm:px-8">{quote.snapshot.signature.label}</div>}
+            {quote.snapshot.signature?.label && <div className="px-6 pb-5 sm:px-8"><ArtifactSignature dark/></div>}
           </article>
         ) : null}
       </div>

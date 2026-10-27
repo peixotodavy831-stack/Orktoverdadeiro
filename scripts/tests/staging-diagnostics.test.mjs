@@ -70,13 +70,15 @@ test('actual Playwright failures identify action, whole-test and API-request dea
   await new Promise(resolveListen => server.listen(0, '127.0.0.1', resolveListen));
   try {
     const output = join(temp, 'artifacts'); const config = join(temp, 'config.mjs');
-    writeFileSync(config, `export default ${JSON.stringify({ testDir: resolve('scripts/tests/fixtures'), testMatch: 'staging-timeout-diagnostics.spec.ts', workers: 1, timeout: 10000,
+    // Browser setup/restart must complete before the deliberately short operation
+    // budgets below are exercised. This does not change the staging E2E config.
+    writeFileSync(config, `export default ${JSON.stringify({ testDir: resolve('scripts/tests/fixtures'), testMatch: 'staging-timeout-diagnostics.spec.ts', workers: 1, timeout: 30000,
       reporter: [[resolve('scripts/readiness/staging-safe-reporter.mjs')]], outputDir: output,
       use: { ignoreHTTPSErrors: false, screenshot: 'off', trace: { mode: 'retain-on-failure', screenshots: false, snapshots: false, sources: false }, video: 'off' } })}`);
     const records = [];
     const result = await runSafePlaywright(process.execPath, [resolve('node_modules/@playwright/test/cli.js'), 'test', '--config', config], {
       cwd: process.cwd(), env: { ...buildStagingBrowserEnvironment(process.env, {}), ORKTO_TEST_HANG_URL: `http://127.0.0.1:${server.address().port}/api/clients`,
-        ORKTO_TEST_ACCESS_TOKEN: 'synthetic-private-bearer', VERCEL_OIDC_TOKEN: 'synthetic-private-oidc' }, onRecord: record => records.push(record), timeout: 60000,
+        ORKTO_TEST_ACCESS_TOKEN: 'synthetic-private-bearer', VERCEL_OIDC_TOKEN: 'synthetic-private-oidc' }, onRecord: record => records.push(record), timeout: 120000,
     });
     assert.equal(result.status, 1); assert.equal(result.records.length, 5);
     const scopes = result.records.map(record => record.timeout_scope);

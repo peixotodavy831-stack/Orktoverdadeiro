@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import OrktoLogo from './OrktoLogo.js';
+import {ArtifactSignature} from './ArtifactSignature.js';
 import { AlertCircle, BarChart3, MessageSquareText, ReceiptText, TrendingUp } from 'lucide-react';
 
 type WrappedMetrics = {
@@ -15,6 +17,10 @@ const money = (cents?: number) => Number.isFinite(cents)
 const date = (value: string) => new Date(`${value}T12:00:00`).toLocaleDateString('pt-BR');
 
 export default function WrappedPublicView({ token }: { token: string }) {
+  return <WrappedResource key={token} token={token}/>;
+}
+
+function WrappedResource({token}:{token:string}){
   const [wrapped, setWrapped] = useState<PublicWrapped | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -34,7 +40,7 @@ export default function WrappedPublicView({ token }: { token: string }) {
 
   return <main className="min-h-screen bg-[#0b0b0b] px-4 py-10 text-white sm:px-6 sm:py-16">
     <div className="mx-auto w-full max-w-3xl">
-      <header className="border-b border-white/10 pb-6"><p className="text-lg font-bold tracking-[0.16em]">ORKT<span className="text-[#FF9F1C]">O</span></p><p className="mt-5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#FF9F1C]">Recap operacional</p><h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Conversas viram resultados.</h1><p className="mt-3 text-sm leading-6 text-zinc-400">Indicadores calculados a partir dos registros disponíveis para o período compartilhado.</p></header>
+      <header className="border-b border-white/10 pb-6"><OrktoLogo size="sm" darkMode/><p className="mt-5 text-[10px] font-bold uppercase tracking-[0.22em] text-[#FF9F1C]">Recap operacional</p><h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Conversas viram resultados.</h1><p className="mt-3 text-sm leading-6 text-zinc-400">Indicadores calculados a partir dos registros disponíveis para o período compartilhado.</p></header>
       {loading ? <p role="status" className="py-12 text-sm text-zinc-400">Carregando recap…</p> : error ? <div role="alert" className="mt-8 flex items-start gap-3 rounded-xl border border-red-900/60 bg-red-950/20 p-4 text-sm text-red-200"><AlertCircle size={18} className="mt-0.5 shrink-0" />{error}</div> : wrapped ? <>
         <p className="mt-6 text-xs text-zinc-400">{date(wrapped.period_start)} — {date(wrapped.period_end)}</p>
         <section className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -44,7 +50,7 @@ export default function WrappedPublicView({ token }: { token: string }) {
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"><div className="flex items-center gap-2 text-xs text-zinc-400"><BarChart3 size={15} className="text-[#FF9F1C]" />Aceitação de propostas</div><p className="mt-3 text-2xl font-semibold">{wrapped.metrics.quotes?.acceptanceRate == null ? 'Sem dados' : `${(wrapped.metrics.quotes.acceptanceRate * 100).toFixed(1)}%`}</p><p className="mt-1 text-xs text-zinc-500">Calculada sobre propostas registradas</p></article>
           <article className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 sm:col-span-2"><div className="flex items-center gap-2 text-xs text-zinc-400"><BarChart3 size={15} className="text-[#FF9F1C]" />Tempo mediano de resposta</div><p className="mt-3 text-2xl font-semibold">{wrapped.metrics.response?.medianMinutes == null ? 'Sem dados' : `${wrapped.metrics.response.medianMinutes} min`}</p><p className="mt-1 text-xs text-zinc-500">{wrapped.metrics.response?.samples ?? 0} amostras válidas</p></article>
         </section>
-        <footer className="mt-8 border-t border-white/10 pt-4 text-[10px] leading-5 text-zinc-500">Recap ORKTO. Métricas sem benchmark externo; períodos e dados dependem dos registros da operação. Link público criado pelo workspace.</footer>
+        <footer className="mt-8 border-t border-white/10 pt-4 text-[10px] leading-5 text-zinc-500">Recap ORKTO. Métricas sem benchmark externo; períodos e dados dependem dos registros da operação. Link público criado pelo workspace.<div className="mt-3"><ArtifactSignature dark/></div></footer>
       </> : null}
     </div>
   </main>;

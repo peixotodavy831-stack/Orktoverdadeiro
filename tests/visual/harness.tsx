@@ -1,4 +1,5 @@
 import { visualTeam } from './team-fixture';
+import {ConsolidatedArtifactsFixture} from './consolidated-artifacts';
 import { buildConversationAssistance } from '../../backend/orkto-core/conversation-assistance';
 import { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -37,7 +38,7 @@ import CreateQuote from '../../src/components/CreateQuote';
 import ClientsPage from '../../src/components/ClientsPage';
 import ServicesPage from '../../src/components/ServicesPage';
 
-const additionalScreens = ['team','audit','help','profile','settings','proposals','create_quote','clients','catalog','billing','integrations','founder_planning'] as const;
+const additionalScreens = ['team','audit','help','profile','settings','proposals','create_quote','clients','catalog','billing','integrations','founder_planning','public_artifacts'] as const;
 const fixtureRequest = async (path: string) => {
   const scenario = new URLSearchParams(location.search).get('scenario');
   if (scenario === 'error') throw new Error('Falha de fixture');
@@ -51,6 +52,7 @@ const fixtureWriteBlocked = async (): Promise<never> => { throw new Error('Fixtu
 type ScreenName = 'today' | 'inbox' | 'deals' | 'wia' | typeof additionalScreens[number];
 const screenViews: Record<ScreenName, ProductView> = {
   founder_planning:'settings',
+  public_artifacts:'settings',
   billing:'billing',integrations:'integrations',team:'team',audit:'audit',help:'help',profile:'profile',settings:'settings',proposals:'quotes',create_quote:'create_quote',clients:'clients',catalog:'services',
   today: 'dashboard',
   inbox: 'conversations',
@@ -95,6 +97,7 @@ function json(data: unknown, status = 200) {
 
 function installVisualApiFixtures() {
   const scenario = new URLSearchParams(window.location.search).get('scenario');
+  const privateInstructions=scenario?.startsWith('sussurro')?[{id:'visual-private-1',content:'Confirmar o prazo internamente antes de responder.',source_role:'manager',from_user_id:'visual-manager',to_user_id:null,read_at:null,expires_at:new Date(Date.now()+86_400_000).toISOString(),created_at:new Date().toISOString()}]:[];
   const session = { access_token: VISUAL_TOKEN, user: { id: 'visual-user' } } as unknown as NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']>;
   Object.defineProperty(supabase.auth, 'getSession', {
     configurable: true,
@@ -161,7 +164,20 @@ function installVisualApiFixtures() {
     ]}:visualConversationDetail);
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/assistance`) { if (scenario === 'assistance_loading') await new Promise(() => {}); if (scenario === 'assistance_error') return json({error:'Contexto indisponível'},503); if (scenario === 'assistance_permission') return json({error:'Sem acesso'},403); return json(buildConversationAssistance({conversation:{id:VISUAL_CONVERSATION_ID,contact_phone:visualConversation.contact_phone},clients:scenario==='assistance_empty'?[]:[{id:'fixture-client',name:'Marina — demonstração',phone:visualConversation.contact_phone}],clientsComplete:true,messages:scenario==='assistance_empty'?[]:[{id:'fixture-message',direction:'incoming',content:'Dado fictício'}],deals:[]})); }
       if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/messages`) return json({ data: visualConversationDetail.messages });
-    if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/sussurros`) return json({ data: [] });
+    if(path.startsWith('/api/public/live-quotes/')||path.startsWith('/api/public/wrapped/')){
+      if(path.includes('fixture-unavailable'))return json({error:'Link fictício indisponível.'},404);
+      const letter=path.includes('fixture-b')?'B':'A';
+      if(path.endsWith('/accept')||path.endsWith('/reject'))return json({data:{status:path.endsWith('/accept')?'accepted':'rejected'}});
+      if(path.includes('/wrapped/'))return json({period_start:'2026-10-01',period_end:'2026-10-27',shared_at:'2026-10-27T12:00:00Z',metrics:{quotes:{count:letter==='A'?4:7},deals:{won:1},conversations:{total:3},response:{medianMinutes:null,samples:0}}});
+      return json({id:`visual-quote-${letter}`,version:1,status:'sent',validUntil:'2027-01-01T00:00:00Z',snapshot:{clientName:`Cliente fictício ${letter}`,company:'Empresa fictícia',items:[],total:letter==='A'?100:200,signature:{label:'Powered by ORKTO'}}});
+    }
+    if(path===`/api/conversations/${VISUAL_CONVERSATION_ID}/sussurros/visual-private-1/read`){
+      if(scenario==='sussurro-error')return json({error:'Falha fictícia na confirmação de leitura.'},500);
+      const read_at=new Date().toISOString();
+      Object.assign(privateInstructions[0],{read_at});
+      return json({data:{id:'visual-private-1',read_at}});
+    }
+    if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/sussurros`&&method==='GET') return json({ data: privateInstructions });
     if (path === '/api/operational/workspace') return json({ members: [{ user_id: 'visual-user', role: 'owner' }] });
     if (path === '/api/deals' && (!init?.method || init.method === 'GET')) return json({ data: visualDeals });
     if (path.startsWith('/api/deals/') && method === 'PATCH') {
@@ -228,6 +244,7 @@ function App() {
       </header>
       <div id="visual-main" className={`orkto-workspace-content relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
         {screen === 'today' && <TodayV2Page user={{ displayName: 'Marina' }} userProfile={visualProfile} quotes={params.get('scenario') === 'empty' ? [] : [visualQuote]} clients={params.get('scenario') === 'empty' ? [] : [visualClient]} accessToken={accessToken} dataLoading={false} onSelectQuote={() => setScreen('today')} onCreateQuote={() => setScreen('create_quote')} onOpenDeal={() => setScreen('deals')} onOpenConversation={() => { setScreen('inbox'); setMobileThread(true); }} onOpenWia={message => { setWiaInitialMessage(message || ''); setScreen('wia'); }} onOpenBilling={() => setScreen('billing')} onOpenSettings={() => undefined} />}
+        {screen==='public_artifacts'&&<ConsolidatedArtifactsFixture/>}
         {screen === 'inbox' && <InboxWorkspace onOpenWia={message=>{setWiaInitialMessage(message);setScreen('wia');}} currentView={currentView} accessToken={accessToken} selectedConversationId={mobileThread || window.matchMedia('(min-width: 1024px)').matches ? VISUAL_CONVERSATION_ID : null} onOpenConversation={() => setMobileThread(true)} onBackToInbox={() => setMobileThread(false)} onOpenDeal={() => setScreen('deals')} onOpenSettings={() => undefined} />}
         {screen === 'deals' && <DealsPage clients={[visualClient]} accessToken={accessToken} initialCreate={createDeal} initialCustomerId={draftCustomerId} onInitialCreateOpened={() => setCreateDeal(false)} />}
         {['team','audit','help'].includes(screen) && <ManagementPage view={screen as 'team'|'audit'|'help'} request={fixtureRequest} onNavigate={navigate} accountName="Pessoa de demonstração" />}

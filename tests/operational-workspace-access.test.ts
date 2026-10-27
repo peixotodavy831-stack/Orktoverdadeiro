@@ -165,6 +165,7 @@ class MemoryWorkspaceDatabase {
   readonly importJobs: Array<Record<string, any>> = [];
   readonly importRows: Array<Record<string, any>> = [];
   readonly events: Record<string, unknown>[] = [];
+  readonly privateInstructions: Array<Record<string,any>> = [];
 
   from(table: string): MemorySupabaseQuery { return new MemorySupabaseQuery(this, table); }
 
@@ -181,6 +182,11 @@ class MemoryWorkspaceDatabase {
       return Array.isArray(value) ? value.includes(actual) : actual === value;
     });
     if (table === 'orkto_workspace_subscriptions') return this.subscriptions.filter(matches);
+    if(table==='orkto_sussurros'){
+      const selected=this.privateInstructions.filter(matches);
+      if(operation==='update') for(const row of selected) Object.assign(row,payload);
+      return selected.map(row=>({...row}));
+    }
     if (table === 'orkto_plan_price_versions') return this.planVersions.filter(matches);
     if (table === 'clients' || table === 'services') {
       const rows = table === 'clients' ? this.clients : this.services;
@@ -530,4 +536,27 @@ test('CSV import preview and commit remain scoped to the workspace that created 
   assert.equal(commit.status,200);
   assert.equal(database.clients.find(row=>row.phone==='+5511888123456')?.workspace_id,WORKSPACE_A);
   assert.equal(database.importJobs.find(row=>row.id===job.id)?.status,'completed');
+});
+
+test('private instruction read refuses expired, already-read and foreign-workspace rows without mutation',async()=>{
+  const database=new MemoryWorkspaceDatabase();
+  const conversation='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const active='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const expired='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  const foreign='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+  const future=new Date(Date.now()+86_400_000).toISOString();
+  database.privateInstructions.push(
+    {id:active,workspace_id:WORKSPACE_A,conversation_id:conversation,read_at:null,to_user_id:null,expires_at:future},
+    {id:expired,workspace_id:WORKSPACE_A,conversation_id:conversation,read_at:null,to_user_id:null,expires_at:'2020-01-01T00:00:00Z'},
+    {id:foreign,workspace_id:USER_B,conversation_id:conversation,read_at:null,to_user_id:null,expires_at:future},
+  );
+  const app=createTestApp(database,USER_A);
+  const read=(id:string)=>request(app,`/api/conversations/${conversation}/sussurros/${id}/read`,{method:'POST'});
+  assert.equal((await read(expired)).status,404);
+  assert.equal((await read(foreign)).status,404);
+  assert.equal(database.privateInstructions[1].read_at,null);
+  assert.equal(database.privateInstructions[2].read_at,null);
+  assert.equal((await read(active)).status,200);
+  assert.ok(database.privateInstructions[0].read_at);
+  assert.equal((await read(active)).status,404);
 });
