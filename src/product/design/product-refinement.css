@@ -136,3 +136,28 @@
 @supports not (backdrop-filter: blur(1px)) {
   .orkto-glass-shell, .dark .orkto-glass-shell { --orkto-glass-fill: var(--orkto-surface-1); --orkto-glass-highlight: transparent; --orkto-glass-soft: var(--orkto-surface-2); --orkto-glass-control: var(--orkto-surface-1); --orkto-glass-elevated: var(--orkto-surface-1); }
 }
+
+/* More is a task directory, not another dashboard. Shared across both shells. */
+.orkto-navigation-directory :is(button,input):focus-visible {
+  outline: 2px solid var(--orkto-focus);
+  outline-offset: 2px;
+}
+.orkto-navigation-directory input[type="search"]::-webkit-search-cancel-button { display: none; }
+@media (max-width: 1023px) {
+  .orkto-glass-shell .orkto-mobile-sheet[role="dialog"] {
+    max-height: calc(100dvh - 24px);
+    background: var(--orkto-surface-1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@media (max-width: 1023px) {
+  .orkto-mobile-sheet .orkto-navigation-directory ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 8px;
+  }
+}
+@media (max-width: 1023px) {
+  .orkto-mobile-sheet .orkto-navigation-directory li button { gap: 8px; padding-inline: 4px; }
+}

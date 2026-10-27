@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
 import { ArrowRight, MoreHorizontal, Plus, X } from 'lucide-react';
 import { OrktoIcon } from '../icons/orkto-icon';
-import { primaryNavigation, quickCreateItems, secondaryNavigation, getActiveNavigationId } from './navigation-config';
+import { quickCreateItems, getActiveNavigationId } from './navigation-config';
 import type { ProductView } from '../types';
+import {NavigationDirectory} from './navigation-directory-view';
 
 interface MobileNavigationProps {
   currentView: ProductView;
@@ -20,8 +21,6 @@ const dock = [
   { id: 'wia', label: 'WIA', icon: 'wia' as const, view: 'wia' as ProductView },
   { id: 'more', label: 'Mais', icon: null, view: null },
 ];
-
-const mobileMenuIds = new Set(['clients', 'proposals', 'catalog', 'reports', 'integrations', 'team', 'billing', 'settings', 'profile', 'audit', 'help']);
 
 function useModalKeyboard(open: boolean, onClose: () => void, panelRef: RefObject<HTMLDivElement | null>) {
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -61,7 +60,6 @@ export function MobileNavigation({ currentView, onNavigate, menuOpen, onMenuOpen
   const activeId = getActiveNavigationId(currentView);
   const moreActive = !dock.some(item => item.id === activeId);
   const hideDock = currentView === 'conversation';
-  const menuEntries = useMemo(() => primaryNavigation.flatMap(section => section.items).filter(item => mobileMenuIds.has(item.id)).concat(secondaryNavigation.filter(item => mobileMenuIds.has(item.id))), []);
 
   useModalKeyboard(menuOpen, () => onMenuOpenChange(false), menuRef);
   useModalKeyboard(quickCreateOpen, () => setQuickCreateOpen(false), quickRef);
@@ -93,33 +91,23 @@ export function MobileNavigation({ currentView, onNavigate, menuOpen, onMenuOpen
       </nav>}
 
       {menuOpen && <div className="fixed inset-0 z-[140] lg:hidden" onMouseDown={event => { if (event.target === event.currentTarget) onMenuOpenChange(false); }}>
-        <div className="absolute inset-0 bg-[var(--orkto-overlay)]" aria-hidden="true" />
-        <section ref={menuRef} role="dialog" aria-modal="true" aria-labelledby="mobile-menu-title" onKeyDown={handlePanelKeyDown} className="orkto-mobile-sheet absolute inset-x-0 bottom-0 max-h-[min(82dvh,720px)] overflow-hidden rounded-t-2xl border-t p-4 pb-[max(16px,env(safe-area-inset-bottom))] orkto-product-border orkto-product-surface shadow-[var(--orkto-shadow-panel)]">
+        <div className="absolute inset-0 bg-[var(--orkto-overlay)]" aria-hidden="true" onMouseDown={() => onMenuOpenChange(false)} />
+        <section ref={menuRef} role="dialog" aria-modal="true" aria-labelledby="mobile-menu-title" onKeyDown={handlePanelKeyDown} className="orkto-mobile-sheet absolute inset-x-0 bottom-0 flex max-h-[min(90dvh,760px)] flex-col overflow-hidden rounded-t-2xl border-t p-4 pb-[max(16px,env(safe-area-inset-bottom))] orkto-product-border orkto-product-surface shadow-[var(--orkto-shadow-panel)]">
           <div className="mx-auto mb-4 h-1 w-10 rounded-full orkto-product-surface-muted" aria-hidden="true" />
           <div className="mb-3 flex items-center justify-between">
-            <div><p className="text-[10px] font-medium uppercase tracking-[0.14em] orkto-product-subtle">ORKTO</p><h2 id="mobile-menu-title" className="mt-1 text-lg font-semibold">Módulos</h2></div>
+            <h2 id="mobile-menu-title" className="text-lg font-semibold">Mais</h2>
             <button type="button" data-autofocus="true" onClick={() => onMenuOpenChange(false)} aria-label="Fechar menu" className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><X size={18} /></button>
           </div>
-          <nav className="max-h-[55dvh] overflow-y-auto" aria-label="Todos os módulos">
-            <button type="button" onClick={() => { onMenuOpenChange(false); setQuickCreateOpen(true); }} className="orkto-product-primary mb-3 flex min-h-12 w-full items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold"><Plus size={18} />Criar novo</button>
-            <ul className="grid grid-cols-2 gap-2">
-              {menuEntries.map(item => {
-                const disabled = item.availability !== 'available' || !item.view;
-                return <li key={item.id}>
-                  <button type="button" disabled={disabled} onClick={() => item.view && navigate(item.view)} aria-current={activeId === item.id ? 'page' : undefined} title={disabled ? item.hint : undefined} className={`flex min-h-12 w-full items-center gap-2 rounded-lg border px-3 text-left text-xs orkto-product-border ${activeId === item.id ? 'orkto-product-nav-active' : 'orkto-product-surface'} ${disabled ? 'cursor-not-allowed opacity-60' : 'hover:orkto-product-surface-muted'}`}>
-                    <OrktoIcon name={item.icon} size={18} /><span className="min-w-0 flex-1 truncate">{item.label}</span>{disabled && <span className="text-[9px] orkto-product-subtle">Em breve</span>}
-                  </button>
-                  {disabled && item.hint && <p className="sr-only">{item.hint}</p>}
-                </li>;
-              })}
-            </ul>
+          <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain" aria-label="Todos os módulos">
+            <NavigationDirectory currentView={currentView} onNavigate={navigate}/>
+            <button type="button" onClick={()=>{onMenuOpenChange(false);setQuickCreateOpen(true);}} className="mt-4 flex min-h-11 w-full items-center gap-2 rounded-lg border px-3 text-sm orkto-product-border orkto-product-muted"><Plus size={18} aria-hidden="true"/>Outras criações</button>
           </nav>
           <button type="button" onClick={onSignOut} className="mt-3 flex min-h-12 w-full items-center gap-3 border-t pt-3 text-left text-sm orkto-product-border orkto-product-muted"><OrktoIcon name="signout" size={18} />Sair</button>
         </section>
       </div>}
 
       {quickCreateOpen && <div className="fixed inset-0 z-[150] lg:hidden" onMouseDown={event => { if (event.target === event.currentTarget) setQuickCreateOpen(false); }}>
-        <div className="absolute inset-0 bg-[var(--orkto-overlay)]" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[var(--orkto-overlay)]" aria-hidden="true" onMouseDown={() => setQuickCreateOpen(false)} />
         <section ref={quickRef} role="dialog" aria-modal="true" aria-labelledby="quick-create-title" className="orkto-mobile-sheet absolute inset-x-0 bottom-0 rounded-t-2xl border-t p-4 pb-[max(16px,env(safe-area-inset-bottom))] orkto-product-border orkto-product-surface shadow-[var(--orkto-shadow-panel)]">
           <div className="mb-4 flex items-center justify-between"><div><p className="text-[10px] font-medium uppercase tracking-[0.14em] orkto-product-subtle">Atalho</p><h2 id="quick-create-title" className="mt-1 text-lg font-semibold">Criar novo</h2></div><button type="button" data-autofocus="true" onClick={() => setQuickCreateOpen(false)} aria-label="Fechar criação rápida" className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><X size={18} /></button></div>
           <ul className="space-y-2">

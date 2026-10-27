@@ -212,8 +212,9 @@ function App() {
   const [wiaInitialMessage, setWiaInitialMessage] = useState('');
   const [screen, setScreen] = useState<ScreenName>(initialScreen);
   const [darkMode, setDarkMode] = useState(params.get('theme') !== 'light');
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(params.get('menu')==='1');
   const [mobileThread, setMobileThread] = useState(params.get('thread') === '1');
+  const [sidebarCollapsed,setSidebarCollapsed]=useState(false);
   const [draftCustomerId, setDraftCustomerId] = useState<string | null>(null);
   const [createDeal, setCreateDeal] = useState(false);
   const currentView = screen === 'inbox' && mobileThread && window.matchMedia('(max-width: 1023px)').matches ? 'conversation' : screenViews[screen];
@@ -236,7 +237,7 @@ function App() {
 
   return <div className="orkto-product-shell orkto-glass-shell flex h-dvh min-h-0 overflow-hidden" data-visual-screen={screen} data-visual-theme={darkMode ? 'dark' : 'light'}>
     <div className="fixed left-1/2 top-1 z-[200] -translate-x-1/2 rounded-full border px-3 py-1 text-[10px] font-semibold tracking-wide orkto-product-border orkto-product-surface shadow-sm lg:left-[260px] lg:translate-x-0">VISUAL QA · FIXTURES DE TESTE</div>
-    <DesktopSidebar currentView={currentView} collapsed={false} onCollapsedChange={() => undefined} onNavigate={navigate} darkMode={darkMode} onThemeChange={setDarkMode} companyName="Ambiente de revisão" userName="QA" isInternalAdmin={false} onSignOut={() => undefined} />
+    <DesktopSidebar currentView={currentView} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} onNavigate={navigate} darkMode={darkMode} onThemeChange={setDarkMode} companyName="Ambiente de revisão" userName="QA" isInternalAdmin={false} onSignOut={() => undefined} />
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-3 orkto-product-border orkto-product-surface lg:hidden">
         <span className="text-sm font-semibold tracking-wide">ORKTO</span>
