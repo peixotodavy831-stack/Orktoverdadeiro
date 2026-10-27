@@ -1,3 +1,8 @@
+## Fonte funcional corrigida pelo proprietário —27/10/2026
+
+A referência vigente de funcionalidades é o PDF **ORKTO: Funcionalidades Consolidadas v1.0**, e não o planejador financeiro. Ler [matriz de produto F01–F15/I01–I03/S01–S05](ORKTO_CONSOLIDATED_PRODUCT_REFERENCE_2026-10-27.md). São15funcionalidades (13aprovadas no documento,2pendentes),3configurações internas e5blocos de infraestrutura. Aprovação documental não é PASS técnico nem autorização de operação externa. O inventário anterior de40requisitos permanece somente como histórico administrativo separado. WhatsApp oficial e READY_FOR_PRODUCTION_CANDIDATE=NO preservados.
+
+---
 ## Retomada vigente — WhatsApp/planejamento R2 de 27/10/2026
 
 Ler [execução e matriz R2](ORKTO_WHATSAPP_PLANNING_R2_2026-10-27.md), [inventário de 40 requisitos](ORKTO_PLANNING_2027_REQUIREMENTS.md) e [manual de configuração real](ORKTO_WHATSAPP_LIVE_SETUP.md). Código WhatsApp 3f0e179; fonte final d57cff0. Regressão local399+108, replay53/53 e upgrade46/46; nenhum deploy ou E2E positivo Meta. Fonte publicada do planner bloqueada por autorização de origem; cópia local lida com hashes. Conexões/envios/tarifas Meta continuam0 no staging em27/10. READY_FOR_PRODUCTION_CANDIDATE=NO.
