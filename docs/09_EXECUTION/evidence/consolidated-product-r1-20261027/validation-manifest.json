@@ -1,0 +1,83 @@
+{
+  "environment": "local_fixture_and_http_doubles",
+  "deployed": false,
+  "history": {
+    "initialBuild": "EPERM in sandbox; final authorized local build PASS",
+    "initialToolSuite": "107/108; fixture process deadline, then setup consumed the10s fixture test budget",
+    "repair": "Only local diagnostic fixture startup budget30s and process120s;75ms and150ms assertions unchanged; full108/108 rerun PASS"
+  },
+  "sourceSha": "9704684039499e4da01bef93cbffcbde91c99480",
+  "date": "2026-10-27",
+  "providerE2E": false,
+  "readyForProductionCandidate": "NO",
+  "branch": "codex/orkto-whatsapp-e2e",
+  "productionChanged": false,
+  "logs": [
+    {
+      "sha256": "18db4ffd89cdbb85af3090cfdfdb7dcb8e8b6c4e5a46f970c717e13cfdb422d6",
+      "name": "tests-final.log"
+    },
+    {
+      "sha256": "a9f0743ad0e1e12c81129cf581cb8bb92f1467610f42ce83e20d7957bbddf487",
+      "name": "tools-final.log"
+    },
+    {
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479",
+      "name": "lint-final.log"
+    },
+    {
+      "sha256": "e56125d844cf396e19d56cd2e2df7a374e84f5ddee0ce1d2302538562c0527eb",
+      "name": "edge.log"
+    },
+    {
+      "sha256": "4395795ddf67a3aac35c7443889f0ab72af9cd8e9fd8b203b4675c1a3b8cfb70",
+      "name": "build-final.log"
+    },
+    {
+      "sha256": "305182a3c328ff824e74960dd29f324e4dca97e343067948db7ba9d28eaafe76",
+      "name": "diagnostics-final.log"
+    },
+    {
+      "sha256": "e8912e5447b8fa579331f16f82aebce18324250c51aa07d03a4ea2e190c5b409",
+      "name": "scan-final.log"
+    },
+    {
+      "sha256": "079c3fef2b66a53fa0142f6fa76dccda307da03b3ab22883c3e99b0b232961ca",
+      "name": "scan-delivery.log"
+    }
+  ],
+  "checks": {
+    "lint": "PASS",
+    "application": {
+      "command": "npm run test:all",
+      "pass": 402,
+      "fail": 0,
+      "note": "Application section PASS; tools section in this first invocation had one fixture timeout. Final tool suite executed separately below."
+    },
+    "edgeTypecheck": "PASS",
+    "secretScan": {
+      "blockers": 0,
+      "scope": "full source and documentation including this manifest",
+      "scanned": 712,
+      "findings": 0
+    },
+    "build": {
+      "publicUrl": true,
+      "distPreserved": true,
+      "runtime": true,
+      "frontend": true,
+      "server": true
+    },
+    "diagnostics": {
+      "command": "node --test scripts/tests/staging-diagnostics.test.mjs",
+      "pass": 5,
+      "fail": 0
+    },
+    "tools": {
+      "command": "node --test --test-concurrency=1 [all scripts/tests/*.test.mjs]",
+      "pass": 108,
+      "fail": 0
+    }
+  },
+  "logStorage": "Ignored .tmp-consolidated directory retained locally; hashes below, no credentials or raw provider sessions"
+}

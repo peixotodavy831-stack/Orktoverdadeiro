@@ -1,0 +1,49 @@
+{
+  "environment": "local_fixture",
+  "providerE2E": false,
+  "checks": [
+    {
+      "brokenBrandImages": 0,
+      "documentWidth": 390,
+      "input": "",
+      "signatures": 2,
+      "width": 390
+    },
+    {
+      "brokenBrandImages": 0,
+      "documentWidth": 768,
+      "input": "",
+      "signatures": 2,
+      "width": 768
+    },
+    {
+      "brokenBrandImages": 0,
+      "documentWidth": 1280,
+      "input": "",
+      "signatures": 2,
+      "width": 1280
+    },
+    {
+      "alerts": 2,
+      "case": "unavailable",
+      "hasAcceptInput": false,
+      "hasOldClient": false
+    },
+    {
+      "case": "read-confirmed",
+      "documentWidth": 390,
+      "showHistory": true,
+      "visibleInstruction": false,
+      "width": 390
+    },
+    {
+      "case": "read-history",
+      "visibleInstruction": true
+    },
+    {
+      "case": "read-failed",
+      "errorVisible": true,
+      "visibleInstruction": true
+    }
+  ]
+}

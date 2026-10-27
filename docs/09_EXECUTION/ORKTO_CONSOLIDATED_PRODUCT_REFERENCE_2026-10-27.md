@@ -63,3 +63,7 @@ Os itens abaixo não viram ofertas ou módulos comerciais independentes apenas p
 Prioridade operacional continua WhatsApp oficial: concluir configuração/rodada autorizada e evidências reais antes de anunciar operação. Em paralelo, usar F01–F15/I01–I03/S01–S05 como backlog rastreável de produto, fechando requisitos por evidência e reutilizando o código existente. Não abrir novamente o site de planejamento financeiro para definir essas funcionalidades.
 
 **READY_FOR_PRODUCTION_CANDIDATE=NO.** Esta rodada corrige a fonte e a rastreabilidade; não altera código executável, dados, produção, PR#2 ou implantação.
+
+## Execução posterior — produto R1
+
+Correções e evidências locais em [execução R1](ORKTO_CONSOLIDATED_IMPLEMENTATION_R1_2026-10-27.md), código 9704684: assinatura nos artefatos existentes, isolamento de estado entre links públicos e ocultação de Sussurros após leitura confirmada. F01/F02/F15 continuam sem aceitação remota integral. A frase sobre ausência de alteração executável acima descreve somente a rodada de adoção da fonte d547c9f. READY_FOR_PRODUCTION_CANDIDATE=NO.

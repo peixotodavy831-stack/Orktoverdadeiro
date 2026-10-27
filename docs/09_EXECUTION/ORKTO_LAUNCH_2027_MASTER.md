@@ -1,3 +1,9 @@
+## Execução local do produto consolidado R1 — 27/10/2026
+
+Ler [correções, aceitação e bloqueios R1](ORKTO_CONSOLIDATED_IMPLEMENTATION_R1_2026-10-27.md), fonte 9704684. Assinaturas, troca de links e leitura de Sussurros corrigidas; não constitui100% do PDF nem E2E Meta. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
+
 ## Fonte funcional corrigida pelo proprietário —27/10/2026
 
 A referência vigente de funcionalidades é o PDF **ORKTO: Funcionalidades Consolidadas v1.0**, e não o planejador financeiro. Ler [matriz de produto F01–F15/I01–I03/S01–S05](ORKTO_CONSOLIDATED_PRODUCT_REFERENCE_2026-10-27.md). São15funcionalidades (13aprovadas no documento,2pendentes),3configurações internas e5blocos de infraestrutura. Aprovação documental não é PASS técnico nem autorização de operação externa. O inventário anterior de40requisitos permanece somente como histórico administrativo separado. WhatsApp oficial e READY_FOR_PRODUCTION_CANDIDATE=NO preservados.
