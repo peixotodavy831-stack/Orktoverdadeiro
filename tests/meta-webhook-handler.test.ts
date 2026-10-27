@@ -9,7 +9,7 @@ const message='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 let handler:(request:Request)=>Response|Promise<Response>;
 const originalFetch=globalThis.fetch,originalDeno=globalThis.Deno;
 let claim='CLAIMED',ingest:unknown=[{decision:'APPLIED',conversation_id:conversation,message_id:message}];
-let recipient='5511999990000',finishFails=false,finishFalse=false;
+let recipient='5511999990000',finishFails=false,finishFalse=false,sendMissing=false;
 const calls:Array<{path:string;body:any}>=[];
 before(async()=>{
  globalThis.Deno={env:{get:name=>({META_APP_SECRET:secret,META_WEBHOOK_VERIFY_TOKEN:'synthetic-verify',
@@ -18,17 +18,17 @@ before(async()=>{
   const url=new URL(String(input));assert.equal(url.origin,'https://fixture-supabase.invalid','No live HTTP permitted');
   const path=url.pathname,body=init?.body?JSON.parse(String(init.body)):null;calls.push({path,body});
   if(path.endsWith('/orkto_claim_meta_webhook_event'))return Response.json([{decision:claim,workspace_id:workspace,connection_id:workspace,claim_token:workspace}]);
-  if(path.endsWith('/orkto_ingest_meta_text_message'))return Response.json(ingest);
+  if((path.endsWith('/orkto_ingest_meta_text_message')||path.endsWith('/orkto_ingest_meta_unsupported_message')))return Response.json(ingest);
   if(path.endsWith('/orkto_finish_meta_webhook_event'))return finishFails?Response.json({message:'fixture unavailable'},{status:503}):Response.json(!finishFalse);
-  if(path.endsWith('/orkto_record_channel_delivery_event'))return Response.json('APPLIED');
-  if(path.endsWith('/orkto_channel_send_requests'))return Response.json({id:message,conversation_id:conversation});
+  if(path.endsWith('/orkto_record_meta_receipt'))return Response.json('APPLIED');
+  if(path.endsWith('/orkto_channel_send_requests'))return Response.json(sendMissing?null:{id:message,conversation_id:conversation});
   if(path.endsWith('/orkto_conversations')){assert.equal(url.searchParams.get('workspace_id'),`eq.${workspace}`);return Response.json({contact_phone:recipient});}
   throw new Error('Unexpected fixture request');
  };
  await import('../supabase/functions/orkto-meta-webhook/index.ts');
 });
 after(()=>{globalThis.fetch=originalFetch;globalThis.Deno=originalDeno;});
-function reset(){claim='CLAIMED';ingest=[{decision:'APPLIED',conversation_id:conversation,message_id:message}];recipient='5511999990000';finishFails=false;finishFalse=false;calls.length=0;}
+function reset(){claim='CLAIMED';ingest=[{decision:'APPLIED',conversation_id:conversation,message_id:message}];recipient='5511999990000';finishFails=false;finishFalse=false;sendMissing=false;calls.length=0;}
 function request(kind:'message'|'status'|'image'='message',valid=true){
  const value={metadata:{phone_number_id:'123456789'},...(kind==='status'?{statuses:[{id:'wamid.synthetic',status:'delivered',timestamp:'1793000000',recipient_id:'5511999990000'}]}:
   {messages:[{id:'wamid.synthetic',from:'5511999990000',timestamp:'1793000000',type:kind==='image'?'image':'text',text:{body:'Synthetic inbound evidence'}}]})};
@@ -49,14 +49,23 @@ test('in-progress claims request retry rather than acknowledging unfinished work
 });
 test('receipt recipient mismatch cannot update another conversation delivery',async()=>{
  reset();recipient='5511888880000';assert.equal((await handler(request('status'))).status,200);
- assert.equal(calls.some(call=>call.path.endsWith('/orkto_record_channel_delivery_event')),false);
+ assert.equal(calls.some(call=>call.path.endsWith('/orkto_record_meta_receipt')),false);
  assert.equal(calls.at(-1)?.body.p_failure_category,'recipient_mismatch');
  reset();assert.equal((await handler(request('status'))).status,200);
- assert.equal(calls.some(call=>call.path.endsWith('/orkto_record_channel_delivery_event')),true);
+ assert.equal(calls.some(call=>call.path.endsWith('/orkto_record_meta_receipt')),true);
 });
-test('failure to finish unsupported media claim remains retryable, never false ACK',async()=>{
- reset();finishFails=true;assert.equal((await handler(request('image'))).status,503);
- assert.equal(calls.some(call=>call.path.endsWith('/orkto_ingest_meta_text_message')),false);
- reset();finishFalse=true;assert.equal((await handler(request('image'))).status,503);
+test('unsupported content persists an explicit marker and retries on failed persistence',async()=>{
+ reset();assert.equal((await handler(request('image'))).status,200);
+ const ingestCall=calls.find(call=>call.path.endsWith('/orkto_ingest_meta_unsupported_message'));
+ assert.equal(ingestCall?.body.p_message_type,'image');assert.equal(ingestCall?.body.p_text,undefined);
+ assert.equal(calls.some(call=>call.path.endsWith('/orkto_finish_meta_webhook_event')),false);
+ reset();ingest=[];assert.equal((await handler(request('image'))).status,503);
  reset();finishFalse=true;assert.equal((await handler(request('status'))).status,503);
+ reset();finishFails=true;assert.equal((await handler(request('status'))).status,503);
+});
+test('receipt preceding send acknowledgement remains retryable and never loses delivery proof',async()=>{
+ reset();sendMissing=true;assert.equal((await handler(request('status'))).status,503);
+ assert.equal(calls.at(-1)?.body.p_failure_category,'send_reference_pending');
+ assert.equal(calls.some(call=>call.path.endsWith('/orkto_record_meta_receipt')),false);
+ reset();assert.equal((await handler(request('status'))).status,200);
 });

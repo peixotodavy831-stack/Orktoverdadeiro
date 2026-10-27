@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, 
@@ -38,6 +38,12 @@ import {
 import { formatPhone, formatBRL } from '../../utils/format';
 import OrktoLogo from '../OrktoLogo';
 import { confirmedSendMessage, confirmedSendState } from '../../product/inbox-delivery-status';
+import { conversationApproval, conversationMessage, persistedMessageReceipt } from '../../product/conversation-message';
+
+function mergeMessages(older:ConversationMessage[],newer:ConversationMessage[]){
+ return [...new Map([...older,...newer].map(message=>[message.id,message])).values()]
+  .sort((a,b)=>new Date(String(a.sentAt)).getTime()-new Date(String(b.sentAt)).getTime()||a.id.localeCompare(b.id));
+}
 
 // Helper function to format timestamps
 function formatTimestamp(ts: unknown): string {
@@ -127,6 +133,10 @@ export default function ConversationView({
   const [workspaceMembers, setWorkspaceMembers] = useState<WorkspaceAudienceMember[]>([]);
   const [currentUserId, setCurrentUserId] = useState('');
   const [sussurroRecipientId, setSussurroRecipientId] = useState('');
+  const conversationRequest = useRef(0);
+  const historyExpanded=useRef(false);
+  const [historyCursor,setHistoryCursor]=useState<{at:string;id:string}|null>(null);
+  const [historyBusy,setHistoryBusy]=useState(false);
 
   const loadSussurros = useCallback(async (silent = false) => {
     if (!silent) setSussurroLoading(true); setSussurroError('');
@@ -191,26 +201,29 @@ export default function ConversationView({
   };
 
   // Carrega conversa + mensagens + tarefas
-  const loadConversation = useCallback(async () => {
-    setLoading(true);
+  const loadConversation = useCallback(async (silent=false) => {
+    const request=++conversationRequest.current;
+    if(!silent)setLoading(true);
     setLoadError(null);
     setLoadStatus(null);
     const token = (await import('../../lib/supabase').then(m => m.supabase.auth.getSession()).then(s => s.data.session?.access_token).catch(() => null)) || null;
     const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
 
     try {
-      const [convRes, msgRes] = await Promise.all([
-        fetch(`/api/conversations/${conversationId}`, { headers }),
-        fetch(`/api/conversations/${conversationId}/messages`, { headers }).catch(() => null),
-      ]);
+      const convRes=await fetch(`/api/conversations/${encodeURIComponent(conversationId)}`, { headers });
+      if(request!==conversationRequest.current)return;
 
       if (convRes.ok) {
         const data = await convRes.json();
+        if(request!==conversationRequest.current)return;
         setConversation(data);
-        setMessages(data.messages || []);
-        setApprovalTasks(data.approval_tasks || []);
+        const latest=(Array.isArray(data.messages)?data.messages:[]).map(conversationMessage);
+        setMessages(current=>historyExpanded.current?mergeMessages(current,latest):latest);
+        if(!historyExpanded.current)setHistoryCursor(data.nextMessagesCursor??null);
+        setApprovalTasks((Array.isArray(data.approval_tasks)?data.approval_tasks:[]).map(conversationApproval));
       } else {
         const payload = await convRes.json().catch(() => null);
+        if(request!==conversationRequest.current)return;
         setLoadStatus(convRes.status);
         setLoadError(payload?.error || `A conversa não pôde ser carregada (HTTP ${convRes.status}).`);
         setConversation(null);
@@ -218,18 +231,41 @@ export default function ConversationView({
         setApprovalTasks([]);
       }
     } catch (err) {
+      if(request!==conversationRequest.current)return;
       console.error('[ConversationView] load error:', err);
       setLoadError(err instanceof Error ? err.message : 'Não foi possível conectar ao serviço de conversas.');
       setConversation(null);
     } finally {
-      setLoading(false);
+      if(request===conversationRequest.current)setLoading(false);
     }
   }, [conversationId]);
 
   useEffect(() => {
     setLoading(true);
-    loadConversation().finally(() => setLoading(false));
+    void loadConversation();
+    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void loadConversation(true);},15_000);
+    return ()=>{conversationRequest.current++;window.clearInterval(timer);};
   }, [loadConversation]);
+
+  const loadEarlierMessages=async()=>{
+    if(!historyCursor||historyBusy)return;
+    const request=conversationRequest.current;
+    setHistoryBusy(true);
+    try{
+      const {supabase}=await import('../../lib/supabase');
+      const token=(await supabase.auth.getSession()).data.session?.access_token;
+      if(!token)throw new Error('Entre novamente para carregar o histórico.');
+      const params=new URLSearchParams({before:historyCursor.at,beforeId:historyCursor.id});
+      const response=await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/messages?${params}`,{headers:{Authorization:`Bearer ${token}`}});
+      const payload=await response.json();
+      if(request!==conversationRequest.current)return;
+      if(!response.ok)throw new Error(payload?.error||'Não foi possível carregar o histórico.');
+      historyExpanded.current=true;
+      setMessages(current=>mergeMessages((payload.data||[]).map(conversationMessage),current));
+      setHistoryCursor(payload.nextCursor??null);
+    }catch(cause){if(request===conversationRequest.current)setLoadError(cause instanceof Error?cause.message:'Histórico indisponível.');}
+    finally{setHistoryBusy(false);}
+  };
 
   useEffect(() => { void loadSussurros(); void loadSussurroAudience(); }, [loadSussurros, loadSussurroAudience]);
   useEffect(() => {
@@ -409,6 +445,8 @@ export default function ConversationView({
                 </div>
               )}
               <p>{msg.content}</p>
+              {msg.metadata?.content_state==='unsupported' && <p className="mt-2 text-xs font-medium text-amber-600 dark:text-amber-300">Conteúdo não processado · sem download ou interpretação automática.</p>}
+              {persistedMessageReceipt(msg) && <p className="mt-2 text-xs" aria-label="Estado confirmado do envio">{persistedMessageReceipt(msg)}</p>}
               <div className={`flex items-center justify-end gap-2 mt-1.5 ${
                 isBot ? 'text-zinc-500' : 'text-zinc-500'
               }`}>
@@ -655,6 +693,7 @@ export default function ConversationView({
             </div>
           )}
 
+          {historyCursor&&<button type="button" onClick={()=>void loadEarlierMessages()} disabled={historyBusy} className="mb-4 min-h-11 rounded-lg border border-zinc-500/30 px-4 text-sm">{historyBusy?'Carregando histórico…':'Carregar mensagens anteriores'}</button>}
           {messages.map((msg, idx) => renderMessage(msg, idx))}
         </div>
 

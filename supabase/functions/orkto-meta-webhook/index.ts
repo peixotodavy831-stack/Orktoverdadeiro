@@ -6,7 +6,7 @@ const numericId=z.string().regex(/^\d{5,30}$/);
 const unixTime=z.string().regex(/^\d{1,12}$/);
 const message=z.object({
   id:z.string().min(1).max(300),from:numericId,timestamp:unixTime,
-  type:z.string().min(1).max(40),text:z.object({body:z.string().min(1).max(65536)}).optional(),
+  type:z.string().regex(/^[a-z_]{1,40}$/),text:z.object({body:z.string().min(1).max(65536)}).optional(),
 }).passthrough();
 const status=z.object({
   id:z.string().min(1).max(300),status:z.enum(['sent','delivered','read','failed']),
@@ -71,13 +71,10 @@ Deno.serve(async(req:Request)=>{
        if(claim?.decision==='DUPLICATE')continue;
        if(claim?.decision==='IN_PROGRESS'){retryRequired=true;continue;}
        if(claim?.decision!=='CLAIMED'||typeof claim.connection_id!=='string'||typeof claim.claim_token!=='string')continue;
-      if(item.type!=='text'||!item.text){
-         const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});
-         if(finishError||finished!==true)retryRequired=true;continue;
-      }
-      const {data:stored,error:storeError}=await admin.rpc('orkto_ingest_meta_text_message',{
+      if(item.type==='text'&&!item.text){retryRequired=true;continue;}
+      const {data:stored,error:storeError}=await admin.rpc(item.type==='text'?'orkto_ingest_meta_text_message':'orkto_ingest_meta_unsupported_message',{
          p_connection_id:claim.connection_id,p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_external_message_id:item.id,
-        p_sender_phone:item.from,p_text:item.text.body,p_occurred_at:at,
+        p_sender_phone:item.from,...(item.type==='text'?{p_text:item.text!.body}:{p_message_type:item.type}),p_occurred_at:at,
       });
       if(storeError||!metaIngestConfirmed(stored)){
          retryRequired=true;await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'persistence_error'});
@@ -98,7 +95,13 @@ Deno.serve(async(req:Request)=>{
       const {data:send,error:lookupError}=await admin.from('orkto_channel_send_requests').select('id,conversation_id')
         .eq('workspace_id',claim.workspace_id).eq('provider','meta_whatsapp_cloud').eq('provider_message_id',item.id).maybeSingle();
       if(lookupError){retryRequired=true;continue}
-       if(!send?.id){const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'ignored',p_failure_category:null});if(finishError||finished!==true)retryRequired=true;continue}
+       // A receipt can beat persistence of the Graph send response. Keep it
+       // retryable rather than acknowledging and losing the only delivery proof.
+       if(!send?.id){
+         retryRequired=true;
+         await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'send_reference_pending'});
+         continue;
+       }
       const {data:conversation,error:conversationError}=await admin.from('orkto_conversations').select('contact_phone')
         .eq('workspace_id',claim.workspace_id).eq('id',send.conversation_id).maybeSingle();
       if(conversationError){retryRequired=true;continue;}
@@ -106,11 +109,10 @@ Deno.serve(async(req:Request)=>{
         const {data:finished,error:finishError}=await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'recipient_mismatch'});
         if(finishError||finished!==true)retryRequired=true;continue;
       }
-      const mapped=item.status==='sent'?'PROVIDER_ACKNOWLEDGED':item.status==='failed'?'FAILED':'DELIVERED';
-      const {data:receiptDecision,error:receiptError}=await admin.rpc('orkto_record_channel_delivery_event',{
-        p_workspace_id:claim.workspace_id,p_send_request_id:send.id,p_provider:'meta_whatsapp_cloud',
+      const {data:receiptDecision,error:receiptError}=await admin.rpc('orkto_record_meta_receipt',{
+        p_workspace_id:claim.workspace_id,p_send_request_id:send.id,
         p_provider_event_id:eventId,p_payload_fingerprint:fingerprint,p_provider_message_id:item.id,
-        p_status:mapped,p_failure_category:item.status==='failed'?'provider_transient':null,p_occurred_at:at,
+        p_provider_status:item.status,p_occurred_at:at,
       });
        if(receiptError){retryRequired=true;await admin.rpc('orkto_finish_meta_webhook_event',{p_provider_event_id:eventId,p_claim_token:claim.claim_token,p_status:'failed',p_failure_category:'delivery_persistence_error'});continue}
        const outcome=metaReceiptOutcome(receiptDecision);

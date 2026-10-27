@@ -85,6 +85,7 @@ begin
       'orkto_extend_quote_retention_command','orkto_decide_approval_task_command','orkto_contact_command',
       'orkto_store_meta_connection','orkto_read_meta_token','orkto_set_whatsapp_mode','orkto_disconnect_meta_connection',
       'orkto_claim_meta_webhook_event','orkto_ingest_meta_text_message','orkto_finish_meta_webhook_event',
+      'orkto_ingest_meta_unsupported_message','orkto_record_meta_receipt',
       'orkto_reserve_meta_send','orkto_accept_meta_send'
     ) then
       raise exception 'Unexpected SECURITY DEFINER routine in public: %', f.proname;
@@ -106,7 +107,7 @@ begin
       raise exception 'Server role cannot execute required routine %', f.proname;
     end if;
   end loop;
-  if definer_count <> (49 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
+  if definer_count <> (51 + case when to_regprocedure('public.tony_search_context(text,text,integer)') is null then 0 else 1 end) then
     raise exception 'Unexpected SECURITY DEFINER routine count: %', definer_count;
   end if;
 end $$;

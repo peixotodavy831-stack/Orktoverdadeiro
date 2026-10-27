@@ -91,16 +91,20 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
   const [contextOpen, setContextOpen] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width: 1440px)').matches);
   const [contextDrawerOpen, setContextDrawerOpen] = useState(false);
   const contextDrawerRef = useRef<HTMLDivElement>(null);
+  const listRequest=useRef(0);
   const mobileDetail = currentView === 'conversation';
   const conversations = listState.data;
   const selected = conversations.find(item => item.id === selectedConversationId) as InboxConversationView | undefined;
 
-  const loadConversations = useCallback(async () => {
-    setListState({ status: 'loading', data: [] });
+  const loadConversations = useCallback(async (silent=false) => {
+    const request=++listRequest.current;
+    if(!silent)setListState({ status: 'loading', data: [] });
     try {
       const data = await inboxDataSource.listConversations(accessToken);
+      if(request!==listRequest.current)return;
       setListState({ status: 'success', data });
     } catch (cause) {
+      if(request!==listRequest.current)return;
       setListState({
         status: cause instanceof InboxDataSourceError ? cause.state : 'error',
         data: [],
@@ -109,7 +113,11 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
     }
   }, [accessToken]);
 
-  useEffect(() => { void loadConversations(); }, [loadConversations]);
+  useEffect(() => {
+    void loadConversations();
+    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void loadConversations(true);},30_000);
+    return ()=>{++listRequest.current;window.clearInterval(timer);};
+  }, [loadConversations]);
 
   useEffect(() => {
     if (!contextDrawerOpen) return;
@@ -187,5 +195,5 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
 }
 
 function InboxThread({ conversationId, onBack, onOpenContext, onOpenConfiguration, onRefresh }: { conversationId: string; onBack: () => void; onOpenContext: () => void; onOpenConfiguration: () => void; onRefresh: () => Promise<void> }) {
-  return <ConversationView conversationId={conversationId} embedded onBack={onBack} onOpenContext={onOpenContext} onOpenConfiguration={onOpenConfiguration} onRefresh={onRefresh} />;
+  return <ConversationView key={conversationId} conversationId={conversationId} embedded onBack={onBack} onOpenContext={onOpenContext} onOpenConfiguration={onOpenConfiguration} onRefresh={onRefresh} />;
 }

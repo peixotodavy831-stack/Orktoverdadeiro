@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/node";
 import { Resend } from "resend";
+import {loadMessageHistory,messageHistoryCursor} from './channels/message-history.js';
 import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
@@ -1848,9 +1849,7 @@ app.get("/api/conversations/:conversationId", authenticate, async (req, res) => 
       return res.status(404).json({ error: 'Conversa não encontrada' });
     }
 
-    const { data: messages, error: messagesError } = await supabase
-      .from('orkto_messages').select('*').eq('workspace_id',workspaceId).eq('conversation_id', conversationId).order('sent_at', { ascending: true });
-    if (messagesError) throw messagesError;
+    const history=await loadMessageHistory(supabase,workspaceId,String(conversationId));
 
     const { data: approvalTasks, error: approvalError } = await supabase
       .from('orkto_approval_tasks').select('*').eq('workspace_id',workspaceId).eq('conversation_id', conversationId).order('created_at', { ascending: true });
@@ -1859,7 +1858,7 @@ app.get("/api/conversations/:conversationId", authenticate, async (req, res) => 
     const memoryEntities = [{ type:'conversation',ref:String(conversation.id) }, ...(conversation.customer_id ? [{type:'customer',ref:String(conversation.customer_id)}] : []), ...(conversation.deal_id ? [{type:'deal',ref:String(conversation.deal_id)}] : [])];
     const contextualMemories = await loadContextualMemories(supabase,workspaceId,memoryEntities,8);
 
-    res.json({ ...conversation, messages: messages || [], approval_tasks: approvalTasks || [], contextual_memories:contextualMemories });
+    res.json({ ...conversation, messages: history.messages, nextMessagesCursor:history.nextCursor, approval_tasks: approvalTasks || [], contextual_memories:contextualMemories });
   } catch (error) {
     console.error(`[ERRO] ${req.method} ${req.path}:`, error);
     res.status(500).json({ error: 'Erro ao carregar conversa.' });
@@ -1868,16 +1867,16 @@ app.get("/api/conversations/:conversationId", authenticate, async (req, res) => 
 
 app.get('/api/conversations/:conversationId/messages', authenticate, async (req, res) => {
   if (!supabase) return res.status(503).json({ error: 'Mensagens indisponíveis sem persistência configurada.', category: 'configuration_error' });
+  let cursor:ReturnType<typeof messageHistoryCursor>;
+  try{cursor=messageHistoryCursor(req.query.before,req.query.beforeId);}catch{return res.status(400).json({error:'Cursor de histórico inválido.'});}
   try {
     const workspaceId = requireTenantContext(req).workspaceId;
     const { data: conversation, error: conversationError } = await supabase.from('orkto_conversations').select('id')
       .eq('id', req.params.conversationId).eq('workspace_id', workspaceId).maybeSingle();
     if (conversationError) throw conversationError;
     if (!conversation) return res.status(404).json({ error: 'Conversa não encontrada.' });
-    const { data, error } = await supabase.from('orkto_messages').select('*').eq('workspace_id', workspaceId)
-      .eq('conversation_id', conversation.id).order('sent_at', { ascending: true }).limit(1000);
-    if (error) throw error;
-    res.json({ data: data || [] });
+    const history=await loadMessageHistory(supabase,workspaceId,conversation.id,cursor);
+    res.json({ data:history.messages,nextCursor:history.nextCursor });
   } catch (error) {
     console.error(`[ERRO] ${req.method} ${req.path}:`, error);
     res.status(500).json({ error: 'Não foi possível carregar as mensagens.' });

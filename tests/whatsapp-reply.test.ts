@@ -10,11 +10,11 @@ test('Inbox draft handles display channel casing but rejects noncanonical identi
  assert.equal(whatsappReplyDraft(id,'email'),null);
  assert.equal(whatsappReplyDraft('synthetic-not-a-uuid','WhatsApp'),null);
 });
-function database(options:{workspace?:string;sentAt?:string;channel?:string;error?:boolean}={}){
+function database(options:{workspace?:string;sentAt?:string;channel?:string;error?:boolean;unsupported?:boolean}={}){
  const calls:string[]=[];let saved:any=null;
  return {calls,from(table:string){
   assert.ok(['orkto_conversations','orkto_messages','orkto_wia_events'].includes(table),'no tariff/model query or write');
-  const rows=table==='orkto_conversations'?[{id,workspace_id:options.workspace||a,source_channel:options.channel||'whatsapp',status:'active'}]:table==='orkto_messages'?[{id:b,workspace_id:options.workspace||a,conversation_id:id,direction:'incoming',sent_at:options.sentAt||new Date(Date.now()-60000).toISOString()}]:[];
+  const rows=table==='orkto_conversations'?[{id,workspace_id:options.workspace||a,source_channel:options.channel||'whatsapp',status:'active'}]:table==='orkto_messages'?[{id:b,workspace_id:options.workspace||a,conversation_id:id,direction:'incoming',metadata:options.unsupported?{content_state:'unsupported'}:{},sent_at:options.sentAt||new Date(Date.now()-60000).toISOString()}]:[];
   const filters:Array<(row:any)=>boolean>=[];
   const out=()=>({data:rows.filter(row=>filters.every(fn=>fn(row))),error:options.error?{message:'unavailable'}:null,count:0});
   const query:any={select:()=>query,eq:(key:string,value:unknown)=>{filters.push(row=>row[key]===value);return query;},gte:()=>query,order:()=>query,
@@ -48,4 +48,10 @@ test('WhatsApp preparation reuses durable WIA request lifecycle and replay witho
  const replay=await prepareTrustedRequest(db,input,env,provider);
  assert.equal(first.decision.requiresApproval,true);assert.equal(first.usage.provider,'none');
  assert.equal(replay.replayed,true);assert.equal(db.calls.filter(x=>x==='orkto_wia_finish_request').length,1);
+});
+
+test('unsupported inbound content can only prepare a request for textual clarification',async()=>{
+ const reply=await prepareWhatsAppReply(database({unsupported:true}),a,id);
+ assert.equal(reply.requiresApproval,true);assert.match(reply.messageDraft,/descrição em texto/);
+ assert.doesNotMatch(reply.messageDraft,/transcrevi|ouvi|analisei o áudio/i);
 });
