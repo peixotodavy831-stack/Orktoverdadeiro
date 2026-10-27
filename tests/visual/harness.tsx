@@ -30,12 +30,14 @@ import IntegrationsPage from '../../src/product/screens/integrations-page';
 import ManagementPage from '../../src/product/screens/management-page';
 import ProfilePage from '../../src/product/screens/profile-page';
 import SettingsPage from '../../src/components/SettingsPage';
+import {LaunchPlanningPanel} from '../../src/components/internal/LaunchPlanningPanel';
+import {DEFAULT_FINANCE_ASSUMPTIONS} from '../../backend/finance/finance-model';
 import QuotesPage from '../../src/components/QuotesPage';
 import CreateQuote from '../../src/components/CreateQuote';
 import ClientsPage from '../../src/components/ClientsPage';
 import ServicesPage from '../../src/components/ServicesPage';
 
-const additionalScreens = ['team','audit','help','profile','settings','proposals','create_quote','clients','catalog','billing','integrations'] as const;
+const additionalScreens = ['team','audit','help','profile','settings','proposals','create_quote','clients','catalog','billing','integrations','founder_planning'] as const;
 const fixtureRequest = async (path: string) => {
   const scenario = new URLSearchParams(location.search).get('scenario');
   if (scenario === 'error') throw new Error('Falha de fixture');
@@ -48,6 +50,7 @@ const fixtureWriteBlocked = async (): Promise<never> => { throw new Error('Fixtu
 
 type ScreenName = 'today' | 'inbox' | 'deals' | 'wia' | typeof additionalScreens[number];
 const screenViews: Record<ScreenName, ProductView> = {
+  founder_planning:'settings',
   billing:'billing',integrations:'integrations',team:'team',audit:'audit',help:'help',profile:'profile',settings:'settings',proposals:'quotes',create_quote:'create_quote',clients:'clients',catalog:'services',
   today: 'dashboard',
   inbox: 'conversations',
@@ -152,7 +155,10 @@ function installVisualApiFixtures() {
       return json({data:{...data,version:'R1',read_only:true,coverage:{partial:scenario==='partial',limited_sources:scenario==='partial'?['quotes']:[],leads_evaluated:true}}});
     }
     if (path === '/api/priority/inbox') return json({ data: [visualConversation] });
-    if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}`) return json(visualConversationDetail);
+    if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}`) return json(scenario==='meta-messages'?{...visualConversationDetail,messages:[
+      {id:'synthetic-audio',conversation_id:VISUAL_CONVERSATION_ID,sender_role:'contact',direction:'incoming',message_type:'audio',content:'Áudio recebido no WhatsApp. O conteúdo não foi processado pela ORKTO. Solicite uma descrição em texto.',sent_at:'2026-10-27T10:00:00Z',metadata:{provider:'meta_whatsapp_cloud',content_state:'unsupported',content_processed:false}},
+      {id:'synthetic-reply',conversation_id:VISUAL_CONVERSATION_ID,sender_role:'operator',direction:'outgoing',message_type:'text',content:'Demonstração fictícia: pode nos enviar uma descrição em texto?',sent_at:'2026-10-27T10:01:00Z',metadata:{provider:'meta_whatsapp_cloud',provider_receipt_status:'read',provider_receipt_at:'2026-10-27T10:02:00Z'}},
+    ]}:visualConversationDetail);
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/assistance`) { if (scenario === 'assistance_loading') await new Promise(() => {}); if (scenario === 'assistance_error') return json({error:'Contexto indisponível'},503); if (scenario === 'assistance_permission') return json({error:'Sem acesso'},403); return json(buildConversationAssistance({conversation:{id:VISUAL_CONVERSATION_ID,contact_phone:visualConversation.contact_phone},clients:scenario==='assistance_empty'?[]:[{id:'fixture-client',name:'Marina — demonstração',phone:visualConversation.contact_phone}],clientsComplete:true,messages:scenario==='assistance_empty'?[]:[{id:'fixture-message',direction:'incoming',content:'Dado fictício'}],deals:[]})); }
       if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/messages`) return json({ data: visualConversationDetail.messages });
     if (path === `/api/conversations/${VISUAL_CONVERSATION_ID}/sussurros`) return json({ data: [] });
@@ -233,6 +239,7 @@ function App() {
         {screen === 'create_quote' && <CreateQuote userProfile={visualProfile} savedClients={[visualClient]} savedServices={[]} onQuoteCreated={fixtureWriteBlocked} onCancel={() => setScreen('proposals')} />}
         {screen === 'clients' && <ClientsPage clients={[visualClient]} quotes={[visualQuote]} userId="visual-user" onCreateDeal={id=>{setDraftCustomerId(id);setCreateDeal(true);setScreen('deals');}} onClientAdded={fixtureWriteBlocked} onSelectQuote={() => undefined} />}
         {screen === 'catalog' && <ServicesPage services={[]} userId="visual-user" onServiceAdded={fixtureWriteBlocked} onServiceUpdated={fixtureWriteBlocked} onServiceDeleted={fixtureWriteBlocked} />}
+        {screen === 'founder_planning' && <div className="orkto-product mx-auto max-w-6xl p-5"><p className="text-sm">Fixture administrativa · nenhuma informação privada do fundador</p><LaunchPlanningPanel assumptions={{...DEFAULT_FINANCE_ASSUMPTIONS,monthlyFixedPlatformCostCents:10000,openingCashCents:100000}} scenario="base"/></div>}
         {screen === 'wia' && <WiaWorkspace initialMessage={wiaInitialMessage} accessToken={accessToken} onOpenSettings={() => undefined} />}
       </div>
       <MobileNavigation currentView={currentView} onNavigate={navigate} menuOpen={menuOpen} onMenuOpenChange={setMenuOpen} onSignOut={() => undefined} onQuickCreate={(id) => { if (id === 'deal') setCreateDeal(true); }} />

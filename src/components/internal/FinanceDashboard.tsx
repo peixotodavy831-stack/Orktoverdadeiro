@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, CircleDollarSign, Loader2, RefreshCw, Save, Wallet, Plus } from 'lucide-react';
 import { formatBRL } from '../../utils/format';
 import { PulsoScenario } from './PulsoScenario';
+import { LaunchPlanningPanel } from './LaunchPlanningPanel';
 import { calculatePlanUnitEconomics, type AiModelRate, type ChannelUsageCostSummary, type FinanceAssumptions, type FinancePlanKey, type FinanceProjection, type FinanceScenarioKey } from '../../../backend/finance/finance-model';
 
 type Transaction = {
@@ -91,6 +92,7 @@ function ProjectionCard({ projection, label }: { projection: FinanceProjection; 
 }
 
 export default function FinanceDashboard({ accessToken }: { accessToken: string | null }) {
+  const financeRequest=useRef(0);
   const [data, setData] = useState<DashboardData | null>(null);
   const [assumptions, setAssumptions] = useState<FinanceAssumptions | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,18 +124,20 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
   const [personalReserveMonths, setPersonalReserveMonths] = useState(6);
 
   const load = useCallback(async () => {
-    if (!accessToken) { setError('Sessão necessária para carregar o financeiro interno.'); setLoading(false); return; }
-    setLoading(true); setError('');
+    const request=++financeRequest.current;
+    if (!accessToken) { setData(null);setAssumptions(null);setError('Sessão necessária para carregar o financeiro interno.'); setLoading(false); return; }
+    setLoading(true); setError('');setData(null);setAssumptions(null);
     try {
       const response = await fetch('/api/internal/finance/dashboard', { headers: { Authorization: `Bearer ${accessToken}` } });
       const payload = await response.json();
+      if(request!==financeRequest.current)return;
       if (!response.ok) throw new Error(payload.error || 'Não foi possível carregar os dados.');
       setData(payload);
       setAssumptions(payload.assumptions?.assumptions || payload.assumptionsFallback || null);
-    } catch (cause) { setError(cause instanceof Error ? cause.message : 'Erro de conexão.'); }
-    finally { setLoading(false); }
+    } catch (cause) { if(request===financeRequest.current){setData(null);setAssumptions(null);setError(cause instanceof Error ? cause.message : 'Erro de conexão.');} }
+    finally { if(request===financeRequest.current)setLoading(false); }
   }, [accessToken]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return ()=>{++financeRequest.current;}; }, [load]);
 
   const headers = useMemo(() => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken || ''}` }), [accessToken]);
   const update = <K extends keyof FinanceAssumptions>(key: K, value: FinanceAssumptions[K]) => setAssumptions(current => current ? { ...current, [key]: value } : current);
@@ -208,7 +212,8 @@ export default function FinanceDashboard({ accessToken }: { accessToken: string 
     {loading && !data ? <div className="flex min-h-48 items-center justify-center gap-2 text-sm text-zinc-500"><Loader2 className="h-5 w-5 animate-spin" />Carregando dados financeiros…</div> : data && <>
       {data.reserve&&<section className="border-y border-zinc-500/25 py-5"><h2 className="text-lg font-semibold">Meta de reserva · 40% da receita recebida</h2><p className="mt-2 text-sm">Meta: {fmt(data.reserve.targetCents)} · Reserva constituída: {data.reserve.constitutedCents===null?'Não reconciliada':fmt(data.reserve.constitutedCents)} · Desvio de capacidade de caixa: {fmt(data.reserve.shortfallCents)}</p><div className="mt-3 flex flex-wrap gap-5 text-sm">{data.reserve.allocations.map(item=><p key={item.name}>{item.name} · {item.percent}% · {fmt(item.targetCents)}</p>)}</div><p className="mt-3 text-xs text-zinc-500">Divisões da mesma reserva planejada; não são novas despesas. Nenhuma transferência financeira é realizada.</p></section>}
       {data.cashForecast&&<details className="border-b border-zinc-500/25 pb-5"><summary className="cursor-pointer font-semibold">Projeção de caixa · 13 semanas</summary><p className="my-3 text-xs text-zinc-500">Somente lançamentos previstos registrados. Ausência de lançamento não comprova custo zero. Saldo de abertura gerencial estimado.</p><div className="overflow-x-auto"><table className="w-full text-sm tabular-nums"><thead><tr><th className="text-left">Semana</th><th>Entradas</th><th>Saídas</th><th>Saldo previsto</th></tr></thead><tbody>{data.cashForecast.map(week=><tr key={week.week}><td>{week.from}</td><td className="text-center">{fmt(week.inflowCents)}</td><td className="text-center">{fmt(week.outflowCents)}</td><td className="text-center">{fmt(week.closingCents)}</td></tr>)}</tbody></table></div></details>}
-      <section className="border-b border-zinc-500/25 pb-5"><h2 className="font-semibold">Crescimento e eficiência</h2><p className="mt-2 text-sm text-zinc-500">CAC, conversão, churn, retenção, expansão, NRR e payback aguardam coortes, aquisição e receitas conciliadas. Ausência de dados não é resultado zero.</p></section>
+      <section className="border-b border-zinc-500/25 pb-5"><h2 className="font-semibold">Crescimento e eficiência observados</h2><p className="mt-2 text-sm text-zinc-500">CAC, conversão, churn, retenção, expansão, NRR e payback observados aguardam coortes, aquisição e receitas conciliadas. As hipóteses de planejamento abaixo são separadas desses indicadores.</p></section>
+      {assumptions&&<LaunchPlanningPanel assumptions={assumptions} scenario={scenario}/>}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <Metric label="MRR observado" value={fmt(data.actual.mrrCents)} hint={`${data.actual.paidSubscribers} assinantes com cobrança identificável`} icon={CircleDollarSign} />
         <Metric label="ARR observado" value={fmt(data.actual.arrCents)} hint="MRR atual × 12; run-rate, não receita recebida" icon={ArrowUpRight} />
