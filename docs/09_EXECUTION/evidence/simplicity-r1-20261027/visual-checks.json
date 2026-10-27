@@ -1,0 +1,167 @@
+{
+  "sourceSha": "0aedbef8aa930c8122e7eb9d7bdea04fc28a0bcd",
+  "environment": "local_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "checks": [
+    {
+      "case": "clear-search-target",
+      "height": 44,
+      "width": 44
+    },
+    {
+      "case": "focus-trap",
+      "focusedText": "Sair"
+    },
+    {
+      "case": "direct-new-proposal",
+      "dialogVisible": false,
+      "formPresent": false,
+      "headings": [
+        "Criar Nova Proposta"
+      ]
+    },
+    {
+      "case": "short-viewport-not-real-keyboard",
+      "documentWidth": 390,
+      "inputBottom": 245.1750030517578,
+      "inputFontSize": "16px",
+      "inputTop": 201.1750030517578,
+      "viewportHeight": 430,
+      "width": 390
+    },
+    {
+      "case": "dark-label-color",
+      "color": "rgb(194, 187, 177)"
+    },
+    {
+      "case": "backdrop-close",
+      "dialogVisible": false
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 320,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "dark",
+      "width": 320
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 360,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "dark",
+      "width": 360
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 390,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "dark",
+      "width": 390
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 430,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "dark",
+      "width": 430
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 768,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "dark",
+      "width": 768
+    },
+    {
+      "dialogVisible": false,
+      "documentWidth": 1280,
+      "menuClientHeight": 0,
+      "menuScrollHeight": 0,
+      "minButtonHeight": null,
+      "theme": "dark",
+      "width": 1280
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 320,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "light",
+      "width": 320
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 360,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "light",
+      "width": 360
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 390,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "light",
+      "width": 390
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 430,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "light",
+      "width": 430
+    },
+    {
+      "dialogVisible": true,
+      "documentWidth": 768,
+      "menuClientHeight": 584,
+      "menuScrollHeight": 584,
+      "minButtonHeight": 44,
+      "theme": "light",
+      "width": 768
+    },
+    {
+      "dialogVisible": false,
+      "documentWidth": 1280,
+      "menuClientHeight": 0,
+      "menuScrollHeight": 0,
+      "minButtonHeight": null,
+      "theme": "light",
+      "width": 1280
+    },
+    {
+      "buttonHeight": 44,
+      "case": "320-settings-label",
+      "labelHeight": 20,
+      "lineHeight": "20px"
+    },
+    {
+      "case": "desktop-compact",
+      "visibleModuleButtons": 5,
+      "width": 1280
+    },
+    {
+      "case": "escape-return-focus",
+      "dialogVisible": false,
+      "focusedLabel": "Mais módulos",
+      "evidence": "Observed in the earlier keyboard interaction of this session"
+    }
+  ]
+}

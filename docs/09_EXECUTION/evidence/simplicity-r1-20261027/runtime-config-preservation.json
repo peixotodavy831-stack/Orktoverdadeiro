@@ -1,0 +1,10 @@
+[
+  {
+    "file": "vercel.staging.json",
+    "unchanged": true
+  },
+  {
+    "file": "vercel.production.json",
+    "unchanged": true
+  }
+]

@@ -1,3 +1,9 @@
+## Simplicity Revolution — navegação R1, 27/10/2026
+
+Branch isolada feat/orkto-simplicity-revolution; código0aedbef. Ler [auditoria e primeira melhoria implementada](ORKTO_SIMPLICITY_REVOLUTION_2027.md). Diretório Mais compartilhado, rail15→5, busca por objetivo e atalho Nova proposta. Regressão406+108, build/typecheck locais aprovados. Sem deploy ou homologação de fornecedor. Próxima fatia:Hoje, depois Conversas, Negócios e WIA. A missão de UX complementa o PDF consolidado, não substitui seus requisitos. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
+
 ## Execução local do produto consolidado R1 — 27/10/2026
 
 Ler [correções, aceitação e bloqueios R1](ORKTO_CONSOLIDATED_IMPLEMENTATION_R1_2026-10-27.md), fonte 9704684. Assinaturas, troca de links e leitura de Sussurros corrigidas; não constitui100% do PDF nem E2E Meta. READY_FOR_PRODUCTION_CANDIDATE=NO.

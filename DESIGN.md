@@ -1,6 +1,6 @@
 ---
-name: ORKTO — material interno em vidro fosco
-description: Material da aplicação autenticada sobre os tokens e layouts existentes.
+name: ORKTO — minimalismo operacional premium
+description: Clareza operacional por objetivos, com marca e contratos preservados.
 colors:
   brand: "#ff5a00"
   brand-hover-light: "#ed5200"
@@ -74,6 +74,18 @@ components:
   sidebar:
     rounded: "{rounded.sidebar}"
 ---
+
+# Direção vigente — Simplicity Revolution R1
+
+Minimalismo operacional premium. O empresário deve encontrar sua próxima ação sem conhecer a arquitetura interna. Manter Inter, laranja #ff5a00, carvão, logo oficial e os dois temas. Priorizar hierarquia, rótulos humanos e acesso previsível; efeitos não competem com tarefas.
+
+Primeira fatia implementada: quatro destinos principais e Mais, diretório secundário compartilhado, busca local por objetivo e acesso direto a Nova proposta. Categorias: Vender e acompanhar; Empresa e conta; Ajuda e registros. Nenhuma capacidade foi apagada. As superfícies dos menus móveis são opacas e o foco é explícito; o restante da aplicação mantém os estilos existentes até sua própria etapa de redesenho.
+
+O histórico de vidro abaixo registra a evolução anterior. Não representa uma exigência de acrescentar vidro, brilhos ou gradientes nesta missão. O material definitivo de Hoje, Conversas, Negócios e WIA será tratado em etapas próprias, mantendo capacidades e aprovações.
+
+Relatório e evidências: [ORKTO_SIMPLICITY_REVOLUTION_2027.md](docs/09_EXECUTION/ORKTO_SIMPLICITY_REVOLUTION_2027.md). Sem autorização para publicar, cobrar, enviar mensagens ou alterar políticas.
+
+## Histórico anterior de material e tokens
 
 # Design System: ORKTO — material interno em vidro fosco
 

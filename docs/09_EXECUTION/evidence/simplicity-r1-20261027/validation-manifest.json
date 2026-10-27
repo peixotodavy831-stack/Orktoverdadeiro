@@ -1,0 +1,70 @@
+{
+  "sourceIdentity": "Files tested before the commit match its source tree; this is not an authenticated deployment runtime SHA",
+  "providerE2E": false,
+  "logStorage": "Ignored .tmp-simplicity logs retained locally; no sessions or external credentials",
+  "logs": [
+    {
+      "file": "tests.log",
+      "sha256": "b963a39729fc32cc94e4318e4703ca246533fa1ce324b398babfac07ad4b9887"
+    },
+    {
+      "file": "tools-final.log",
+      "sha256": "20fa24d459ccadf4c96b08253ecea5002ee428491110957dc78276723d22009b"
+    },
+    {
+      "file": "lint-final.log",
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+    },
+    {
+      "file": "build-verified.log",
+      "sha256": "f583a88261f2dcc391e982eea79480be688b3f11f6fcf57a0924faa551aea5bd"
+    }
+  ],
+  "branch": "feat/orkto-simplicity-revolution",
+  "tools": {
+    "fail": 0,
+    "command": "node --test --test-concurrency=1 [all scripts/tests/*.test.mjs]",
+    "pass": 108
+  },
+  "realUserUsability": "NOT_TESTED",
+  "sourceSha": "0aedbef8aa930c8122e7eb9d7bdea04fc28a0bcd",
+  "environment": "local_fixture_and_http_doubles",
+  "build": {
+    "server": true,
+    "runtime": true,
+    "publicUrl": true,
+    "frontend": true,
+    "distPreserved": true
+  },
+  "lint": "PASS",
+  "productionChanged": false,
+  "baseSha": "497271081b2a99dd1969532ea13c893594b87f24",
+  "deployed": false,
+  "date": "2026-10-27",
+  "latency": "NOT_MEASURED",
+  "applicationTests": {
+    "fail": 0,
+    "command": "npm run test:all",
+    "note": "Application section passed; first tool section failed after new deny-only branch guard. Final tool suite separately passed.",
+    "pass": 406
+  },
+  "readyForProductionCandidate": "NO",
+  "configPreservation": [
+    {
+      "file": "vercel.staging.json",
+      "unchanged": true
+    },
+    {
+      "file": "vercel.production.json",
+      "unchanged": true
+    }
+  ],
+  "physicalKeyboard": "NOT_TESTED",
+  "secretScan": {
+    "scanned": 711,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  }
+}

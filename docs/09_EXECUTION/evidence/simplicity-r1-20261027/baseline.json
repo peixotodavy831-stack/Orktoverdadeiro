@@ -1,0 +1,13 @@
+{
+  "environment": "local_fixture",
+  "sidebarWidth": 76,
+  "visibleModuleButtons": 15,
+  "width": 1280,
+  "mobileMenuDestinations": 11,
+  "mobileNewProposalActions": [
+    "Mais",
+    "Criar novo",
+    "Nova proposta"
+  ],
+  "timingMeasured": false
+}
