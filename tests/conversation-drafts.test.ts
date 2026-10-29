@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {updateConversationDraft} from '../src/product/adapters/conversation-drafts';
+import {updateConversationDraft} from '../src/product/adapters/conversation-drafts.js';
 
 test('switching conversations retains separate drafts without mutating earlier state', () => {
   const initial = {scope:'fixture-session-a',values:{}};
