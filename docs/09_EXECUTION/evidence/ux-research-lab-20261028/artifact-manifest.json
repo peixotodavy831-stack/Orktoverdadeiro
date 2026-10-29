@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T16:54:56.048894+00:00",
+  "generatedAt": "2026-10-29T16:55:31.636398+00:00",
   "environment": "local_frontend_in_memory_fixture",
   "runtimeSha": "04d24c93e9b37a54b8ca0ac385fa77a991adb3fa",
   "toolingHead": "f293848c22922b159877db01300a5d866b3f58a3",
@@ -304,6 +304,11 @@
     }
   ],
   "artifacts": [
+    {
+      "file": ".gitattributes",
+      "bytes": 10,
+      "sha256": "4ce4b6e6b8435f8c3a8387387732964a2ebf0183e8d77b8247ae8061b033e462"
+    },
     {
       "file": "after/A-first-entry.png",
       "bytes": 48077,
