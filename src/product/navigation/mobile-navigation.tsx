@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type KeyboardEvent, type RefObject } from 'react';
+import {useModalFocus as useModalKeyboard} from '../ui/use-modal-focus';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { ArrowRight, MoreHorizontal, Plus, X } from 'lucide-react';
 import { OrktoIcon } from '../icons/orkto-icon';
 import { quickCreateItems, getActiveNavigationId } from './navigation-config';
@@ -22,36 +23,6 @@ const dock = [
   { id: 'more', label: 'Mais', icon: null, view: null },
 ];
 
-function useModalKeyboard(open: boolean, onClose: () => void, panelRef: RefObject<HTMLDivElement | null>) {
-  const triggerRef = useRef<HTMLElement | null>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  useEffect(() => {
-    if (!open) {
-      triggerRef.current?.focus();
-      return;
-    }
-    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const panel = panelRef.current;
-    panel?.querySelector<HTMLElement>('[data-autofocus="true"]')?.focus();
-    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        onCloseRef.current();
-        return;
-      }
-      if (event.key !== 'Tab' || !panel) return;
-      const elements = Array.from(panel.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'));
-      if (elements.length === 0) return;
-      const first = elements[0];
-      const last = elements[elements.length - 1];
-      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [open, panelRef]);
-}
 
 export function MobileNavigation({ currentView, onNavigate, menuOpen, onMenuOpenChange, onSignOut, onQuickCreate }: MobileNavigationProps) {
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);

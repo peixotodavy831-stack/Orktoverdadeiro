@@ -22,6 +22,7 @@ interface TodayV2PageProps {
   onOpenDeal: (dealId?: string) => void;
   onOpenConversation: (conversationId: string) => void;
   onOpenWia: (message?: string) => void;
+  onReviewWia?: (actionId: string) => void;
   onOpenBilling?: () => void;
 }
 
@@ -68,6 +69,7 @@ export default function TodayV2Page({
   onOpenDeal,
   onOpenConversation,
   onOpenWia,
+  onReviewWia,
   onOpenBilling,
 }: TodayV2PageProps) {
   const [inbox, setInbox] = useState<FeedState<InboxConversationView>>(blankFeed);
@@ -102,7 +104,7 @@ export default function TodayV2Page({
       const statuses = ['awaiting_approval', 'prepared', 'executed', 'failed'];
       const results = await Promise.all(statuses.map(status => productApi<{ data: WiaActionView[] }>(`/api/wia/actions?status=${status}`, accessToken)));
       const actions = results.flatMap(result => Array.isArray(result.data) ? result.data : []).sort((left, right) => Date.parse(right.created_at || '') - Date.parse(left.created_at || ''));
-      setWia({ status: 'success', data: actions.slice(0, 5) });
+      setWia({ status: 'success', data: actions });
     } catch (error) {
       setWia({ status: getProductErrorState(error), data: [], message: error instanceof Error ? error.message : 'A atividade da WIA não pôde ser carregada.' });
     }
@@ -186,7 +188,7 @@ export default function TodayV2Page({
         <div className="today-attention-list divide-y orkto-product-border">
           {approvalActions.slice(0, 3).map(action => <article key={action.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">Ação da WIA aguarda aprovação</h3><StatusBadge tone="attention">Aguardando aprovação</StatusBadge></div><p className="mt-1 line-clamp-2 text-[13px] leading-5 orkto-product-muted">{actionSummary(action)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'}</p></div></div>
-            <button type="button" onClick={() => onOpenWia()} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Revisar ação <ArrowRight size={15} /></button>
+            <button type="button" onClick={() => onReviewWia ? onReviewWia(action.id) : onOpenWia()} className="inline-flex min-h-11 shrink-0 items-center gap-2 self-start rounded-lg px-3 text-xs font-semibold sm:self-auto" style={{ color: 'var(--orkto-brand-text)' }}>Revisar ação <ArrowRight size={15} /></button>
           </article>)}
           {attentionConversations.slice(0, Math.max(0, 5 - Math.min(approvalActions.length, 3))).map(item => <article key={item.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-start gap-3"><span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg orkto-product-surface-muted orkto-product-muted"><Inbox size={17} /></span><div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">{item.contact_name || 'Conversa sem nome'}</h3>{Number(item.unread_count || 0) > 0 && <StatusBadge tone="info">{item.unread_count} não lida{Number(item.unread_count) === 1 ? '' : 's'}</StatusBadge>}{item.priority && <StatusBadge tone={['urgent', 'high'].includes(String(item.priority).toLowerCase()) ? 'critical' : 'neutral'}>Prioridade {priorityLabel(item.priority)}</StatusBadge>}</div><p className="mt-1 line-clamp-1 text-[13px] orkto-product-muted">{item.last_message || priorityReason(item)}</p><p className="mt-1 text-[11px] orkto-product-subtle">{item.last_message_at ? new Date(item.last_message_at).toLocaleString('pt-BR') : 'Horário não retornado'}{item.source_channel ? ` · ${item.source_channel}` : ''}</p></div></div>

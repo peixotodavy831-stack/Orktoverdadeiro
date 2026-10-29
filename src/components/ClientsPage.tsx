@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import {useModalFocus} from '../product/ui/use-modal-focus';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Users, 
@@ -160,6 +161,12 @@ export default function ClientsPage({
   const [purchaseAmount, setPurchaseAmount] = useState('');
   const [purchaseDate, setPurchaseDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const newClientDialog = useRef<HTMLDivElement>(null);
+  const historyDialog = useRef<HTMLDivElement>(null);
+  const importDialog = useRef<HTMLDivElement>(null);
+  useModalFocus(isAddOpen, () => setIsAddOpen(false), newClientDialog);
+  useModalFocus(!!selectedClientHistory, () => {setSelectedClientHistory(null);setIsEditing(false);}, historyDialog);
+  useModalFocus(isImportOpen, () => closeImport(), importDialog);
   const [importEntityType,setImportEntityType]=useState<ImportEntityType>('customers');
   const [importFileName, setImportFileName] = useState('');
   const [importHeaders, setImportHeaders] = useState<string[]>([]);
@@ -611,7 +618,7 @@ export default function ClientsPage({
       </header>
 
       <AnimatePresence>
-        {isImportOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="client-import-title">
+        {isImportOpen && <div ref={importDialog} tabIndex={-1} className="fixed inset-0 z-[130] flex items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="client-import-title">
           <motion.button type="button" aria-label="Fechar importação" className="absolute inset-0 bg-zinc-950/70 backdrop-blur-sm" onClick={closeImport} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} />
           <motion.section initial={{ opacity: 0, y: 12, scale: 0.99 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }} className="relative w-full max-w-3xl max-h-[92vh] overflow-y-auto rounded-3xl border border-zinc-200 bg-white p-5 shadow-2xl dark:border-zinc-800 dark:bg-zinc-950 sm:p-7">
             <header className="flex items-start justify-between gap-4">
@@ -818,13 +825,15 @@ export default function ClientsPage({
       {/* Add Client Dialog Modal */}
       <AnimatePresence>
         {isAddOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={() => setIsAddOpen(false)} />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden outline-none"
+              ref={newClientDialog}
+              tabIndex={-1}
+              className="orkto-client-form-dialog relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden outline-none"
               role="dialog"
               aria-modal="true"
               aria-labelledby="new-client-title"
@@ -837,9 +846,10 @@ export default function ClientsPage({
               <form onSubmit={handleCreateClient} className="space-y-4">
                 {writeError && <p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300">{writeError}</p>}
                 <div>
-                  <label htmlFor="new-client-name" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Nome do Cliente *</label>
+                  <label htmlFor="new-client-name" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Nome do Cliente *</label>
                   <input
                     id="new-client-name"
+                    data-autofocus="true"
                     type="text"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
@@ -850,10 +860,10 @@ export default function ClientsPage({
                 </div>
 
                 <div>
-                  <label htmlFor="new-client-phone" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">WhatsApp / Celular *</label>
+                  <label htmlFor="new-client-phone" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">WhatsApp / Celular *</label>
                   <input
                     id="new-client-phone"
-                    type="text"
+                    type="tel" inputMode="tel" autoComplete="tel"
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="Ex: (11) 99999-9999"
@@ -863,7 +873,7 @@ export default function ClientsPage({
                 </div>
 
                 <div>
-                  <label htmlFor="new-client-scope" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Escopo / Projeto Padrão</label>
+                  <label htmlFor="new-client-scope" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Escopo / Projeto Padrão</label>
                   <input
                     id="new-client-scope"
                     type="text"
@@ -875,7 +885,7 @@ export default function ClientsPage({
                 </div>
 
                 <div>
-                  <label htmlFor="new-client-notes" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Notas do Cliente</label>
+                  <label htmlFor="new-client-notes" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Notas do Cliente</label>
                   <textarea
                     id="new-client-notes"
                     rows={2}
@@ -911,7 +921,7 @@ export default function ClientsPage({
       {/* History Slide dialogue modal */}
       <AnimatePresence>
         {selectedClientHistory && (
-          <div className="fixed inset-0 z-50 flex items-center justify-end">
+          <div className="fixed inset-0 z-[130] flex items-center justify-end">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -928,6 +938,8 @@ export default function ClientsPage({
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 200 }}
+              ref={historyDialog}
+              tabIndex={-1}
               className="relative w-full max-w-lg bg-white dark:bg-zinc-900 border-l border-zinc-200 dark:border-zinc-800 h-full p-8 shadow-2xl flex flex-col justify-between overflow-y-auto"
               role="dialog"
               aria-modal="true"
@@ -1031,8 +1043,8 @@ export default function ClientsPage({
                 {isEditing ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Nome Completo *</label>
-                      <input
+                      <label htmlFor="edit-client-name" className="block text-[10px] font-bold orkto-product-muted uppercase tracking-widest mb-1">Nome Completo *</label>
+                      <input id="edit-client-name"
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
@@ -1042,9 +1054,9 @@ export default function ClientsPage({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Telefone WhatsApp *</label>
-                      <input
-                        type="text"
+                      <label htmlFor="edit-client-phone" className="block text-[10px] font-bold orkto-product-muted uppercase tracking-widest mb-1">Telefone WhatsApp *</label>
+                      <input id="edit-client-phone"
+                        type="tel" inputMode="tel" autoComplete="tel"
                         value={editPhone}
                         onChange={(e) => setEditPhone(e.target.value)}
                         className="w-full px-3.5 py-2.5 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-orange-500 text-zinc-900 dark:text-white"
@@ -1053,8 +1065,8 @@ export default function ClientsPage({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Escopo / Projeto Padrão</label>
-                      <input
+                      <label htmlFor="edit-client-scope" className="block text-[10px] font-bold orkto-product-muted uppercase tracking-widest mb-1">Escopo / Projeto Padrão</label>
+                      <input id="edit-client-scope"
                         type="text"
                         value={editVehicle}
                         onChange={(e) => setEditVehicle(e.target.value)}
@@ -1063,8 +1075,8 @@ export default function ClientsPage({
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1">Notas Internas</label>
-                      <textarea
+                      <label htmlFor="edit-client-notes" className="block text-[10px] font-bold orkto-product-muted uppercase tracking-widest mb-1">Notas Internas</label>
+                      <textarea id="edit-client-notes"
                         rows={3}
                         value={editNotes}
                         onChange={(e) => setEditNotes(e.target.value)}

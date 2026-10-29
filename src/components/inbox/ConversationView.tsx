@@ -75,6 +75,8 @@ type PrivateInstruction = { id: string; content: string; source: 'manager' | 'wi
 type WorkspaceAudienceMember = { user_id: string; role: string };
 
 interface ConversationViewProps {
+  draftValue?: string;
+  onDraftChange?: (value: string) => void;
   conversationId: string;
   onBack: () => void;
   onRefresh: () => Promise<void>;
@@ -105,6 +107,7 @@ const TRUST_LEVEL_LABELS: Record<TrustLevel, string> = {
 // ─── Componente ──────────────────────────────────────────────────────────────
 
 export default function ConversationView({ 
+  draftValue, onDraftChange,
   conversationId, 
   onBack, 
   onRefresh,
@@ -123,7 +126,9 @@ export default function ConversationView({
   const [sendStatus, setSendStatus] = useState<SendMessageStatus>('idle');
   const [sendError, setSendError] = useState<{ message: string; configurationRequired: boolean } | null>(null);
   const [sendAttempt, setSendAttempt] = useState<{ content: string; idempotencyKey: string } | null>(null);
-  const [newMessage, setNewMessage] = useState('');
+  const [localMessage, setLocalMessage] = useState('');
+  const newMessage = draftValue ?? localMessage;
+  const setNewMessage = (value: string) => onDraftChange ? onDraftChange(value) : setLocalMessage(value);
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
   const [sussurros, setSussurros] = useState<PrivateInstruction[]>([]);
   const [showReadInstructions,setShowReadInstructions]=useState(false);
@@ -765,7 +770,7 @@ export default function ConversationView({
             id="inbox-external-message"
             value={newMessage}
             onChange={event => { setNewMessage(event.target.value); if (sendStatus === 'error') { setSendStatus('idle'); setSendError(null); } }}
-            onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); void handleSend(); } }}
+            onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && !window.matchMedia('(pointer: coarse)').matches) { event.preventDefault(); void handleSend(); } }}
             disabled={sendStatus === 'sending'}
             rows={1}
             placeholder="Escreva uma mensagem para o cliente…"
@@ -775,7 +780,7 @@ export default function ConversationView({
           <button type="submit" disabled={!newMessage.trim() || sendStatus === 'sending'} aria-label={sendStatus === 'sending' ? 'Solicitando envio' : sendStatus === 'accepted' ? 'Solicitação aceita, entrega não confirmada' : sendStatus === 'acknowledged' ? 'Provedor confirmou recebimento, entrega não confirmada' : sendStatus === 'delivered' ? 'Entrega confirmada' : `Enviar mensagem para ${conversation.contactName}`} className="orkto-product-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-lg disabled:cursor-not-allowed disabled:opacity-50">
             {sendStatus === 'sending' ? <Loader2 className="h-4 w-4 animate-spin" /> : ['accepted', 'acknowledged', 'delivered'].includes(sendStatus) ? <CheckCircle className="h-4 w-4" /> : <Send className="h-4 w-4" />}
           </button>
-          <span id="inbox-compose-hint" className="sr-only">Enter solicita o envio. Shift mais Enter insere uma nova linha. Aceite da solicitação não confirma entrega.</span>
+          <span id="inbox-compose-hint" className="sr-only">No celular, Enter insere uma nova linha; use o botão para enviar. No teclado, Enter solicita envio e Shift mais Enter insere uma nova linha. Aceite da solicitação não confirma entrega.</span>
         </form>
         <p role="status" aria-live="polite" className="mx-auto mt-2 max-w-2xl text-xs text-zinc-400">{sendStatus === 'sending' ? 'Solicitando envio…' : ['accepted', 'acknowledged', 'delivered'].includes(sendStatus) ? confirmedSendMessage(sendStatus as 'accepted' | 'acknowledged' | 'delivered') : ''}</p>
       </footer>

@@ -155,3 +155,6 @@
   .orkto-glass-shell .orkto-mobile-dock button { font-size:11px; min-width:44px; }
   .orkto-glass-shell .orkto-mobile-dock button > span:not(.sr-only) { white-space:nowrap; }
 }
+
+/* Client forms stay reachable in a short viewport, including browser chrome. */
+.orkto-glass-shell .orkto-client-form-dialog[role="dialog"] { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }

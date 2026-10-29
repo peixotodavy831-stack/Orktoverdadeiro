@@ -479,8 +479,8 @@ export default function CreateQuote({
                     <div className="relative">
                       <Phone className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
                       <input
-                        id="quote-client-phone"
-                        type="text"
+                        id="quote-client-phone" inputMode="tel" autoComplete="tel"
+                        type="tel"
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
                         placeholder="Ex: (11) 98765-4321"

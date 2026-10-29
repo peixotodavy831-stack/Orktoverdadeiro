@@ -78,8 +78,8 @@ function externalDeliveryLabel(value: unknown) {
   return null;
 }
 
-export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenSettings }: { accessToken: string | null; initialMessage?: string; onOpenSettings: () => void }) {
-  const [section, setSection] = useState<'request' | 'approvals' | 'history'>('request');
+export default function WiaWorkspace({ accessToken, initialMessage = '', initialActionId, onInitialActionOpened, onOpenSettings }: { accessToken: string | null; initialMessage?: string; initialActionId?: string | null; onInitialActionOpened?: () => void; onOpenSettings: () => void }) {
+  const [section, setSection] = useState<'request' | 'approvals' | 'history'>(initialActionId ? 'approvals' : 'request');
   const [prompt, setPrompt] = useState(initialMessage);
   const [lastPrompt, setLastPrompt] = useState('');
   const [phase, setPhase] = useState<WiaPhase | null>(null);
@@ -106,6 +106,12 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
   }, [accessToken, section]);
 
   useEffect(() => { void loadActions(); return () => actionRequest.current?.abort(); }, [loadActions]);
+
+  useEffect(() => {
+    if (!initialActionId || actionsState.status !== 'success') return;
+    const target = document.getElementById(`wia-approval-${initialActionId}`);
+    if (target) { target.focus(); target.scrollIntoView({ block: 'nearest' }); onInitialActionOpened?.(); }
+  }, [initialActionId, actionsState, onInitialActionOpened]);
 
   const submitPrompt = async (rawMessage: string) => {
     const message = rawMessage.trim();
@@ -170,6 +176,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
 
         <section aria-labelledby="wia-input-title" className="rounded-xl border p-4 sm:p-5 orkto-product-border orkto-product-surface">
           <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={19} /></span><div><h2 id="wia-input-title" className="text-sm font-semibold">O que vamos organizar?</h2><p className="mt-1 text-xs leading-5 orkto-product-muted">Descreva seu pedido ou comece por uma consulta.</p></div></div>
+          <p className="mt-3 text-sm leading-6 orkto-product-muted">A WIA atual prepara análises e rascunhos; ainda não cadastra clientes ou negócios por comando livre. Linguagem livre depende do modelo, da configuração e dos limites aprovados.</p>
           <PromptInput value={prompt} onChange={setPrompt} onSubmit={message => void submitPrompt(message)} busy={requestPending} placeholder="Descreva seu pedido para a WIA…" className="my-6" />
           <ProposalRecoveryRequest onDraft={setPrompt} />
           <div className="wia-query-shortcuts" aria-label="Consultas dos registros existentes">{['Propostas pendentes', 'Aprovações pendentes', 'Vendas hoje'].map(message => <button key={message} type="button" disabled={requestPending} onClick={() => { setPrompt(message); document.getElementById('wia-request')?.focus(); }} className="orkto-product-control">{message}</button>)}</div>
@@ -177,7 +184,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
           <WiaPlanPreview message={prompt} accessToken={accessToken} disabled={requestPending} />
         </section>
 
-        <details className="wia-configuration"><summary>Disponibilidade e integrações</summary><p className="mt-3 text-xs leading-5 orkto-product-muted">A WIA atual prepara análises e rascunhos; ainda não cadastra clientes ou negócios por comando livre. Linguagem livre depende do modelo, da configuração e dos limites aprovados.</p><WiaRuntimeStatus accessToken={accessToken} onOpenSettings={onOpenSettings} /></details>
+        <details className="wia-configuration"><summary>Disponibilidade e integrações</summary><WiaRuntimeStatus accessToken={accessToken} onOpenSettings={onOpenSettings} /></details>
 
         {phase && <div role="status" aria-live="polite" className="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs orkto-product-border orkto-product-surface-muted"><span className="h-2 w-2 rounded-full" style={{ background: phase === 'FAILED' ? 'var(--orkto-critical)' : phase === 'EXECUTED' ? 'var(--orkto-success)' : 'var(--orkto-brand)' }} aria-hidden="true" />{phaseLabels[phase]}</div>}
 
@@ -199,7 +206,7 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', onOpenS
           {actionsState.status === 'configuration_required' && <ConfigurationRequired message={actionsState.message || 'A WIA precisa de configuração para carregar esta fila.'} action={openSettings} />}
           {actionsState.status === 'backend_pending' && <BackendPending title="Fila de aprovação pendente neste ambiente" message={actionsState.message || 'A API de ações não está disponível aqui.'} />}
           {actionsState.status === 'success' && approvalActions.length === 0 && <EmptyState title="Nenhuma aprovação pendente" description="A API não retornou ações aguardando aprovação." />}
-          {approvalActions.map(action => <article key={action.id} className="rounded-xl border p-4 orkto-product-border orkto-product-surface"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">{actionTitle(action)}</h3><StatusBadge tone="attention">Aguardando aprovação</StatusBadge></div>{actionPayloadText(action) && <blockquote className="mt-3 border-l-2 pl-3 text-sm leading-6 orkto-product-muted" style={{ borderColor: 'var(--orkto-brand)' }}>{actionPayloadText(action)}</blockquote>}<p className="mt-3 text-xs leading-5 orkto-product-muted">{action.rationale || 'Motivo não retornado pelo servidor.'}</p>{action.confidence != null && <p className="mt-1 text-[11px] orkto-product-subtle">Confiança retornada: {Math.round(action.confidence * 100)}%</p>}<p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'} · {action.run_id ? `execução ${action.run_id}` : 'sem execução vinculada'}</p><div className="mt-4 flex flex-wrap gap-2"><button type="button" disabled={!!busyAction} onClick={() => void decide(action, 'approve')} className="orkto-product-primary inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-semibold disabled:opacity-55">{busyAction === action.id ? <LoaderCircle size={14} className="animate-spin" /> : <Check size={14} />}Aprovar e criar tarefa interna</button><button type="button" disabled={!!busyAction} onClick={() => void decide(action, 'reject')} className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-control disabled:opacity-55"><X size={14} />Rejeitar</button></div><p className="mt-2 text-[11px] leading-4 orkto-product-subtle">A aprovação atual cria uma tarefa interna. O canal externo não é enviado por esta ação.</p></article>)}
+          {approvalActions.map(action => <article key={action.id} id={`wia-approval-${action.id}`} tabIndex={-1} className="rounded-xl border p-4 orkto-product-border orkto-product-surface"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-semibold">{actionTitle(action)}</h3><StatusBadge tone="attention">Aguardando aprovação</StatusBadge></div>{actionPayloadText(action) && <blockquote className="mt-3 border-l-2 pl-3 text-sm leading-6 orkto-product-muted" style={{ borderColor: 'var(--orkto-brand)' }}>{actionPayloadText(action)}</blockquote>}<p className="mt-3 text-xs leading-5 orkto-product-muted">{action.rationale || 'Motivo não retornado pelo servidor.'}</p>{action.confidence != null && <p className="mt-1 text-[11px] orkto-product-subtle">Confiança retornada: {Math.round(action.confidence * 100)}%</p>}<p className="mt-1 text-[11px] orkto-product-subtle">{action.created_at ? new Date(action.created_at).toLocaleString('pt-BR') : 'Data não retornada'} · {action.run_id ? `execução ${action.run_id}` : 'sem execução vinculada'}</p><div className="mt-4 flex flex-wrap gap-2"><button type="button" disabled={!!busyAction} onClick={() => void decide(action, 'approve')} className="orkto-product-primary inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-xs font-semibold disabled:opacity-55">{busyAction === action.id ? <LoaderCircle size={14} className="animate-spin" /> : <Check size={14} />}Aprovar e criar tarefa interna</button><button type="button" disabled={!!busyAction} onClick={() => void decide(action, 'reject')} className="inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 text-xs font-medium orkto-product-border orkto-product-control disabled:opacity-55"><X size={14} />Rejeitar</button></div><p className="mt-2 text-[11px] leading-4 orkto-product-subtle">A aprovação atual cria uma tarefa interna. O canal externo não é enviado por esta ação.</p></article>)}
         </section>
 
         {actionNotice && <div role="status" className="rounded-xl border p-4 text-sm orkto-product-border orkto-product-surface"><p className="font-semibold">{actionNotice.action.status === 'executed' ? 'Execução interna confirmada' : actionNotice.action.status === 'rejected' ? 'Ação rejeitada' : 'Estado atualizado'}</p><p className="mt-1 text-xs leading-5 orkto-product-muted">{externalDeliveryLabel(actionNotice.externalDelivery) || `Status registrado: ${actionNotice.action.status}.`}</p></div>}

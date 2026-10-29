@@ -59,12 +59,13 @@ export function radarEvidenceDetails(signal: RadarSignalView): Array<[string, st
 }
 
 export function RadarResults({ snapshot, onOpen, onOpenWia }: { snapshot: RadarSnapshotView; onOpen: (signal: RadarSignalView) => void; onOpenWia?: (message: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
   return <>
     <p className="text-xs orkto-product-muted">{snapshot.signals.length} sinais na consulta · somente leitura · R1</p>
     {snapshot.coverage.partial && <p role="status" className="text-sm orkto-product-muted">Consulta parcial: alguns dados atingiram o limite de leitura. Os números não representam todos os registros.{!snapshot.coverage.leads_evaluated && ' Leads não foram avaliados porque o histórico de mensagens está incompleto.'}</p>}
     {snapshot.signals.length === 0 && <EmptyState title={snapshot.coverage.partial ? 'Nenhum sinal confirmado nesta consulta parcial' : 'Nenhum sinal nos dados consultados'} description="Radar procura propostas sem decisão registrada, conversas aguardando resposta e prazos vencidos. Nenhuma ação é executada." />}
     <ul className="divide-y orkto-product-border">
-      {snapshot.signals.slice(0, 6).map(signal => {
+      {snapshot.signals.slice(0, expanded ? snapshot.signals.length : 6).map(signal => {
         const destination = radarDestination(signal);
         const recoveryDraft = proposalRecoveryDraft(signal);
         const source = signal.entity_type === 'quote' ? 'Proposta' : signal.entity_type === 'conversation' ? 'Mensagens registradas' : signal.source === 'deal_expected_close' ? 'Data prevista de fechamento (UTC)' : 'Tarefa agendada';
@@ -88,7 +89,7 @@ export function RadarResults({ snapshot, onOpen, onOpenWia }: { snapshot: RadarS
         </li>;
       })}
     </ul>
-    {snapshot.signals.length > 6 && <p className="text-xs orkto-product-muted">Exibindo os 6 primeiros de {snapshot.signals.length} sinais retornados, por prioridade e espera.</p>}
+    {snapshot.signals.length > 6 && <button type="button" className="today-text-action min-h-11" aria-expanded={expanded} onClick={() => setExpanded(value => !value)}>{expanded ? 'Mostrar menos' : `Ver mais · ${snapshot.signals.length - 6} sinais retornados`}</button>}
   </>;
 }
 

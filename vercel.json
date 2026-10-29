@@ -20,6 +20,7 @@
   },
   "git": {
     "deploymentEnabled": {
+      "feat/orkto-ux-research-lab-2027": false,
       "feat/orkto-simplicity-revolution": false,
       "production-readiness/*": false,
       "feat/orkto-radar-2027": false,

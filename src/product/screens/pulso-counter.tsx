@@ -37,6 +37,7 @@ export default function PulsoCounter({ accessToken, onOpenBilling, refreshKey }:
     <Gauge size={20} aria-hidden="true" />
     <div className="min-w-0 flex-1" aria-live="polite">
       <h3>Pulsos</h3>
+      <p>Unidade de consumo da ORKTO.</p>
       {state === 'loading' ? <p className="today-pulso-status">Consultando saldo…</p>
         : state === 'error' ? <><p className="today-pulso-status">Saldo indisponível</p><p>Use Atualizar para tentar novamente.</p></>
         : quota.state === 'known' ? <><p className="today-pulso-value">{number.format(quota.remaining)} <span>disponíveis</span></p><p>{number.format(quota.used)} utilizados ou reservados · {number.format(quota.limit)} na franquia</p></>
