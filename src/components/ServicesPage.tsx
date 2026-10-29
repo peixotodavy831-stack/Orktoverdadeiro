@@ -150,7 +150,7 @@ export default function ServicesPage({
       {/* Filter and Search Layout columns split */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Category Filters (Left on desktop) */}
-        <div className="lg:col-span-1 space-y-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-sm">
+        <div className="hidden lg:block lg:col-span-1 space-y-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-5 shadow-sm">
           <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest px-1 mb-4 flex items-center gap-1.5">
             <Layers className="w-4 h-4 text-orange-500" />
             Filtrar Categorias
@@ -182,14 +182,15 @@ export default function ServicesPage({
 
         {/* Catalog templates listing (Right side) - 3 cols */}
         <div className="lg:col-span-3 space-y-4">
+          <div className="space-y-2 lg:hidden"><label htmlFor="catalog-category-mobile" className="block text-sm font-semibold">Filtrar categoria</label><select id="catalog-category-mobile" value={selectedCategory} onChange={event=>setSelectedCategory(event.target.value)} className="min-h-11 w-full rounded-xl border px-3 py-2 orkto-product-control orkto-product-border"><option value="all">Todas as categorias ({services.length})</option>{categories.map(cat=><option key={cat} value={cat}>{cat} ({services.filter(item=>item.category===cat).length})</option>)}</select></div>
           <div className="relative">
             <Search className="w-5 h-5 text-zinc-400 absolute left-4 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              aria-label="Buscar serviços no catálogo"
+              aria-label="Buscar itens no catálogo"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar serviço no catálogo pelo nome ou detalhes..."
+              placeholder="Buscar item por nome ou descrição…"
               className="w-full pl-12 pr-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all font-medium dark:text-white"
             />
           </div>

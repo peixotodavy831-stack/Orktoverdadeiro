@@ -141,7 +141,7 @@ export default function SettingsPage({ userProfile, onProfileUpdated, onOpenWia,
             Configurações do Sistema
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-            Personalize os dados da sua empresa, a cor do orçamento digital e as mensagens padrão do WhatsApp.
+            Configure os dados da empresa, a identidade das propostas e o atendimento com a WIA.
           </p>
         </div>
       </header>
