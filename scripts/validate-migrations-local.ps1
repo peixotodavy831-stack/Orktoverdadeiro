@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
   [string]$EvidenceDirectory,
-  [ValidateRange(1, 100)][int]$ExpectedMigrationCount = 34
+  [ValidateRange(1, 100)][int]$ExpectedMigrationCount = 34,
+  [string]$SecurityAssertionPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -66,8 +67,20 @@ function Find-PostgresBin {
 
 function Invoke-LoggedProcess([string]$Executable, [string[]]$Arguments, [string]$Label) {
   Write-RunLog ("BEGIN {0}: {1}" -f $Label, $Executable)
-  $outputLines = @(& $Executable @Arguments 2>&1)
-  $exitCode = $LASTEXITCODE
+  if ((Split-Path -Leaf $Executable) -eq 'pg_ctl.exe' -and $Arguments -contains 'start') {
+    # postgres is a long-lived child. Capturing a native pipe waits for the
+    # child's inherited handle even after pg_ctl has exited. Redirect to files.
+    $stdoutPath = Join-Path $evidenceRun 'pg-ctl-start.stdout.log'
+    $stderrPath = Join-Path $evidenceRun 'pg-ctl-start.stderr.log'
+    $quotedArguments = @($Arguments | ForEach-Object { '"' + $_.Replace('"','\"') + '"' })
+    $startedProcess = Start-Process -FilePath $Executable -ArgumentList $quotedArguments -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath
+    $startedProcess.WaitForExit()
+    $exitCode = $startedProcess.ExitCode
+    $outputLines = @(Get-Content -LiteralPath $stdoutPath; Get-Content -LiteralPath $stderrPath)
+  } else {
+    $outputLines = @(& $Executable @Arguments 2>&1)
+    $exitCode = $LASTEXITCODE
+  }
   foreach ($outputLine in $outputLines) { Write-RunLog ([string]$outputLine) }
   Write-RunLog ("END {0}: exit={1}" -f $Label, $exitCode)
   if ($null -eq $exitCode -or $exitCode -ne 0) { throw ("{0} terminou com código {1}. Veja {2}" -f $Label, $exitCode, $wrapperLog) }
@@ -108,7 +121,7 @@ try {
   $postgres = Join-Path $pgBin 'postgres.exe'
   $versionLines = Invoke-LoggedProcess $postgres @('--version') 'PostgreSQL version check'
   $postgresVersion = (($versionLines | ForEach-Object { [string]$_ }) -join ' ').Trim()
-  if ($postgresVersion -notmatch 'PostgreSQL\s+17\.') { throw "PostgreSQL 17 is required; found $postgresVersion" }
+  if ($postgresVersion -notmatch 'PostgreSQL\)?\s+17\.') { throw "PostgreSQL 17 is required; found $postgresVersion" }
 
   if (Test-Path -LiteralPath $clusterRoot) { throw "Refusing to reuse existing unique temporary path: $clusterRoot" }
   New-Item -ItemType Directory -Path $clusterRoot -ErrorAction Stop | Out-Null
@@ -154,7 +167,9 @@ try {
     $validator = Join-Path $repoRoot 'scripts\validate-migrations.mjs'
     $phase = 'SHARED_MIGRATION_VALIDATOR'
     Write-RunLog ("BEGIN shared migration validator ($nodeVersion): {0}" -f $nodeCommand.Source)
-    $validatorOutput = @(& $nodeCommand.Source $validator '--target' 'local' '--evidence-dir' $evidenceRun '--expected-count' ([string]$ExpectedMigrationCount) 2>&1)
+    $validatorArguments = @($validator,'--target','local','--evidence-dir',$evidenceRun,'--expected-count',([string]$ExpectedMigrationCount))
+    if (-not [string]::IsNullOrWhiteSpace($SecurityAssertionPath)) { $validatorArguments += @('--security-assertion',$SecurityAssertionPath) }
+    $validatorOutput = @(& $nodeCommand.Source @validatorArguments 2>&1)
     $coreExitCode = $LASTEXITCODE
     foreach ($outputLine in $validatorOutput) { Write-RunLog ([string]$outputLine) }
     Write-RunLog ("END shared migration validator: exit={0}" -f $coreExitCode)

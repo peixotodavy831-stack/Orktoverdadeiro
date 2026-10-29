@@ -301,3 +301,4 @@ begin
 end $$;
 
 rollback;
+\ir assert_wia_chat_privacy.sql

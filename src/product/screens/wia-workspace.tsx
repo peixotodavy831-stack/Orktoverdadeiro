@@ -8,6 +8,7 @@ import { BackendPending, ConfigurationRequired, EmptyState, ErrorState, LoadingS
 
 import WiaRuntimeStatus from './wia-runtime-status';
 import { WiaPlanPreview } from './operation-previews';
+import { useWiaChat, WiaChatHistory } from './wia-chat-history';
 import { loadWiaActions } from '../adapters/wia-actions';
 
 type WiaPhase = 'CONSULTING' | 'ANALYZING' | 'PREPARING_ACTION' | 'WAITING_APPROVAL' | 'EXECUTING' | 'EXECUTED' | 'FAILED' | 'ANALYSIS_READY';
@@ -23,6 +24,7 @@ interface WiaDecision {
 
 interface WiaRouteResult {
   success: boolean;
+  chatPersistence?: string;
   agent?: string;
   traceId?: string;
   runId?: string;
@@ -89,6 +91,12 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', initial
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<{ action: WiaActionView; externalDelivery?: string | null } | null>(null);
   const actionRequest = useRef<AbortController | null>(null);
+  const chat = useWiaChat(accessToken);
+  const promptInFlight = useRef(false);
+  const executionScope = useRef(accessToken);
+  executionScope.current = accessToken;
+  useEffect(()=>{setRouteResult(null);setLastPrompt('');setPhase(null);setRequestError(null);setActionNotice(null);},[accessToken]);
+  const clearAnswer = () => { setRouteResult(null);setPhase(null);setRequestError(null);setPrompt(''); };
 
   const loadActions = useCallback(async () => {
     actionRequest.current?.abort();
@@ -113,25 +121,31 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', initial
     if (target) { target.focus(); target.scrollIntoView({ block: 'nearest' }); onInitialActionOpened?.(); }
   }, [initialActionId, actionsState, onInitialActionOpened]);
 
-  const submitPrompt = async (rawMessage: string) => {
+  const submitPrompt = async (rawMessage: string, retryKey?:string) => {
     const message = rawMessage.trim();
-    if (!message || phase === 'CONSULTING' || phase === 'EXECUTING') return;
+    if (!message || promptInFlight.current || chat.loading || phase === 'EXECUTING') return;
+    promptInFlight.current = true;
+    const requestKey = retryKey || crypto.randomUUID();
     setLastPrompt(message);
     setPhase('CONSULTING');
     setRequestError(null);
     setRouteResult(null);
     setActionNotice(null);
     try {
-      const result = await productApi<WiaRouteResult>('/api/wia/route-agent', accessToken, { method: 'POST', body: JSON.stringify({ message }) });
+      const result = await productApi<WiaRouteResult>('/api/wia/route-agent', accessToken, { method: 'POST', headers:{'x-idempotency-key':requestKey}, body: JSON.stringify({ message,sessionId:chat.sessionId }),signal:AbortSignal.timeout(30_000) });
+      if (executionScope.current !== accessToken) return;
+      if (result.chatPersistence !== 'persisted') throw new Error('O servidor não confirmou o histórico salvo. Confira a conversa antes de repetir.');
       setRouteResult(result);
       setPrompt('');
       if (result.decision?.requiresApproval) setPhase('WAITING_APPROVAL');
       else setPhase('ANALYSIS_READY');
       await loadActions();
+      await chat.refresh(chat.sessionId);
     } catch (error) {
+      if (executionScope.current !== accessToken) return;
       setPhase('FAILED');
-      setRequestError({ status: getProductErrorState(error), message: error instanceof Error ? error.message : 'A WIA não conseguiu preparar a análise.', retry: () => { void submitPrompt(message); } });
-    }
+      setRequestError({ status: getProductErrorState(error), message: error instanceof Error ? error.message : 'A WIA não conseguiu preparar a análise.', retry: () => { void submitPrompt(message,requestKey); } });
+    } finally { promptInFlight.current = false; }
   };
 
 
@@ -173,11 +187,12 @@ export default function WiaWorkspace({ accessToken, initialMessage = '', initial
     <nav className="wia-sections" aria-label="Seções da WIA">{([{id:'request',label:'Pedido'},{id:'approvals',label:'Aprovações'},{id:'history',label:'Histórico'}] as const).map(item => <button key={item.id} type="button" aria-pressed={section === item.id} onClick={() => setSection(item.id)}>{item.label}{item.id === 'approvals' && actionsState.status === 'success' && <span>{approvalActions.length}</span>}</button>)}</nav>
     <div className="wia-organized-layout">
       {section === 'request' && <div className="min-w-0 space-y-5">
+        <WiaChatHistory chat={chat} busy={requestPending} onSelect={id=>{clearAnswer();void chat.refresh(id);}} onNew={()=>{clearAnswer();chat.start();}} />
 
         <section aria-labelledby="wia-input-title" className="rounded-xl border p-4 sm:p-5 orkto-product-border orkto-product-surface">
           <div className="flex items-start gap-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl orkto-product-surface-muted" style={{ color: 'var(--orkto-brand-text)' }}><Sparkles size={19} /></span><div><h2 id="wia-input-title" className="text-sm font-semibold">O que vamos organizar?</h2><p className="mt-1 text-xs leading-5 orkto-product-muted">Descreva seu pedido ou comece por uma consulta.</p></div></div>
           <p className="mt-3 text-sm leading-6 orkto-product-muted">A WIA atual prepara análises e rascunhos; ainda não cadastra clientes ou negócios por comando livre. Linguagem livre depende do modelo, da configuração e dos limites aprovados.</p>
-          <PromptInput value={prompt} onChange={setPrompt} onSubmit={message => void submitPrompt(message)} busy={requestPending} placeholder="Descreva seu pedido para a WIA…" className="my-6" />
+          <PromptInput value={prompt} onChange={setPrompt} onSubmit={message => void submitPrompt(message)} busy={requestPending||chat.loading} placeholder="Descreva seu pedido para a WIA…" className="my-6" />
           <ProposalRecoveryRequest onDraft={setPrompt} />
           <div className="wia-query-shortcuts" aria-label="Consultas dos registros existentes">{['Propostas pendentes', 'Aprovações pendentes', 'Vendas hoje'].map(message => <button key={message} type="button" disabled={requestPending} onClick={() => { setPrompt(message); document.getElementById('wia-request')?.focus(); }} className="orkto-product-control">{message}</button>)}</div>
           <p className="mt-3 text-xs leading-5 orkto-product-muted">Os atalhos preenchem o pedido; você decide quando consultar.</p>

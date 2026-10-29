@@ -60,6 +60,8 @@ export type CoreMutationResult = {
   path?: string;
   mode?: string;
   replayed?: boolean;
+  chatPersistence?: string;
+  sessionId?: string;
   decision?: unknown;
   usage?: unknown;
   toolExecutions?: unknown[];
@@ -122,11 +124,17 @@ export class CoreMutationClient {
       if (!gateway.ok) {
         const allowed = new Set(['AUTH_REQUIRED', 'PERMISSION_DENIED', 'VALIDATION_FAILED', 'WORKSPACE_ACCESS_DENIED',
           'NOT_FOUND', 'CONFLICT', 'IDEMPOTENCY_CONFLICT', 'RATE_LIMITED', 'CONFIGURATION_REQUIRED', 'MODEL_UNAVAILABLE',
-          'PROVIDER_REJECTED','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID']);
+          'PROVIDER_REJECTED','PROVIDER_UNAVAILABLE','PROVIDER_RESPONSE_INVALID','CHAT_PERSISTENCE_UNAVAILABLE',
+          'PULSO_CONFIGURATION_OR_LIMIT','MODEL_TARIFF_REQUIRED']);
         const code = allowed.has(result.code || '') ? result.code : 'INTERNAL_ERROR';
         const category = command === 'START_WIA_RUN' && code === 'RATE_LIMITED' ? 'plan_limit_reached' : code;
+        const explanations:Record<string,string> = {
+          PULSO_CONFIGURATION_OR_LIMIT:'A franquia de Pulsos precisa estar aprovada e ter saldo para esta análise.',
+          MODEL_TARIFF_REQUIRED:'A tarifa deste modelo ainda não foi aprovada. Nenhuma chamada de IA foi realizada.',
+          CHAT_PERSISTENCE_UNAVAILABLE:'A gravação da conversa não foi confirmada. Consulte o histórico; repetir a mesma operação não inicia outra análise.',
+        };
         res.status(gateway.status >= 400 && gateway.status < 500 ? gateway.status : 503)
-          .json({ error: 'Não foi possível concluir a operação.', category, requestId: req.requestId });
+          .json({ error: explanations[code || ''] || 'Não foi possível concluir a operação.', category, requestId: req.requestId });
         return null;
       }
       if (!result.data?.result) throw new Error('Invalid gateway response.');

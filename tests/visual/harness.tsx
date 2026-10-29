@@ -107,6 +107,10 @@ function json(data: unknown, status = 200) {
 
 function installVisualApiFixtures() {
   const scenario = new URLSearchParams(window.location.search).get('scenario');
+  // Explicit visual fixture only. Reload persistence here is NOT database validation.
+  type ChatFixture = {id:string;session_id:string;role:string;content:string;created_at:string};
+  const chatStorageKey='orkto-visual-only-chat';
+  const chatMessages:ChatFixture[]=JSON.parse(sessionStorage.getItem(chatStorageKey)||'[]');
   const privateInstructions=scenario?.startsWith('sussurro')?[{id:'visual-private-1',content:'Confirmar o prazo internamente antes de responder.',source_role:'manager',from_user_id:'visual-manager',to_user_id:null,read_at:null,expires_at:new Date(Date.now()+86_400_000).toISOString(),created_at:new Date().toISOString()}]:[];
   const session = { access_token: VISUAL_TOKEN, user: { id: 'visual-user' } } as unknown as NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']>;
   Object.defineProperty(supabase.auth, 'getSession', {
@@ -118,6 +122,13 @@ function installVisualApiFixtures() {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input.toString() : input.url, window.location.origin);
     const path = url.pathname;
     const method = (init?.method || 'GET').toUpperCase();
+    if(path==='/api/wia/chat-sessions') {
+      if(scenario==='loading')await new Promise(()=>{});
+      if(scenario==='error')return json({error:'Histórico indisponível na fixture.'},503);
+      const sessions=new Map();for(const row of [...chatMessages].reverse())if(row.role==='user'&&!sessions.has(row.session_id))sessions.set(row.session_id,{id:row.session_id,title:row.content.slice(0,80),updatedAt:row.created_at});
+      return json({data:[...sessions.values()],truncated:false});
+    }
+    if(path==='/api/wia/chat-history')return json({data:chatMessages.filter(row=>row.session_id===url.searchParams.get('sessionId')),truncated:false});
     if (path === '/api/wia-efficiency/plan' && method === 'POST') {
       if (scenario === 'loading') await new Promise(() => {});
       if (scenario === 'error') return json({error:'Prévia indisponível na fixture.'},503);
@@ -225,7 +236,12 @@ function installVisualApiFixtures() {
       const action = visualWiaActions.find(item => item.id === actionId);
       return action ? json({ data: { ...action, status: path.endsWith('/approve') ? 'executed' : 'rejected', result: {} }, externalDelivery: 'not_sent_channel_not_configured' }) : json({ error: 'Ação não encontrada no fixture.' }, 404);
     }
-    if (path === '/api/wia/route-agent' && init?.method === 'POST') return json(scenario==='uxlab'?{...visualWiaRouteResult,decision:{...visualWiaRouteResult.decision,requiresApproval:true}}:visualWiaRouteResult);
+    if (path === '/api/wia/route-agent' && init?.method === 'POST') {
+      const body=JSON.parse(String(init.body));const key=new Headers(init.headers).get('x-idempotency-key')||crypto.randomUUID();
+      for(const [role,content] of [['user',body.message],['assistant',visualWiaRouteResult.decision.messageDraft]])if(!chatMessages.some(row=>row.id===`${key}-${role}`))chatMessages.push({id:`${key}-${role}`,session_id:body.sessionId,role,content,created_at:new Date().toISOString()});
+      sessionStorage.setItem(chatStorageKey,JSON.stringify(chatMessages));
+      return json({...visualWiaRouteResult,chatPersistence:'persisted',...(scenario==='uxlab'?{decision:{...visualWiaRouteResult.decision,requiresApproval:true}}:{})});
+    }
     if (path === '/api/wia/actions') {
       const status = url.searchParams.get('status');
       return json({ data: visualWiaActions.filter(action => !status || action.status === status) });

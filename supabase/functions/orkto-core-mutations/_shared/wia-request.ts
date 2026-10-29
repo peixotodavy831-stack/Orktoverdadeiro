@@ -2,6 +2,7 @@ import { routeT0Request } from './wia-t0.ts';
 import { executeTrustedT0, t0Agent } from './wia-trusted.ts';
 import { geminiTestConfiguration, prepareTrustedGemini, TrustedModelError } from './wia-gemini.ts';
 import { estimateModelCost } from './cost-governor.ts';
+import { loadChatContext, saveChatMessage } from './wia-chat.ts';
 
 export class WiaRequestError extends Error {
   constructor(readonly status: number, readonly code: string) { super(code); }
@@ -10,7 +11,7 @@ export class WiaRequestError extends Error {
 /** Called only after JWT, pilot, membership, role, plan and feature checks. */
 export async function prepareTrustedRequest(db: any, input: {
   workspaceId:string; actorId:string; requestId:string; traceId:string;
-  message:string; monthlyLimit:number|null; fingerprint:string;
+  message:string; monthlyLimit:number|null; fingerprint:string; sessionId?:string;
 }, env: {get(name:string):string|undefined}, send:typeof fetch=fetch) {
   const route=routeT0Request(input.message);
   const configuration=route?null:geminiTestConfiguration(env,input.workspaceId);
@@ -33,15 +34,24 @@ export async function prepareTrustedRequest(db: any, input: {
   }
   if(!started?.wia_run_id)throw new WiaRequestError(503,'INTERNAL_ERROR');
   const base={traceId:input.traceId,runId:input.traceId,serviceRunId:started.wia_run_id,agent};
+  const chat = input.sessionId ? { ...input, sessionId: input.sessionId,runId:started.wia_run_id } : null;
   if(started.result==='REPLAY') {
     if(started.status!=='succeeded'||!started.runtime_response)throw new WiaRequestError(409,'CONFLICT');
     const saved=started.runtime_response;
+    if (chat) {
+      try {
+        await saveChatMessage(db,chat,'user',input.message);
+        await saveChatMessage(db,chat,'assistant',saved.decision.messageDraft);
+      } catch { throw new WiaRequestError(503,'CHAT_PERSISTENCE_UNAVAILABLE'); }
+    }
     return {...base,result:'REPLAY',replayed:true,path:saved.path,mode:saved.mode,
-      decision:saved.decision,usage:saved.usage,toolExecutions:saved.toolExecutions};
+      decision:saved.decision,usage:saved.usage,toolExecutions:saved.toolExecutions,
+      ...(chat?{chatPersistence:'persisted',sessionId:chat.sessionId}:{})};
   }
   if(started.result!=='STARTED')throw new WiaRequestError(503,'INTERNAL_ERROR');
   let payload;
   try {
+    if (chat) await saveChatMessage(db,chat,'user',input.message);
     if(route) {
       const prepared=await executeTrustedT0(db,input.workspaceId,route);
       payload={contextRefs:prepared.sourceIds,path:'t0',mode:'live',decision:prepared.decision,
@@ -67,7 +77,9 @@ export async function prepareTrustedRequest(db: any, input: {
         if(!estimateModelCost(approvedTariff,{provider:'gemini',model:configuration!.model,input:0,cached:0,output:0}))
           throw new Error('tariff_missing');
       }catch{throw new WiaRequestError(423,'MODEL_TARIFF_REQUIRED');}
-      // Send aggregate counts, never full contacts, proposal details, or private chat histories.
+      // Only this actor's selected chat can provide continuity. History is untrusted prose, not business evidence.
+      const history = chat ? await loadChatContext(db,chat) : [];
+      // Never send full contacts or proposal details.
       const [quotes,clients]=await Promise.all([
         db.from('quotes').select('id').eq('workspace_id',input.workspaceId).is('archived_at',null)
           .in('status',['pending','sent','viewed']).limit(51),
@@ -75,7 +87,7 @@ export async function prepareTrustedRequest(db: any, input: {
       ]);
       if(quotes.error||clients.error||!Number.isInteger(clients.count))throw new Error('query_failed');
       const rows=(quotes.data||[]).slice(0,50);
-      const prepared=await prepareTrustedGemini({...configuration!,message:input.message,
+      const prepared=await prepareTrustedGemini({...configuration!,message:input.message,history,
         context:{openQuotes:rows.length,clients:clients.count,truncated:(quotes.data||[]).length>50},
         sourceIds:[]},send);
       const estimate=estimateModelCost(approvedTariff,
@@ -102,6 +114,11 @@ export async function prepareTrustedRequest(db: any, input: {
   });
   // A failed/ambiguous commit must never be rendered as success or trigger a model retry here.
   if(completeError||!completed?.wia_run_id)throw new WiaRequestError(503,'INTERNAL_ERROR');
+  if (chat) {
+    try { await saveChatMessage(db,chat,'assistant',payload.decision.messageDraft); }
+    catch { throw new WiaRequestError(503,'CHAT_PERSISTENCE_UNAVAILABLE'); }
+  }
   return {...base,result:completed.result,path:payload.path,mode:payload.mode,decision:payload.decision,
-    usage:payload.usage,toolExecutions:payload.toolExecutions,replayed:false};
+    usage:payload.usage,toolExecutions:payload.toolExecutions,replayed:false,
+    ...(chat?{chatPersistence:'persisted',sessionId:chat.sessionId}:{})};
 }

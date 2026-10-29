@@ -7,16 +7,18 @@ import path from 'node:path';
 // Reuses the existing visual harness and Chromium dependency. All data is synthetic.
 const phase=process.argv.includes('--before')?'before':'after';
 const comments=process.argv.includes('--comments');
+const realSystem=process.argv.includes('--real-system');
 const only=process.argv.find(value=>value.startsWith('--only='))?.slice(7);
 if(only)assert.match(only,/^[A-Za-z0-9-]+$/);
 const base=new URL(process.env.ORKTO_UX_LAB_URL||'http://127.0.0.1:4181/tests/visual/index.html');
 assert.equal(base.hostname,'127.0.0.1');assert.equal(base.protocol,'http:');assert.equal(base.pathname,'/tests/visual/index.html');
-const out=path.resolve('docs/09_EXECUTION/evidence',comments?'ux-comments-20261029':'ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
+const out=path.resolve('docs/09_EXECUTION/evidence',realSystem?'real-system-2027/browser':comments?'ux-comments-20261029':'ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
 await mkdir(out,{recursive:true});
-const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productBaseline:comments?'211ca3d':'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
+const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),workingTreeDirty:!!execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim(),productBaseline:realSystem?'c4983ac':comments?'211ca3d':'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
 const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});
 let current;
 async function run(id,personas,width,height,fn){
+  if(realSystem&&!id.startsWith('R8'))return;
   if(only && only!==id)return;
   if(comments&&!id.startsWith('R'))return;
   if(!comments&&id.startsWith('R'))return;
@@ -47,6 +49,30 @@ async function more(page){await click(page.getByRole('button',{name:/^Mais( mód
 const dialog=page=>page.getByRole('dialog');
 
 try{
+ await run('R8-wia-history-error',[1],390,850,async page=>{
+  await open(page,'wia',{scenario:'error'});await page.getByRole('alert').filter({hasText:'Histórico indisponível na fixture.'}).waitFor();
+  assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).count(),0);
+ });
+ await run('R8-wia-history-loading',[1],390,850,async page=>{
+  await open(page,'wia',{scenario:'loading'});await page.getByText('Carregando conversa salva…',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Nova conversa',exact:true}).isEnabled(),false);
+ });
+ for(const width of [390,768,1440])await run(`R8-wia-persistent-chat-${width}`,[1,3],width,850,async page=>{
+  await open(page,'wia');
+  await page.getByRole('button',{name:'Nova conversa',exact:true}).waitFor();
+  await fill(page.getByRole('textbox',{name:'Pergunta para a WIA'}),'Propostas pendentes','Pedido sintético');
+  await click(page.getByRole('button',{name:'Consultar WIA',exact:true}),'Consultar fixture');
+  await page.getByRole('list',{name:'Mensagens salvas'}).waitFor();
+  assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).locator('li').count(),2);
+  await page.reload();await page.getByRole('list',{name:'Mensagens salvas'}).waitFor();
+  assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).locator('li').count(),2);
+  await click(page.getByRole('button',{name:'Nova conversa',exact:true}),'Nova conversa independente');
+  assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).count(),0);
+  const select=page.getByRole('combobox',{name:'Selecionar conversa WIA'});
+  await select.selectOption({index:1});await page.getByRole('list',{name:'Mensagens salvas'}).waitFor();
+  assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).locator('li').count(),2);
+  current.persistence='sessionStorage visual fixture only; database tested separately';
+ });
  await run('A-first-entry',[1,8],390,850,async page=>{
   await open(page,'today');await page.getByRole('heading',{name:'Hoje, sua operação em foco.'}).waitFor();
   current.login='NOT_TESTED: synthetic frontend session; no Google login';
@@ -183,7 +209,7 @@ try{
   await open(page,'today');current.observed={radius:await page.getByRole('button',{name:'Abrir WIA',exact:true}).evaluate(el=>getComputedStyle(el).borderRadius)};assert.ok(parseFloat(current.observed.radius)>=22);
  });
  // Same DOM/layout cases in both rounds. Emulation is explicitly not physical iOS/Android.
- if(!only)for(const width of comments?[390,768,1440]:[320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of comments?['today','catalog','settings','reports','team','integrations']:['today','clients','inbox','wia']){
+ if(!only)for(const width of comments?[390,768,1440]:[320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of realSystem?['wia']:comments?['today','catalog','settings','reports','team','integrations']:['today','clients','inbox','wia']){
   const context=await browser.newContext({viewport:{width,height:850},isMobile:width<1024,hasTouch:width<1024});await context.route('**/*',route=>new URL(route.request().url()).origin===base.origin?route.continue():route.abort());
   const page=await context.newPage();await open(page,screen,screen==='inbox'?{thread:1}:{});if(theme==='light'){await page.getByRole('button',{name:/Ativar tema claro|Claro/,exact:true}).first().click();await page.locator('html:not(.dark)').waitFor();}
   const data=await page.evaluate(()=>({width:innerWidth,documentWidth:document.documentElement.scrollWidth,theme:document.documentElement.classList.contains('dark')?'dark':'light'}));report.matrix.push({screen,...data,overflow:data.documentWidth>data.width});console.log(`MATRIX ${width} ${theme} ${screen}: ${data.documentWidth>data.width ? "OVERFLOW" : "PASS"}`);await context.close();

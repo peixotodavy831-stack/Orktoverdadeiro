@@ -16,6 +16,7 @@ import { decideWithWia } from './wiaos/wia-service.js';
 import { calculateObservedFinanceMetrics, DEFAULT_FINANCE_ASSUMPTIONS, estimateAiUsageCost, isTechnicalCogsCategory, projectFinance, summarizeChannelUsageCosts, validateFinanceAssumptions } from './finance/finance-model.js';
 import { createT0ToolRegistry, SupabaseT0DataSource } from './wiaos/t0-tools.js';
 import { ModelProviderError } from './wiaos/model-provider.js';
+import { readWiaChat } from './wiaos/chat-history.js';
 import { ProviderConfigurationError } from './wiaos/model-router.js';
 import { registerOperationalRoutes } from './operational-routes.js';
 import { invokeCoreMutation } from './core-mutation-client.js';
@@ -868,6 +869,14 @@ app.post('/api/wia/decide', authenticate, async (req, res) => {
   }
 });
 
+app.get('/api/wia/chat-sessions', authenticate, async (req,res) => {
+  const db = req.authenticatedSupabase;
+  if (!db) return res.status(503).json({error:'Histórico da WIA indisponível.',category:'configuration_error'});
+  const tenant = requireTenantContext(req);
+  try { return res.json(await readWiaChat(db,tenant.workspaceId,tenant.userId)); }
+  catch { return res.status(503).json({error:'Não foi possível recuperar as conversas.',category:'persistence_unavailable'}); }
+});
+
 app.get('/api/wia/chat-history', authenticate, async (req,res) => {
   const parsed = z.object({ sessionId: z.string().uuid() }).safeParse(req.query);
   if (!parsed.success) return res.status(400).json({ error:'Identificador de conversa inválido.' });
@@ -875,9 +884,7 @@ app.get('/api/wia/chat-history', authenticate, async (req,res) => {
   if (!historyDb) return res.status(503).json({ error:'Histórico da WIA indisponível.', category:'configuration_error' });
   const tenantContext = requireTenantContext(req);
   try {
-    const { data, error } = await historyDb.from('orkto_wia_chat_messages').select('id,role,content,created_at').eq('workspace_id',tenantContext.workspaceId).eq('user_id',tenantContext.userId).eq('session_id',parsed.data.sessionId).order('created_at',{ascending:false}).limit(100);
-    if (error) throw error;
-    return res.json({ data:(data || []).reverse() });
+    return res.json(await readWiaChat(historyDb,tenantContext.workspaceId,tenantContext.userId,parsed.data.sessionId));
   } catch (error) {
     const code = (error as { code?: string })?.code || 'unknown';
     console.error('[WIA] chat_history_unavailable', { code });

@@ -453,12 +453,13 @@ Deno.serve(async (req: Request) => {
       eventType = 'channel.send.configuration_required';
       argumentsForCommand = {};
     } else if (command === 'PREPARE_WIA_T0' || command === 'PREPARE_WIA_REQUEST') {
-      const holder=suppliedPayload as {message?:unknown}|null;
+      const holder=suppliedPayload as {message?:unknown;sessionId?:unknown}|null;
       if(!holder||typeof holder!=='object'||Array.isArray(holder)
-        ||!exactKeys(holder as Record<string,unknown>,['message'])
+        ||!exactKeys(holder as Record<string,unknown>,command==='PREPARE_WIA_REQUEST'?['message','sessionId']:['message'])
+        ||(holder.sessionId!==undefined&&(typeof holder.sessionId!=='string'||!UUID.test(holder.sessionId)))
         ||typeof holder.message!=='string'||holder.message.trim().length<1||holder.message.length>4000)
         return response(400,'VALIDATION_FAILED',requestId,undefined,origin);
-      canonical={message:holder.message.trim()};
+      canonical={message:holder.message.trim(),...(holder.sessionId?{sessionId:holder.sessionId}:{})};
       functionName='';eventType='wia.run.started';argumentsForCommand={};
     } else {
       return response(400, 'VALIDATION_FAILED', requestId, undefined, origin);
@@ -784,6 +785,7 @@ Deno.serve(async (req: Request) => {
           workspaceId:membership.workspace_id,actorId:user.id,requestId,
           traceId:await traceUuid(`wia-request-v1:${membership.workspace_id}:${user.id}:${idempotencyKey}`),
           message:String(canonical.message),monthlyLimit:limit,fingerprint:await fingerprint(canonical),
+          ...(canonical.sessionId?{sessionId:String(canonical.sessionId)}:{}),
         },Deno.env);
         return response(200,'OK',requestId,result,origin);
       } catch(error) {

@@ -1482,19 +1482,20 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
   });
 
   app.post('/api/wia/route-agent', authenticate, async (req, res) => {
-    const parsed = z.object({ message: z.string().trim().min(1).max(4000), overdueAmountCents: z.number().int().nonnegative().optional(), reportRequest: z.boolean().optional() }).safeParse(req.body);
+    const parsed = z.object({ message: z.string().trim().min(1).max(4000), sessionId:z.string().uuid().optional(), overdueAmountCents: z.number().int().nonnegative().optional(), reportRequest: z.boolean().optional() }).safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: 'Comando da WIA inválido.' });
     if (!db) return res.status(503).json({ error: 'WIA indisponível sem banco persistente.', category: 'configuration_error' });
     // START_WIA_RUN/COMPLETE_WIA_RUN are authorized by the Core Mutation
     // Gateway, including plan enforcement. Do not query plan state through the
     // shared public client before the gateway sees the authenticated request.
     const context = await workspaceContext(req, res, db, false, true); if (!context) return;
-    if (['staging','production'].includes((process.env.APP_ENV || '').trim().toLowerCase())) {
-      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_REQUEST',{message:parsed.data.message});
+    if (parsed.data.sessionId || ['staging','production'].includes((process.env.APP_ENV || '').trim().toLowerCase())) {
+      const trusted = await invokeCoreMutation(req,res,context,'PREPARE_WIA_REQUEST',{message:parsed.data.message,...(parsed.data.sessionId?{sessionId:parsed.data.sessionId}:{})});
       if (!trusted) return;
       return res.json({success:true,agent:trusted.agent,traceId:trusted.traceId,runId:trusted.runId,
         serviceRunId:trusted.serviceRunId,path:trusted.path,mode:trusted.mode,replayed:trusted.replayed || false,
-        decision:trusted.decision,usage:trusted.usage,toolExecutions:trusted.toolExecutions || []});
+        decision:trusted.decision,usage:trusted.usage,toolExecutions:trusted.toolExecutions || [],
+        chatPersistence:trusted.chatPersistence,sessionId:trusted.sessionId});
     }
     const requestDb = req.authenticatedSupabase || db;
     const agent = (await import('./orkto-core/full-operational.js')).routeSwarmAgent(parsed.data.message, parsed.data);
