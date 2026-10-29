@@ -1,0 +1,490 @@
+{
+  "environment": "local_frontend_fixture_and_isolated_http_adapters",
+  "runtimeSha": "b4d25d9920ab6184f691fc784ee38a833ac3e7be",
+  "regressionSha": "7b5163d4bf0fe87ed31fc4aa261dc330e92e8566",
+  "ui": {
+    "pass": 10,
+    "fail": 0,
+    "matrix": 36,
+    "overflow": 0
+  },
+  "appTests": 411,
+  "toolTests": 108,
+  "realProviderE2E": "NOT_TESTED",
+  "productionCandidate": "NO",
+  "generatedAt": "2026-10-29T22:21:02.385035+00:00",
+  "authoritativeVisualDirectory": "visual-review",
+  "textEncodingPolicy": "UTF-8 LF, Git -text preserves bytes",
+  "artifacts": [
+    {
+      "file": ".gitattributes",
+      "bytes": 9,
+      "sha256": "48747480eddba024928d03be9bf83dc579e5515768647507a767e8187a85c9ab"
+    },
+    {
+      "file": "after/journeys.json",
+      "bytes": 11761,
+      "sha256": "8ed7bfc656d72e111b3aebd69045800a0f89362619df8f30803f905925a04d9e"
+    },
+    {
+      "file": "after/R1-brand-home-7b5163d-1793294890696.png",
+      "bytes": 88923,
+      "sha256": "935143a03456fd64565cd9a83f93646eddfb5435c372eaffda18d1cc97be71f6"
+    },
+    {
+      "file": "after/R1-brand-home-b4d25d9-1793295284231.png",
+      "bytes": 88923,
+      "sha256": "935143a03456fd64565cd9a83f93646eddfb5435c372eaffda18d1cc97be71f6"
+    },
+    {
+      "file": "after/R1-brand-home-e580a36-1793294406652.png",
+      "bytes": 88972,
+      "sha256": "9461795cbe67e417abfa100e8d0bcc63f66e0434e745ed3409dffb42e7ee1ac8"
+    },
+    {
+      "file": "after/R2-catalog-wia-7b5163d-1793294896010.png",
+      "bytes": 127190,
+      "sha256": "49d34061d38768ab67f76790b9c8c8079069a69d7bb4ddf20d7c8f40a704fd65"
+    },
+    {
+      "file": "after/R2-catalog-wia-b4d25d9-1793295288945.png",
+      "bytes": 127190,
+      "sha256": "49d34061d38768ab67f76790b9c8c8079069a69d7bb4ddf20d7c8f40a704fd65"
+    },
+    {
+      "file": "after/R2-catalog-wia-e580a36-1793294411259.png",
+      "bytes": 127410,
+      "sha256": "4da849d386f59f792bd1e2193f13891442036feb7b283b8fb3f9395619164fdd"
+    },
+    {
+      "file": "after/R2b-catalog-short-7b5163d-1793294902219.png",
+      "bytes": 42294,
+      "sha256": "5b7379ceffe6862fad8501d7a3b8260dbacbd04d3f20493a7bb01207c54befad"
+    },
+    {
+      "file": "after/R2b-catalog-short-b4d25d9-1793295292933.png",
+      "bytes": 41372,
+      "sha256": "39fc7be586b7c18e87376798eeb58f21ecd041b0f08069fee299db8e4f6a234e"
+    },
+    {
+      "file": "after/R3-reports-navigation-7b5163d-1793294906692.png",
+      "bytes": 256019,
+      "sha256": "204c65ab7a19bf6b68d0659c353ac05a8a5e46bec8c0a670d136962060d26c92"
+    },
+    {
+      "file": "after/R3-reports-navigation-b4d25d9-1793295296754.png",
+      "bytes": 256019,
+      "sha256": "c222b28fbbce35bf196992d75837b3c3d3fa6127466f38dce9c6acbe88e3a924"
+    },
+    {
+      "file": "after/R3-reports-navigation-e580a36-1793294420579.png",
+      "bytes": 153744,
+      "sha256": "d8bed3e633a1e392cf819d350152f0bc7a74ee09b9e71cf4c3acc6bf634240ea"
+    },
+    {
+      "file": "after/R4-whatsapp-prerequisites-7b5163d-1793294911005.png",
+      "bytes": 104162,
+      "sha256": "a4c8fd7cc0ffcf04fb9f072f19af003d947d038213ce8a848c85b25728d9a9d0"
+    },
+    {
+      "file": "after/R4-whatsapp-prerequisites-b4d25d9-1793295300081.png",
+      "bytes": 103291,
+      "sha256": "ee7b8446f801ac6ca18fd98eaf6ca092a0091d258f8f30e5526715a702c37825"
+    },
+    {
+      "file": "after/R4-whatsapp-prerequisites-e580a36-1793294429311.png",
+      "bytes": 106299,
+      "sha256": "b10e335c2558e5f9b34b19b4291ee306dbd25d6360d1b1b9c937df5682a822e1"
+    },
+    {
+      "file": "after/R5-team-invite-7b5163d-1793294915601.png",
+      "bytes": 216537,
+      "sha256": "b8c022347384d8811de8895ec014d2aa4493fe6068eec0457f48245ae2604bc5"
+    },
+    {
+      "file": "after/R5-team-invite-b4d25d9-1793295304593.png",
+      "bytes": 216537,
+      "sha256": "b8c022347384d8811de8895ec014d2aa4493fe6068eec0457f48245ae2604bc5"
+    },
+    {
+      "file": "after/R5-team-invite-e580a36-1793294438187.png",
+      "bytes": 216537,
+      "sha256": "b8c022347384d8811de8895ec014d2aa4493fe6068eec0457f48245ae2604bc5"
+    },
+    {
+      "file": "after/R5b-team-limit-7b5163d-1793294919842.png",
+      "bytes": 90859,
+      "sha256": "2dca7e538c9b9dffa0dd0f40535889e85b44bd5f2abea16dde3a8a5e306a16d9"
+    },
+    {
+      "file": "after/R5b-team-limit-b4d25d9-1793295308836.png",
+      "bytes": 90859,
+      "sha256": "2dca7e538c9b9dffa0dd0f40535889e85b44bd5f2abea16dde3a8a5e306a16d9"
+    },
+    {
+      "file": "after/R5b-team-limit-e580a36-1793294444057.png",
+      "bytes": 90991,
+      "sha256": "5b3424bc0996e28c0127c5a91e3b2f98a313aebd1ca918e50943da3b0fdf2d61"
+    },
+    {
+      "file": "after/R5c-team-member-7b5163d-1793294923501.png",
+      "bytes": 69018,
+      "sha256": "ff4605939717514f8d1874da24ea96c0a9044d2bc743379b3e2688262a2917ad"
+    },
+    {
+      "file": "after/R5c-team-member-b4d25d9-1793295311992.png",
+      "bytes": 69018,
+      "sha256": "ff4605939717514f8d1874da24ea96c0a9044d2bc743379b3e2688262a2917ad"
+    },
+    {
+      "file": "after/R5c-team-member-e580a36-1793294450276.png",
+      "bytes": 69147,
+      "sha256": "b63e0ca72818b517b61512d247d2056c9270626fc6df3571188eb6575a445921"
+    },
+    {
+      "file": "after/R6-settings-wia-7b5163d-1793294927009.png",
+      "bytes": 64633,
+      "sha256": "c97a4b4d2c79286f9b2b417c2ff7a5225f6cac8e4a5e0b07867dd9412d792b27"
+    },
+    {
+      "file": "after/R6-settings-wia-b4d25d9-1793295315180.png",
+      "bytes": 64633,
+      "sha256": "c97a4b4d2c79286f9b2b417c2ff7a5225f6cac8e4a5e0b07867dd9412d792b27"
+    },
+    {
+      "file": "after/R6-settings-wia-e580a36-1793294455427.png",
+      "bytes": 64773,
+      "sha256": "583df9a307bf7d5a17839010b612c74a320d775e5ce5f4ac8a4a23c85d8a1317"
+    },
+    {
+      "file": "after/R7-rounded-command-7b5163d-1793294930626.png",
+      "bytes": 258526,
+      "sha256": "782064a694e4336cd2531978cbff42663c8389f8add7c716149abe6c233738f1"
+    },
+    {
+      "file": "after/R7-rounded-command-b4d25d9-1793295317929.png",
+      "bytes": 258519,
+      "sha256": "d0aaee8204f3f8dab5844e695ad518ab9e2a60ab9e6f2ff1d29abb85b3c415ac"
+    },
+    {
+      "file": "after/R7-rounded-command-e580a36-1793294461086.png",
+      "bytes": 258525,
+      "sha256": "2f78a4699c530213c0fc12cd516e1284c919fa97165a03bfb5a4af89be13012e"
+    },
+    {
+      "file": "after-7b5163d/journeys.json",
+      "bytes": 11765,
+      "sha256": "d3b350f7ec674ef1e33bcd60eda0ec293c2119329dfee0053cc1df73445cc021"
+    },
+    {
+      "file": "after-7b5163d/R1-brand-home-7b5163d-1793294890696.png",
+      "bytes": 88923,
+      "sha256": "935143a03456fd64565cd9a83f93646eddfb5435c372eaffda18d1cc97be71f6"
+    },
+    {
+      "file": "after-7b5163d/R1-brand-home-e580a36-1793294406652.png",
+      "bytes": 88972,
+      "sha256": "9461795cbe67e417abfa100e8d0bcc63f66e0434e745ed3409dffb42e7ee1ac8"
+    },
+    {
+      "file": "after-7b5163d/R2-catalog-wia-7b5163d-1793294896010.png",
+      "bytes": 127190,
+      "sha256": "49d34061d38768ab67f76790b9c8c8079069a69d7bb4ddf20d7c8f40a704fd65"
+    },
+    {
+      "file": "after-7b5163d/R2-catalog-wia-e580a36-1793294411259.png",
+      "bytes": 127410,
+      "sha256": "4da849d386f59f792bd1e2193f13891442036feb7b283b8fb3f9395619164fdd"
+    },
+    {
+      "file": "after-7b5163d/R2b-catalog-short-7b5163d-1793294902219.png",
+      "bytes": 42294,
+      "sha256": "5b7379ceffe6862fad8501d7a3b8260dbacbd04d3f20493a7bb01207c54befad"
+    },
+    {
+      "file": "after-7b5163d/R3-reports-navigation-7b5163d-1793294906692.png",
+      "bytes": 256019,
+      "sha256": "204c65ab7a19bf6b68d0659c353ac05a8a5e46bec8c0a670d136962060d26c92"
+    },
+    {
+      "file": "after-7b5163d/R3-reports-navigation-e580a36-1793294420579.png",
+      "bytes": 153744,
+      "sha256": "d8bed3e633a1e392cf819d350152f0bc7a74ee09b9e71cf4c3acc6bf634240ea"
+    },
+    {
+      "file": "after-7b5163d/R4-whatsapp-prerequisites-7b5163d-1793294911005.png",
+      "bytes": 104162,
+      "sha256": "a4c8fd7cc0ffcf04fb9f072f19af003d947d038213ce8a848c85b25728d9a9d0"
+    },
+    {
+      "file": "after-7b5163d/R4-whatsapp-prerequisites-e580a36-1793294429311.png",
+      "bytes": 106299,
+      "sha256": "b10e335c2558e5f9b34b19b4291ee306dbd25d6360d1b1b9c937df5682a822e1"
+    },
+    {
+      "file": "after-7b5163d/R5-team-invite-7b5163d-1793294915601.png",
+      "bytes": 216537,
+      "sha256": "b8c022347384d8811de8895ec014d2aa4493fe6068eec0457f48245ae2604bc5"
+    },
+    {
+      "file": "after-7b5163d/R5-team-invite-e580a36-1793294438187.png",
+      "bytes": 216537,
+      "sha256": "b8c022347384d8811de8895ec014d2aa4493fe6068eec0457f48245ae2604bc5"
+    },
+    {
+      "file": "after-7b5163d/R5b-team-limit-7b5163d-1793294919842.png",
+      "bytes": 90859,
+      "sha256": "2dca7e538c9b9dffa0dd0f40535889e85b44bd5f2abea16dde3a8a5e306a16d9"
+    },
+    {
+      "file": "after-7b5163d/R5b-team-limit-e580a36-1793294444057.png",
+      "bytes": 90991,
+      "sha256": "5b3424bc0996e28c0127c5a91e3b2f98a313aebd1ca918e50943da3b0fdf2d61"
+    },
+    {
+      "file": "after-7b5163d/R5c-team-member-7b5163d-1793294923501.png",
+      "bytes": 69018,
+      "sha256": "ff4605939717514f8d1874da24ea96c0a9044d2bc743379b3e2688262a2917ad"
+    },
+    {
+      "file": "after-7b5163d/R5c-team-member-e580a36-1793294450276.png",
+      "bytes": 69147,
+      "sha256": "b63e0ca72818b517b61512d247d2056c9270626fc6df3571188eb6575a445921"
+    },
+    {
+      "file": "after-7b5163d/R6-settings-wia-7b5163d-1793294927009.png",
+      "bytes": 64633,
+      "sha256": "c97a4b4d2c79286f9b2b417c2ff7a5225f6cac8e4a5e0b07867dd9412d792b27"
+    },
+    {
+      "file": "after-7b5163d/R6-settings-wia-e580a36-1793294455427.png",
+      "bytes": 64773,
+      "sha256": "583df9a307bf7d5a17839010b612c74a320d775e5ce5f4ac8a4a23c85d8a1317"
+    },
+    {
+      "file": "after-7b5163d/R7-rounded-command-7b5163d-1793294930626.png",
+      "bytes": 258526,
+      "sha256": "782064a694e4336cd2531978cbff42663c8389f8add7c716149abe6c233738f1"
+    },
+    {
+      "file": "after-7b5163d/R7-rounded-command-e580a36-1793294461086.png",
+      "bytes": 258525,
+      "sha256": "2f78a4699c530213c0fc12cd516e1284c919fa97165a03bfb5a4af89be13012e"
+    },
+    {
+      "file": "after-attempt-1/journeys.json",
+      "bytes": 10718,
+      "sha256": "23453ce637330375027ffba8ce3d7bd39d9f35c4af171ec35149197df94e96a2"
+    },
+    {
+      "file": "after-attempt-1/R1-brand-home-e580a36-1793294406652.png",
+      "bytes": 88972,
+      "sha256": "9461795cbe67e417abfa100e8d0bcc63f66e0434e745ed3409dffb42e7ee1ac8"
+    },
+    {
+      "file": "after-attempt-1/R2-catalog-wia-e580a36-1793294411259.png",
+      "bytes": 127410,
+      "sha256": "4da849d386f59f792bd1e2193f13891442036feb7b283b8fb3f9395619164fdd"
+    },
+    {
+      "file": "after-attempt-1/R3-reports-navigation-e580a36-1793294420579.png",
+      "bytes": 153744,
+      "sha256": "d8bed3e633a1e392cf819d350152f0bc7a74ee09b9e71cf4c3acc6bf634240ea"
+    },
+    {
+      "file": "after-attempt-1/R4-whatsapp-prerequisites-e580a36-1793294429311.png",
+      "bytes": 106299,
+      "sha256": "b10e335c2558e5f9b34b19b4291ee306dbd25d6360d1b1b9c937df5682a822e1"
+    },
+    {
+      "file": "after-attempt-1/R5-team-invite-e580a36-1793294438187.png",
+      "bytes": 216537,
+      "sha256": "b8c022347384d8811de8895ec014d2aa4493fe6068eec0457f48245ae2604bc5"
+    },
+    {
+      "file": "after-attempt-1/R5b-team-limit-e580a36-1793294444057.png",
+      "bytes": 90991,
+      "sha256": "5b3424bc0996e28c0127c5a91e3b2f98a313aebd1ca918e50943da3b0fdf2d61"
+    },
+    {
+      "file": "after-attempt-1/R5c-team-member-e580a36-1793294450276.png",
+      "bytes": 69147,
+      "sha256": "b63e0ca72818b517b61512d247d2056c9270626fc6df3571188eb6575a445921"
+    },
+    {
+      "file": "after-attempt-1/R6-settings-wia-e580a36-1793294455427.png",
+      "bytes": 64773,
+      "sha256": "583df9a307bf7d5a17839010b612c74a320d775e5ce5f4ac8a4a23c85d8a1317"
+    },
+    {
+      "file": "after-attempt-1/R7-rounded-command-e580a36-1793294461086.png",
+      "bytes": 258525,
+      "sha256": "2f78a4699c530213c0fc12cd516e1284c919fa97165a03bfb5a4af89be13012e"
+    },
+    {
+      "file": "after-recheck-R1-brand-home/journeys.json",
+      "bytes": 946,
+      "sha256": "7a6e880496693ec67e57fad71d55d3cee5e731b6210d6f0ca276bd915077776d"
+    },
+    {
+      "file": "after-recheck-R1-brand-home/R1-brand-home-2364f00-1793294717321.png",
+      "bytes": 88923,
+      "sha256": "935143a03456fd64565cd9a83f93646eddfb5435c372eaffda18d1cc97be71f6"
+    },
+    {
+      "file": "after-recheck-R3-reports-navigation/journeys.json",
+      "bytes": 971,
+      "sha256": "1fd6827035524e451682495ee1f3d8133ac713e12eec2b7b0490473e725c5d2b"
+    },
+    {
+      "file": "after-recheck-R3-reports-navigation/R3-reports-navigation-2364f00-1793294696721.png",
+      "bytes": 256019,
+      "sha256": "204c65ab7a19bf6b68d0659c353ac05a8a5e46bec8c0a670d136962060d26c92"
+    },
+    {
+      "file": "after-recheck-R4-whatsapp-prerequisites/journeys.json",
+      "bytes": 1054,
+      "sha256": "09ea270fd8db55831657d7f8f9a218395a0f7a5c8a0348fd0e285ead5c367788"
+    },
+    {
+      "file": "after-recheck-R4-whatsapp-prerequisites/R4-whatsapp-prerequisites-2364f00-1793294726863.png",
+      "bytes": 104162,
+      "sha256": "a4c8fd7cc0ffcf04fb9f072f19af003d947d038213ce8a848c85b25728d9a9d0"
+    },
+    {
+      "file": "capture-procedure.mjs",
+      "bytes": 2339,
+      "sha256": "918487bd642b7c65965dd09c5272df2258f6624decd09cdf6c3928ef24998541"
+    },
+    {
+      "file": "validation/.gitignore",
+      "bytes": 7,
+      "sha256": "e027cf8ebf80d6dcdacced8a4dbd1c440e2436fb1868ec851db4061cb67bb787"
+    },
+    {
+      "file": "validation/build.log",
+      "bytes": 9195,
+      "sha256": "dc76dabf123abddf0876e42f5cd7b6040234e33fd31f7064280f8f2474ba02b6"
+    },
+    {
+      "file": "validation/regression.log",
+      "bytes": 119139,
+      "sha256": "844e086aacbaabf1b8e5d409222fe1796645dda2fb1c623a7e89d19fefd1c1b9"
+    },
+    {
+      "file": "validation/secret-scan.log",
+      "bytes": 149,
+      "sha256": "8d3b7a79cc7d2dcf2652e8a6e232cfc38b49716a412ddd7c48be798a2414eef9"
+    },
+    {
+      "file": "validation/typecheck.log",
+      "bytes": 36,
+      "sha256": "221d8258d6f186941597b08097464bf80d9b0e4c432dd199c5e25e765d35774a"
+    },
+    {
+      "file": "validation/ui.log",
+      "bytes": 2121,
+      "sha256": "4910271d6a0f5b9597a2d2a0799f4ad756e52a00b1a7f96831f91eaaae1c9c7c"
+    },
+    {
+      "file": "visual-review/captures.json",
+      "bytes": 1696,
+      "sha256": "12e17f3d63ac19766227e667e0f88316b3699e8ef17725b512b9209124c94943"
+    },
+    {
+      "file": "visual-review/catalog-1440-dark.png",
+      "bytes": 178554,
+      "sha256": "f32081b3cb6458864672a40a701a92d43a5d0f83c3472b7d228315a1e092b321"
+    },
+    {
+      "file": "visual-review/catalog-390-dark.png",
+      "bytes": 77726,
+      "sha256": "9c4bcf1131aee4560dfe2139ba8392d88188ea4d79f696bdebec286610d7fcd1"
+    },
+    {
+      "file": "visual-review/catalog-768-light.png",
+      "bytes": 120817,
+      "sha256": "924c1a8942491807e79638b312a2dd5a0689eecabb1238eaff05abf45c856a85"
+    },
+    {
+      "file": "visual-review/integrations-390-dark.png",
+      "bytes": 111456,
+      "sha256": "60fd78717b237ec2b2e4ff0e7c7d22ef8bc0421f943f74f4fccafabc5975df10"
+    },
+    {
+      "file": "visual-review/reports-1440-light.png",
+      "bytes": 338260,
+      "sha256": "c8ac70ea22b7aeee28caf82420b3dec2f21d9641e59b22cdc95cf7b4b1e0697a"
+    },
+    {
+      "file": "visual-review/settings-1440-dark.png",
+      "bytes": 283179,
+      "sha256": "5a91aac25468953934e439823bae73f3489c9977e8fabc47129ddedf13ca360f"
+    },
+    {
+      "file": "visual-review/team-1440-light.png",
+      "bytes": 290446,
+      "sha256": "25380cf4bbb3db3dd005b4a0ae9dc0160ab5b13b8360cfbef1e2e532859a0300"
+    },
+    {
+      "file": "visual-review/team-390-light.png",
+      "bytes": 113931,
+      "sha256": "a33598d97de2615793541965cdab0d557d766be0da8700d62f1bcb2875157a37"
+    },
+    {
+      "file": "visual-review/today-1440-light.png",
+      "bytes": 338786,
+      "sha256": "356f14948b07015578c6a3bd7a5b18447df79045a90bf0733f798513315fcbdc"
+    },
+    {
+      "file": "visual-review-7b5163d/captures.json",
+      "bytes": 1696,
+      "sha256": "243611b3a58305f45c24e533775b70d99e4ad5bf296b3dfb1f0d00af9a5393b2"
+    },
+    {
+      "file": "visual-review-7b5163d/catalog-1440-dark.png",
+      "bytes": 179548,
+      "sha256": "d9359d45107df79013b2ebb2333ec612f7b7a0ff23ba277d9afbc13062bd7265"
+    },
+    {
+      "file": "visual-review-7b5163d/catalog-390-dark.png",
+      "bytes": 76111,
+      "sha256": "4beb909da52261acf0982b786a9e6376d248832b99bd15eeb19b1ead6bce25b9"
+    },
+    {
+      "file": "visual-review-7b5163d/catalog-768-light.png",
+      "bytes": 145769,
+      "sha256": "ab2dd5e6b000dcd564c0a7618b4f61ef6851bfe7cc693cecac74bc4c4bd9f345"
+    },
+    {
+      "file": "visual-review-7b5163d/integrations-390-dark.png",
+      "bytes": 113126,
+      "sha256": "86182a4b9a6e0d49a70074904d3c9c8091492d4a96d1d9f0eaa1f0feb414e3e9"
+    },
+    {
+      "file": "visual-review-7b5163d/reports-1440-light.png",
+      "bytes": 338260,
+      "sha256": "c8ac70ea22b7aeee28caf82420b3dec2f21d9641e59b22cdc95cf7b4b1e0697a"
+    },
+    {
+      "file": "visual-review-7b5163d/settings-1440-dark.png",
+      "bytes": 284254,
+      "sha256": "a8fc226b2dd1381bcce4f8adf576cf9dce9d8c1e88de16c988f0b32f26ee5434"
+    },
+    {
+      "file": "visual-review-7b5163d/team-1440-light.png",
+      "bytes": 290446,
+      "sha256": "25380cf4bbb3db3dd005b4a0ae9dc0160ab5b13b8360cfbef1e2e532859a0300"
+    },
+    {
+      "file": "visual-review-7b5163d/team-390-light.png",
+      "bytes": 113931,
+      "sha256": "a33598d97de2615793541965cdab0d557d766be0da8700d62f1bcb2875157a37"
+    },
+    {
+      "file": "visual-review-7b5163d/today-1440-light.png",
+      "bytes": 338786,
+      "sha256": "356f14948b07015578c6a3bd7a5b18447df79045a90bf0733f798513315fcbdc"
+    }
+  ]
+}

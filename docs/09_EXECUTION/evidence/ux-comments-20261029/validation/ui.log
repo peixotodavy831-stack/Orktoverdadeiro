@@ -1,0 +1,94 @@
+R1-brand-home: PASS
+R2-catalog-wia: PASS
+R2b-catalog-short: PASS
+R3-reports-navigation: PASS
+R4-whatsapp-prerequisites: PASS
+R5-team-invite: PASS
+R5b-team-limit: PASS
+R5c-team-member: PASS
+R6-settings-wia: PASS
+R7-rounded-command: PASS
+MATRIX 390 dark today: PASS
+MATRIX 390 dark catalog: PASS
+MATRIX 390 dark settings: PASS
+MATRIX 390 dark reports: PASS
+MATRIX 390 dark team: PASS
+MATRIX 390 dark integrations: PASS
+MATRIX 390 light today: PASS
+MATRIX 390 light catalog: PASS
+MATRIX 390 light settings: PASS
+MATRIX 390 light reports: PASS
+MATRIX 390 light team: PASS
+MATRIX 390 light integrations: PASS
+MATRIX 768 dark today: PASS
+MATRIX 768 dark catalog: PASS
+MATRIX 768 dark settings: PASS
+MATRIX 768 dark reports: PASS
+MATRIX 768 dark team: PASS
+MATRIX 768 dark integrations: PASS
+MATRIX 768 light today: PASS
+MATRIX 768 light catalog: PASS
+MATRIX 768 light settings: PASS
+MATRIX 768 light reports: PASS
+MATRIX 768 light team: PASS
+MATRIX 768 light integrations: PASS
+MATRIX 1440 dark today: PASS
+MATRIX 1440 dark catalog: PASS
+MATRIX 1440 dark settings: PASS
+MATRIX 1440 dark reports: PASS
+MATRIX 1440 dark team: PASS
+MATRIX 1440 dark integrations: PASS
+MATRIX 1440 light today: PASS
+MATRIX 1440 light catalog: PASS
+MATRIX 1440 light settings: PASS
+MATRIX 1440 light reports: PASS
+MATRIX 1440 light team: PASS
+MATRIX 1440 light integrations: PASS
+{
+  "phase": "after",
+  "pass": 10,
+  "fail": 0,
+  "cases": [
+    {
+      "id": "R1-brand-home",
+      "status": "PASS"
+    },
+    {
+      "id": "R2-catalog-wia",
+      "status": "PASS"
+    },
+    {
+      "id": "R2b-catalog-short",
+      "status": "PASS"
+    },
+    {
+      "id": "R3-reports-navigation",
+      "status": "PASS"
+    },
+    {
+      "id": "R4-whatsapp-prerequisites",
+      "status": "PASS"
+    },
+    {
+      "id": "R5-team-invite",
+      "status": "PASS"
+    },
+    {
+      "id": "R5b-team-limit",
+      "status": "PASS"
+    },
+    {
+      "id": "R5c-team-member",
+      "status": "PASS"
+    },
+    {
+      "id": "R6-settings-wia",
+      "status": "PASS"
+    },
+    {
+      "id": "R7-rounded-command",
+      "status": "PASS"
+    }
+  ],
+  "matrix": 36
+}

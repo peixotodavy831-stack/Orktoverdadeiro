@@ -1,0 +1,552 @@
+{
+  "phase": "after",
+  "selectedCase": null,
+  "sourceSha": "b4d25d9920ab6184f691fc784ee38a833ac3e7be",
+  "productBaseline": "211ca3d",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T17:34:32.915Z",
+  "cases": [
+    {
+      "id": "R1-brand-home",
+      "personas": [
+        1
+      ],
+      "width": 390,
+      "height": 750,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Marca para início"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:34:41.960Z",
+      "automationDurationMs": 2271,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R1-brand-home-b4d25d9-1793295284231.png"
+      }
+    },
+    {
+      "id": "R2-catalog-wia",
+      "personas": [
+        2
+      ],
+      "width": 768,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Adicionar item sintético"
+        },
+        {
+          "kind": "fill",
+          "target": "Nome do item"
+        },
+        {
+          "kind": "fill",
+          "target": "Preço somente na fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Salvar em memória"
+        },
+        {
+          "kind": "click",
+          "target": "Preparar oferta na WIA"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:34:46.966Z",
+      "persistence": "in-memory catalog fixture only",
+      "automationDurationMs": 1979,
+      "interactions": 5,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R2-catalog-wia-b4d25d9-1793295288945.png"
+      }
+    },
+    {
+      "id": "R2b-catalog-short",
+      "personas": [
+        2
+      ],
+      "width": 390,
+      "height": 430,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir cadastro em tela curta"
+        },
+        {
+          "kind": "fill",
+          "target": "Nome"
+        },
+        {
+          "kind": "fill",
+          "target": "Preço fictício"
+        },
+        {
+          "kind": "click",
+          "target": "Salvar item em tela curta"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:34:51.696Z",
+      "automationDurationMs": 1237,
+      "interactions": 4,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R2b-catalog-short-b4d25d9-1793295292933.png"
+      }
+    },
+    {
+      "id": "R3-reports-navigation",
+      "personas": [
+        3
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir Relatórios"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:34:55.835Z",
+      "automationDurationMs": 919,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R3-reports-navigation-b4d25d9-1793295296754.png"
+      }
+    },
+    {
+      "id": "R4-whatsapp-prerequisites",
+      "personas": [
+        4
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Instruções de conexão"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:34:59.165Z",
+      "providerE2E": "NOT_TESTED; blocked configuration fixture",
+      "automationDurationMs": 916,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R4-whatsapp-prerequisites-b4d25d9-1793295300081.png"
+      }
+    },
+    {
+      "id": "R5-team-invite",
+      "personas": [
+        5
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Convidar pessoa"
+        },
+        {
+          "kind": "fill",
+          "target": "E-mail sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Registrar somente na fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Limpar código e listar convite"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:35:03.334Z",
+      "persistence": "fixture only; no real invite or email",
+      "automationDurationMs": 1259,
+      "interactions": 4,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R5-team-invite-b4d25d9-1793295304593.png"
+      }
+    },
+    {
+      "id": "R5b-team-limit",
+      "personas": [
+        5
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir formulário"
+        },
+        {
+          "kind": "fill",
+          "target": "E-mail sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Tentar na fixture sem franquia"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:35:07.310Z",
+      "automationDurationMs": 1526,
+      "interactions": 3,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R5b-team-limit-b4d25d9-1793295308836.png"
+      }
+    },
+    {
+      "id": "R5c-team-member",
+      "personas": [
+        5
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Aceitação para conta autenticada"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:35:11.065Z",
+      "automationDurationMs": 926,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R5c-team-member-b4d25d9-1793295311992.png"
+      }
+    },
+    {
+      "id": "R6-settings-wia",
+      "personas": [
+        6
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir preparação WIA"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:35:14.238Z",
+      "automationDurationMs": 941,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R6-settings-wia-b4d25d9-1793295315180.png"
+      }
+    },
+    {
+      "id": "R7-rounded-command",
+      "personas": [
+        7
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:35:17.169Z",
+      "observed": {
+        "radius": "999px"
+      },
+      "automationDurationMs": 760,
+      "interactions": 0,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R7-rounded-command-b4d25d9-1793295317929.png"
+      }
+    }
+  ],
+  "matrix": [
+    {
+      "screen": "today",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    }
+  ],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 10,
+    "fail": 0
+  }
+}

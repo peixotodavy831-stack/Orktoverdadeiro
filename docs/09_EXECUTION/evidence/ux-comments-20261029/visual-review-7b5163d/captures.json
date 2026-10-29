@@ -1,0 +1,79 @@
+{
+  "sourceSha": "7b5163d4bf0fe87ed31fc4aa261dc330e92e8566",
+  "environment": "local_in_memory_fixture",
+  "providerE2E": false,
+  "records": [
+    {
+      "screen": "catalog",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "file": "catalog-1440-dark.png",
+      "documentWidth": 1440
+    },
+    {
+      "screen": "catalog",
+      "width": 390,
+      "height": 850,
+      "theme": "dark",
+      "file": "catalog-390-dark.png",
+      "documentWidth": 390
+    },
+    {
+      "screen": "catalog",
+      "width": 768,
+      "height": 950,
+      "theme": "light",
+      "file": "catalog-768-light.png",
+      "documentWidth": 768
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "file": "team-1440-light.png",
+      "documentWidth": 1440
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "height": 950,
+      "theme": "light",
+      "file": "team-390-light.png",
+      "documentWidth": 390
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "height": 1100,
+      "theme": "dark",
+      "file": "settings-1440-dark.png",
+      "documentWidth": 1440
+    },
+    {
+      "screen": "reports",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "file": "reports-1440-light.png",
+      "documentWidth": 1440
+    },
+    {
+      "screen": "integrations",
+      "width": 390,
+      "height": 1000,
+      "theme": "dark",
+      "file": "integrations-390-dark.png",
+      "documentWidth": 390
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "file": "today-1440-light.png",
+      "documentWidth": 1440
+    }
+  ]
+}

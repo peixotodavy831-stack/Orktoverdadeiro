@@ -1,0 +1,43 @@
+{
+  "phase": "after",
+  "selectedCase": "R3-reports-navigation",
+  "sourceSha": "2364f00d590c64ae1b416c4301529f2d9be93b98",
+  "productBaseline": "211ca3d",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T17:24:38.462Z",
+  "cases": [
+    {
+      "id": "R3-reports-navigation",
+      "personas": [
+        3
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir Relatórios"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:24:55.111Z",
+      "automationDurationMs": 1610,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R3-reports-navigation-2364f00-1793294696721.png"
+      }
+    }
+  ],
+  "matrix": [],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 1,
+    "fail": 0
+  }
+}

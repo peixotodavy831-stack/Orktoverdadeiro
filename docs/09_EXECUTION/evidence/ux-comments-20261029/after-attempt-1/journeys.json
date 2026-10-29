@@ -1,0 +1,501 @@
+{
+  "phase": "after",
+  "selectedCase": null,
+  "sourceSha": "e580a362e27368a70d87b817ecaf4a01df9951d0",
+  "productBaseline": "c289f78",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T17:19:53.286Z",
+  "cases": [
+    {
+      "id": "R1-brand-home",
+      "personas": [
+        1
+      ],
+      "width": 390,
+      "height": 750,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Marca para início"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:05.485Z",
+      "automationDurationMs": 1167,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R1-brand-home-e580a36-1793294406652.png"
+      }
+    },
+    {
+      "id": "R2-catalog-wia",
+      "personas": [
+        2
+      ],
+      "width": 768,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Preparar oferta na WIA"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:10.198Z",
+      "automationDurationMs": 1061,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R2-catalog-wia-e580a36-1793294411259.png"
+      }
+    },
+    {
+      "id": "R3-reports-navigation",
+      "personas": [
+        3
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Mais"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T17:20:14.572Z",
+      "error": "locator.click: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: 'Relatórios', exact: true })\u001b[22m\n",
+      "automationDurationMs": 6007,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R3-reports-navigation-e580a36-1793294420579.png"
+      }
+    },
+    {
+      "id": "R4-whatsapp-prerequisites",
+      "personas": [
+        4
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Instruções de conexão"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:26.485Z",
+      "providerE2E": "NOT_TESTED; blocked configuration fixture",
+      "automationDurationMs": 2826,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R4-whatsapp-prerequisites-e580a36-1793294429311.png"
+      }
+    },
+    {
+      "id": "R5-team-invite",
+      "personas": [
+        5
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Convidar pessoa"
+        },
+        {
+          "kind": "fill",
+          "target": "E-mail sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Registrar somente na fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Limpar código e listar convite"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:35.188Z",
+      "persistence": "fixture only; no real invite or email",
+      "automationDurationMs": 2999,
+      "interactions": 4,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R5-team-invite-e580a36-1793294438187.png"
+      }
+    },
+    {
+      "id": "R5b-team-limit",
+      "personas": [
+        5
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir formulário"
+        },
+        {
+          "kind": "fill",
+          "target": "E-mail sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Tentar na fixture sem franquia"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:42.580Z",
+      "automationDurationMs": 1477,
+      "interactions": 3,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R5b-team-limit-e580a36-1793294444057.png"
+      }
+    },
+    {
+      "id": "R5c-team-member",
+      "personas": [
+        5
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Aceitação para conta autenticada"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:48.181Z",
+      "automationDurationMs": 2094,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R5c-team-member-e580a36-1793294450276.png"
+      }
+    },
+    {
+      "id": "R6-settings-wia",
+      "personas": [
+        6
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Abrir preparação WIA"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:53.753Z",
+      "automationDurationMs": 1674,
+      "interactions": 1,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R6-settings-wia-e580a36-1793294455427.png"
+      }
+    },
+    {
+      "id": "R7-rounded-command",
+      "personas": [
+        7
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T17:20:59.893Z",
+      "observed": {
+        "radius": "999px"
+      },
+      "automationDurationMs": 1193,
+      "interactions": 0,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R7-rounded-command-e580a36-1793294461086.png"
+      }
+    }
+  ],
+  "matrix": [
+    {
+      "screen": "today",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "catalog",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "reports",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "team",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "integrations",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    }
+  ],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 8,
+    "fail": 1
+  }
+}

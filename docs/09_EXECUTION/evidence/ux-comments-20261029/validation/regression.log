@@ -1,0 +1,3152 @@
+
+> orkto@0.0.0 test:all
+> node scripts/run-tests-isolated.mjs
+
+TAP version 13
+# Subtest: sem provider escolhido, export contábil fica CONFIGURATION_REQUIRED sem sucesso falso
+ok 1 - sem provider escolhido, export contábil fica CONFIGURATION_REQUIRED sem sucesso falso
+  ---
+  duration_ms: 2.768
+  type: 'test'
+  ...
+# Subtest: provider escolhido sem adapter instalado continua CONFIGURATION_REQUIRED
+ok 2 - provider escolhido sem adapter instalado continua CONFIGURATION_REQUIRED
+  ---
+  duration_ms: 0.3604
+  type: 'test'
+  ...
+# Subtest: adapter recebe payload estruturado e chave de idempotência e retorna referência real
+ok 3 - adapter recebe payload estruturado e chave de idempotência e retorna referência real
+  ---
+  duration_ms: 0.3191
+  type: 'test'
+  ...
+# Subtest: falha do adapter é classificada sem vazar mensagem ou fingir exportação
+ok 4 - falha do adapter é classificada sem vazar mensagem ou fingir exportação
+  ---
+  duration_ms: 0.3855
+  type: 'test'
+  ...
+# [dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  enable debug logging with { debug: true }
+# Subtest: public health and readiness responses retain API security headers
+ok 5 - public health and readiness responses retain API security headers
+  ---
+  duration_ms: 119.1595
+  type: 'test'
+  ...
+# {"timestamp":"2026-10-29T17:28:29.358Z","event":"security.origin_denied","requestId":"0178d636-0757-4212-9f64-8f5f4d8b22a7"}
+# Subtest: untrusted CORS origin is denied explicitly without a server error or disclosure
+ok 6 - untrusted CORS origin is denied explicitly without a server error or disclosure
+  ---
+  duration_ms: 50.043
+  type: 'test'
+  ...
+# Subtest: mock routes are disabled when the explicit flag is absent
+ok 7 - mock routes are disabled when the explicit flag is absent
+  ---
+  duration_ms: 86.1202
+  type: 'test'
+  ...
+# Subtest: mock routes can be enabled explicitly in local development
+ok 8 - mock routes can be enabled explicitly in local development
+  ---
+  duration_ms: 28.0382
+  type: 'test'
+  ...
+# Subtest: production rejects an attempt to enable mock routes
+ok 9 - production rejects an attempt to enable mock routes
+  ---
+  duration_ms: 1.3622
+  type: 'test'
+  ...
+# Subtest: recovery callback is an exact navigation signal, never a credential
+ok 10 - recovery callback is an exact navigation signal, never a credential
+  ---
+  duration_ms: 1.7493
+  type: 'test'
+  ...
+# Subtest: password input enforces minimum, bound and confirmation without trimming or logging
+ok 11 - password input enforces minimum, bound and confirmation without trimming or logging
+  ---
+  duration_ms: 1.4316
+  type: 'test'
+  ...
+# Subtest: invalid local password never calls Auth
+ok 12 - invalid local password never calls Auth
+  ---
+  duration_ms: 1.1843
+  type: 'test'
+  ...
+# Subtest: a forged recovery URL or stale local marker cannot authorize a password mutation
+ok 13 - a forged recovery URL or stale local marker cannot authorize a password mutation
+  ---
+  duration_ms: 0.4008
+  type: 'test'
+  ...
+# Subtest: password recovery verifies identity, changes password and revokes sessions before success
+ok 14 - password recovery verifies identity, changes password and revokes sessions before success
+  ---
+  duration_ms: 0.4472
+  type: 'test'
+  ...
+# Subtest: update denial is not reported as a completed reset and retains the existing session
+ok 15 - update denial is not reported as a completed reset and retains the existing session
+  ---
+  duration_ms: 0.6734
+  type: 'test'
+  ...
+# Subtest: session revocation failure is a distinct partial state, never completed or retried password update
+ok 16 - session revocation failure is a distinct partial state, never completed or retried password update
+  ---
+  duration_ms: 0.3517
+  type: 'test'
+  ...
+# Subtest: transport failures expose a bounded message without provider diagnostics
+ok 17 - transport failures expose a bounded message without provider diagnostics
+  ---
+  duration_ms: 0.4363
+  type: 'test'
+  ...
+# Subtest: email confirmation is a successful pending signup state, not an attempted password sign-in
+ok 18 - email confirmation is a successful pending signup state, not an attempted password sign-in
+  ---
+  duration_ms: 0.3989
+  type: 'test'
+  ...
+# Subtest: session loss keeps the public landing and explicit login routes
+ok 19 - session loss keeps the public landing and explicit login routes
+  ---
+  duration_ms: 1.0408
+  type: 'test'
+  ...
+# Subtest: session loss redirects every protected module to the public landing
+ok 20 - session loss redirects every protected module to the public landing
+  ---
+  duration_ms: 0.1815
+  type: 'test'
+  ...
+# Subtest: an authentication failure stays on login so its safe error is not hidden by the landing
+ok 21 - an authentication failure stays on login so its safe error is not hidden by the landing
+  ---
+  duration_ms: 0.1422
+  type: 'test'
+  ...
+# Subtest: native update uses PUT sandbox and never updates pending payments or commercial price
+ok 22 - native update uses PUT sandbox and never updates pending payments or commercial price
+  ---
+  duration_ms: 129.0371
+  type: 'test'
+  ...
+# Subtest: cancel requires explicit lifecycle flag and confirmed DELETE receipt
+ok 23 - cancel requires explicit lifecycle flag and confirmed DELETE receipt
+  ---
+  duration_ms: 2.4948
+  type: 'test'
+  ...
+# Subtest: unknown or deleted provider state is never fabricated from HTTP errors
+ok 24 - unknown or deleted provider state is never fabricated from HTTP errors
+  ---
+  duration_ms: 1.0548
+  type: 'test'
+  ...
+# Subtest: cancel is reserved before I/O, recorded and replayed without second DELETE
+ok 25 - cancel is reserved before I/O, recorded and replayed without second DELETE
+  ---
+  duration_ms: 8.7328
+  type: 'test'
+  ...
+# Subtest: ambiguous provider outcome persists unknown and refuses automatic resend
+ok 26 - ambiguous provider outcome persists unknown and refuses automatic resend
+  ---
+  duration_ms: 1.7522
+  type: 'test'
+  ...
+# Subtest: foreign or inconsistent binding denies mutation before contacting supplier
+ok 27 - foreign or inconsistent binding denies mutation before contacting supplier
+  ---
+  duration_ms: 2.5903
+  type: 'test'
+  ...
+# Subtest: native lifecycle records provider state but never grants entitlement
+ok 28 - native lifecycle records provider state but never grants entitlement
+  ---
+  duration_ms: 0.4615
+  type: 'test'
+  ...
+# Subtest: update re-reads authoritative provider after PUT, persistence failure is unknown
+ok 29 - update re-reads authoritative provider after PUT, persistence failure is unknown
+  ---
+  duration_ms: 3.4387
+  type: 'test'
+  ...
+# Subtest: provider re-read must match workspace customer, subscription, price and reference
+ok 30 - provider re-read must match workspace customer, subscription, price and reference
+  ---
+  duration_ms: 2.3788
+  type: 'test'
+  ...
+# Subtest: foreign customer and wrong amount never reach entitlement mutation
+ok 31 - foreign customer and wrong amount never reach entitlement mutation
+  ---
+  duration_ms: 1.6917
+  type: 'test'
+  ...
+# Subtest: pending payment remains pending even when the subscription object is ACTIVE
+ok 32 - pending payment remains pending even when the subscription object is ACTIVE
+  ---
+  duration_ms: 0.3652
+  type: 'test'
+  ...
+# Subtest: provider outage leaves no fabricated activation or automatic second charge
+ok 33 - provider outage leaves no fabricated activation or automatic second charge
+  ---
+  duration_ms: 0.5766
+  type: 'test'
+  ...
+# Subtest: billing webhook fails closed without dedicated secret before provider or database access
+ok 34 - billing webhook fails closed without dedicated secret before provider or database access
+  ---
+  duration_ms: 202.7195
+  type: 'test'
+  ...
+# Subtest: billing webhook rejects wrong dedicated token before any persistence
+ok 35 - billing webhook rejects wrong dedicated token before any persistence
+  ---
+  duration_ms: 0.6243
+  type: 'test'
+  ...
+# Subtest: valid token cannot enable missing sandbox configuration
+ok 36 - valid token cannot enable missing sandbox configuration
+  ---
+  duration_ms: 0.7658
+  type: 'test'
+  ...
+# Subtest: sandbox webhook rejects malformed or oversized events before creating a database client
+ok 37 - sandbox webhook rejects malformed or oversized events before creating a database client
+  ---
+  duration_ms: 13.6215
+  type: 'test'
+  ...
+# Subtest: sandbox webhook cannot run against production even with a correct token
+ok 38 - sandbox webhook cannot run against production even with a correct token
+  ---
+  duration_ms: 0.5063
+  type: 'test'
+  ...
+# Subtest: native subscription event re-reads provider and completes durable claim; duplicates skip I/O
+ok 39 - native subscription event re-reads provider and completes durable claim; duplicates skip I/O
+  ---
+  duration_ms: 50.7013
+  type: 'test'
+  ...
+# Subtest: native deletion 404 stays retryable and never assumes entitlement termination
+ok 40 - native deletion 404 stays retryable and never assumes entitlement termination
+  ---
+  duration_ms: 3.2357
+  type: 'test'
+  ...
+# Subtest: missing external channel returns CONFIGURATION_REQUIRED and emits an audit event without claiming delivery
+ok 41 - missing external channel returns CONFIGURATION_REQUIRED and emits an audit event without claiming delivery
+  ---
+  duration_ms: 2.223
+  type: 'test'
+  ...
+# Subtest: configured adapter uses provider idempotency and recovers an accepted message without sending twice
+ok 42 - configured adapter uses provider idempotency and recovers an accepted message without sending twice
+  ---
+  duration_ms: 0.5542
+  type: 'test'
+  ...
+# Subtest: retry policy is bounded and does not retry auth failures or uncertain delivery outcomes
+ok 43 - retry policy is bounded and does not retry auth failures or uncertain delivery outcomes
+  ---
+  duration_ms: 0.5553
+  type: 'test'
+  ...
+# Subtest: ambiguous provider failure is reconciled before returning retry and records no false success
+ok 44 - ambiguous provider failure is reconciled before returning retry and records no false success
+  ---
+  duration_ms: 2.0615
+  type: 'test'
+  ...
+# Subtest: invalid idempotency lookup fails closed instead of risking a duplicate provider message
+ok 45 - invalid idempotency lookup fails closed instead of risking a duplicate provider message
+  ---
+  duration_ms: 3.009
+  type: 'test'
+  ...
+# Subtest: delivery confirmations must be normalized and are audited with the provider message ID
+ok 46 - delivery confirmations must be normalized and are audited with the provider message ID
+  ---
+  duration_ms: 1.4366
+  type: 'test'
+  ...
+# Subtest: delivery receipt is never audited as delivered when durable persistence fails
+ok 47 - delivery receipt is never audited as delivered when durable persistence fails
+  ---
+  duration_ms: 1.4802
+  type: 'test'
+  ...
+# Subtest: delivery persistence binds the receipt to one workspace and stored provider message
+ok 48 - delivery persistence binds the receipt to one workspace and stored provider message
+  ---
+  duration_ms: 5.8018
+  type: 'test'
+  ...
+# Subtest: client command accepts only operator-editable fields
+ok 49 - client command accepts only operator-editable fields
+  ---
+  duration_ms: 3.736
+  type: 'test'
+  ...
+# Subtest: client update fields use the same strict validator
+ok 50 - client update fields use the same strict validator
+  ---
+  duration_ms: 0.8528
+  type: 'test'
+  ...
+# Subtest: exactly five approved plans and four exact prices
+ok 51 - exactly five approved plans and four exact prices
+  ---
+  duration_ms: 2.0394
+  type: 'test'
+  ...
+# Subtest: Enterprise is proposal-only and cannot receive automatic fixed-price activation
+ok 52 - Enterprise is proposal-only and cannot receive automatic fixed-price activation
+  ---
+  duration_ms: 0.4868
+  type: 'test'
+  ...
+# Subtest: legacy and invented plans are not new commercial offers
+ok 53 - legacy and invented plans are not new commercial offers
+  ---
+  duration_ms: 0.1404
+  type: 'test'
+  ...
+# Subtest: version and approved price integrity reject client prices
+ok 54 - version and approved price integrity reject client prices
+  ---
+  duration_ms: 0.2679
+  type: 'test'
+  ...
+# Subtest: browser callback cannot activate subscription
+ok 55 - browser callback cannot activate subscription
+  ---
+  duration_ms: 0.2888
+  type: 'test'
+  ...
+# Subtest: verified paid reconciliation activates only matched commercial terms
+ok 56 - verified paid reconciliation activates only matched commercial terms
+  ---
+  duration_ms: 0.2072
+  type: 'test'
+  ...
+# Subtest: duplicate and stale observations cannot replay side effects or regress access
+ok 57 - duplicate and stale observations cannot replay side effects or regress access
+  ---
+  duration_ms: 0.2705
+  type: 'test'
+  ...
+# Subtest: renewal advances period from a newer reconciled observation
+ok 58 - renewal advances period from a newer reconciled observation
+  ---
+  duration_ms: 0.292
+  type: 'test'
+  ...
+# Subtest: overdue state does not represent an active paid entitlement
+ok 59 - overdue state does not represent an active paid entitlement
+  ---
+  duration_ms: 0.5009
+  type: 'test'
+  ...
+# Subtest: cancellation and refund revoke commercial activation
+ok 60 - cancellation and refund revoke commercial activation
+  ---
+  duration_ms: 0.5894
+  type: 'test'
+  ...
+# Subtest: cancellation at period end keeps confirmed paid period
+ok 61 - cancellation at period end keeps confirmed paid period
+  ---
+  duration_ms: 0.2314
+  type: 'test'
+  ...
+# Subtest: expired paid period does not grant ongoing access
+ok 62 - expired paid period does not grant ongoing access
+  ---
+  duration_ms: 1.2127
+  type: 'test'
+  ...
+# Subtest: plan changes require exact newly approved price version
+ok 63 - plan changes require exact newly approved price version
+  ---
+  duration_ms: 0.2013
+  type: 'test'
+  ...
+# Subtest: cross-company or provider-subscription mismatches are rejected
+ok 64 - cross-company or provider-subscription mismatches are rejected
+  ---
+  duration_ms: 0.1883
+  type: 'test'
+  ...
+# Subtest: checkout is disabled by default and never accepts production
+ok 65 - checkout is disabled by default and never accepts production
+  ---
+  duration_ms: 0.195
+  type: 'test'
+  ...
+# Subtest: sandbox adapter returns pending and a provider failure never activates a plan
+ok 66 - sandbox adapter returns pending and a provider failure never activates a plan
+  ---
+  duration_ms: 27.3008
+  type: 'test'
+  ...
+# Subtest: Pulso is fixed-point, absent approval or allowance fails closed
+ok 67 - Pulso is fixed-point, absent approval or allowance fails closed
+  ---
+  duration_ms: 0.2164
+  type: 'test'
+  ...
+# Subtest: reserved or consumed Pulso cannot exceed approved allowance
+ok 68 - reserved or consumed Pulso cannot exceed approved allowance
+  ---
+  duration_ms: 0.0933
+  type: 'test'
+  ...
+# Subtest: model costs use matching versioned tariff and distinguish unknown from zero
+ok 69 - model costs use matching versioned tariff and distinguish unknown from zero
+  ---
+  duration_ms: 0.2857
+  type: 'test'
+  ...
+# Subtest: 40 percent reserve allocations are subdivisions and never available cash
+ok 70 - 40 percent reserve allocations are subdivisions and never available cash
+  ---
+  duration_ms: 0.4076
+  type: 'test'
+  ...
+# Subtest: 13-week cash projection excludes actual entries and labels forecast
+ok 71 - 13-week cash projection excludes actual entries and labels forecast
+  ---
+  duration_ms: 0.7994
+  type: 'test'
+  ...
+# Subtest: public and printed signatures use first-party symbol and wordmark without tracking
+ok 72 - public and printed signatures use first-party symbol and wordmark without tracking
+  ---
+  duration_ms: 12.236
+  type: 'test'
+  ...
+# Subtest: private instructions disappear on confirmed read; history remains available until expiry
+ok 73 - private instructions disappear on confirmed read; history remains available until expiry
+  ---
+  duration_ms: 2.0294
+  type: 'test'
+  ...
+# Subtest: Replay candidate needs a resolved objection and a later operator response
+ok 74 - Replay candidate needs a resolved objection and a later operator response
+  ---
+  duration_ms: 3.1911
+  type: 'test'
+  ...
+# Subtest: repeat-purchase estimate is separated by product and schedules a confident future window
+ok 75 - repeat-purchase estimate is separated by product and schedules a confident future window
+  ---
+  duration_ms: 1.0151
+  type: 'test'
+  ...
+# Subtest: automatic memory candidates are message-idempotent and only classify explicit contact preferences
+ok 76 - automatic memory candidates are message-idempotent and only classify explicit contact preferences
+  ---
+  duration_ms: 2.9199
+  type: 'test'
+  ...
+# Subtest: verified commercial memories retain entity-scoped provenance and reject incomplete sources
+ok 77 - verified commercial memories retain entity-scoped provenance and reject incomplete sources
+  ---
+  duration_ms: 0.6923
+  type: 'test'
+  ...
+# Subtest: commercial graph emits typed, workspace-scoped edges only from explicit evidence
+ok 78 - commercial graph emits typed, workspace-scoped edges only from explicit evidence
+  ---
+  duration_ms: 1.2168
+  type: 'test'
+  ...
+# Subtest: response pipeline preserves sourced prices and blocks unsourced values and prohibited guarantees
+ok 79 - response pipeline preserves sourced prices and blocks unsourced values and prohibited guarantees
+  ---
+  duration_ms: 1.2829
+  type: 'test'
+  ...
+# Subtest: switching conversations retains separate drafts without mutating earlier state
+ok 80 - switching conversations retains separate drafts without mutating earlier state
+  ---
+  duration_ms: 4.4197
+  type: 'test'
+  ...
+# Subtest: acknowledging one conversation leaves the other draft intact
+ok 81 - acknowledging one conversation leaves the other draft intact
+  ---
+  duration_ms: 0.2428
+  type: 'test'
+  ...
+# Subtest: stale async send completion cannot clear a newer auth session draft
+ok 82 - stale async send completion cannot clear a newer auth session draft
+  ---
+  duration_ms: 0.1287
+  type: 'test'
+  ...
+# Subtest: unauthenticated draft updates are rejected
+ok 83 - unauthenticated draft updates are rejected
+  ---
+  duration_ms: 1.1203
+  type: 'test'
+  ...
+# Subtest: database message contract preserves role, timestamp and explicit unsupported content
+ok 84 - database message contract preserves role, timestamp and explicit unsupported content
+  ---
+  duration_ms: 1.2014
+  type: 'test'
+  ...
+# Subtest: database approval records render text safely and unknown states never offer approval
+ok 85 - database approval records render text safely and unknown states never offer approval
+  ---
+  duration_ms: 0.3063
+  type: 'test'
+  ...
+# Subtest: only persisted provider receipts confirm delivery or reading, never local read state
+ok 86 - only persisted provider receipts confirm delivery or reading, never local read state
+  ---
+  duration_ms: 0.3929
+  type: 'test'
+  ...
+# [dotenv@17.3.1] injecting env (0) from .env -- tip: 🛠️  run anywhere with `dotenvx run -- yourcommand`
+# Subtest: workspace audit restricts role, tenant and payload projection
+ok 87 - workspace audit restricts role, tenant and payload projection
+  ---
+  duration_ms: 2565.4802
+  type: 'test'
+  ...
+# Subtest: billing reads use the authenticated gateway without private table reads in Preview
+ok 88 - billing reads use the authenticated gateway without private table reads in Preview
+  ---
+  duration_ms: 17.9747
+  type: 'test'
+  ...
+# Subtest: integration status never claims external activation or exposes keys
+ok 89 - integration status never claims external activation or exposes keys
+  ---
+  duration_ms: 30.46
+  type: 'test'
+  ...
+# Subtest: WhatsApp health and local disconnect require owner/admin and reject foreign workspace
+ok 90 - WhatsApp health and local disconnect require owner/admin and reject foreign workspace
+  ---
+  duration_ms: 124.8169
+  type: 'test'
+  ...
+# Subtest: plan catalog uses membership-scoped Edge read and masks unpublished prices
+ok 91 - plan catalog uses membership-scoped Edge read and masks unpublished prices
+  ---
+  duration_ms: 43.4559
+  type: 'test'
+  ...
+# Subtest: staging WIA response comes from the trusted T0 Edge command and stays tenant-scoped
+ok 92 - staging WIA response comes from the trusted T0 Edge command and stays tenant-scoped
+  ---
+  duration_ms: 71.9372
+  type: 'test'
+  ...
+# Subtest: demo, owner profile and public PIX safety gates reject unauthorized use
+ok 93 - demo, owner profile and public PIX safety gates reject unauthorized use
+  ---
+  duration_ms: 52.9152
+  type: 'test'
+  ...
+# Subtest: Asaas webhook uses durable claim idempotency, rejects payload conflicts, and never downgrades confirmed payment
+ok 94 - Asaas webhook uses durable claim idempotency, rejects payload conflicts, and never downgrades confirmed payment
+  ---
+  duration_ms: 41.4942
+  type: 'test'
+  ...
+# Subtest: Asaas paid event resolves quote and tenant from durable intent, not provider externalReference
+ok 95 - Asaas paid event resolves quote and tenant from durable intent, not provider externalReference
+  ---
+  duration_ms: 11.6589
+  type: 'test'
+  ...
+# {"timestamp":"2026-10-29T17:28:52.582Z","event":"billing.asaas_webhook_failed","requestId":"694d5539-1507-42b6-8686-c7ebe48275a6","eventId":"evt-without-intent-b","errorCode":"payment_intent_not_found"}
+# Subtest: Asaas paid event without a durable intent cannot approve a quote by externalReference
+ok 96 - Asaas paid event without a durable intent cannot approve a quote by externalReference
+  ---
+  duration_ms: 20.3474
+  type: 'test'
+  ...
+# Subtest: request correlation IDs are bounded and readiness proves database reachability without leaking configuration
+ok 97 - request correlation IDs are bounded and readiness proves database reachability without leaking configuration
+  ---
+  duration_ms: 24.5274
+  type: 'test'
+  ...
+# Subtest: WIA audit history is tenant-scoped, safely projected, and keyset paginated
+ok 98 - WIA audit history is tenant-scoped, safely projected, and keyset paginated
+  ---
+  duration_ms: 73.1176
+  type: 'test'
+  ...
+# Subtest: staging Auth and WIA history reads use the verified user JWT rather than service-role
+ok 99 - staging Auth and WIA history reads use the verified user JWT rather than service-role
+  ---
+  duration_ms: 23.7262
+  type: 'test'
+  ...
+# Subtest: staging Inbox read and status writes cross the explicit gateway with tenant and role checks
+ok 100 - staging Inbox read and status writes cross the explicit gateway with tenant and role checks
+  ---
+  duration_ms: 100.1081
+  type: 'test'
+  ...
+# Subtest: Contacts commands validate ownership, input and audit without a direct table-write path
+ok 101 - Contacts commands validate ownership, input and audit without a direct table-write path
+  ---
+  duration_ms: 111.7243
+  type: 'test'
+  ...
+# Subtest: optional customer write features fail closed in staging until each has a trusted mutation boundary
+ok 102 - optional customer write features fail closed in staging until each has a trusted mutation boundary
+  ---
+  duration_ms: 62.6713
+  type: 'test'
+  ...
+# Subtest: legacy WIA decision route fails closed when environment identity is missing
+ok 103 - legacy WIA decision route fails closed when environment identity is missing
+  ---
+  duration_ms: 8.5089
+  type: 'test'
+  ...
+# [Operational API] {
+#   code: 'rate_limit',
+#   message: 'gemini indisponível (rate_limit, HTTP 429).'
+# }
+# Subtest: core HTTP flow persists client, deal, catalog-priced proposal, inbox, WIA approval and audit in workspace A only
+ok 104 - core HTTP flow persists client, deal, catalog-priced proposal, inbox, WIA approval and audit in workspace A only
+  ---
+  duration_ms: 1481.4542
+  type: 'test'
+  ...
+# Subtest: quote archive gateway denies foreign IDs and removes pending internal effects
+ok 105 - quote archive gateway denies foreign IDs and removes pending internal effects
+  ---
+  duration_ms: 12.32
+  type: 'test'
+  ...
+# Subtest: staging Quote update routes editable fields through the gateway and rejects cross-tenant IDs
+ok 106 - staging Quote update routes editable fields through the gateway and rejects cross-tenant IDs
+  ---
+  duration_ms: 18.0321
+  type: 'test'
+  ...
+# Subtest: quote persistence errors never disclose database details to the browser
+ok 107 - quote persistence errors never disclose database details to the browser
+  ---
+  duration_ms: 6.2446
+  type: 'test'
+  ...
+# Subtest: core writes fail closed without a configured gateway in every route
+ok 108 - core writes fail closed without a configured gateway in every route
+  ---
+  duration_ms: 25.5587
+  type: 'test'
+  ...
+# Subtest: terminal deal commands deny foreign IDs, conflicting outcomes and member archive
+ok 109 - terminal deal commands deny foreign IDs, conflicting outcomes and member archive
+  ---
+  duration_ms: 105.3319
+  type: 'test'
+  ...
+# Subtest: versioned plan entitlements enforce seat, proposal and WIA limits on authenticated APIs
+ok 110 - versioned plan entitlements enforce seat, proposal and WIA limits on authenticated APIs
+  ---
+  duration_ms: 85.048
+  type: 'test'
+  ...
+# Subtest: quote relation edits, arbitrary workspace selectors and tenant B mutation attempts are denied
+ok 111 - quote relation edits, arbitrary workspace selectors and tenant B mutation attempts are denied
+  ---
+  duration_ms: 61.9302
+  type: 'test'
+  ...
+# Subtest: workspace invite acceptance is reachable without membership and cannot redeem a revoked token
+ok 112 - workspace invite acceptance is reachable without membership and cannot redeem a revoked token
+  ---
+  duration_ms: 85.4832
+  type: 'test'
+  ...
+# Subtest: an invitation cannot replace the role of an already active workspace member
+ok 113 - an invitation cannot replace the role of an already active workspace member
+  ---
+  duration_ms: 21.5394
+  type: 'test'
+  ...
+# Subtest: WIA fails closed when the authenticated user has no existing workspace membership
+ok 114 - WIA fails closed when the authenticated user has no existing workspace membership
+  ---
+  duration_ms: 11.3074
+  type: 'test'
+  ...
+# Subtest: advanced HTTP flows persist report interpretation, memory corrections, collection approvals and replay provenance
+ok 115 - advanced HTTP flows persist report interpretation, memory corrections, collection approvals and replay provenance
+  ---
+  duration_ms: 511.7864
+  type: 'test'
+  ...
+# Subtest: advanced scheduler gates, cadence cancellation, repurchase threshold and live-quote terminal state are enforced
+ok 116 - advanced scheduler gates, cadence cancellation, repurchase threshold and live-quote terminal state are enforced
+  ---
+  duration_ms: 205.2694
+  type: 'test'
+  ...
+# Subtest: accounting export persists an idempotent structured record and stays blocked without a configured adapter
+ok 117 - accounting export persists an idempotent structured record and stays blocked without a configured adapter
+  ---
+  duration_ms: 30.2396
+  type: 'test'
+  ...
+# Subtest: automatic Replay captures only eligible closed-deal conversations and is idempotent across tenants
+ok 118 - automatic Replay captures only eligible closed-deal conversations and is idempotent across tenants
+  ---
+  duration_ms: 249.2689
+  type: 'test'
+  ...
+# Subtest: commercial Graph emits only evidence-backed workspace-local edges and navigable record IDs
+ok 119 - commercial Graph emits only evidence-backed workspace-local edges and navigable record IDs
+  ---
+  duration_ms: 82.6002
+  type: 'test'
+  ...
+# Subtest: Quote retention extension is workspace-scoped, idempotent and rejects stale expiry
+ok 120 - Quote retention extension is workspace-scoped, idempotent and rejects stale expiry
+  ---
+  duration_ms: 63.7519
+  type: 'test'
+  ...
+# Subtest: universal import pipeline previews, validates, commits, deduplicates and compensates entity types
+ok 121 - universal import pipeline previews, validates, commits, deduplicates and compensates entity types
+  ---
+  duration_ms: 220.4815
+  type: 'test'
+  ...
+# [Operational API] { code: 'unknown', message: 'unknown' }
+# Subtest: import compensation finds a durable entity when the import-row state write failed
+ok 122 - import compensation finds a durable entity when the import-row state write failed
+  ---
+  duration_ms: 96.5383
+  type: 'test'
+  ...
+# Subtest: live quote versions keep accepted snapshots immutable and revoke obsolete or expired links
+ok 123 - live quote versions keep accepted snapshots immutable and revoke obsolete or expired links
+  ---
+  duration_ms: 198.8549
+  type: 'test'
+  ...
+# Subtest: automatic message memory is idempotent, contextual in WIA and isolated by workspace
+ok 124 - automatic message memory is idempotent, contextual in WIA and isolated by workspace
+  ---
+  duration_ms: 300.9977
+  type: 'test'
+  ...
+# Subtest: Google pilot API gate uses caller JWT and precedes invitations, tenancy and business writes
+ok 125 - Google pilot API gate uses caller JWT and precedes invitations, tenancy and business writes
+  ---
+  duration_ms: 45.6929
+  type: 'test'
+  ...
+# Subtest: live-link publication preserves Quote delivery status and keeps the RPC service-only
+ok 126 - live-link publication preserves Quote delivery status and keeps the RPC service-only
+  ---
+  duration_ms: 8.1094
+  type: 'test'
+  ...
+# Subtest: the same command endpoint contract resolves independently for staging and production
+ok 127 - the same command endpoint contract resolves independently for staging and production
+  ---
+  duration_ms: 0.4736
+  type: 'test'
+  ...
+# Subtest: environment mismatch and implicit production routing fail closed
+ok 128 - environment mismatch and implicit production routing fail closed
+  ---
+  duration_ms: 0.557
+  type: 'test'
+  ...
+# Subtest: unconfigured gateway returns CONFIGURATION_REQUIRED without attempting a direct write
+ok 129 - unconfigured gateway returns CONFIGURATION_REQUIRED without attempting a direct write
+  ---
+  duration_ms: 1.6312
+  type: 'test'
+  ...
+# Subtest: web runtime has one publishable JWT path and cannot regain service-role or staging-only writes
+ok 130 - web runtime has one publishable JWT path and cannot regain service-role or staging-only writes
+  ---
+  duration_ms: 4.8154
+  type: 'test'
+  ...
+# Subtest: WIA preparation uses the explicit mutation lifecycle without a direct persistence fallback
+ok 131 - WIA preparation uses the explicit mutation lifecycle without a direct persistence fallback
+  ---
+  duration_ms: 2.7927
+  type: 'test'
+  ...
+# Subtest: plan catalog read is scoped by the Edge membership and does not grant direct table reads
+ok 132 - plan catalog read is scoped by the Edge membership and does not grant direct table reads
+  ---
+  duration_ms: 5.8945
+  type: 'test'
+  ...
+# Subtest: staging WIA completion is computed inside Edge and caller-supplied provenance is rejected
+ok 133 - staging WIA completion is computed inside Edge and caller-supplied provenance is rejected
+  ---
+  duration_ms: 4.0504
+  type: 'test'
+  ...
+# Subtest: proposal publication and public decisions use explicit gateways without a direct persistence fallback
+ok 134 - proposal publication and public decisions use explicit gateways without a direct persistence fallback
+  ---
+  duration_ms: 4.8998
+  type: 'test'
+  ...
+# Subtest: Quote retention uses the scoped gateway and never returns a raw RPC error
+ok 135 - Quote retention uses the scoped gateway and never returns a raw RPC error
+  ---
+  duration_ms: 4.1556
+  type: 'test'
+  ...
+# Subtest: CSV text cells quote commas and double embedded quotes
+ok 136 - CSV text cells quote commas and double embedded quotes
+  ---
+  duration_ms: 1.4184
+  type: 'test'
+  ...
+# Subtest: CSV text cells neutralize spreadsheet formula prefixes
+ok 137 - CSV text cells neutralize spreadsheet formula prefixes
+  ---
+  duration_ms: 0.2506
+  type: 'test'
+  ...
+# Subtest: CSV text cells preserve ordinary values and empty cells
+ok 138 - CSV text cells preserve ordinary values and empty cells
+  ---
+  duration_ms: 0.371
+  type: 'test'
+  ...
+# Subtest: CSV parser reads UTF-8 BOM, quoted commas, escaped quotes and embedded newlines
+ok 139 - CSV parser reads UTF-8 BOM, quoted commas, escaped quotes and embedded newlines
+  ---
+  duration_ms: 2.2162
+  type: 'test'
+  ...
+# Subtest: CSV parser detects semicolon delimiter, trims headers and gives duplicate headers stable names
+ok 140 - CSV parser detects semicolon delimiter, trims headers and gives duplicate headers stable names
+  ---
+  duration_ms: 0.3382
+  type: 'test'
+  ...
+# Subtest: CSV parser explains empty, header-only, malformed quote, and excess-column input
+ok 141 - CSV parser explains empty, header-only, malformed quote, and excess-column input
+  ---
+  duration_ms: 1.7018
+  type: 'test'
+  ...
+# Subtest: CSV parser enforces the API import batch limit
+ok 142 - CSV parser enforces the API import batch limit
+  ---
+  duration_ms: 3.0632
+  type: 'test'
+  ...
+# Subtest: a missing channel adapter is configuration-required and makes no durable send claim
+ok 143 - a missing channel adapter is configuration-required and makes no durable send claim
+  ---
+  duration_ms: 2.1859
+  type: 'test'
+  ...
+# Subtest: durable reservation stores accepted, replays exactly once, and does not call it delivered
+ok 144 - durable reservation stores accepted, replays exactly once, and does not call it delivered
+  ---
+  duration_ms: 1.1859
+  type: 'test'
+  ...
+# Subtest: same idempotency key with changed message is rejected before provider side effect
+ok 145 - same idempotency key with changed message is rejected before provider side effect
+  ---
+  duration_ms: 0.4092
+  type: 'test'
+  ...
+# Subtest: concurrent same-key request cannot call the provider twice
+ok 146 - concurrent same-key request cannot call the provider twice
+  ---
+  duration_ms: 0.4735
+  type: 'test'
+  ...
+# Subtest: uncertain provider outcome is durably marked UNKNOWN and never resent automatically
+ok 147 - uncertain provider outcome is durably marked UNKNOWN and never resent automatically
+  ---
+  duration_ms: 0.5347
+  type: 'test'
+  ...
+# Subtest: provider-found after timeout is persisted as request accepted, not delivery
+ok 148 - provider-found after timeout is persisted as request accepted, not delivery
+  ---
+  duration_ms: 0.4839
+  type: 'test'
+  ...
+# Subtest: Supabase durable repository uses only migration 18 reservation and status RPCs
+ok 149 - Supabase durable repository uses only migration 18 reservation and status RPCs
+  ---
+  duration_ms: 0.5471
+  type: 'test'
+  ...
+# Subtest: Pulso scenario reuses technical weights without approving policy or money conversion
+ok 150 - Pulso scenario reuses technical weights without approving policy or money conversion
+  ---
+  duration_ms: 4.3246
+  type: 'test'
+  ...
+# Subtest: simulador calcula receita recorrente, ARR, ARPA e ponto de equilíbrio
+ok 151 - simulador calcula receita recorrente, ARR, ARPA e ponto de equilíbrio
+  ---
+  duration_ms: 1.2772
+  type: 'test'
+  ...
+# Subtest: custos de canal são separados do COGS técnico e da margem econômica
+ok 152 - custos de canal são separados do COGS técnico e da margem econômica
+  ---
+  duration_ms: 0.3773
+  type: 'test'
+  ...
+# Subtest: telemetria de canal separa caixa real, custo normalizado, infraestrutura e legado sem dupla contagem
+ok 153 - telemetria de canal separa caixa real, custo normalizado, infraestrutura e legado sem dupla contagem
+  ---
+  duration_ms: 23.9029
+  type: 'test'
+  ...
+# Subtest: snapshot observado separa base atual, base normalizada e custos de canal
+ok 154 - snapshot observado separa base atual, base normalizada e custos de canal
+  ---
+  duration_ms: 0.4755
+  type: 'test'
+  ...
+# Subtest: folha, imposto e canal não são classificados como COGS técnico
+ok 155 - folha, imposto e canal não são classificados como COGS técnico
+  ---
+  duration_ms: 0.1598
+  type: 'test'
+  ...
+# Subtest: sinaliza a meta de 15% e o hard cap de 20% sem ocultar custos ausentes
+ok 156 - sinaliza a meta de 15% e o hard cap de 20% sem ocultar custos ausentes
+  ---
+  duration_ms: 1.3327
+  type: 'test'
+  ...
+# Subtest: POK Caixa alerta quando a projeção cai abaixo de zero
+ok 157 - POK Caixa alerta quando a projeção cai abaixo de zero
+  ---
+  duration_ms: 0.3306
+  type: 'test'
+  ...
+# Subtest: POK, Base e Favorável usam fatores versionáveis sem alterar os volumes simulados
+ok 158 - POK, Base e Favorável usam fatores versionáveis sem alterar os volumes simulados
+  ---
+  duration_ms: 1.4281
+  type: 'test'
+  ...
+# Subtest: aceita zero e qualquer volume inteiro de empresas e exige mix de planos de 100%
+ok 159 - aceita zero e qualquer volume inteiro de empresas e exige mix de planos de 100%
+  ---
+  duration_ms: 0.8588
+  type: 'test'
+  ...
+# Subtest: separa empresas assinantes dos clientes atendidos e testa reserva após obrigações
+ok 160 - separa empresas assinantes dos clientes atendidos e testa reserva após obrigações
+  ---
+  duration_ms: 3.1355
+  type: 'test'
+  ...
+# Subtest: percentual de COGS fica indisponível sem receita projetada
+ok 161 - percentual de COGS fica indisponível sem receita projetada
+  ---
+  duration_ms: 0.5267
+  type: 'test'
+  ...
+# Subtest: calcula economia unitária por plano e não inventa equilíbrio quando custo fixo falta
+ok 162 - calcula economia unitária por plano e não inventa equilíbrio quando custo fixo falta
+  ---
+  duration_ms: 3.554
+  type: 'test'
+  ...
+# Subtest: tarifas configuradas estimam custo Gemini por tokens sem misturar simulações
+ok 163 - tarifas configuradas estimam custo Gemini por tokens sem misturar simulações
+  ---
+  duration_ms: 2.1205
+  type: 'test'
+  ...
+# Subtest: telemetria usa workspace_id, tokens em cache e versão de tarifa vigente no evento
+ok 164 - telemetria usa workspace_id, tokens em cache e versão de tarifa vigente no evento
+  ---
+  duration_ms: 0.3049
+  type: 'test'
+  ...
+# Subtest: mantém planos Founders e Legacy Standard em premissas antigas sem alterar seu mix
+ok 165 - mantém planos Founders e Legacy Standard em premissas antigas sem alterar seu mix
+  ---
+  duration_ms: 0.5518
+  type: 'test'
+  ...
+# Subtest: tarifas incompletas não inventam custo, modelo inativo não é tarifado e legado segue compatível
+ok 166 - tarifas incompletas não inventam custo, modelo inativo não é tarifado e legado segue compatível
+  ---
+  duration_ms: 0.4724
+  type: 'test'
+  ...
+# Subtest: premissas rejeitam tarifas duplicadas, negativas e câmbio ausente é marcado como sem preço
+ok 167 - premissas rejeitam tarifas duplicadas, negativas e câmbio ausente é marcado como sem preço
+  ---
+  duration_ms: 1.1711
+  type: 'test'
+  ...
+# Subtest: premissas antigas recebem padrões de planejamento sem alterar os campos aprovados
+ok 168 - premissas antigas recebem padrões de planejamento sem alterar os campos aprovados
+  ---
+  duration_ms: 0.2563
+  type: 'test'
+  ...
+# Subtest: equilíbrio e margem por plano usam o mesmo stress de taxas que o fluxo de caixa
+ok 169 - equilíbrio e margem por plano usam o mesmo stress de taxas que o fluxo de caixa
+  ---
+  duration_ms: 0.2577
+  type: 'test'
+  ...
+# Subtest: inbox priority reports evidence and respects manual override
+ok 170 - inbox priority reports evidence and respects manual override
+  ---
+  duration_ms: 2.2212
+  type: 'test'
+  ...
+# Subtest: risk engine explains score, holds irreversible decisions for humans, and honors opt out
+ok 171 - risk engine explains score, holds irreversible decisions for humans, and honors opt out
+  ---
+  duration_ms: 0.4534
+  type: 'test'
+  ...
+# Subtest: mood rings and anxiety use operational signals, not diagnosis
+ok 172 - mood rings and anxiety use operational signals, not diagnosis
+  ---
+  duration_ms: 0.3667
+  type: 'test'
+  ...
+# Subtest: conversation signal classification detects Portuguese buying urgency without an LLM
+ok 173 - conversation signal classification detects Portuguese buying urgency without an LLM
+  ---
+  duration_ms: 1.3085
+  type: 'test'
+  ...
+# Subtest: repeat-purchase estimator cold-starts safely and requires confidence before activation
+ok 174 - repeat-purchase estimator cold-starts safely and requires confidence before activation
+  ---
+  duration_ms: 0.7262
+  type: 'test'
+  ...
+# Subtest: proposal recovery schedules default D+1/4/10/30/90 and stops on opt-out or reply
+ok 175 - proposal recovery schedules default D+1/4/10/30/90 and stops on opt-out or reply
+  ---
+  duration_ms: 0.8011
+  type: 'test'
+  ...
+# Subtest: collection transitions reject impossible state changes
+ok 176 - collection transitions reject impossible state changes
+  ---
+  duration_ms: 0.2917
+  type: 'test'
+  ...
+# Subtest: swarm routes to one contextual specialist
+ok 177 - swarm routes to one contextual specialist
+  ---
+  duration_ms: 0.822
+  type: 'test'
+  ...
+# Subtest: duplicate matching returns possible match for review and does not merge
+ok 178 - duplicate matching returns possible match for review and does not merge
+  ---
+  duration_ms: 1.1104
+  type: 'test'
+  ...
+# Subtest: price audit blocks unauthorized discounts
+ok 179 - price audit blocks unauthorized discounts
+  ---
+  duration_ms: 0.6978
+  type: 'test'
+  ...
+# Subtest: conversation replay only recommends after minimum resolved sample
+ok 180 - conversation replay only recommends after minimum resolved sample
+  ---
+  duration_ms: 0.4183
+  type: 'test'
+  ...
+# Subtest: collective memory aggregates only latest approved numeric contributions after minimum cohort
+ok 181 - collective memory aggregates only latest approved numeric contributions after minimum cohort
+  ---
+  duration_ms: 2.1559
+  type: 'test'
+  ...
+# Subtest: import validator identifies incomplete records before any insert
+ok 182 - import validator identifies incomplete records before any insert
+  ---
+  duration_ms: 0.3566
+  type: 'test'
+  ...
+# Subtest: import duplicate review catches existing customers and repeats inside the same file
+ok 183 - import duplicate review catches existing customers and repeats inside the same file
+  ---
+  duration_ms: 0.4359
+  type: 'test'
+  ...
+# Subtest: report metrics distinguish computed data from missing coverage
+ok 184 - report metrics distinguish computed data from missing coverage
+  ---
+  duration_ms: 0.4577
+  type: 'test'
+  ...
+# Subtest: pilot redirects bind staging project and exact current origin, never a supplied next URL
+ok 185 - pilot redirects bind staging project and exact current origin, never a supplied next URL
+  ---
+  duration_ms: 2.0832
+  type: 'test'
+  ...
+# Subtest: callbacks disclose only bounded messages, strip codes/tokens and retain unrelated navigation
+ok 186 - callbacks disclose only bounded messages, strip codes/tokens and retain unrelated navigation
+  ---
+  duration_ms: 2.3157
+  type: 'test'
+  ...
+# Subtest: caller-JWT gate accepts only an explicit true and fails closed on errors or malformed results
+ok 187 - caller-JWT gate accepts only an explicit true and fails closed on errors or malformed results
+  ---
+  duration_ms: 0.5221
+  type: 'test'
+  ...
+# Subtest: Inbox never treats request acceptance or provider acknowledgement as delivery
+ok 188 - Inbox never treats request acceptance or provider acknowledgement as delivery
+  ---
+  duration_ms: 1.1596
+  type: 'test'
+  ...
+# Subtest: founder planning starts without fabricated inputs, labels session-only simulations and preserves unavailable costs
+ok 189 - founder planning starts without fabricated inputs, labels session-only simulations and preserves unavailable costs
+  ---
+  duration_ms: 14.8778
+  type: 'test'
+  ...
+# Subtest: acquisition uses whole people/contracts, zero denominators remain unavailable
+ok 190 - acquisition uses whole people/contracts, zero denominators remain unavailable
+  ---
+  duration_ms: 3.9807
+  type: 'test'
+  ...
+# Subtest: cash projection accumulates once, collections do not change MRR, reserve is not double expense
+ok 191 - cash projection accumulates once, collections do not change MRR, reserve is not double expense
+  ---
+  duration_ms: 2.1156
+  type: 'test'
+  ...
+# Subtest: locale selection maps supported language families and defaults to Brazilian Portuguese
+ok 192 - locale selection maps supported language families and defaults to Brazilian Portuguese
+  ---
+  duration_ms: 5.3035
+  type: 'test'
+  ...
+# Subtest: formats money and numbers with locale conventions without changing numeric inputs
+ok 193 - formats money and numbers with locale conventions without changing numeric inputs
+  ---
+  duration_ms: 43.7304
+  type: 'test'
+  ...
+# Subtest: formats dates by locale and reports invalid source dates as unavailable
+ok 194 - formats dates by locale and reports invalid source dates as unavailable
+  ---
+  duration_ms: 5.8028
+  type: 'test'
+  ...
+# Subtest: history query is bounded, ordered by timestamp and UUID, and always tenant scoped
+ok 195 - history query is bounded, ordered by timestamp and UUID, and always tenant scoped
+  ---
+  duration_ms: 2.3778
+  type: 'test'
+  ...
+# Subtest: history cursor rejects expression injection, partial cursors and invalid dates
+ok 196 - history cursor rejects expression injection, partial cursors and invalid dates
+  ---
+  duration_ms: 0.5021
+  type: 'test'
+  ...
+# Subtest: explicit health check is GET-only, validates binding and classifies revoked token
+ok 197 - explicit health check is GET-only, validates binding and classifies revoked token
+  ---
+  duration_ms: 37.9834
+  type: 'test'
+  ...
+# Subtest: Meta runtime fails closed when any server credential or identifier is invalid
+ok 198 - Meta runtime fails closed when any server credential or identifier is invalid
+  ---
+  duration_ms: 0.404
+  type: 'test'
+  ...
+# Subtest: Embedded Signup exchanges the one-time code, verifies the phone and subscribes the WABA without exposing the secret
+ok 199 - Embedded Signup exchanges the one-time code, verifies the phone and subscribes the WABA without exposing the secret
+  ---
+  duration_ms: 3.1727
+  type: 'test'
+  ...
+# Subtest: Embedded Signup rejects an independently accessible phone outside the WABA before subscribing
+ok 200 - Embedded Signup rejects an independently accessible phone outside the WABA before subscribing
+  ---
+  duration_ms: 2.4972
+  type: 'test'
+  ...
+# Subtest: coexistence claims from the browser remain unknown until provider verification exists
+ok 201 - coexistence claims from the browser remain unknown until provider verification exists
+  ---
+  duration_ms: 4.207
+  type: 'test'
+  ...
+# Subtest: HTTP 200 without explicit subscription success never becomes a connected result
+ok 202 - HTTP 200 without explicit subscription success never becomes a connected result
+  ---
+  duration_ms: 4.5936
+  type: 'test'
+  ...
+# Subtest: WABA binding paginates by cursor on the fixed Graph origin and never follows paging.next
+ok 203 - WABA binding paginates by cursor on the fixed Graph origin and never follows paging.next
+  ---
+  duration_ms: 1.1928
+  type: 'test'
+  ...
+# Subtest: malformed binding, cursor loops and excessive pages fail closed before subscription
+ok 204 - malformed binding, cursor loops and excessive pages fail closed before subscription
+  ---
+  duration_ms: 3.366
+  type: 'test'
+  ...
+# Subtest: Embedded Signup rejects mismatched provider phone identity and transient provider failure
+ok 205 - Embedded Signup rejects mismatched provider phone identity and transient provider failure
+  ---
+  duration_ms: 1.9843
+  type: 'test'
+  ...
+# Subtest: Embedded Signup rejects a token that lacks a required WhatsApp permission
+ok 206 - Embedded Signup rejects a token that lacks a required WhatsApp permission
+  ---
+  duration_ms: 1.4018
+  type: 'test'
+  ...
+# Subtest: Meta content is part of the durable fingerprint; same ID with changed text is a conflict, not a duplicate
+ok 207 - Meta content is part of the durable fingerprint; same ID with changed text is a conflict, not a duplicate
+  ---
+  duration_ms: 10.3944
+  type: 'test'
+  ...
+# Subtest: Meta body stops at one MiB without relying on Content-Length, cancels stream and releases reader
+ok 208 - Meta body stops at one MiB without relying on Content-Length, cancels stream and releases reader
+  ---
+  duration_ms: 4.1072
+  type: 'test'
+  ...
+# Subtest: Meta body preserves exact bytes for signature verification and releases reader on stream failure
+ok 209 - Meta body preserves exact bytes for signature verification and releases reader on stream failure
+  ---
+  duration_ms: 1.5751
+  type: 'test'
+  ...
+# Subtest: Meta receipt conflicts and unknown ledger decisions never become processed delivery
+ok 210 - Meta receipt conflicts and unknown ledger decisions never become processed delivery
+  ---
+  duration_ms: 0.538
+  type: 'test'
+  ...
+# Subtest: Meta text send uses the fixed Graph host and returns only provider acceptance
+ok 211 - Meta text send uses the fixed Graph host and returns only provider acceptance
+  ---
+  duration_ms: 33.8293
+  type: 'test'
+  ...
+# Subtest: Meta text send classifies confirmed failures and keeps network ambiguity unretryable
+ok 212 - Meta text send classifies confirmed failures and keeps network ambiguity unretryable
+  ---
+  duration_ms: 3.469
+  type: 'test'
+  ...
+# Subtest: Meta service window excludes future, missing and exactly expired timestamps
+ok 213 - Meta service window excludes future, missing and exactly expired timestamps
+  ---
+  duration_ms: 0.3462
+  type: 'test'
+  ...
+# Subtest: saved connection alone is not current provider verification
+ok 214 - saved connection alone is not current provider verification
+  ---
+  duration_ms: 0.9708
+  type: 'test'
+  ...
+# Subtest: official handler rejects unsigned input before database access
+ok 215 - official handler rejects unsigned input before database access
+  ---
+  duration_ms: 95.642
+  type: 'test'
+  ...
+# Subtest: official handler acknowledges only persisted ingest decisions
+ok 216 - official handler acknowledges only persisted ingest decisions
+  ---
+  duration_ms: 35.2506
+  type: 'test'
+  ...
+# Subtest: in-progress claims request retry rather than acknowledging unfinished work
+ok 217 - in-progress claims request retry rather than acknowledging unfinished work
+  ---
+  duration_ms: 9.4878
+  type: 'test'
+  ...
+# Subtest: receipt recipient mismatch cannot update another conversation delivery
+ok 218 - receipt recipient mismatch cannot update another conversation delivery
+  ---
+  duration_ms: 10.2193
+  type: 'test'
+  ...
+# Subtest: unsupported content persists an explicit marker and retries on failed persistence
+ok 219 - unsupported content persists an explicit marker and retries on failed persistence
+  ---
+  duration_ms: 11.8269
+  type: 'test'
+  ...
+# Subtest: receipt preceding send acknowledgement remains retryable and never loses delivery proof
+ok 220 - receipt preceding send acknowledgement remains retryable and never loses delivery proof
+  ---
+  duration_ms: 4.9474
+  type: 'test'
+  ...
+# Subtest: Meta verifies exact raw body bytes and fails tampered or malformed signatures
+ok 221 - Meta verifies exact raw body bytes and fails tampered or malformed signatures
+  ---
+  duration_ms: 2.3259
+  type: 'test'
+  ...
+# Subtest: untrusted workspace fields cannot override the trusted number binding
+ok 222 - untrusted workspace fields cannot override the trusted number binding
+  ---
+  duration_ms: 3.3032
+  type: 'test'
+  ...
+# Subtest: unknown number or mismatched WABA is rejected before persistence
+ok 223 - unknown number or mismatched WABA is rejected before persistence
+  ---
+  duration_ms: 2.3686
+  type: 'test'
+  ...
+# Subtest: duplicate batch events normalize once; persistent dedup remains a repository responsibility
+ok 224 - duplicate batch events normalize once; persistent dedup remains a repository responsibility
+  ---
+  duration_ms: 0.6365
+  type: 'test'
+  ...
+# Subtest: invalid JSON signature and oversized input never reach the connection resolver
+ok 225 - invalid JSON signature and oversized input never reach the connection resolver
+  ---
+  duration_ms: 1.2902
+  type: 'test'
+  ...
+# Subtest: status notifications are distinct from message acceptance
+ok 226 - status notifications are distinct from message acceptance
+  ---
+  duration_ms: 0.6859
+  type: 'test'
+  ...
+# Subtest: Today and WIA source keep handoff separate from submission
+ok 227 - Today and WIA source keep handoff separate from submission
+  ---
+  duration_ms: 4.5203
+  type: 'test'
+  ...
+# Subtest: WIA configuration never claims verified model availability
+ok 228 - WIA configuration never claims verified model availability
+  ---
+  duration_ms: 0.2262
+  type: 'test'
+  ...
+# Subtest: Mobile dock source keeps five named destinations and the sidebar breakpoint
+ok 229 - Mobile dock source keeps five named destinations and the sidebar breakpoint
+  ---
+  duration_ms: 1.5736
+  type: 'test'
+  ...
+# Subtest: Frontend publication stays disabled while review is local
+ok 230 - Frontend publication stays disabled while review is local
+  ---
+  duration_ms: 2.7406
+  type: 'test'
+  ...
+# Subtest: More preserves each registered secondary destination exactly once
+ok 231 - More preserves each registered secondary destination exactly once
+  ---
+  duration_ms: 2.8801
+  type: 'test'
+  ...
+# Subtest: search understands accents and task names without changing the registry
+ok 232 - search understands accents and task names without changing the registry
+  ---
+  duration_ms: 0.9036
+  type: 'test'
+  ...
+# Subtest: old detail routes retain their existing active destination
+ok 233 - old detail routes retain their existing active destination
+  ---
+  duration_ms: 0.2545
+  type: 'test'
+  ...
+# Subtest: simplicity branch cannot deploy automatically
+ok 234 - simplicity branch cannot deploy automatically
+  ---
+  duration_ms: 1.6265
+  type: 'test'
+  ...
+# Subtest: structured redaction removes credential keys, bearer tokens, JWTs and inline secrets recursively
+ok 235 - structured redaction removes credential keys, bearer tokens, JWTs and inline secrets recursively
+  ---
+  duration_ms: 3.8829
+  type: 'test'
+  ...
+# Subtest: redaction bounds recursive and oversized values
+ok 236 - redaction bounds recursive and oversized values
+  ---
+  duration_ms: 1.8179
+  type: 'test'
+  ...
+# Subtest: workspace access derives the tenant from an active membership, not an untrusted workspace ID
+ok 237 - workspace access derives the tenant from an active membership, not an untrusted workspace ID
+  ---
+  duration_ms: 102.1882
+  type: 'test'
+  ...
+# Subtest: member cannot create a manager-attributed private instruction
+ok 238 - member cannot create a manager-attributed private instruction
+  ---
+  duration_ms: 48.064
+  type: 'test'
+  ...
+# Subtest: member cannot change workspace settings; admin and owner can
+ok 239 - member cannot change workspace settings; admin and owner can
+  ---
+  duration_ms: 32.9067
+  type: 'test'
+  ...
+# [Operational API] { code: 'unknown', message: 'audit unavailable' }
+# Subtest: workspace settings refuse a write when the audit store is unavailable
+ok 240 - workspace settings refuse a write when the audit store is unavailable
+  ---
+  duration_ms: 13.7283
+  type: 'test'
+  ...
+# Subtest: a workspace member cannot read or edit another workspace deal
+ok 241 - a workspace member cannot read or edit another workspace deal
+  ---
+  duration_ms: 41.7126
+  type: 'test'
+  ...
+# Subtest: deals persist detail, stage history and archive while denying every cross-workspace operation
+ok 242 - deals persist detail, stage history and archive while denying every cross-workspace operation
+  ---
+  duration_ms: 63.2097
+  type: 'test'
+  ...
+# Subtest: clients API keeps CRUD, archive and client-supplied tenant IDs inside the authenticated workspace
+ok 243 - clients API keeps CRUD, archive and client-supplied tenant IDs inside the authenticated workspace
+  ---
+  duration_ms: 64.121
+  type: 'test'
+  ...
+# Subtest: catalog API keeps create, update, archive and list tenant-scoped
+ok 244 - catalog API keeps create, update, archive and list tenant-scoped
+  ---
+  duration_ms: 39.621
+  type: 'test'
+  ...
+# Subtest: CSV import preview and commit remain scoped to the workspace that created the job
+ok 245 - CSV import preview and commit remain scoped to the workspace that created the job
+  ---
+  duration_ms: 23.9572
+  type: 'test'
+  ...
+# Subtest: private instruction read refuses expired, already-read and foreign-workspace rows without mutation
+ok 246 - private instruction read refuses expired, already-read and foreign-workspace rows without mutation
+  ---
+  duration_ms: 16.1053
+  type: 'test'
+  ...
+# Subtest: Vercel and Supabase Edge use the same pilot access policy module
+ok 247 - Vercel and Supabase Edge use the same pilot access policy module
+  ---
+  duration_ms: 1.1584
+  type: 'test'
+  ...
+# Subtest: pilot access fails closed for denied, unavailable, and thrown RPC results
+ok 248 - pilot access fails closed for denied, unavailable, and thrown RPC results
+  ---
+  duration_ms: 0.4319
+  type: 'test'
+  ...
+# Subtest: PIX requires a configured adapter and never claims a DB intent without it
+ok 249 - PIX requires a configured adapter and never claims a DB intent without it
+  ---
+  duration_ms: 2.0543
+  type: 'test'
+  ...
+# Subtest: same key and payload return the same accepted provider reference without a second charge
+ok 250 - same key and payload return the same accepted provider reference without a second charge
+  ---
+  duration_ms: 0.9305
+  type: 'test'
+  ...
+# Subtest: same key with a changed quote amount fails closed before invoking provider
+ok 251 - same key with a changed quote amount fails closed before invoking provider
+  ---
+  duration_ms: 0.2152
+  type: 'test'
+  ...
+# Subtest: simultaneous same-key calls allow one provider create and fence the other
+ok 252 - simultaneous same-key calls allow one provider create and fence the other
+  ---
+  duration_ms: 0.3675
+  type: 'test'
+  ...
+# Subtest: timeout reconciles a known provider reference; an unknown outcome never retries create
+ok 253 - timeout reconciles a known provider reference; an unknown outcome never retries create
+  ---
+  duration_ms: 0.6647
+  type: 'test'
+  ...
+# Subtest: Supabase repository sends only claim/finish RPCs and rejects lost fencing claims
+ok 254 - Supabase repository sends only claim/finish RPCs and rejects lost fencing claims
+  ---
+  duration_ms: 0.6452
+  type: 'test'
+  ...
+# Subtest: provider-event repository binds terminal state changes to the claimed event RPC
+ok 255 - provider-event repository binds terminal state changes to the claimed event RPC
+  ---
+  duration_ms: 0.5976
+  type: 'test'
+  ...
+# Subtest: provider-event repository rejects malformed event data before persistence
+ok 256 - provider-event repository rejects malformed event data before persistence
+  ---
+  duration_ms: 1.2035
+  type: 'test'
+  ...
+# Subtest: catálogo reconhece seis planos novos, Founders e Legacy Standard; preserva alias legado free
+ok 257 - catálogo reconhece seis planos novos, Founders e Legacy Standard; preserva alias legado free
+  ---
+  duration_ms: 6.292
+  type: 'test'
+  ...
+# Subtest: trial válido permite operação e trial expirado fica somente leitura
+ok 258 - trial válido permite operação e trial expirado fica somente leitura
+  ---
+  duration_ms: 1.7919
+  type: 'test'
+  ...
+# Subtest: status ausente ou sem versão de entitlement é configuration-required e somente leitura
+ok 259 - status ausente ou sem versão de entitlement é configuration-required e somente leitura
+  ---
+  duration_ms: 0.2623
+  type: 'test'
+  ...
+# Subtest: entitlement é aplicado por feature e ausência de direito não libera uso
+ok 260 - entitlement é aplicado por feature e ausência de direito não libera uso
+  ---
+  duration_ms: 0.2773
+  type: 'test'
+  ...
+# Subtest: limites de seats, WIA e propostas bloqueiam bypass server-side
+ok 261 - limites de seats, WIA e propostas bloqueiam bypass server-side
+  ---
+  duration_ms: 1.2957
+  type: 'test'
+  ...
+# Subtest: preço só é exposto quando uma versão declara explicitamente price_is_public
+ok 262 - preço só é exposto quando uma versão declara explicitamente price_is_public
+  ---
+  duration_ms: 0.1782
+  type: 'test'
+  ...
+# Subtest: the shipped proposal-recovery definition validates and is self-consistent
+ok 263 - the shipped proposal-recovery definition validates and is self-consistent
+  ---
+  duration_ms: 2.2424
+  type: 'test'
+  ...
+# Subtest: digest is deterministic, 64 hex chars and changes when content changes
+ok 264 - digest is deterministic, 64 hex chars and changes when content changes
+  ---
+  duration_ms: 1.2814
+  type: 'test'
+  ...
+# Subtest: validator rejects tampered definitions with explicit errors
+ok 265 - validator rejects tampered definitions with explicit errors
+  ---
+  duration_ms: 1.0467
+  type: 'test'
+  ...
+# Subtest: preview is honest: no execution, no external effects, approval point fully described
+ok 266 - preview is honest: no execution, no external effects, approval point fully described
+  ---
+  duration_ms: 1.4968
+  type: 'test'
+  ...
+# Subtest: GET /api/playbooks/proposal_recovery/preview is read-only, workspace-scoped and honest by default
+ok 267 - GET /api/playbooks/proposal_recovery/preview is read-only, workspace-scoped and honest by default
+  ---
+  duration_ms: 67.9682
+  type: 'test'
+  ...
+# Subtest: preview reflects the feature gate truthfully in every state, praising nothing
+ok 268 - preview reflects the feature gate truthfully in every state, praising nothing
+  ---
+  duration_ms: 49.4036
+  type: 'test'
+  ...
+# Subtest: GET preview denies both foreign workspaces, absent membership and missing auth
+ok 269 - GET preview denies both foreign workspaces, absent membership and missing auth
+  ---
+  duration_ms: 19.0965
+  type: 'test'
+  ...
+# Subtest: unknown playbook key returns 404 and the shared database is only used for reads
+ok 270 - unknown playbook key returns 404 and the shared database is only used for reads
+  ---
+  duration_ms: 20.1192
+  type: 'test'
+  ...
+# Subtest: pricing reference is adapted to exactly five approved monthly offers
+ok 271 - pricing reference is adapted to exactly five approved monthly offers
+  ---
+  duration_ms: 1.8863
+  type: 'test'
+  ...
+# Subtest: pending entitlements do not become quotas or contractual guarantees
+ok 272 - pending entitlements do not become quotas or contractual guarantees
+  ---
+  duration_ms: 0.7218
+  type: 'test'
+  ...
+# Subtest: onboarding accepts owner-editable fields and rejects tenant, identity and privilege fields
+ok 273 - onboarding accepts owner-editable fields and rejects tenant, identity and privilege fields
+  ---
+  duration_ms: 4.508
+  type: 'test'
+  ...
+# Subtest: personal profile only accepts the display name and normalizes surrounding spaces
+ok 274 - personal profile only accepts the display name and normalizes surrounding spaces
+  ---
+  duration_ms: 1.2215
+  type: 'test'
+  ...
+# Subtest: personal profile rejects invalid lengths, missing fields and control characters
+ok 275 - personal profile rejects invalid lengths, missing fields and control characters
+  ---
+  duration_ms: 0.4059
+  type: 'test'
+  ...
+# Subtest: Radar recovery drafts include only validated quote ID, never customer instructions
+ok 276 - Radar recovery drafts include only validated quote ID, never customer instructions
+  ---
+  duration_ms: 1.2561
+  type: 'test'
+  ...
+# Subtest: Recovery action is optional navigation, explicit about review and no external send
+ok 277 - Recovery action is optional navigation, explicit about review and no external send
+  ---
+  duration_ms: 16.0766
+  type: 'test'
+  ...
+# Subtest: recovery command requires exact intent and a UUID; appended instructions never enter this playbook
+ok 278 - recovery command requires exact intent and a UUID; appended instructions never enter this playbook
+  ---
+  duration_ms: 3.0533
+  type: 'test'
+  ...
+# Subtest: proposal recovery uses Radar 48h threshold and only prepares an approval snapshot
+ok 279 - proposal recovery uses Radar 48h threshold and only prepares an approval snapshot
+  ---
+  duration_ms: 1.6483
+  type: 'test'
+  ...
+# Subtest: foreign, missing, recent, decided, archived, expired or invalid-date proposals never create an approval
+ok 280 - foreign, missing, recent, decided, archived, expired or invalid-date proposals never create an approval
+  ---
+  duration_ms: 1.0887
+  type: 'test'
+  ...
+# Subtest: missing/inactive gate and read failures fail closed before producing an action
+ok 281 - missing/inactive gate and read failures fail closed before producing an action
+  ---
+  duration_ms: 0.7743
+  type: 'test'
+  ...
+# Subtest: existing fingerprinted WIA lifecycle persists awaiting-approval decision without Pulso or provider calls; replay reuses it
+ok 282 - existing fingerprinted WIA lifecycle persists awaiting-approval decision without Pulso or provider calls; replay reuses it
+  ---
+  duration_ms: 1.547
+  type: 'test'
+  ...
+# Subtest: disabled playbook records a failed run and returns configuration required; ambiguous completion is not success
+ok 283 - disabled playbook records a failed run and returns configuration required; ambiguous completion is not success
+  ---
+  duration_ms: 0.5237
+  type: 'test'
+  ...
+# Subtest: public proposal origin comes only from a canonical configured URL
+ok 284 - public proposal origin comes only from a canonical configured URL
+  ---
+  duration_ms: 1.1626
+  type: 'test'
+  ...
+# Subtest: pinned staging Preview uses its immutable deployment origin for public links
+ok 285 - pinned staging Preview uses its immutable deployment origin for public links
+  ---
+  duration_ms: 0.4473
+  type: 'test'
+  ...
+# Subtest: public proposal origin rejects missing production config and unsafe URLs
+ok 286 - public proposal origin rejects missing production config and unsafe URLs
+  ---
+  duration_ms: 0.6686
+  type: 'test'
+  ...
+# Subtest: quota preserves unknown policy instead of inventing a zero or allowance
+ok 287 - quota preserves unknown policy instead of inventing a zero or allowance
+  ---
+  duration_ms: 19.3346
+  type: 'test'
+  ...
+# Subtest: quota uses real consumption, clamps visual percentage and handles exhaustion
+ok 288 - quota uses real consumption, clamps visual percentage and handles exhaustion
+  ---
+  duration_ms: 0.4288
+  type: 'test'
+  ...
+# Subtest: quota rejects inconsistent, negative and non-finite server data
+ok 289 - quota rejects inconsistent, negative and non-finite server data
+  ---
+  duration_ms: 0.7726
+  type: 'test'
+  ...
+# Subtest: proposal email is restricted to the registered client recipient
+ok 290 - proposal email is restricted to the registered client recipient
+  ---
+  duration_ms: 0.8929
+  type: 'test'
+  ...
+# Subtest: quote create accepts only editable fields and prices lines on the server
+ok 291 - quote create accepts only editable fields and prices lines on the server
+  ---
+  duration_ms: 5.1935
+  type: 'test'
+  ...
+# Subtest: quote may not attach an unrelated phone to a deal without a matching customer row
+ok 292 - quote may not attach an unrelated phone to a deal without a matching customer row
+  ---
+  duration_ms: 0.2344
+  type: 'test'
+  ...
+# Subtest: a pending publication reuses its request key until confirmed
+ok 293 - a pending publication reuses its request key until confirmed
+  ---
+  duration_ms: 4.2729
+  type: 'test'
+  ...
+# Subtest: quote creation cannot share an app URL when the proposal link is unconfirmed
+ok 294 - quote creation cannot share an app URL when the proposal link is unconfirmed
+  ---
+  duration_ms: 19.7237
+  type: 'test'
+  ...
+# Subtest: Radar UI never navigates a standalone task ID as a deal
+ok 295 - Radar UI never navigates a standalone task ID as a deal
+  ---
+  duration_ms: 13.6224
+  type: 'test'
+  ...
+# Subtest: Radar malformed/missing data is an error, not an empty success
+ok 296 - Radar malformed/missing data is an error, not an empty success
+  ---
+  duration_ms: 6.0418
+  type: 'test'
+  ...
+# Subtest: Radar partial zero result does not promise a complete healthy operation
+ok 297 - Radar partial zero result does not promise a complete healthy operation
+  ---
+  duration_ms: 2.1427
+  type: 'test'
+  ...
+# Subtest: Radar source/date are explicit and user content is escaped
+ok 298 - Radar source/date are explicit and user content is escaped
+  ---
+  duration_ms: 1.8137
+  type: 'test'
+  ...
+# Subtest: Radar UI exposes timestamped evidence for each recommendation without inventing missing fields
+ok 299 - Radar UI exposes timestamped evidence for each recommendation without inventing missing fields
+  ---
+  duration_ms: 40.8149
+  type: 'test'
+  ...
+# Subtest: radar flags proposals sent beyond the threshold and separates viewed from unseen
+ok 300 - radar flags proposals sent beyond the threshold and separates viewed from unseen
+  ---
+  duration_ms: 3.4577
+  type: 'test'
+  ...
+# Subtest: radar flags leads waiting on an incoming message and ignores conversations owned by the operator
+ok 301 - radar flags leads waiting on an incoming message and ignores conversations owned by the operator
+  ---
+  duration_ms: 1.1276
+  type: 'test'
+  ...
+# Subtest: radar flags overdue tasks and deals past expected close, always labeling the source
+ok 302 - radar flags overdue tasks and deals past expected close, always labeling the source
+  ---
+  duration_ms: 23.1052
+  type: 'test'
+  ...
+# Subtest: radar snapshot aggregates counts, sorts high severity first, and caps per kind
+ok 303 - radar snapshot aggregates counts, sorts high severity first, and caps per kind
+  ---
+  duration_ms: 1.2706
+  type: 'test'
+  ...
+# Subtest: GET /api/radar is read-only, workspace-scoped, and returns the deterministic envelope
+ok 304 - GET /api/radar is read-only, workspace-scoped, and returns the deterministic envelope
+  ---
+  duration_ms: 109.3598
+  type: 'test'
+  ...
+# Subtest: GET /api/radar denies a workspace without active membership
+ok 305 - GET /api/radar denies a workspace without active membership
+  ---
+  duration_ms: 146.4996
+  type: 'test'
+  ...
+# Subtest: proposal thresholds, retention, terminal states and future/invalid dates are conservative
+ok 306 - proposal thresholds, retention, terminal states and future/invalid dates are conservative
+  ---
+  duration_ms: 0.7006
+  type: 'test'
+  ...
+# Subtest: first-response SLA starts at oldest pending incoming; internal notes and read markers do not reset it
+ok 307 - first-response SLA starts at oldest pending incoming; internal notes and read markers do not reset it
+  ---
+  duration_ms: 4.0979
+  type: 'test'
+  ...
+# Subtest: overdue tasks ignore completed_at and exact/future deadlines; calendar dates validate and use UTC day end
+ok 308 - overdue tasks ignore completed_at and exact/future deadlines; calendar dates validate and use UTC day end
+  ---
+  duration_ms: 1.3363
+  type: 'test'
+  ...
+# Subtest: GET Radar uses request-bound database exclusively, returns no-store and denies both foreign workspaces
+ok 309 - GET Radar uses request-bound database exclusively, returns no-store and denies both foreign workspaces
+  ---
+  duration_ms: 46.0572
+  type: 'test'
+  ...
+# Subtest: GET Radar does not auto-provision absent or inactive memberships and denies missing auth
+ok 310 - GET Radar does not auto-provision absent or inactive memberships and denies missing auth
+  ---
+  duration_ms: 29.9371
+  type: 'test'
+  ...
+# Subtest: GET Radar excludes archived/retained quotes and skips lead inference for truncated messages
+ok 311 - GET Radar excludes archived/retained quotes and skips lead inference for truncated messages
+  ---
+  duration_ms: 17.1885
+  type: 'test'
+  ...
+# Subtest: GET Radar filters foreign messages even when they reference a selected conversation and allows member reads without elevation
+ok 312 - GET Radar filters foreign messages even when they reference a selected conversation and allows member reads without elevation
+  ---
+  duration_ms: 13.6918
+  type: 'test'
+  ...
+# [Operational API] { code: 'unknown', message: 'read unavailable' }
+# Subtest: GET Radar marks capped sources partial and propagates read failure without a successful empty snapshot
+ok 313 - GET Radar marks capped sources partial and propagates read failure without a successful empty snapshot
+  ---
+  duration_ms: 19.8042
+  type: 'test'
+  ...
+# {"scope":"LOCAL_MEMORY_ADAPTER_ONLY_NOT_POSTGRES_BENCHMARK","messageRows":100000,"readQueries":8,"elapsedMs":37,"responseBytes":1850,"leadsSuppressed":true,"writes":0}
+# Subtest: GET Radar bounds a 100000-message history, performs only eight read queries and never infers leads from truncated history
+ok 314 - GET Radar bounds a 100000-message history, performs only eight read queries and never infers leads from truncated history
+  ---
+  duration_ms: 260.8185
+  type: 'test'
+  ...
+# Subtest: assistance distinguishes unique, ambiguous, missing and incomplete customers without obeying inbound instructions
+ok 315 - assistance distinguishes unique, ambiguous, missing and incomplete customers without obeying inbound instructions
+  ---
+  duration_ms: 0.7989
+  type: 'test'
+  ...
+# [Operational API] { code: 'unknown', message: 'PRIVATE_PROVIDER_ERROR' }
+# Subtest: assistance HTTP uses only tenant-bound reads, preserves records, rejects cross-tenant/auth and hides private messages
+ok 316 - assistance HTTP uses only tenant-bound reads, preserves records, rejects cross-tenant/auth and hides private messages
+  ---
+  duration_ms: 60.1203
+  type: 'test'
+  ...
+# Subtest: window rate limit rejects after the configured request count and resets on expiry
+ok 317 - window rate limit rejects after the configured request count and resets on expiry
+  ---
+  duration_ms: 1.4771
+  type: 'test'
+  ...
+# Subtest: expired buckets are removed and high-cardinality keys remain bounded
+ok 318 - expired buckets are removed and high-cardinality keys remain bounded
+  ---
+  duration_ms: 0.2598
+  type: 'test'
+  ...
+# Subtest: high-cardinality active keys evict oldest entries without exceeding the cap
+ok 319 - high-cardinality active keys evict oldest entries without exceeding the cap
+  ---
+  duration_ms: 0.3322
+  type: 'test'
+  ...
+# Subtest: request-scoped client uses public identity until a verified client is bound
+ok 320 - request-scoped client uses public identity until a verified client is bound
+  ---
+  duration_ms: 1.8378
+  type: 'test'
+  ...
+# Subtest: parallel requests never inherit another user JWT client
+ok 321 - parallel requests never inherit another user JWT client
+  ---
+  duration_ms: 1.64
+  type: 'test'
+  ...
+# Subtest: secret scan reports categories without printing credential material
+ok 322 - secret scan reports categories without printing credential material
+  ---
+  duration_ms: 1260.3801
+  type: 'test'
+  ...
+# Subtest: secret scan passes a safe standalone artifact
+ok 323 - secret scan passes a safe standalone artifact
+  ---
+  duration_ms: 1065.8698
+  type: 'test'
+  ...
+# Subtest: Supabase anon JWT is reported as public config review while privileged JWTs remain blocking
+ok 324 - Supabase anon JWT is reported as public config review while privileged JWTs remain blocking
+  ---
+  duration_ms: 3154.6301
+  type: 'test'
+  ...
+# Subtest: default repository scan includes server/frontend build and test artifacts but skips dependency trees
+ok 325 - default repository scan includes server/frontend build and test artifacts but skips dependency trees
+  ---
+  duration_ms: 815.4748
+  type: 'test'
+  ...
+# Subtest: Gemini isolated test opt-in never permits secrets in the Preview runtime
+ok 326 - Gemini isolated test opt-in never permits secrets in the Preview runtime
+  ---
+  duration_ms: 2.848
+  type: 'test'
+  ...
+# Subtest: generated Preview origin is allowed only when the staging deployment identity is pinned
+ok 327 - generated Preview origin is allowed only when the staging deployment identity is pinned
+  ---
+  duration_ms: 0.4617
+  type: 'test'
+  ...
+# Subtest: accepts only the dedicated staging project and public key
+ok 328 - accepts only the dedicated staging project and public key
+  ---
+  duration_ms: 1.3454
+  type: 'test'
+  ...
+# Subtest: rejects production Vercel binding, domains, database references, and webhook URLs
+ok 329 - rejects production Vercel binding, domains, database references, and webhook URLs
+  ---
+  duration_ms: 0.3799
+  type: 'test'
+  ...
+# Subtest: staging environment mismatches have a stable machine-readable code
+ok 330 - staging environment mismatches have a stable machine-readable code
+  ---
+  duration_ms: 0.9479
+  type: 'test'
+  ...
+# Subtest: pins Vercel deployment to the explicitly configured staging project
+ok 331 - pins Vercel deployment to the explicitly configured staging project
+  ---
+  duration_ms: 2.8279
+  type: 'test'
+  ...
+# Subtest: rejects paid providers, external sends, live payment configuration, mocks, and legal activation
+ok 332 - rejects paid providers, external sends, live payment configuration, mocks, and legal activation
+  ---
+  duration_ms: 0.9813
+  type: 'test'
+  ...
+# Subtest: opaque public keys require a staging fingerprint; elevated keys are refused
+ok 333 - opaque public keys require a staging fingerprint; elevated keys are refused
+  ---
+  duration_ms: 1.1645
+  type: 'test'
+  ...
+# Subtest: does not alter non-staging environment behavior
+ok 334 - does not alter non-staging environment behavior
+  ---
+  duration_ms: 0.5292
+  type: 'test'
+  ...
+# Subtest: production serves app assets but never server source/maps, including encoded paths
+ok 335 - production serves app assets but never server source/maps, including encoded paths
+  ---
+  duration_ms: 229.5058
+  type: 'test'
+  ...
+# Subtest: registra as ferramentas T0 com contratos operacionais
+ok 336 - registra as ferramentas T0 com contratos operacionais
+  ---
+  duration_ms: 7.8893
+  type: 'test'
+  ...
+# Subtest: get_sales_today usa somente o tenant autenticado e preserva fontes
+ok 337 - get_sales_today usa somente o tenant autenticado e preserva fontes
+  ---
+  duration_ms: 7.8667
+  type: 'test'
+  ...
+# Subtest: entrada inválida e papel sem permissão retornam erros tipados
+ok 338 - entrada inválida e papel sem permissão retornam erros tipados
+  ---
+  duration_ms: 2.3933
+  type: 'test'
+  ...
+# Subtest: roteador reconhece somente intenções T0 explícitas
+ok 339 - roteador reconhece somente intenções T0 explícitas
+  ---
+  duration_ms: 3.1286
+  type: 'test'
+  ...
+# Subtest: contexto operacional do cliente retorna risco, memórias e fontes sem sair do tenant autenticado
+ok 340 - contexto operacional do cliente retorna risco, memórias e fontes sem sair do tenant autenticado
+  ---
+  duration_ms: 2.589
+  type: 'test'
+  ...
+# Subtest: WIA pede um identificador de cliente em vez de inferir risco pelo nome
+ok 341 - WIA pede um identificador de cliente em vez de inferir risco pelo nome
+  ---
+  duration_ms: 0.9218
+  type: 'test'
+  ...
+# Subtest: pergunta T0 percorre caminho zero-LLM
+ok 342 - pergunta T0 percorre caminho zero-LLM
+  ---
+  duration_ms: 41.6074
+  type: 'test'
+  ...
+# Subtest: intenção T0 sem runtime falha fechada e nunca usa modelo
+ok 343 - intenção T0 sem runtime falha fechada e nunca usa modelo
+  ---
+  duration_ms: 0.6664
+  type: 'test'
+  ...
+# Subtest: falha da ferramenta não cai silenciosamente para um modelo
+ok 344 - falha da ferramenta não cai silenciosamente para um modelo
+  ---
+  duration_ms: 1.2057
+  type: 'test'
+  ...
+# Subtest: team visual fixture matches the direct API envelope consumed by the screen
+ok 345 - team visual fixture matches the direct API envelope consumed by the screen
+  ---
+  duration_ms: 1.4022
+  type: 'test'
+  ...
+# Subtest: team response rejects malformed members and accepts an explicitly empty team
+ok 346 - team response rejects malformed members and accepts an explicitly empty team
+  ---
+  duration_ms: 0.9076
+  type: 'test'
+  ...
+# [dotenv@17.3.1] injecting env (0) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+# Subtest: missing tenant context is denied
+ok 347 - missing tenant context is denied
+  ---
+  duration_ms: 1.7154
+  type: 'test'
+  ...
+# Subtest: tenant scope prevents cross-tenant reads even with a service-role-like query
+ok 348 - tenant scope prevents cross-tenant reads even with a service-role-like query
+  ---
+  duration_ms: 1.2885
+  type: 'test'
+  ...
+# Subtest: tenant scope prevents cross-tenant updates
+ok 349 - tenant scope prevents cross-tenant updates
+  ---
+  duration_ms: 0.5444
+  type: 'test'
+  ...
+# Subtest: active workspace is resolved from membership and client-supplied IDs must be members
+ok 350 - active workspace is resolved from membership and client-supplied IDs must be members
+  ---
+  duration_ms: 0.492
+  type: 'test'
+  ...
+# Subtest: webhook tenant resolution rejects absent and invalid bindings
+ok 351 - webhook tenant resolution rejects absent and invalid bindings
+  ---
+  duration_ms: 0.75
+  type: 'test'
+  ...
+# Subtest: webhook without persistence remains disabled and creates no state
+ok 352 - webhook without persistence remains disabled and creates no state
+  ---
+  duration_ms: 86.5056
+  type: 'test'
+  ...
+# Subtest: dark utilities follow the product class toggle rather than the device preference
+ok 353 - dark utilities follow the product class toggle rather than the device preference
+  ---
+  duration_ms: 43.5435
+  type: 'test'
+  ...
+# Subtest: WhatsApp UI refuses stale saved connected claims and exposes recovery
+ok 354 - WhatsApp UI refuses stale saved connected claims and exposes recovery
+  ---
+  duration_ms: 55.4113
+  type: 'test'
+  ...
+# Subtest: fresh point-in-time verification does not claim real delivery
+ok 355 - fresh point-in-time verification does not claim real delivery
+  ---
+  duration_ms: 2.504
+  type: 'test'
+  ...
+# Subtest: versioned estimate applies configured remaining allowance without declaring reconciliation
+ok 356 - versioned estimate applies configured remaining allowance without declaring reconciliation
+  ---
+  duration_ms: 1.1674
+  type: 'test'
+  ...
+# Subtest: missing unreviewed ambiguous expired and currency-mismatched tariffs stay unknown
+ok 357 - missing unreviewed ambiguous expired and currency-mismatched tariffs stay unknown
+  ---
+  duration_ms: 0.2206
+  type: 'test'
+  ...
+# Subtest: negative and unsafe values are rejected
+ok 358 - negative and unsafe values are rejected
+  ---
+  duration_ms: 0.3898
+  type: 'test'
+  ...
+# Subtest: Inbox draft handles display channel casing but rejects noncanonical identifiers
+ok 359 - Inbox draft handles display channel casing but rejects noncanonical identifiers
+  ---
+  duration_ms: 1.2898
+  type: 'test'
+  ...
+# Subtest: WhatsApp reply route accepts only the anchored operator command
+ok 360 - WhatsApp reply route accepts only the anchored operator command
+  ---
+  duration_ms: 0.9375
+  type: 'test'
+  ...
+# Subtest: WhatsApp deterministic preparation is scoped, source-backed and requires approval
+ok 361 - WhatsApp deterministic preparation is scoped, source-backed and requires approval
+  ---
+  duration_ms: 2.5288
+  type: 'test'
+  ...
+# Subtest: WhatsApp preparation reuses durable WIA request lifecycle and replay without inference
+ok 362 - WhatsApp preparation reuses durable WIA request lifecycle and replay without inference
+  ---
+  duration_ms: 1.5971
+  type: 'test'
+  ...
+# Subtest: unsupported inbound content can only prepare a request for textual clarification
+ok 363 - unsupported inbound content can only prepare a request for textual clarification
+  ---
+  duration_ms: 0.46
+  type: 'test'
+  ...
+# Subtest: WIA first view and approvals load one HTTP resource; history preserves all five existing status queries
+ok 364 - WIA first view and approvals load one HTTP resource; history preserves all five existing status queries
+  ---
+  duration_ms: 35.1149
+  type: 'test'
+  ...
+# Subtest: WIA history fails visibly on a failed status query instead of returning a partial success
+ok 365 - WIA history fails visibly on a failed status query instead of returning a partial success
+  ---
+  duration_ms: 1.9905
+  type: 'test'
+  ...
+# Subtest: tier 1: open-quotes question resolves deterministically with zero inference and zero Pulso
+ok 366 - tier 1: open-quotes question resolves deterministically with zero inference and zero Pulso
+  ---
+  duration_ms: 15.5119
+  type: 'test'
+  ...
+# Subtest: tier 2: economic task classes map to the versioned Pulso policy without touching allowances
+ok 367 - tier 2: economic task classes map to the versioned Pulso policy without touching allowances
+  ---
+  duration_ms: 3.9978
+  type: 'test'
+  ...
+# Subtest: tier 3: deep requests carry escalation caps and never allow unbounded retries
+ok 368 - tier 3: deep requests carry escalation caps and never allow unbounded retries
+  ---
+  duration_ms: 1.5841
+  type: 'test'
+  ...
+# Subtest: tier 2 without any provider credential blocks instead of inventing a model
+ok 369 - tier 2 without any provider credential blocks instead of inventing a model
+  ---
+  duration_ms: 1.1546
+  type: 'test'
+  ...
+# Subtest: tier 2 with explicit deepseek opt-in env still requires provider approval (future-opt-in)
+ok 370 - tier 2 with explicit deepseek opt-in env still requires provider approval (future-opt-in)
+  ---
+  duration_ms: 0.808
+  type: 'test'
+  ...
+# Subtest: cost estimate uses the effective approved tariff with upstream rounding semantics
+ok 371 - cost estimate uses the effective approved tariff with upstream rounding semantics
+  ---
+  duration_ms: 1.2919
+  type: 'test'
+  ...
+# Subtest: latestTariffFor picks the newest effective version and ignores stale/expired/foreign rows
+ok 372 - latestTariffFor picks the newest effective version and ignores stale/expired/foreign rows
+  ---
+  duration_ms: 0.6756
+  type: 'test'
+  ...
+# Subtest: usage aggregation sums the model ledger honestly, counts malformed rows and marks zero-cost coverage
+ok 373 - usage aggregation sums the model ledger honestly, counts malformed rows and marks zero-cost coverage
+  ---
+  duration_ms: 1.5556
+  type: 'test'
+  ...
+# Subtest: POST /api/wia-efficiency/plan is read-only, tiered and reports zero-cost for T0
+ok 374 - POST /api/wia-efficiency/plan is read-only, tiered and reports zero-cost for T0
+  ---
+  duration_ms: 80.3011
+  type: 'test'
+  ...
+# Subtest: POST plan with a model question estimates against the effective approved tariff without writing
+ok 375 - POST plan with a model question estimates against the effective approved tariff without writing
+  ---
+  duration_ms: 14.9766
+  type: 'test'
+  ...
+# Subtest: GET /api/wia-efficiency/metrics aggregates per workspace with no cross-tenant leakage
+ok 376 - GET /api/wia-efficiency/metrics aggregates per workspace with no cross-tenant leakage
+  ---
+  duration_ms: 28.1684
+  type: 'test'
+  ...
+# Subtest: user in another workspace gets their own data without cross-tenant leakage
+ok 377 - user in another workspace gets their own data without cross-tenant leakage
+  ---
+  duration_ms: 9.4162
+  type: 'test'
+  ...
+# Subtest: efficiency routes enforce foreign-workspace rejection, absent membership and missing auth
+ok 378 - efficiency routes enforce foreign-workspace rejection, absent membership and missing auth
+  ---
+  duration_ms: 29.0401
+  type: 'test'
+  ...
+# Subtest: plan route validates message length and never writes
+ok 379 - plan route validates message length and never writes
+  ---
+  duration_ms: 18.0901
+  type: 'test'
+  ...
+# Subtest: planning rejects legacy URLs, query-only input, unknown properties and wrong content type
+ok 380 - planning rejects legacy URLs, query-only input, unknown properties and wrong content type
+  ---
+  duration_ms: 41.967
+  type: 'test'
+  ...
+# Subtest: planning resolves membership with the JWT-bound client without changing rows
+ok 381 - planning resolves membership with the JWT-bound client without changing rows
+  ---
+  duration_ms: 7.6007
+  type: 'test'
+  ...
+# Subtest: metrics rejects impossible calendar months
+ok 382 - metrics rejects impossible calendar months
+  ---
+  duration_ms: 21.1859
+  type: 'test'
+  ...
+# Subtest: large usage history is bounded and explicitly reports the scope of its totals
+ok 383 - large usage history is bounded and explicitly reports the scope of its totals
+  ---
+  duration_ms: 13.9001
+  type: 'test'
+  ...
+# Subtest: trusted T0 query derives quote evidence from the authorized workspace
+ok 384 - trusted T0 query derives quote evidence from the authorized workspace
+  ---
+  duration_ms: 24.6319
+  type: 'test'
+  ...
+# Subtest: unsupported model prompts never become caller-supplied execution evidence
+ok 385 - unsupported model prompts never become caller-supplied execution evidence
+  ---
+  duration_ms: 0.9165
+  type: 'test'
+  ...
+# Subtest: bounded T0 reads do not claim a false total when more rows exist
+ok 386 - bounded T0 reads do not claim a false total when more rows exist
+  ---
+  duration_ms: 0.4488
+  type: 'test'
+  ...
+# Subtest: Gemini Edge requires staging identity, explicit flag, workspace and secret
+ok 387 - Gemini Edge requires staging identity, explicit flag, workspace and secret
+  ---
+  duration_ms: 1.6316
+  type: 'test'
+  ...
+# Subtest: Gemini output is an approval draft and cannot cite foreign sources
+ok 388 - Gemini output is an approval draft and cannot cite foreign sources
+  ---
+  duration_ms: 3.3819
+  type: 'test'
+  ...
+# Subtest: commercial terms require verified commercial sources; optout/handoff remain pending
+ok 389 - commercial terms require verified commercial sources; optout/handoff remain pending
+  ---
+  duration_ms: 1.9406
+  type: 'test'
+  ...
+# Subtest: Gemini request has no tools, no arbitrary endpoint, bounded output and validated token usage
+ok 390 - Gemini request has no tools, no arbitrary endpoint, bounded output and validated token usage
+  ---
+  duration_ms: 27.5808
+  type: 'test'
+  ...
+# Subtest: provider errors never expose credentials, raw responses or retry automatically
+ok 391 - provider errors never expose credentials, raw responses or retry automatically
+  ---
+  duration_ms: 2.526
+  type: 'test'
+  ...
+# Subtest: trusted request scopes all reads and persists before returning success
+ok 392 - trusted request scopes all reads and persists before returning success
+  ---
+  duration_ms: 3.1553
+  type: 'test'
+  ...
+# Subtest: running, failed and completed replays never call Gemini
+ok 393 - running, failed and completed replays never call Gemini
+  ---
+  duration_ms: 0.9177
+  type: 'test'
+  ...
+# Subtest: no key denies model before quota claim; deterministic T0 still works without key
+ok 394 - no key denies model before quota claim; deterministic T0 still works without key
+  ---
+  duration_ms: 1.4225
+  type: 'test'
+  ...
+# Subtest: failed model run is audited and never represented as successful
+ok 395 - failed model run is audited and never represented as successful
+  ---
+  duration_ms: 1.1474
+  type: 'test'
+  ...
+# Subtest: unapproved Pulso allocation blocks generative calls and records the failed run
+ok 396 - unapproved Pulso allocation blocks generative calls and records the failed run
+  ---
+  duration_ms: 1.8811
+  type: 'test'
+  ...
+# Subtest: missing, expired, foreign-model or malformed tariff blocks inference even with an approved Pulso allocation
+ok 397 - missing, expired, foreign-model or malformed tariff blocks inference even with an approved Pulso allocation
+  ---
+  duration_ms: 1.6145
+  type: 'test'
+  ...
+# Subtest: mock gera resumo sem executar acao externa
+ok 398 - mock gera resumo sem executar acao externa
+  ---
+  duration_ms: 35.1012
+  type: 'test'
+  ...
+# Subtest: opt-out sempre exige registro controlado
+ok 399 - opt-out sempre exige registro controlado
+  ---
+  duration_ms: 0.7708
+  type: 'test'
+  ...
+# Subtest: pedido por pessoa transfere para humano
+ok 400 - pedido por pessoa transfere para humano
+  ---
+  duration_ms: 0.3238
+  type: 'test'
+  ...
+# Subtest: preco sem fonte verificavel nao e inventado
+ok 401 - preco sem fonte verificavel nao e inventado
+  ---
+  duration_ms: 0.998
+  type: 'test'
+  ...
+# Subtest: fontes inventadas pelo modelo sao removidas
+ok 402 - fontes inventadas pelo modelo sao removidas
+  ---
+  duration_ms: 0.554
+  type: 'test'
+  ...
+# Subtest: Gemini recebe historico curto da conversa sem alterar contexto verificado
+ok 403 - Gemini recebe historico curto da conversa sem alterar contexto verificado
+  ---
+  duration_ms: 42.4237
+  type: 'test'
+  ...
+# Subtest: Gemini permanece provider padrão em produção e desenvolvimento; providers futuros são opt-in
+ok 404 - Gemini permanece provider padrão em produção e desenvolvimento; providers futuros são opt-in
+  ---
+  duration_ms: 0.9507
+  type: 'test'
+  ...
+# Subtest: ausência da chave Gemini falha de forma controlada sem ativar provider futuro por credencial
+ok 405 - ausência da chave Gemini falha de forma controlada sem ativar provider futuro por credencial
+  ---
+  duration_ms: 0.5709
+  type: 'test'
+  ...
+# Subtest: produção sem provider configurado falha em vez de responder com mock
+ok 406 - produção sem provider configurado falha em vez de responder com mock
+  ---
+  duration_ms: 0.5377
+  type: 'test'
+  ...
+# Subtest: serviço WIA também recusa mock explicitamente solicitado em produção
+ok 407 - serviço WIA também recusa mock explicitamente solicitado em produção
+  ---
+  duration_ms: 3.2402
+  type: 'test'
+  ...
+# Subtest: Model Registry distingue gateway, família e modelo configurado para MiMo via OpenRouter
+ok 408 - Model Registry distingue gateway, família e modelo configurado para MiMo via OpenRouter
+  ---
+  duration_ms: 0.2977
+  type: 'test'
+  ...
+# Subtest: Model Router permite configuração por classe e classificação mantém rotas determinísticas
+ok 409 - Model Router permite configuração por classe e classificação mantém rotas determinísticas
+  ---
+  duration_ms: 0.4688
+  type: 'test'
+  ...
+# Subtest: casos do benchmark cobrem as classes configuradas sem chamadas externas
+ok 410 - casos do benchmark cobrem as classes configuradas sem chamadas externas
+  ---
+  duration_ms: 11.1988
+  type: 'test'
+  ...
+# Subtest: OpenRouter não permite fallback automático e classifica erro HTTP
+ok 411 - OpenRouter não permite fallback automático e classifica erro HTTP
+  ---
+  duration_ms: 0.9474
+  type: 'test'
+  ...
+1..411
+# tests 411
+# suites 0
+# pass 411
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 110688.38
+TAP version 13
+# Subtest: API authorization inventory is generated from server routes and flags review conditions
+ok 1 - API authorization inventory is generated from server routes and flags review conditions
+  ---
+  duration_ms: 648.7918
+  type: 'test'
+  ...
+# Subtest: empty, incomplete or ambiguous snapshots never prove notification safety
+ok 2 - empty, incomplete or ambiguous snapshots never prove notification safety
+  ---
+  duration_ms: 8.2246
+  type: 'test'
+  ...
+# Subtest: globally disabled rows or all explicitly disabled channels are safe observations
+ok 3 - globally disabled rows or all explicitly disabled channels are safe observations
+  ---
+  duration_ms: 1.4647
+  type: 'test'
+  ...
+# Subtest: each enabled channel fails and unknown enabled channels require schema review
+ok 4 - each enabled channel fails and unknown enabled channels require schema review
+  ---
+  duration_ms: 1.2783
+  type: 'test'
+  ...
+# Subtest: missing configuration, approval or production target blocks all network access
+ok 5 - missing configuration, approval or production target blocks all network access
+  ---
+  duration_ms: 0.7895
+  type: 'test'
+  ...
+# Subtest: real-mode cannot be certified using an injected fixture transport
+ok 6 - real-mode cannot be certified using an injected fixture transport
+  ---
+  duration_ms: 0.4879
+  type: 'test'
+  ...
+# Subtest: GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+ok 7 - GET-only sandbox preflight never enables flags, changes notifications or returns credentials/customer data
+  ---
+  duration_ms: 51.2967
+  type: 'test'
+  ...
+# Subtest: foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+ok 8 - foreign customer, unavailable provider, redirects and oversized data fail closed without raw error output
+  ---
+  duration_ms: 1.7766
+  type: 'test'
+  ...
+# Subtest: foreign customer notification snapshot is not approved
+ok 9 - foreign customer notification snapshot is not approved
+  ---
+  duration_ms: 1.3774
+  type: 'test'
+  ...
+# Subtest: Auth UI harness: recovery, partial failure, confirmation, provider visibility and reset errors
+ok 10 - Auth UI harness: recovery, partial failure, confirmation, provider visibility and reset errors
+  ---
+  duration_ms: 16638.1407
+  type: 'test'
+  ...
+# Subtest: ledger marks only a verified chronological suffix as expected pending
+ok 11 - ledger marks only a verified chronological suffix as expected pending
+  ---
+  duration_ms: 14.9987
+  type: 'test'
+  ...
+# Subtest: non-prefix local migration gaps and mismatched names are not assumed pending
+ok 12 - non-prefix local migration gaps and mismatched names are not assumed pending
+  ---
+  duration_ms: 0.3053
+  type: 'test'
+  ...
+# Subtest: schema diff identifies match, expected pending, local-only, remote-only, and divergent objects
+ok 13 - schema diff identifies match, expected pending, local-only, remote-only, and divergent objects
+  ---
+  duration_ms: 1.7094
+  type: 'test'
+  ...
+# Subtest: missing schema sections become UNKNOWN and block staging
+ok 14 - missing schema sections become UNKNOWN and block staging
+  ---
+  duration_ms: 0.4086
+  type: 'test'
+  ...
+# Subtest: mismatched inventory versions become UNKNOWN and block staging
+ok 15 - mismatched inventory versions become UNKNOWN and block staging
+  ---
+  duration_ms: 0.3759
+  type: 'test'
+  ...
+# Subtest: PostgreSQL minor difference triggers a review and is not treated as migration failure
+ok 16 - PostgreSQL minor difference triggers a review and is not treated as migration failure
+  ---
+  duration_ms: 1.0829
+  type: 'test'
+  ...
+# Subtest: PostgreSQL patch/build version difference is recorded for compatibility review
+ok 17 - PostgreSQL patch/build version difference is recorded for compatibility review
+  ---
+  duration_ms: 0.3214
+  type: 'test'
+  ...
+# Subtest: allows only the verified staging project and Supabase target
+ok 18 - allows only the verified staging project and Supabase target
+  ---
+  duration_ms: 2.2235
+  type: 'test'
+  ...
+# Subtest: hard aborts when the linked project is production
+ok 19 - hard aborts when the linked project is production
+  ---
+  duration_ms: 0.2122
+  type: 'test'
+  ...
+# Subtest: hard aborts when any supplied Supabase target names production
+ok 20 - hard aborts when any supplied Supabase target names production
+  ---
+  duration_ms: 0.1599
+  type: 'test'
+  ...
+# Subtest: hard aborts when a service-role key or fingerprint could reach Preview
+ok 21 - hard aborts when a service-role key or fingerprint could reach Preview
+  ---
+  duration_ms: 0.1674
+  type: 'test'
+  ...
+# Subtest: fails closed when required staging ref or URL is missing or unknown
+ok 22 - fails closed when required staging ref or URL is missing or unknown
+  ---
+  duration_ms: 0.2602
+  type: 'test'
+  ...
+# Subtest: rejects an unexpected Vercel project and a production deployment mode
+ok 23 - rejects an unexpected Vercel project and a production deployment mode
+  ---
+  duration_ms: 0.2476
+  type: 'test'
+  ...
+# Subtest: rejects deploy flags and permits guard-only without invoking Vercel
+ok 24 - rejects deploy flags and permits guard-only without invoking Vercel
+  ---
+  duration_ms: 0.1831
+  type: 'test'
+  ...
+# Subtest: Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags
+ok 25 - Google pilot mode pins only staging build/runtime configuration without accepting arbitrary deploy flags
+  ---
+  duration_ms: 0.8769
+  type: 'test'
+  ...
+# Subtest: extracts one staging URL from CLI progress and rejects ambiguous or production URLs
+ok 26 - extracts one staging URL from CLI progress and rejects ambiguous or production URLs
+  ---
+  duration_ms: 1.5853
+  type: 'test'
+  ...
+# Subtest: Vercel Git integration disables automatic deployments for every readiness branch
+ok 27 - Vercel Git integration disables automatic deployments for every readiness branch
+  ---
+  duration_ms: 4.8611
+  type: 'test'
+  ...
+# Subtest: CLI Preview excludes local environment and synthetic runner material
+ok 28 - CLI Preview excludes local environment and synthetic runner material
+  ---
+  duration_ms: 7.172
+  type: 'test'
+  ...
+# Subtest: CLI deploy pins project, Preview target, and the exact clean-checkout SHA
+ok 29 - CLI deploy pins project, Preview target, and the exact clean-checkout SHA
+  ---
+  duration_ms: 0.3954
+  type: 'test'
+  ...
+# Subtest: deploy result binds the inspected staging Preview to the expected SHA
+ok 30 - deploy result binds the inspected staging Preview to the expected SHA
+  ---
+  duration_ms: 0.436
+  type: 'test'
+  ...
+# Subtest: no adapter means explicit blocked report and zero network, not false PASS
+ok 31 - no adapter means explicit blocked report and zero network, not false PASS
+  ---
+  duration_ms: 4.2593
+  type: 'test'
+  ...
+# Subtest: read matrix uses both identities, all three transports and both foreign directions
+ok 32 - read matrix uses both identities, all three transports and both foreign directions
+  ---
+  duration_ms: 35.2052
+  type: 'test'
+  ...
+# Subtest: OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+ok 33 - OIDC is origin scoped, redirects are manual and output contains no tokens or response bodies
+  ---
+  duration_ms: 3.27
+  type: 'test'
+  ...
+# Subtest: wrong deployment stops before acquiring credentials or contacting application
+ok 34 - wrong deployment stops before acquiring credentials or contacting application
+  ---
+  duration_ms: 0.4103
+  type: 'test'
+  ...
+# Subtest: same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+ok 35 - same context, persistent storage, auto refresh and wrong OAuth identity fail before network
+  ---
+  duration_ms: 0.9775
+  type: 'test'
+  ...
+# Subtest: elevated/public keys from another project are rejected before session acquisition
+ok 36 - elevated/public keys from another project are rejected before session acquisition
+  ---
+  duration_ms: 2.8432
+  type: 'test'
+  ...
+# Subtest: natural expiry waits without altering production time and tests original JWTs before revocation
+ok 37 - natural expiry waits without altering production time and tests original JWTs before revocation
+  ---
+  duration_ms: 3.7769
+  type: 'test'
+  ...
+# Subtest: natural wait limit is blocked, not certified via a fabricated expired token
+ok 38 - natural wait limit is blocked, not certified via a fabricated expired token
+  ---
+  duration_ms: 2.5647
+  type: 'test'
+  ...
+# Subtest: local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+ok 39 - local logout tests unexpired revoked JWT, revoked refresh and other identity remains active
+  ---
+  duration_ms: 6.3943
+  type: 'test'
+  ...
+# Subtest: foreign data leak is FAIL and never hidden by other passing surfaces
+ok 40 - foreign data leak is FAIL and never hidden by other passing surfaces
+  ---
+  duration_ms: 2.9845
+  type: 'test'
+  ...
+# Subtest: untrusted errors and failed disposal never print credential-bearing diagnostics
+ok 41 - untrusted errors and failed disposal never print credential-bearing diagnostics
+  ---
+  duration_ms: 0.6732
+  type: 'test'
+  ...
+# Subtest: oversized replies and redirects cannot become PASS
+ok 42 - oversized replies and redirects cannot become PASS
+  ---
+  duration_ms: 2.2025
+  type: 'test'
+  ...
+# Subtest: approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+ok 43 - approved business resource reads verify nonempty own rows and empty foreign rows in both directions
+  ---
+  duration_ms: 5.5344
+  type: 'test'
+  ...
+# Subtest: malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+ok 44 - malformed fixture IDs and staging clock/transport overrides fail before credential acquisition
+  ---
+  duration_ms: 0.4793
+  type: 'test'
+  ...
+# Subtest: Vercel denial cannot masquerade as revoked user authentication
+ok 45 - Vercel denial cannot masquerade as revoked user authentication
+  ---
+  duration_ms: 6.2449
+  type: 'test'
+  ...
+# Subtest: natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+ok 46 - natural-expiry phase requires valid Preview protection beyond the wait or an OIDC renewal adapter
+  ---
+  duration_ms: 2.0987
+  type: 'test'
+  ...
+# Subtest: missing existing membership stops before any workspace API could provision a role
+ok 47 - missing existing membership stops before any workspace API could provision a role
+  ---
+  duration_ms: 0.5786
+  type: 'test'
+  ...
+# Subtest: G06 attempts API, Edge, forged workspace and PostgREST writes in both directions, independently observes every result
+ok 48 - G06 attempts API, Edge, forged workspace and PostgREST writes in both directions, independently observes every result
+  ---
+  duration_ms: 23.8488
+  type: 'test'
+  ...
+# Subtest: G06 refuses unapproved, nonsynthetic, duplicate or unobserved fixtures before acquiring credentials
+ok 49 - G06 refuses unapproved, nonsynthetic, duplicate or unobserved fixtures before acquiring credentials
+  ---
+  duration_ms: 1.3789
+  type: 'test'
+  ...
+# Subtest: G06 persisted leakage fails despite denial response, restores only the approved field and stops writes
+ok 50 - G06 persisted leakage fails despite denial response, restores only the approved field and stops writes
+  ---
+  duration_ms: 3.6848
+  type: 'test'
+  ...
+# Subtest: G06 checks persistence after ambiguous transport errors and never overwrites unrelated changes
+ok 51 - G06 checks persistence after ambiguous transport errors and never overwrites unrelated changes
+  ---
+  duration_ms: 6.6405
+  type: 'test'
+  ...
+# Subtest: G06 missing baseline, unknown denial and observer outage never become PASS
+ok 52 - G06 missing baseline, unknown denial and observer outage never become PASS
+  ---
+  duration_ms: 7.992
+  type: 'test'
+  ...
+# Subtest: G08 accepts legitimate parent outside the interval, rejects older ancestor and proves family revocation for A/B
+ok 53 - G08 accepts legitimate parent outside the interval, rejects older ancestor and proves family revocation for A/B
+  ---
+  duration_ms: 7.5201
+  type: 'test'
+  ...
+# Subtest: G08 wrong or unknown policy is blocked; it never assumes the default reuse interval
+ok 54 - G08 wrong or unknown policy is blocked; it never assumes the default reuse interval
+  ---
+  duration_ms: 6.1467
+  type: 'test'
+  ...
+# Subtest: G08 detects accepted ancestor, broken parent exception and nonrevoked active family
+ok 55 - G08 detects accepted ancestor, broken parent exception and nonrevoked active family
+  ---
+  duration_ms: 6.7551
+  type: 'test'
+  ...
+# Subtest: G08 and explicit logout cannot compete for the same sessions
+ok 56 - G08 and explicit logout cannot compete for the same sessions
+  ---
+  duration_ms: 0.5005
+  type: 'test'
+  ...
+# Subtest: G08 refuses a wait longer than JWT lifetime rather than confusing expiry with reuse revocation
+ok 57 - G08 refuses a wait longer than JWT lifetime rather than confusing expiry with reuse revocation
+  ---
+  duration_ms: 3.3508
+  type: 'test'
+  ...
+# Subtest: G06 expired/revoked actor cannot certify tenant denial even if rows stay unchanged
+ok 58 - G06 expired/revoked actor cannot certify tenant denial even if rows stay unchanged
+  ---
+  duration_ms: 4.4912
+  type: 'test'
+  ...
+# Subtest: G08 uses the verified interval including zero/custom values rather than a hardcoded ten seconds
+ok 59 - G08 uses the verified interval including zero/custom values rather than a hardcoded ten seconds
+  ---
+  duration_ms: 5.599
+  type: 'test'
+  ...
+# Subtest: G08 arbitrary provider error is not evidence of rejected reuse or family revocation
+ok 60 - G08 arbitrary provider error is not evidence of rejected reuse or family revocation
+  ---
+  duration_ms: 2.3418
+  type: 'test'
+  ...
+# Subtest: G06 failed restoration remains FAIL and cannot hide a persisted unauthorized change
+ok 61 - G06 failed restoration remains FAIL and cannot hide a persisted unauthorized change
+  ---
+  duration_ms: 3.358
+  type: 'test'
+  ...
+# Subtest: observed staging inventory blocks activation and preserves legacy access
+ok 62 - observed staging inventory blocks activation and preserves legacy access
+  ---
+  duration_ms: 2.3787
+  type: 'test'
+  ...
+# Subtest: Google pilot RPC denies access while the admission gate is disabled without changing legacy RLS
+ok 63 - Google pilot RPC denies access while the admission gate is disabled without changing legacy RLS
+  ---
+  duration_ms: 0.3983
+  type: 'test'
+  ...
+# Subtest: hiding password UI or enabling Google cannot prove Google-only Auth
+ok 64 - hiding password UI or enabling Google cannot prove Google-only Auth
+  ---
+  duration_ms: 0.203
+  type: 'test'
+  ...
+# Subtest: disabling project-wide email with legacy accounts remains blocked
+ok 65 - disabling project-wide email with legacy accounts remains blocked
+  ---
+  duration_ms: 0.1725
+  type: 'test'
+  ...
+# Subtest: production targets and altered app baselines are refused without echoing input
+ok 66 - production targets and altered app baselines are refused without echoing input
+  ---
+  duration_ms: 0.4552
+  type: 'test'
+  ...
+# Subtest: malformed, partial, unknown and credential-bearing inventories fail closed
+ok 67 - malformed, partial, unknown and credential-bearing inventories fail closed
+  ---
+  duration_ms: 0.4217
+  type: 'test'
+  ...
+# Subtest: manual linking, anonymous login, implicit flow and email confirmation regressions block
+ok 68 - manual linking, anonymous login, implicit flow and email confirmation regressions block
+  ---
+  duration_ms: 0.1942
+  type: 'test'
+  ...
+# Subtest: even ideal declared configuration never substitutes for authenticated runtime evidence
+ok 69 - even ideal declared configuration never substitutes for authenticated runtime evidence
+  ---
+  duration_ms: 0.2285
+  type: 'test'
+  ...
+# Subtest: CLI rejects malformed secret-bearing JSON without raw logs or environment disclosure
+ok 70 - CLI rejects malformed secret-bearing JSON without raw logs or environment disclosure
+  ---
+  duration_ms: 3278.984
+  type: 'test'
+  ...
+# Subtest: normal Google PKCE exchange owns two separate contexts, verifiers and memory stores; no session extraction
+ok 71 - normal Google PKCE exchange owns two separate contexts, verifiers and memory stores; no session extraction
+  ---
+  duration_ms: 5.5809
+  type: 'test'
+  ...
+# Subtest: wrong deployment never starts a browser or initiates OAuth
+ok 72 - wrong deployment never starts a browser or initiates OAuth
+  ---
+  duration_ms: 1.2386
+  type: 'test'
+  ...
+# Subtest: callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors
+ok 73 - callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors
+  ---
+  duration_ms: 6.1787
+  type: 'test'
+  ...
+# Subtest: elevated key, fixture dependencies in STAGING, missing inspector and unsafe timeout are refused
+ok 74 - elevated key, fixture dependencies in STAGING, missing inspector and unsafe timeout are refused
+  ---
+  duration_ms: 0.4411
+  type: 'test'
+  ...
+# Subtest: SDK HTTP boundary cannot send credentials to another origin
+ok 75 - SDK HTTP boundary cannot send credentials to another origin
+  ---
+  duration_ms: 1.4055
+  type: 'test'
+  ...
+# Subtest: CLI inspection binds explicit staging to authenticated project/team and scoped deployment list
+ok 76 - CLI inspection binds explicit staging to authenticated project/team and scoped deployment list
+  ---
+  duration_ms: 1.42
+  type: 'test'
+  ...
+# Subtest: missing or inconsistent project, scope, SHA, host and environment never start OAuth
+ok 77 - missing or inconsistent project, scope, SHA, host and environment never start OAuth
+  ---
+  duration_ms: 1.0059
+  type: 'test'
+  ...
+# Subtest: Radar branch cannot auto-deploy on push and keeps the readiness branch guard
+ok 78 - Radar branch cannot auto-deploy on push and keeps the readiness branch guard
+  ---
+  duration_ms: 4.0338
+  type: 'test'
+  ...
+# Subtest: public metadata requires the pinned staging Preview project and host
+ok 79 - public metadata requires the pinned staging Preview project and host
+  ---
+  duration_ms: 5.4578
+  type: 'test'
+  ...
+# Subtest: staging metadata rewrites legacy origins, disables indexing and removes analytics
+ok 80 - staging metadata rewrites legacy origins, disables indexing and removes analytics
+  ---
+  duration_ms: 38.8965
+  type: 'test'
+  ...
+# Subtest: actual subprocess receives system CA configuration and no administrative/provider secrets
+ok 81 - actual subprocess receives system CA configuration and no administrative/provider secrets
+  ---
+  duration_ms: 875.1912
+  type: 'test'
+  ...
+# Subtest: insecure TLS overrides and missing extra CA files fail closed
+ok 82 - insecure TLS overrides and missing extra CA files fail closed
+  ---
+  duration_ms: 0.7304
+  type: 'test'
+  ...
+# Subtest: redaction removes JWTs and known secrets in plain, JSON and URL-encoded diagnostics
+ok 83 - redaction removes JWTs and known secrets in plain, JSON and URL-encoded diagnostics
+  ---
+  duration_ms: 0.9226
+  type: 'test'
+  ...
+# Subtest: Playwright TLS rejects untrusted chains and wrong hostnames; explicit test CA works; failed tests retain no secrets
+ok 84 - Playwright TLS rejects untrusted chains and wrong hostnames; explicit test CA works; failed tests retain no secrets
+  ---
+  duration_ms: 9448.1605
+  type: 'test'
+  ...
+# Subtest: artifact sanitation handles old error contexts and removes unreviewed binaries
+ok 85 - artifact sanitation handles old error contexts and removes unreviewed binaries
+  ---
+  duration_ms: 15.5069
+  type: 'test'
+  ...
+# Subtest: route diagnostics discard query tokens, identifiers and unknown route content
+ok 86 - route diagnostics discard query tokens, identifiers and unknown route content
+  ---
+  duration_ms: 2.9341
+  type: 'test'
+  ...
+# Subtest: request diagnostics classify only the configured exact Preview as staging
+ok 87 - request diagnostics classify only the configured exact Preview as staging
+  ---
+  duration_ms: 0.349
+  type: 'test'
+  ...
+# Subtest: trace sanitizer retains timelines without request headers, bodies, resources or opaque values
+ok 88 - trace sanitizer retains timelines without request headers, bodies, resources or opaque values
+  ---
+  duration_ms: 21.9335
+  type: 'test'
+  ...
+# Subtest: safe wrapper distinguishes its own process deadline and suppresses raw stdout/stderr
+ok 89 - safe wrapper distinguishes its own process deadline and suppresses raw stdout/stderr
+  ---
+  duration_ms: 1752.432
+  type: 'test'
+  ...
+# Subtest: actual Playwright failures identify action, whole-test and API-request deadlines and retain sanitized traces
+ok 90 - actual Playwright failures identify action, whole-test and API-request deadlines and retain sanitized traces
+  ---
+  duration_ms: 40766.99
+  type: 'test'
+  ...
+# Subtest: password runner fails closed for Google pilot, disabled Email and unavailable settings
+ok 91 - password runner fails closed for Google pilot, disabled Email and unavailable settings
+  ---
+  duration_ms: 1.1949
+  type: 'test'
+  ...
+# Subtest: password runner checks live Auth mode before administrative lookup or synthetic creation
+ok 92 - password runner checks live Auth mode before administrative lookup or synthetic creation
+  ---
+  duration_ms: 2.0578
+  type: 'test'
+  ...
+# Subtest: E2E gate accepts only explicit isolated staging and synthetic A/B identities
+ok 93 - E2E gate accepts only explicit isolated staging and synthetic A/B identities
+  ---
+  duration_ms: 0.8899
+  type: 'test'
+  ...
+# Subtest: E2E gate fails closed for production, unknown preview, missing opt-in, and missing synthetic users
+ok 94 - E2E gate fails closed for production, unknown preview, missing opt-in, and missing synthetic users
+  ---
+  duration_ms: 0.4263
+  type: 'test'
+  ...
+# Subtest: E2E refuses credentials unless authenticated Vercel inspect binds URL to the staging project
+ok 95 - E2E refuses credentials unless authenticated Vercel inspect binds URL to the staging project
+  ---
+  duration_ms: 0.9491
+  type: 'test'
+  ...
+# Subtest: browser child receives only access for the exact staging Preview origin
+ok 96 - browser child receives only access for the exact staging Preview origin
+  ---
+  duration_ms: 1.3947
+  type: 'test'
+  ...
+# Subtest: OIDC access accepts a live token in memory and rejects expired or ambiguous access
+ok 97 - OIDC access accepts a live token in memory and rejects expired or ambiguous access
+  ---
+  duration_ms: 0.6961
+  type: 'test'
+  ...
+# Subtest: public proposal fixture preserves catalog identity and exact price required by the publication contract
+ok 98 - public proposal fixture preserves catalog identity and exact price required by the publication contract
+  ---
+  duration_ms: 32.6602
+  type: 'test'
+  ...
+# Subtest: contact verification stays unique before and after real reload despite repeated role labels
+ok 99 - contact verification stays unique before and after real reload despite repeated role labels
+  ---
+  duration_ms: 7403.752
+  type: 'test'
+  ...
+# Subtest: 17-migration staging capture is not treated as a validated app schema
+ok 100 - 17-migration staging capture is not treated as a validated app schema
+  ---
+  duration_ms: 1.6931
+  type: 'test'
+  ...
+# Subtest: only a fresh capture for the exact staging ref with all target migrations passes
+ok 101 - only a fresh capture for the exact staging ref with all target migrations passes
+  ---
+  duration_ms: 0.2996
+  type: 'test'
+  ...
+# Subtest: generated migration versions are accepted only with the exact logical name once
+ok 102 - generated migration versions are accepted only with the exact logical name once
+  ---
+  duration_ms: 0.8297
+  type: 'test'
+  ...
+# Subtest: missing, stale, production, duplicate and malformed ledger evidence fails closed
+ok 103 - missing, stale, production, duplicate and malformed ledger evidence fails closed
+  ---
+  duration_ms: 0.4158
+  type: 'test'
+  ...
+# Subtest: Google pilot migration 44 has exactly one logical occurrence irrespective of applied timestamp
+ok 104 - Google pilot migration 44 has exactly one logical occurrence irrespective of applied timestamp
+  ---
+  duration_ms: 0.6332
+  type: 'test'
+  ...
+# Subtest: staging preflight is read-only and passes only for the pinned staging environment and current schema
+ok 105 - staging preflight is read-only and passes only for the pinned staging environment and current schema
+  ---
+  duration_ms: 2.0977
+  type: 'test'
+  ...
+# Subtest: a 50-migration ledger accepted by the migration gate also passes the staging preflight
+ok 106 - a 50-migration ledger accepted by the migration gate also passes the staging preflight
+  ---
+  duration_ms: 1.0802
+  type: 'test'
+  ...
+# Subtest: staging preflight fails closed on production refs, project IDs, missing legal OFF flags and mock routes
+ok 107 - staging preflight fails closed on production refs, project IDs, missing legal OFF flags and mock routes
+  ---
+  duration_ms: 0.205
+  type: 'test'
+  ...
+# Subtest: staging preflight rejects elevated credentials in Preview
+ok 108 - staging preflight rejects elevated credentials in Preview
+  ---
+  duration_ms: 0.2137
+  type: 'test'
+  ...
+1..108
+# tests 108
+# suites 0
+# pass 108
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 100766.0413

@@ -1,3 +1,9 @@
+## Ajustes dos comentários de produto — 29/10/2026
+
+Runtime local b4d25d9, branch feat/orkto-ux-research-lab-2027. Marca→Hoje, Relatórios ligado na prévia, catálogo geral com filtro móvel e preparação WIA, configuração de mensagens sem template antigo e botão WIA arredondado. Equipe ganhou convite/aceitação por código via API existente, preservando papéis e gates de acesso. Dez cenários locais +36 combinações passaram;411 testes de aplicação +108 ferramentas aprovados na revisão anterior do mesmo backend. Meta real e automação de escrita por IA não foram homologadas. [Relatório e limites](ORKTO_PRODUCT_COMMENTS_2026-10-29.md). Sem deploy/merge; READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
+
 ## UX Research Lab — ciclo local concluído, 29/10/2026
 
 Branch isolada feat/orkto-ux-research-lab-2027; runtime 04d24c9 e commits posteriores somente de testes/evidências. [Relatório](ORKTO_UX_RESEARCH_LAB_2027.md), [dez personas e reavaliações](ORKTO_PERSONA_EVALUATIONS_2027.md), [matriz de problemas](ORKTO_USABILITY_ISSUES_2027.md), [antes/depois](ORKTO_UX_BEFORE_AFTER_2027.md) e [protocolo com pessoas reais](ORKTO_REAL_USER_TEST_PROTOCOL.md).
