@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-29T16:55:31.636398+00:00",
+  "generatedAt": "2026-10-29T16:56:09.695840+00:00",
   "environment": "local_frontend_in_memory_fixture",
   "runtimeSha": "04d24c93e9b37a54b8ca0ac385fa77a991adb3fa",
   "toolingHead": "f293848c22922b159877db01300a5d866b3f58a3",
@@ -306,8 +306,8 @@
   "artifacts": [
     {
       "file": ".gitattributes",
-      "bytes": 10,
-      "sha256": "4ce4b6e6b8435f8c3a8387387732964a2ebf0183e8d77b8247ae8061b033e462"
+      "bytes": 9,
+      "sha256": "48747480eddba024928d03be9bf83dc579e5515768647507a767e8187a85c9ab"
     },
     {
       "file": "after/A-first-entry.png",
@@ -601,8 +601,8 @@
     },
     {
       "file": "capture-procedure.mjs",
-      "bytes": 2226,
-      "sha256": "1572e60f0ebe0d60cb420e8c09776cfe7e59dff43f958abf49f747ef111bf0e4"
+      "bytes": 2225,
+      "sha256": "5c2879dad9aacd50dc685123286d8f46855659a962c4a0b47ea1a0121c15d0e8"
     },
     {
       "file": "personas/persona-01.md",
@@ -656,63 +656,63 @@
     },
     {
       "file": "README.md",
-      "bytes": 2400,
-      "sha256": "da519b10420e7009ba0ee077e2ffb9ecb5866e25a33bec45d407ea1dcb086606"
+      "bytes": 2381,
+      "sha256": "800b9f9774250e7794307579dcc923fb836582896fa7ee777c448c78f8ea28de"
     },
     {
       "file": "validation/.gitignore",
-      "bytes": 8,
-      "sha256": "15c4437080db4ec4be5ef2b2dde82e82749b1bb6379ee7f82d0fa7c87feba804"
+      "bytes": 7,
+      "sha256": "e027cf8ebf80d6dcdacced8a4dbd1c440e2436fb1868ec851db4061cb67bb787"
     },
     {
       "file": "validation/approval-recheck.log",
-      "bytes": 187,
-      "sha256": "b3b7d25deedf55e2b3eeaf675d120ed2c4df2387e01a0df91bcf407ed8792e7f"
+      "bytes": 174,
+      "sha256": "3799c98518d296fca788d2dae62cceb921207535ce9eae9461c13cb779064f00"
     },
     {
       "file": "validation/baseline-run.log",
-      "bytes": 2540,
-      "sha256": "6c42ab172f721ca306dfd7af1dc49449bc716caf1a589b07be8983edb807cdc4"
+      "bytes": 2444,
+      "sha256": "650a0b091a892dd01a0c19b0cb4d44208ad629545c7b52c9a6cabbc50e15ffb6"
     },
     {
       "file": "validation/build.log",
-      "bytes": 9263,
-      "sha256": "f5a6d35cf5f3f33768923a0fccf8c9f4a2cecabe6d69fc89b6024debc899020b"
+      "bytes": 9195,
+      "sha256": "4fe40d4101ddc5f97a005c9009ee498a1fd074a6fe32eba43b12dda25685ce66"
     },
     {
       "file": "validation/conversation-recheck.log",
-      "bytes": 193,
-      "sha256": "8d296af97cc7b36e5ecbe1a23b7f88fd988325bcf802cf90d10579f12220400a"
+      "bytes": 180,
+      "sha256": "4dd762d2ded6e29e03cd7d9bf2cbfb8664ed3b46c1690ed3a9e2fd18969a0fb7"
     },
     {
       "file": "validation/full-retest.log",
-      "bytes": 3763,
-      "sha256": "32160eab5ed1048771898cdd619d57a8ccc75a3fc6d881142b70c0e13c4769ae"
+      "bytes": 3613,
+      "sha256": "9cb63bd3d03d9b5051f15403200b6551cc60f6b33de8d87cfb40775efc7f98d1"
     },
     {
       "file": "validation/keyboard-recheck.log",
-      "bytes": 189,
-      "sha256": "6a3a767b2bacb504d320ee1a9ae4efbda85e6155a98a2fdcc6dfa7857d51763f"
+      "bytes": 176,
+      "sha256": "d40453fea70786c8d691e480e93951fde8c9271df7c05f7a1b2db1021388ec05"
     },
     {
       "file": "validation/regression.log",
-      "bytes": 122097,
-      "sha256": "1b71b8af3e75d930eba833a2551045e5ec4c53dc79ffd86429baccabb970ce80"
+      "bytes": 118951,
+      "sha256": "8eb709d2f35295aba4f11cbe766e4b504ee8c90ca447b79f13165d237bd72efa"
     },
     {
       "file": "validation/secret-scan.log",
-      "bytes": 154,
-      "sha256": "188f68965698ebb4436da9023fb51bab2b51e0137ba38d68dc37c85f6a72c72f"
+      "bytes": 149,
+      "sha256": "ab6e29e1fbdc26339ae5ee6a41d57d6dd4bc002f6be508008362da22844c6157"
     },
     {
       "file": "validation/typecheck.log",
-      "bytes": 40,
-      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+      "bytes": 36,
+      "sha256": "221d8258d6f186941597b08097464bf80d9b0e4c432dd199c5e25e765d35774a"
     },
     {
       "file": "validation-summary.json",
-      "bytes": 2093,
-      "sha256": "ccaac81ba914f78b04e13fbc4471116ba089cb2217c6bc7b417062123a12a83b"
+      "bytes": 2027,
+      "sha256": "13f07c56c17ade8e945bfea87eb9a1aaf32a106e796588ab16bac1ef8f166c09"
     },
     {
       "file": "visual-review/captures.json",
@@ -759,5 +759,6 @@
       "bytes": 120856,
       "sha256": "ce3bc8d2b618711113a24f9c7fd6ed4e7d46dcbd9a508bc1bd996fd3e7b0994d"
     }
-  ]
+  ],
+  "textEncodingPolicy": "UTF-8 with canonical LF; -text preserves exact bytes in Git"
 }
