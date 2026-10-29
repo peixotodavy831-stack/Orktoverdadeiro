@@ -6,17 +6,20 @@ import path from 'node:path';
 
 // Reuses the existing visual harness and Chromium dependency. All data is synthetic.
 const phase=process.argv.includes('--before')?'before':'after';
+const only=process.argv.find(value=>value.startsWith('--only='))?.slice(7);
+if(only)assert.match(only,/^[A-Za-z0-9-]+$/);
 const base=new URL(process.env.ORKTO_UX_LAB_URL||'http://127.0.0.1:4181/tests/visual/index.html');
 assert.equal(base.hostname,'127.0.0.1');assert.equal(base.protocol,'http:');assert.equal(base.pathname,'/tests/visual/index.html');
-const out=path.resolve('docs/09_EXECUTION/evidence/ux-research-lab-20261028',phase);
+const out=path.resolve('docs/09_EXECUTION/evidence/ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
 await mkdir(out,{recursive:true});
-const report={phase,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productBaseline:'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
+const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productBaseline:'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
 const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});
 let current;
 async function run(id,personas,width,height,fn){
+  if(only && only!==id)return;
   const context=await browser.newContext({viewport:{width,height},isMobile:width<1024,hasTouch:width<1024});
   await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===base.origin||url.protocol==='data:')return route.continue();report.blockedExternalHosts.push(url.hostname);return route.abort();});
-  const page=await context.newPage();page.setDefaultTimeout(5000);
+  const page=await context.newPage();page.setDefaultTimeout(5000);page.setDefaultNavigationTimeout(15000);
   current={id,personas,width,height,actions:[],pageErrors:[],status:'PASS',startedAt:new Date().toISOString()};
   page.on('pageerror',error=>current.pageErrors.push({name:error.name}));
   page.on('console',message=>{if(message.type()==='error'&&/TypeError|ReferenceError|calling ReactDOMClient.createRoot/.test(message.text()))current.pageErrors.push({name:'ReactConsoleError'});});
@@ -25,7 +28,7 @@ async function run(id,personas,width,height,fn){
   catch(error){current.status='FAIL';current.error=String(error.message).slice(0,800);}
   current.automationDurationMs=Date.now()-started;current.interactions=current.actions.length;
   await page.screenshot({path:path.join(out,`${id}.png`),fullPage:false}).catch(()=>{});
-  report.cases.push(current);console.log(`${id}: ${current.status}`);await context.close();
+  report.cases.push(current);console.log(`${id}: ${current.status}${current.error ? ' · '+current.error : ''}`);await context.close();
 }
 async function open(page,screen,extra={}){
   const url=new URL(base);url.searchParams.set('screen',screen);url.searchParams.set('theme','dark');url.searchParams.set('scenario','uxlab');for(const[key,value]of Object.entries(extra))url.searchParams.set(key,String(value));
@@ -137,8 +140,14 @@ try{
   await fill(search,'Cliente B Sintético','Buscar B');await click(page.getByRole('button',{name:'Histórico',exact:true}),'Histórico B');
   await dialog(page).getByRole('heading',{name:'Cliente B Sintético',exact:true}).waitFor();assert.equal(await page.locator('#edit-client-name').count(),0);current.persistence='B unchanged; A edit discarded; in-memory only';
  });
+ await run('UX10-desktop-enter',[4,10],1440,900,async page=>{
+  await open(page,'inbox');const composer=page.getByRole('textbox',{name:'Mensagem para Marina Costa',exact:true});
+  await fill(composer,'Parágrafo','Rascunho desktop');await press(composer,'Shift+Enter','Nova linha desktop');assert.ok((await composer.inputValue()).includes('\n'));
+  await composer.dispatchEvent('keydown',{key:'Enter',isComposing:true});assert.equal(await page.evaluate(()=>Number(document.documentElement.dataset.uxlabSendAttempts||0)),0);
+  await press(composer,'Enter','Enviar à fixture503 pelo teclado');await page.getByRole('alert').waitFor();assert.equal(await page.evaluate(()=>Number(document.documentElement.dataset.uxlabSendAttempts||0)),1);assert.ok((await composer.inputValue()).includes('Parágrafo'));current.externalSend='fixture503 only; never provider';
+ });
  // Same DOM/layout cases in both rounds. Emulation is explicitly not physical iOS/Android.
- for(const width of [320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of ['today','clients','inbox','wia']){
+ if(!only)for(const width of [320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of ['today','clients','inbox','wia']){
   const context=await browser.newContext({viewport:{width,height:850},isMobile:width<1024,hasTouch:width<1024});await context.route('**/*',route=>new URL(route.request().url()).origin===base.origin?route.continue():route.abort());
   const page=await context.newPage();await open(page,screen,screen==='inbox'?{thread:1}:{});if(theme==='light'){await page.getByRole('button',{name:/Ativar tema claro|Claro/,exact:true}).first().click();await page.locator('html:not(.dark)').waitFor();}
   const data=await page.evaluate(()=>({width:innerWidth,documentWidth:document.documentElement.scrollWidth,theme:document.documentElement.classList.contains('dark')?'dark':'light'}));report.matrix.push({screen,...data,overflow:data.documentWidth>data.width});console.log(`MATRIX ${width} ${theme} ${screen}: ${data.documentWidth>data.width ? "OVERFLOW" : "PASS"}`);await context.close();
@@ -146,5 +155,5 @@ try{
 }finally{
  report.blockedExternalHosts=[...new Set(report.blockedExternalHosts)];report.summary={pass:report.cases.filter(row=>row.status==='PASS').length,fail:report.cases.filter(row=>row.status==='FAIL').length};
  await writeFile(path.join(out,'journeys.json'),JSON.stringify(report,null,2));await browser.close();console.log(JSON.stringify({phase,...report.summary,cases:report.cases.map(row=>({id:row.id,status:row.status,error:row.error})),matrix:report.matrix.length},null,2));
- if(phase==='after'&&report.summary.fail)process.exitCode=1;
+ if((only&&report.cases.length!==1)||(phase==='after'&&report.summary.fail))process.exitCode=1;
 }
