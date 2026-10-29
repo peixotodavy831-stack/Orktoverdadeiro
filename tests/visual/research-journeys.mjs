@@ -13,7 +13,7 @@ const base=new URL(process.env.ORKTO_UX_LAB_URL||'http://127.0.0.1:4181/tests/vi
 assert.equal(base.hostname,'127.0.0.1');assert.equal(base.protocol,'http:');assert.equal(base.pathname,'/tests/visual/index.html');
 const out=path.resolve('docs/09_EXECUTION/evidence',comments?'ux-comments-20261029':'ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
 await mkdir(out,{recursive:true});
-const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productBaseline:'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
+const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productBaseline:comments?'211ca3d':'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
 const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});
 let current;
 async function run(id,personas,width,height,fn){
@@ -159,7 +159,7 @@ try{
   await open(page,'catalog');await page.getByRole('heading',{name:'Catálogo da empresa'}).waitFor();assert.equal(await page.getByText('Desenvolvimento & Software',{exact:true}).count(),0);await click(page.getByRole('button',{name:'Organizar com a WIA'}),'Preparar oferta na WIA');assert.match(await page.getByPlaceholder('Descreva seu pedido para a WIA…').inputValue(),/catálogo/);
  });
  await run('R3-reports-navigation',[3],1440,900,async page=>{
-  await open(page,'catalog');await more(page);await click(page.getByRole('button',{name:'Relatórios',exact:true}),'Abrir Relatórios');await page.getByRole('heading',{name:'Relatórios',exact:true}).waitFor();await page.getByText('Selecione um relatório',{exact:true}).waitFor();
+  await open(page,'catalog');if(!await page.getByRole('button',{name:'Relatórios',exact:true}).isVisible())await more(page);await click(page.getByRole('button',{name:'Relatórios',exact:true}),'Abrir Relatórios');await page.getByRole('heading',{name:'Relatórios',exact:true}).waitFor();await page.getByText('Selecione um relatório',{exact:true}).waitFor();
  });
  await run('R4-whatsapp-prerequisites',[4],390,850,async page=>{
   await open(page,'integrations');const connect=page.getByRole('button',{name:'Conectar meu WhatsApp',exact:true});await connect.waitFor();assert.equal(await connect.isEnabled(),false);await click(page.getByText('Como conectar meu WhatsApp?',{exact:true}),'Instruções de conexão');await page.getByText('Com a conexão liberada, clique em Conectar meu WhatsApp e continue na Meta.',{exact:true}).waitFor();current.providerE2E='NOT_TESTED; blocked configuration fixture';

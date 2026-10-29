@@ -1,3 +1,4 @@
+import OrktoLogo from '../../src/components/OrktoLogo';
 import { visualTeam } from './team-fixture';
 import QuoteDetail from '../../src/components/QuoteDetail';
 import {ConsolidatedArtifactsFixture} from './consolidated-artifacts';
@@ -152,7 +153,7 @@ function installVisualApiFixtures() {
       return json({data:{wia:{provider:'gemini',model:'fixture-only',testingOnly:true,state:'configuration_required'},
         whatsapp:{state,connected:state==='connected',runtimeConfigured:!!demo,
           connection:demo?{status:scenario==='meta-revoked'?'revoked':'connected',display_phone_number:'Número fictício · +55 11 00000-0000',verified_name:'Empresa de demonstração',coexistence_state:'unknown',service_mode:'manual',verified_at:scenario==='meta-verified'?new Date().toISOString():'2020-01-01T00:00:00Z'}:null,controls:demo?{human_takeover:true}:null},
-        billing:{state:'configuration_required',checkoutEnabled:false},canManage:!!demo}});
+        billing:{state:'configuration_required',checkoutEnabled:false},canManage:!!demo||scenario==='uxlab'}});
     }
     if(scenario==='uxlab'){
       if(path==='/api/contacts')return json({data:[]});
@@ -282,7 +283,7 @@ function App() {
     <DesktopSidebar currentView={currentView} collapsed={sidebarCollapsed} onCollapsedChange={setSidebarCollapsed} onNavigate={navigate} darkMode={darkMode} onThemeChange={setDarkMode} companyName="Ambiente de revisão" userName="QA" isInternalAdmin={false} onSignOut={() => undefined} />
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-3 orkto-product-border orkto-product-surface lg:hidden">
-        <button type="button" onClick={() => navigate('dashboard')} aria-label="ORKTO, ir para Hoje" className="min-h-11 rounded-lg px-1 text-sm font-semibold tracking-wide">ORKTO</button>
+        <button type="button" onClick={() => navigate('dashboard')} aria-label="ORKTO, ir para Hoje" className="flex min-h-11 min-w-11 items-center rounded-lg px-1"><OrktoLogo size="sm" showSlogan={false} onlyO={true} darkMode={darkMode}/></button>
         <div className="flex items-center gap-1"><button type="button" onClick={() => setDarkMode(value => !value)} aria-label={darkMode ? 'Ativar tema claro' : 'Ativar tema escuro'} className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted">{darkMode ? <Sun size={18} /> : <Moon size={18} />}</button><button type="button" onClick={() => setMenuOpen(true)} aria-label="Abrir menu" aria-expanded={menuOpen} className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted"><Menu size={19} /></button></div>
       </header>
       <div id="visual-main" className={`orkto-workspace-content relative min-h-0 min-w-0 flex-1 ${screen === 'inbox' ? 'overflow-hidden' : 'overflow-y-auto'}`}>
