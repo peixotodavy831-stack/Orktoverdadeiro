@@ -1,0 +1,96 @@
+A-first-entry: PASS
+B-client-create-history: PASS
+C-conversation-draft: PASS
+D-proposal-save-review: PASS
+E-wia-preparation: PASS
+F-radar-context: PASS
+G-consumption-plans-settings: PASS
+H-whatsapp-state-failure: PASS
+UX01-client-modal-focus: FAIL
+UX02-client-modal-short: FAIL
+UX03-client-edit-labels: FAIL
+UX04-old-approval: FAIL
+UX05-review-context: FAIL
+UX06-draft-switch: FAIL
+UX07-radar-more: FAIL
+UX08-mobile-enter: FAIL
+{
+  "phase": "before",
+  "pass": 8,
+  "fail": 8,
+  "cases": [
+    {
+      "id": "A-first-entry",
+      "status": "PASS"
+    },
+    {
+      "id": "B-client-create-history",
+      "status": "PASS"
+    },
+    {
+      "id": "C-conversation-draft",
+      "status": "PASS"
+    },
+    {
+      "id": "D-proposal-save-review",
+      "status": "PASS"
+    },
+    {
+      "id": "E-wia-preparation",
+      "status": "PASS"
+    },
+    {
+      "id": "F-radar-context",
+      "status": "PASS"
+    },
+    {
+      "id": "G-consumption-plans-settings",
+      "status": "PASS"
+    },
+    {
+      "id": "H-whatsapp-state-failure",
+      "status": "PASS"
+    },
+    {
+      "id": "UX01-client-modal-focus",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\nfalse !== true\n"
+    },
+    {
+      "id": "UX02-client-modal-short",
+      "status": "FAIL",
+      "error": "Clipped form needs user-scrollable dialog"
+    },
+    {
+      "id": "UX03-client-edit-labels",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n4 !== 0\n"
+    },
+    {
+      "id": "UX04-old-approval",
+      "status": "FAIL",
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-labelledby=\"today-attention-title\"]').getByText('Ação da WIA aguarda aprovação', { exact: true }) to be visible\u001b[22m\n"
+    },
+    {
+      "id": "UX05-review-context",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n'false' !== 'true'\n"
+    },
+    {
+      "id": "UX06-draft-switch",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'Rascunho entre atendimentos'\n"
+    },
+    {
+      "id": "UX07-radar-more",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n6 !== 9\n"
+    },
+    {
+      "id": "UX08-mobile-enter",
+      "status": "FAIL",
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n"
+    }
+  ],
+  "matrix": 56
+}

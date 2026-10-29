@@ -1,0 +1,42 @@
+{
+  "phase": "after",
+  "selectedCase": "UX04-old-approval",
+  "sourceSha": "f293848c22922b159877db01300a5d866b3f58a3",
+  "productBaseline": "c289f78",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T16:47:33.446Z",
+  "cases": [
+    {
+      "id": "UX04-old-approval",
+      "personas": [
+        2,
+        5
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:47:40.914Z",
+      "observed": {
+        "metric": "Ações para revisar\n\n1\n\nNa lista carregada"
+      },
+      "automationDurationMs": 867,
+      "interactions": 0,
+      "screenshot": {
+        "status": "PASS",
+        "file": "UX04-old-approval-f293848-1793292461781.png"
+      }
+    }
+  ],
+  "matrix": [],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 1,
+    "fail": 0
+  }
+}

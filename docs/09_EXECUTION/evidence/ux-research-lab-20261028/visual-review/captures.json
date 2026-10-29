@@ -1,0 +1,80 @@
+{
+  "sourceSha": "cf4cf4d080dc8bfe26482534e9b53b8f52c00232",
+  "environment": "local_frontend_in_memory_fixture",
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T16:44:17.364Z",
+  "records": [
+    {
+      "screen": "today",
+      "width": 320,
+      "height": 850,
+      "theme": "dark",
+      "file": "today-320-850-dark.png",
+      "modalSaveReachable": null,
+      "documentWidth": 320
+    },
+    {
+      "screen": "today",
+      "width": 390,
+      "height": 850,
+      "theme": "light",
+      "file": "today-390-850-light.png",
+      "modalSaveReachable": null,
+      "documentWidth": 390
+    },
+    {
+      "screen": "wia",
+      "width": 768,
+      "height": 950,
+      "theme": "dark",
+      "file": "wia-768-950-dark.png",
+      "modalSaveReachable": null,
+      "documentWidth": 768
+    },
+    {
+      "screen": "clients",
+      "width": 768,
+      "height": 950,
+      "theme": "light",
+      "file": "clients-768-950-light.png",
+      "modalSaveReachable": null,
+      "documentWidth": 768
+    },
+    {
+      "screen": "today",
+      "width": 1024,
+      "height": 900,
+      "theme": "light",
+      "file": "today-1024-900-light.png",
+      "modalSaveReachable": null,
+      "documentWidth": 1024
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "height": 1000,
+      "theme": "dark",
+      "file": "today-1440-1000-dark.png",
+      "modalSaveReachable": null,
+      "documentWidth": 1440
+    },
+    {
+      "screen": "wia",
+      "width": 1440,
+      "height": 1000,
+      "theme": "light",
+      "file": "wia-1440-1000-light.png",
+      "modalSaveReachable": null,
+      "documentWidth": 1440
+    },
+    {
+      "screen": "clients",
+      "width": 390,
+      "height": 430,
+      "theme": "dark",
+      "file": "clients-390-430-dark.png",
+      "modalSaveReachable": true,
+      "documentWidth": 390
+    }
+  ]
+}

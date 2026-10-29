@@ -1,0 +1,13 @@
+UX04-old-approval: PASS
+{
+  "phase": "after",
+  "pass": 1,
+  "fail": 0,
+  "cases": [
+    {
+      "id": "UX04-old-approval",
+      "status": "PASS"
+    }
+  ],
+  "matrix": 0
+}

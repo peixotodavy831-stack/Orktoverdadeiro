@@ -1,0 +1,41 @@
+{
+  "phase": "after",
+  "selectedCase": "C-conversation-draft",
+  "sourceSha": "cf4cf4d080dc8bfe26482534e9b53b8f52c00232",
+  "productBaseline": "c289f78",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T16:43:02.292Z",
+  "cases": [
+    {
+      "id": "C-conversation-draft",
+      "personas": [
+        4,
+        6
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Resposta em preparação"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:43:10.055Z",
+      "externalSend": "not_attempted",
+      "automationDurationMs": 831,
+      "interactions": 1
+    }
+  ],
+  "matrix": [],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 1,
+    "fail": 0
+  }
+}

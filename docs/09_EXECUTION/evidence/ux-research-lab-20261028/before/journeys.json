@@ -1,0 +1,854 @@
+{
+  "phase": "before",
+  "sourceSha": "c289f787ab2135724373449dd0b807ddab4ce26d",
+  "productBaseline": "c289f78",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T16:19:34.712Z",
+  "cases": [
+    {
+      "id": "A-first-entry",
+      "personas": [
+        1,
+        8
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Mais"
+        },
+        {
+          "kind": "fill",
+          "target": "Buscar em Mais"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:19:58.536Z",
+      "login": "NOT_TESTED: synthetic frontend session; no Google login",
+      "automationDurationMs": 1799,
+      "interactions": 2
+    },
+    {
+      "id": "B-client-create-history",
+      "personas": [
+        1,
+        3
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Novo Cliente"
+        },
+        {
+          "kind": "fill",
+          "target": "Nome"
+        },
+        {
+          "kind": "fill",
+          "target": "Telefone sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Salvar Registro"
+        },
+        {
+          "kind": "fill",
+          "target": "Buscar cliente criado"
+        },
+        {
+          "kind": "click",
+          "target": "Histórico do cliente criado"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:06.386Z",
+      "persistence": "in-memory fixture only",
+      "automationDurationMs": 2293,
+      "interactions": 6
+    },
+    {
+      "id": "C-conversation-draft",
+      "personas": [
+        4,
+        6
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Resposta em preparação"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:11.341Z",
+      "externalSend": "not_attempted",
+      "automationDurationMs": 970,
+      "interactions": 1
+    },
+    {
+      "id": "D-proposal-save-review",
+      "personas": [
+        2,
+        3
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Cliente"
+        },
+        {
+          "kind": "fill",
+          "target": "Telefone sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Próximo Passo"
+        },
+        {
+          "kind": "fill",
+          "target": "Nome do item"
+        },
+        {
+          "kind": "fill",
+          "target": "Valor unitário"
+        },
+        {
+          "kind": "click",
+          "target": "Próximo Passo"
+        },
+        {
+          "kind": "click",
+          "target": "Salvar proposta sintética"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:15.038Z",
+      "persistence": "in-memory fixture; App-compatible callback opens detail",
+      "automationDurationMs": 2779,
+      "interactions": 7
+    },
+    {
+      "id": "E-wia-preparation",
+      "personas": [
+        8,
+        9
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Pedido WIA sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Enviar pedido à fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Revisar aprovações"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:20.392Z",
+      "inference": "fixture only; no model call",
+      "automationDurationMs": 1622,
+      "interactions": 3
+    },
+    {
+      "id": "F-radar-context",
+      "personas": [
+        5,
+        9
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Evidências"
+        },
+        {
+          "kind": "click",
+          "target": "Abrir contexto"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:24.417Z",
+      "automationDurationMs": 1359,
+      "interactions": 2
+    },
+    {
+      "id": "G-consumption-plans-settings",
+      "personas": [
+        2,
+        5
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Mais"
+        },
+        {
+          "kind": "fill",
+          "target": "Pesquisar consumo"
+        },
+        {
+          "kind": "click",
+          "target": "Plano e cobrança"
+        },
+        {
+          "kind": "click",
+          "target": "Mais"
+        },
+        {
+          "kind": "click",
+          "target": "Configurações"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:28.597Z",
+      "checkout": "not_executed",
+      "automationDurationMs": 1337,
+      "interactions": 5
+    },
+    {
+      "id": "H-whatsapp-state-failure",
+      "personas": [
+        4,
+        8
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Rascunho"
+        },
+        {
+          "kind": "click",
+          "target": "Enviar somente à fixture503"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:20:32.574Z",
+      "externalSend": "intercepted fixture503; never provider",
+      "automationDurationMs": 1813,
+      "interactions": 2
+    },
+    {
+      "id": "UX01-client-modal-focus",
+      "personas": [
+        10
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Novo Cliente"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:20:40.046Z",
+      "observed": {
+        "focusInside": false
+      },
+      "error": "Expected values to be strictly equal:\n\nfalse !== true\n",
+      "automationDurationMs": 1595,
+      "interactions": 1
+    },
+    {
+      "id": "UX02-client-modal-short",
+      "personas": [
+        6,
+        7
+      ],
+      "width": 390,
+      "height": 430,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Novo Cliente"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:20:47.148Z",
+      "observed": {
+        "overflow": "hidden",
+        "scrollHeight": 568,
+        "clientHeight": 428
+      },
+      "error": "Clipped form needs user-scrollable dialog",
+      "automationDurationMs": 1039,
+      "interactions": 1
+    },
+    {
+      "id": "UX03-client-edit-labels",
+      "personas": [
+        10
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Histórico"
+        },
+        {
+          "kind": "click",
+          "target": "Editar Cadastro"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:20:50.576Z",
+      "observed": {
+        "unlabelled": 4
+      },
+      "error": "Expected values to be strictly equal:\n\n4 !== 0\n",
+      "automationDurationMs": 2115,
+      "interactions": 2
+    },
+    {
+      "id": "UX04-old-approval",
+      "personas": [
+        2,
+        5
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:20:55.273Z",
+      "error": "locator.waitFor: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[aria-labelledby=\"today-attention-title\"]').getByText('Ação da WIA aguarda aprovação', { exact: true }) to be visible\u001b[22m\n",
+      "automationDurationMs": 5808,
+      "interactions": 0
+    },
+    {
+      "id": "UX05-review-context",
+      "personas": [
+        2,
+        5
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "click",
+          "target": "Revisar ação de Hoje"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:21:04.135Z",
+      "observed": {
+        "pressed": "false"
+      },
+      "error": "Expected values to be strictly equal:\n\n'false' !== 'true'\n",
+      "automationDurationMs": 1009,
+      "interactions": 1
+    },
+    {
+      "id": "UX06-draft-switch",
+      "personas": [
+        4
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Rascunho Marina"
+        },
+        {
+          "kind": "click",
+          "target": "Abrir Caio"
+        },
+        {
+          "kind": "click",
+          "target": "Voltar Marina"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:21:07.579Z",
+      "observed": {
+        "draft": ""
+      },
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'Rascunho entre atendimentos'\n",
+      "automationDurationMs": 1232,
+      "interactions": 3
+    },
+    {
+      "id": "UX07-radar-more",
+      "personas": [
+        9
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:21:11.173Z",
+      "observed": {
+        "signals": 6
+      },
+      "error": "Expected values to be strictly equal:\n\n6 !== 9\n",
+      "automationDurationMs": 981,
+      "interactions": 0
+    },
+    {
+      "id": "UX08-mobile-enter",
+      "personas": [
+        7
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Rascunho"
+        },
+        {
+          "kind": "key",
+          "target": "Quebra de linha no toque",
+          "key": "Enter"
+        }
+      ],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T16:21:14.748Z",
+      "observed": {
+        "value": "Primeira linha",
+        "attempts": 1,
+        "coarse": true
+      },
+      "error": "Expected values to be strictly equal:\n\n1 !== 0\n",
+      "automationDurationMs": 933,
+      "interactions": 2
+    }
+  ],
+  "matrix": [
+    {
+      "screen": "today",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 320,
+      "documentWidth": 320,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 360,
+      "documentWidth": 360,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 430,
+      "documentWidth": 430,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 1024,
+      "documentWidth": 1024,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "today",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "clients",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "inbox",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    }
+  ],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 8,
+    "fail": 8
+  }
+}

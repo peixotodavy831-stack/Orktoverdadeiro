@@ -1,0 +1,758 @@
+{
+  "generatedAt": "2026-10-29T16:54:56.048894+00:00",
+  "environment": "local_frontend_in_memory_fixture",
+  "runtimeSha": "04d24c93e9b37a54b8ca0ac385fa77a991adb3fa",
+  "toolingHead": "f293848c22922b159877db01300a5d866b3f58a3",
+  "authoritativeFinalVisualDirectories": [
+    "visual-review",
+    "after-recheck-UX04-old-approval"
+  ],
+  "legacyScreenshotFreshness": [
+    {
+      "file": "before/A-first-entry.png",
+      "secondsAfterCaseStart": 1.892,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/B-client-create-history.png",
+      "secondsAfterCaseStart": 2.415,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/C-conversation-draft.png",
+      "secondsAfterCaseStart": 1.045,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/D-proposal-save-review.png",
+      "secondsAfterCaseStart": 2.933,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/E-wia-preparation.png",
+      "secondsAfterCaseStart": 1.747,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/F-radar-context.png",
+      "secondsAfterCaseStart": 1.56,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/G-consumption-plans-settings.png",
+      "secondsAfterCaseStart": 1.425,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/H-whatsapp-state-failure.png",
+      "secondsAfterCaseStart": 1.906,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX01-client-modal-focus.png",
+      "secondsAfterCaseStart": 1.806,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX02-client-modal-short.png",
+      "secondsAfterCaseStart": 1.17,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX03-client-edit-labels.png",
+      "secondsAfterCaseStart": 2.4,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX04-old-approval.png",
+      "secondsAfterCaseStart": 6.012,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX05-review-context.png",
+      "secondsAfterCaseStart": 1.235,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX06-draft-switch.png",
+      "secondsAfterCaseStart": 1.478,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX07-radar-more.png",
+      "secondsAfterCaseStart": 1.298,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "before/UX08-mobile-enter.png",
+      "secondsAfterCaseStart": 1.038,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": true
+    },
+    {
+      "file": "after-attempt-1/A-first-entry.png",
+      "secondsAfterCaseStart": 1.097,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/B-client-create-history.png",
+      "secondsAfterCaseStart": 1.838,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/C-conversation-draft.png",
+      "secondsAfterCaseStart": 1.454,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/D-proposal-save-review.png",
+      "secondsAfterCaseStart": 2.925,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/E-wia-preparation.png",
+      "secondsAfterCaseStart": 2.174,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/F-radar-context.png",
+      "secondsAfterCaseStart": 1.982,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/G-consumption-plans-settings.png",
+      "secondsAfterCaseStart": 2.337,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/H-whatsapp-state-failure.png",
+      "secondsAfterCaseStart": 1.988,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX01-client-modal-focus.png",
+      "secondsAfterCaseStart": 2.491,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX02-client-modal-short.png",
+      "secondsAfterCaseStart": 7.502,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX03-client-edit-labels.png",
+      "secondsAfterCaseStart": 6.579,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX04-old-approval.png",
+      "secondsAfterCaseStart": 2.706,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX05-review-context.png",
+      "secondsAfterCaseStart": 2.79,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX06-draft-switch.png",
+      "secondsAfterCaseStart": 4.706,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX07-radar-more.png",
+      "secondsAfterCaseStart": 1.648,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after-attempt-1/UX08-mobile-enter.png",
+      "secondsAfterCaseStart": 4.701,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/A-first-entry.png",
+      "secondsAfterCaseStart": 1.248,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/B-client-create-history.png",
+      "secondsAfterCaseStart": 1.825,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/C-conversation-draft.png",
+      "secondsAfterCaseStart": 5.206,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/D-proposal-save-review.png",
+      "secondsAfterCaseStart": 6.203,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/E-wia-preparation.png",
+      "secondsAfterCaseStart": 2.325,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/F-radar-context.png",
+      "secondsAfterCaseStart": 1.996,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/G-consumption-plans-settings.png",
+      "secondsAfterCaseStart": 1.451,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/H-whatsapp-state-failure.png",
+      "secondsAfterCaseStart": 3.731,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX01-client-modal-focus.png",
+      "secondsAfterCaseStart": 1.288,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX02-client-modal-short.png",
+      "secondsAfterCaseStart": 1.32,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX03-client-edit-labels.png",
+      "secondsAfterCaseStart": 1.86,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX04-old-approval.png",
+      "secondsAfterCaseStart": -634.309,
+      "freshForDeclaredCase": false,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX05-review-context.png",
+      "secondsAfterCaseStart": 1.282,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX06-draft-switch.png",
+      "secondsAfterCaseStart": 1.664,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX07-radar-more.png",
+      "secondsAfterCaseStart": 1.555,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX08-mobile-enter.png",
+      "secondsAfterCaseStart": 1.126,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    },
+    {
+      "file": "after/UX09-edit-escape-reset.png",
+      "secondsAfterCaseStart": 4.232,
+      "freshForDeclaredCase": true,
+      "acceptedAsFinalVisualEvidence": false
+    }
+  ],
+  "artifacts": [
+    {
+      "file": "after/A-first-entry.png",
+      "bytes": 48077,
+      "sha256": "fd8c1ea057cd105a2ddeac1e122d0e8044066d3ecf8f01997468efad81b2f6da"
+    },
+    {
+      "file": "after/B-client-create-history.png",
+      "bytes": 114011,
+      "sha256": "f502f208ac8f449812c1e2f40cc26b33210c07ed3047774572610e13903c4750"
+    },
+    {
+      "file": "after/C-conversation-draft.png",
+      "bytes": 2759,
+      "sha256": "fee74800651ceaa91404419081b69452bd26780ffd36361d6562dc048a225fdf"
+    },
+    {
+      "file": "after/D-proposal-save-review.png",
+      "bytes": 214626,
+      "sha256": "45a5a36fcec2077cee12926c10c82deca80e44800dc6a3673fa370ff535e948f"
+    },
+    {
+      "file": "after/E-wia-preparation.png",
+      "bytes": 148170,
+      "sha256": "53d2ac5aa9ce8da677c34644557073412501f26eef900434ee9d2fde9f415e36"
+    },
+    {
+      "file": "after/F-radar-context.png",
+      "bytes": 211380,
+      "sha256": "308f82d77f276a50e87ae4d76c3dd57bff5910fbad6b16ec0a2814c48033b0c9"
+    },
+    {
+      "file": "after/G-consumption-plans-settings.png",
+      "bytes": 94750,
+      "sha256": "16a709100210e707b2ccb479256901a2c168253a16edfbfb1c116e4500b3ffe8"
+    },
+    {
+      "file": "after/H-whatsapp-state-failure.png",
+      "bytes": 74130,
+      "sha256": "479bdf30257eac2466c6d069588f957d2bf02579a093472c5c3cef2deb734909"
+    },
+    {
+      "file": "after/journeys.json",
+      "bytes": 19267,
+      "sha256": "61c572b21f0aca9b86801167adc8e5a06db622010ec621283306d00b08d645d0"
+    },
+    {
+      "file": "after/UX01-client-modal-focus.png",
+      "bytes": 68485,
+      "sha256": "a7b8510c0fe936fae863235ede598460ef399d40fd007968f7989b5345c12a38"
+    },
+    {
+      "file": "after/UX02-client-modal-short.png",
+      "bytes": 58120,
+      "sha256": "21bbbbeb3c8e75e3a0c0097347979472f878635dbf830ef58413d7d8dc5632d5"
+    },
+    {
+      "file": "after/UX03-client-edit-labels.png",
+      "bytes": 157693,
+      "sha256": "5a31b7aef1301122d0d08fd8dbb6406d5261f508d6c80d773f160b17cc5ae308"
+    },
+    {
+      "file": "after/UX04-old-approval.png",
+      "bytes": 259425,
+      "sha256": "b82b566fed48b1e1bfcfccee04f36144704beece694c9b2e27bde759b26f7b26"
+    },
+    {
+      "file": "after/UX05-review-context.png",
+      "bytes": 148189,
+      "sha256": "ff43ca44c854ef61771d3f13ee836ea6b8b8a7d112eb795a59521f87b9e4ea75"
+    },
+    {
+      "file": "after/UX06-draft-switch.png",
+      "bytes": 213159,
+      "sha256": "66e5e94da679ef525e0f8724d6779ba0717a6013fcc2ea10f76cfb81ae1796b6"
+    },
+    {
+      "file": "after/UX07-radar-more.png",
+      "bytes": 129112,
+      "sha256": "c88c33827ce8d7b0c28fee98ff611258949794531f04ed518f82bcf8cfa6ae2a"
+    },
+    {
+      "file": "after/UX08-mobile-enter.png",
+      "bytes": 57155,
+      "sha256": "194042f39a2cd1cbbd6db79b921ce528e2d3b83bd5813ecaaabfce6a85fd79c4"
+    },
+    {
+      "file": "after/UX09-edit-escape-reset.png",
+      "bytes": 216819,
+      "sha256": "fdbc562d9ce6dbc4b84097cf3e565980c8eb8fcc10d5f0c0f2affb33add255be"
+    },
+    {
+      "file": "after-attempt-1/A-first-entry.png",
+      "bytes": 47087,
+      "sha256": "06435c03a58e72207b1be75a1a0b1e4539fb6dc8b15d301e2aee56d7f7cc0686"
+    },
+    {
+      "file": "after-attempt-1/B-client-create-history.png",
+      "bytes": 113984,
+      "sha256": "8103406bb3162f7be2a6162357638d8244ad825fcfa6a469e141a9799b44b5a0"
+    },
+    {
+      "file": "after-attempt-1/C-conversation-draft.png",
+      "bytes": 58271,
+      "sha256": "e1e70088ca089957370dddd408f2196cfa7cf79951c0b6375af642525c547dd7"
+    },
+    {
+      "file": "after-attempt-1/D-proposal-save-review.png",
+      "bytes": 214626,
+      "sha256": "637e087039472655dc022a51d53f66e7e6814259f9786cfb56d18c71c9ab581e"
+    },
+    {
+      "file": "after-attempt-1/E-wia-preparation.png",
+      "bytes": 148151,
+      "sha256": "ea4f5b8ba75936f7e822db8f5ee4a1298b2f3a02276cba68ec0ee9c556ad1632"
+    },
+    {
+      "file": "after-attempt-1/F-radar-context.png",
+      "bytes": 211583,
+      "sha256": "a8bf901cb4fa7bd15d143ab59ed0fdfc70e8a77b82df21b2c2633d811be15e6b"
+    },
+    {
+      "file": "after-attempt-1/G-consumption-plans-settings.png",
+      "bytes": 94750,
+      "sha256": "16a709100210e707b2ccb479256901a2c168253a16edfbfb1c116e4500b3ffe8"
+    },
+    {
+      "file": "after-attempt-1/H-whatsapp-state-failure.png",
+      "bytes": 74090,
+      "sha256": "048d17e7c4644439407e1eb1f8d5e75eb84a716403e00ccbc34ae5755b512eb7"
+    },
+    {
+      "file": "after-attempt-1/journeys.json",
+      "bytes": 18469,
+      "sha256": "50f238e678e0a8515a7057dcd74740000e6f9baac88e2c0058f0230f4c8bd6a6"
+    },
+    {
+      "file": "after-attempt-1/UX01-client-modal-focus.png",
+      "bytes": 68485,
+      "sha256": "a7b8510c0fe936fae863235ede598460ef399d40fd007968f7989b5345c12a38"
+    },
+    {
+      "file": "after-attempt-1/UX02-client-modal-short.png",
+      "bytes": 55642,
+      "sha256": "d068bcd1268cbc50a042cf3e6f7935b4d92055fadc06edfe8f2657f6afdcf0cd"
+    },
+    {
+      "file": "after-attempt-1/UX03-client-edit-labels.png",
+      "bytes": 157602,
+      "sha256": "0eb8341f6c49140314a06890bc0fa95bfe31120316ea71fcd3d813395bd7d60e"
+    },
+    {
+      "file": "after-attempt-1/UX04-old-approval.png",
+      "bytes": 259425,
+      "sha256": "b82b566fed48b1e1bfcfccee04f36144704beece694c9b2e27bde759b26f7b26"
+    },
+    {
+      "file": "after-attempt-1/UX05-review-context.png",
+      "bytes": 148148,
+      "sha256": "b3ee175b060862ed666816e74b9487b0c011cdb342f2bca01bc17b7f250af6de"
+    },
+    {
+      "file": "after-attempt-1/UX06-draft-switch.png",
+      "bytes": 211064,
+      "sha256": "f949a4752e749fe2a68a0eb5b89eaf314cd34684cae23e0f5005a0edbe28a1e1"
+    },
+    {
+      "file": "after-attempt-1/UX07-radar-more.png",
+      "bytes": 126470,
+      "sha256": "bc840fade44e3e70d29660d1da66b7aec2404f84ed639ed6594e5243c0e57731"
+    },
+    {
+      "file": "after-attempt-1/UX08-mobile-enter.png",
+      "bytes": 57250,
+      "sha256": "13e2d63e885729e01e3cc5d19d53f53c33fe6718d1f11ac1d01b2aa3d0d0ee27"
+    },
+    {
+      "file": "after-recheck-C-conversation-draft/C-conversation-draft.png",
+      "bytes": 58484,
+      "sha256": "829307b6492d660c09a8c8008c646b7ed6936007eed37f5ed56eff6154485468"
+    },
+    {
+      "file": "after-recheck-C-conversation-draft/journeys.json",
+      "bytes": 900,
+      "sha256": "c51eaf3dc0f4a32014981167a519f10a66e6d8499d40a2618c2169a29436f09a"
+    },
+    {
+      "file": "after-recheck-UX04-old-approval/journeys.json",
+      "bytes": 972,
+      "sha256": "1830965aa0e9d4ccbf0c014d9647948396b3dc08f094d9d37062273a857dee60"
+    },
+    {
+      "file": "after-recheck-UX04-old-approval/UX04-old-approval-f293848-1793292461781.png",
+      "bytes": 218332,
+      "sha256": "30d7d47d6ecdda07f3c18bda8f4989ceb6f97248c49f0d3b6f1bee2be0b7ba25"
+    },
+    {
+      "file": "after-recheck-UX10-desktop-enter/journeys.json",
+      "bytes": 1156,
+      "sha256": "e6ee1087e015d2460a5042c881ef4067c0f544973c89fd9658ef6089f8eb4459"
+    },
+    {
+      "file": "after-recheck-UX10-desktop-enter/UX10-desktop-enter.png",
+      "bytes": 230778,
+      "sha256": "f79597274482b3dfa46119b01dbbe31b7c24d512d952b83506537cbbb8e6f030"
+    },
+    {
+      "file": "before/A-first-entry.png",
+      "bytes": 47087,
+      "sha256": "06435c03a58e72207b1be75a1a0b1e4539fb6dc8b15d301e2aee56d7f7cc0686"
+    },
+    {
+      "file": "before/B-client-create-history.png",
+      "bytes": 107370,
+      "sha256": "98a2956ff659e102ddd735f1015cfd3e1edf81fedf9b3122904b6349b9d3c9b6"
+    },
+    {
+      "file": "before/C-conversation-draft.png",
+      "bytes": 58227,
+      "sha256": "e4ac80ddeffaadfa5da0a1e3c07f50be5a3cf3ca7270b674394da7c0cde53597"
+    },
+    {
+      "file": "before/D-proposal-save-review.png",
+      "bytes": 214606,
+      "sha256": "64951937ca7b634ccc575d0a70818555d1b6d106c6de4e087da32bc688e38147"
+    },
+    {
+      "file": "before/E-wia-preparation.png",
+      "bytes": 148162,
+      "sha256": "ca901986546633a59d396913c9f4e949d23ffe0b29b12f6d98cf62e0bfae481c"
+    },
+    {
+      "file": "before/F-radar-context.png",
+      "bytes": 213384,
+      "sha256": "c522e30df6fb8d92a05e5e9a3fd0f2cca7a2d3aca939769433500ccf0b2043ba"
+    },
+    {
+      "file": "before/G-consumption-plans-settings.png",
+      "bytes": 94750,
+      "sha256": "16a709100210e707b2ccb479256901a2c168253a16edfbfb1c116e4500b3ffe8"
+    },
+    {
+      "file": "before/H-whatsapp-state-failure.png",
+      "bytes": 74090,
+      "sha256": "c97a9c5064ffbc45ee1c084584cacdd28342ac9185e4e07582549782ae99345c"
+    },
+    {
+      "file": "before/journeys.json",
+      "bytes": 17948,
+      "sha256": "04c4904b3dd976a43af6d65879590ae6a429c2fc2e685cb61cddf9511cf69ace"
+    },
+    {
+      "file": "before/UX01-client-modal-focus.png",
+      "bytes": 79801,
+      "sha256": "1c590233082971b0f66105fd271b9c0e6b5d8c41ea2db59beab3008918c3f703"
+    },
+    {
+      "file": "before/UX02-client-modal-short.png",
+      "bytes": 55204,
+      "sha256": "999ab58b070dcc79efb5a1152b3337008b9e33ee431c9c6d938a73e295fd999e"
+    },
+    {
+      "file": "before/UX03-client-edit-labels.png",
+      "bytes": 157775,
+      "sha256": "4304425353985db0b18bc0d3451892c3b03a26c4d2f0264d02b84e12dae63c47"
+    },
+    {
+      "file": "before/UX04-old-approval.png",
+      "bytes": 259439,
+      "sha256": "1dddb6013e78da16a9d994c09557d483101de894d5271f355272c8f92bd10035"
+    },
+    {
+      "file": "before/UX05-review-context.png",
+      "bytes": 157363,
+      "sha256": "0b0e1682136ace26694b03cc0b692eb83192e1a421b58013fbf671e9d5c39054"
+    },
+    {
+      "file": "before/UX06-draft-switch.png",
+      "bytes": 211352,
+      "sha256": "6eb68bfd42556a0e5efd09d98c8531529669b582cbb42ed070d81e2460dfc4a5"
+    },
+    {
+      "file": "before/UX07-radar-more.png",
+      "bytes": 262382,
+      "sha256": "2a4468d3c7de7194131d3034ff7fe11ed084775313369cb1181057d9a5cbe090"
+    },
+    {
+      "file": "before/UX08-mobile-enter.png",
+      "bytes": 73339,
+      "sha256": "563a1c5a6d8a6a7c6bc1c6fe6946fc127e1951c60d2ad95ff4a2664b45e79ccb"
+    },
+    {
+      "file": "capture-procedure.mjs",
+      "bytes": 2226,
+      "sha256": "1572e60f0ebe0d60cb420e8c09776cfe7e59dff43f958abf49f747ef111bf0e4"
+    },
+    {
+      "file": "personas/persona-01.md",
+      "bytes": 8172,
+      "sha256": "a0738b3e273ee1d7c2a1fe3124cf6587a2c1e514a565f5e245f435eb1382ef63"
+    },
+    {
+      "file": "personas/persona-02.md",
+      "bytes": 6404,
+      "sha256": "29c43a76d83e8c48bd400f9cf1af3be5b06291786bbcc466324fbf9dbfe8a4ad"
+    },
+    {
+      "file": "personas/persona-03.md",
+      "bytes": 6851,
+      "sha256": "264bf1c2ed09f0575cdf976678c7534b192bbc2c5a29b5daff5226156cbfd9db"
+    },
+    {
+      "file": "personas/persona-04.md",
+      "bytes": 6379,
+      "sha256": "c39d0982bb5a7baa10ba0c331960adf2162cd4619cb5828bf3267239634bf025"
+    },
+    {
+      "file": "personas/persona-05.md",
+      "bytes": 6923,
+      "sha256": "a1167216c9288aa1016e7467fe3e7a881aa70e8fdfab8ed7ffd9c6ba991d47f5"
+    },
+    {
+      "file": "personas/persona-06.md",
+      "bytes": 6329,
+      "sha256": "ac88d566a1f3275f45572c414859d8d2d0dc10d31b934a98c545b5418fff6b2a"
+    },
+    {
+      "file": "personas/persona-07.md",
+      "bytes": 6574,
+      "sha256": "5d4f919a683cfc7ced7eefb7e04db4d5c0c329e7296b335492b00cd159881fdb"
+    },
+    {
+      "file": "personas/persona-08.md",
+      "bytes": 8296,
+      "sha256": "c80b707e4ca9c9d1a060ff0f8c6919b8970dada2e811ea905bf115133d0260fc"
+    },
+    {
+      "file": "personas/persona-09.md",
+      "bytes": 7063,
+      "sha256": "a314f02b1ad7b5645e188c81507adfdc90d24809a12b82e66e7ce24931161f73"
+    },
+    {
+      "file": "personas/persona-10.md",
+      "bytes": 8660,
+      "sha256": "4614672cdc195ff0c8961882a20c445eb832afff76a3a12978e2669d09bf8f06"
+    },
+    {
+      "file": "README.md",
+      "bytes": 2400,
+      "sha256": "da519b10420e7009ba0ee077e2ffb9ecb5866e25a33bec45d407ea1dcb086606"
+    },
+    {
+      "file": "validation/.gitignore",
+      "bytes": 8,
+      "sha256": "15c4437080db4ec4be5ef2b2dde82e82749b1bb6379ee7f82d0fa7c87feba804"
+    },
+    {
+      "file": "validation/approval-recheck.log",
+      "bytes": 187,
+      "sha256": "b3b7d25deedf55e2b3eeaf675d120ed2c4df2387e01a0df91bcf407ed8792e7f"
+    },
+    {
+      "file": "validation/baseline-run.log",
+      "bytes": 2540,
+      "sha256": "6c42ab172f721ca306dfd7af1dc49449bc716caf1a589b07be8983edb807cdc4"
+    },
+    {
+      "file": "validation/build.log",
+      "bytes": 9263,
+      "sha256": "f5a6d35cf5f3f33768923a0fccf8c9f4a2cecabe6d69fc89b6024debc899020b"
+    },
+    {
+      "file": "validation/conversation-recheck.log",
+      "bytes": 193,
+      "sha256": "8d296af97cc7b36e5ecbe1a23b7f88fd988325bcf802cf90d10579f12220400a"
+    },
+    {
+      "file": "validation/full-retest.log",
+      "bytes": 3763,
+      "sha256": "32160eab5ed1048771898cdd619d57a8ccc75a3fc6d881142b70c0e13c4769ae"
+    },
+    {
+      "file": "validation/keyboard-recheck.log",
+      "bytes": 189,
+      "sha256": "6a3a767b2bacb504d320ee1a9ae4efbda85e6155a98a2fdcc6dfa7857d51763f"
+    },
+    {
+      "file": "validation/regression.log",
+      "bytes": 122097,
+      "sha256": "1b71b8af3e75d930eba833a2551045e5ec4c53dc79ffd86429baccabb970ce80"
+    },
+    {
+      "file": "validation/secret-scan.log",
+      "bytes": 154,
+      "sha256": "188f68965698ebb4436da9023fb51bab2b51e0137ba38d68dc37c85f6a72c72f"
+    },
+    {
+      "file": "validation/typecheck.log",
+      "bytes": 40,
+      "sha256": "adc445767be2ce0a8498d515cd4b16ab6eddb403e4a3b38e163d34e1053fc479"
+    },
+    {
+      "file": "validation-summary.json",
+      "bytes": 2093,
+      "sha256": "ccaac81ba914f78b04e13fbc4471116ba089cb2217c6bc7b417062123a12a83b"
+    },
+    {
+      "file": "visual-review/captures.json",
+      "bytes": 1850,
+      "sha256": "baa0e79fee520c1cf36997e661bd410a1a01fd56bcba28096953136a27f51590"
+    },
+    {
+      "file": "visual-review/clients-390-430-dark.png",
+      "bytes": 48314,
+      "sha256": "9551f4a7e7841929ecf1e61002629b03b6779a9e46f5aae3b63788d00adc09bd"
+    },
+    {
+      "file": "visual-review/clients-768-950-light.png",
+      "bytes": 93957,
+      "sha256": "6ad193ec3b4267d4cac5651d3464d8684285874b6b4f5b5deddeeffd82e92f5d"
+    },
+    {
+      "file": "visual-review/today-1024-900-light.png",
+      "bytes": 274332,
+      "sha256": "3ccb8073afb09cdb59a4491962dbb26e566f31aaa2dd08761d9389423c7847f4"
+    },
+    {
+      "file": "visual-review/today-1440-1000-dark.png",
+      "bytes": 276566,
+      "sha256": "1df60a21b8221b5cf926f206598a295c92952a4db40317a16f49dacdc3d083ab"
+    },
+    {
+      "file": "visual-review/today-320-850-dark.png",
+      "bytes": 87025,
+      "sha256": "8d1d4d2320777d31b1e6fec2b94ca1fd30a987f7649f7a057b7dd793f0fbfd8a"
+    },
+    {
+      "file": "visual-review/today-390-850-light.png",
+      "bytes": 116713,
+      "sha256": "632c277d12185250ca24f6f7d53b0f924adcda5ce1f93d64edc913b14960092a"
+    },
+    {
+      "file": "visual-review/wia-1440-1000-light.png",
+      "bytes": 211625,
+      "sha256": "607261e134fc93938db25384cb9a732363c6c4d53cece486b53210a42e3c4eb8"
+    },
+    {
+      "file": "visual-review/wia-768-950-dark.png",
+      "bytes": 120856,
+      "sha256": "ce3bc8d2b618711113a24f9c7fd6ed4e7d46dcbd9a508bc1bd996fd3e7b0994d"
+    }
+  ]
+}

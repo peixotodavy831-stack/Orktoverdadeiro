@@ -1,0 +1,51 @@
+{
+  "phase": "after",
+  "selectedCase": "UX10-desktop-enter",
+  "sourceSha": "cf4cf4d080dc8bfe26482534e9b53b8f52c00232",
+  "productBaseline": "c289f78",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T16:43:12.730Z",
+  "cases": [
+    {
+      "id": "UX10-desktop-enter",
+      "personas": [
+        4,
+        10
+      ],
+      "width": 1440,
+      "height": 900,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Rascunho desktop"
+        },
+        {
+          "kind": "key",
+          "target": "Nova linha desktop",
+          "key": "Shift+Enter"
+        },
+        {
+          "kind": "key",
+          "target": "Enviar à fixture503 pelo teclado",
+          "key": "Enter"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T16:43:20.973Z",
+      "externalSend": "fixture503 only; never provider",
+      "automationDurationMs": 1036,
+      "interactions": 3
+    }
+  ],
+  "matrix": [],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 1,
+    "fail": 0
+  }
+}

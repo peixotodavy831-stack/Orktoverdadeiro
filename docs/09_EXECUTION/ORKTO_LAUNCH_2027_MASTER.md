@@ -1,3 +1,11 @@
+## UX Research Lab — ciclo local concluído, 29/10/2026
+
+Branch isolada feat/orkto-ux-research-lab-2027; runtime 04d24c9 e commits posteriores somente de testes/evidências. [Relatório](ORKTO_UX_RESEARCH_LAB_2027.md), [dez personas e reavaliações](ORKTO_PERSONA_EVALUATIONS_2027.md), [matriz de problemas](ORKTO_USABILITY_ISSUES_2027.md), [antes/depois](ORKTO_UX_BEFORE_AFTER_2027.md) e [protocolo com pessoas reais](ORKTO_REAL_USER_TEST_PROTOCOL.md).
+
+Oito falhas reproduzidas corrigidas, Escape entre clientes protegido, 410 testes de aplicação + 108 ferramentas aprovados localmente;56 combinações por rodada sem overflow horizontal. A rodada completa de UI reteve um timeout de navegação; reexecução pontual passou. A consolidação não deve ser anunciada como execução integral sem falhas, pesquisa com clientes ou E2E de fornecedor. Sem deploy, merge ou mudança da PR2; cinco planos preservados. Permanecem hipóteses de UX e gates externos/comerciais. READY_FOR_PRODUCTION_CANDIDATE=NO.
+
+---
+
 ## Simplicity Revolution — navegação R1, 27/10/2026
 
 Branch isolada feat/orkto-simplicity-revolution; código0aedbef. Ler [auditoria e primeira melhoria implementada](ORKTO_SIMPLICITY_REVOLUTION_2027.md). Diretório Mais compartilhado, rail15→5, busca por objetivo e atalho Nova proposta. Regressão406+108, build/typecheck locais aprovados. Sem deploy ou homologação de fornecedor. Próxima fatia:Hoje, depois Conversas, Negócios e WIA. A missão de UX complementa o PDF consolidado, não substitui seus requisitos. READY_FOR_PRODUCTION_CANDIDATE=NO.

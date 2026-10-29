@@ -1,0 +1,150 @@
+A-first-entry: PASS
+B-client-create-history: PASS
+C-conversation-draft: FAIL
+D-proposal-save-review: PASS
+E-wia-preparation: PASS
+F-radar-context: PASS
+G-consumption-plans-settings: PASS
+H-whatsapp-state-failure: PASS
+UX01-client-modal-focus: PASS
+UX02-client-modal-short: PASS
+UX03-client-edit-labels: PASS
+UX04-old-approval: PASS
+UX05-review-context: PASS
+UX06-draft-switch: PASS
+UX07-radar-more: PASS
+UX08-mobile-enter: PASS
+UX09-edit-escape-reset: PASS
+MATRIX 320 dark today: PASS
+MATRIX 320 dark clients: PASS
+MATRIX 320 dark inbox: PASS
+MATRIX 320 dark wia: PASS
+MATRIX 320 light today: PASS
+MATRIX 320 light clients: PASS
+MATRIX 320 light inbox: PASS
+MATRIX 320 light wia: PASS
+MATRIX 360 dark today: PASS
+MATRIX 360 dark clients: PASS
+MATRIX 360 dark inbox: PASS
+MATRIX 360 dark wia: PASS
+MATRIX 360 light today: PASS
+MATRIX 360 light clients: PASS
+MATRIX 360 light inbox: PASS
+MATRIX 360 light wia: PASS
+MATRIX 390 dark today: PASS
+MATRIX 390 dark clients: PASS
+MATRIX 390 dark inbox: PASS
+MATRIX 390 dark wia: PASS
+MATRIX 390 light today: PASS
+MATRIX 390 light clients: PASS
+MATRIX 390 light inbox: PASS
+MATRIX 390 light wia: PASS
+MATRIX 430 dark today: PASS
+MATRIX 430 dark clients: PASS
+MATRIX 430 dark inbox: PASS
+MATRIX 430 dark wia: PASS
+MATRIX 430 light today: PASS
+MATRIX 430 light clients: PASS
+MATRIX 430 light inbox: PASS
+MATRIX 430 light wia: PASS
+MATRIX 768 dark today: PASS
+MATRIX 768 dark clients: PASS
+MATRIX 768 dark inbox: PASS
+MATRIX 768 dark wia: PASS
+MATRIX 768 light today: PASS
+MATRIX 768 light clients: PASS
+MATRIX 768 light inbox: PASS
+MATRIX 768 light wia: PASS
+MATRIX 1024 dark today: PASS
+MATRIX 1024 dark clients: PASS
+MATRIX 1024 dark inbox: PASS
+MATRIX 1024 dark wia: PASS
+MATRIX 1024 light today: PASS
+MATRIX 1024 light clients: PASS
+MATRIX 1024 light inbox: PASS
+MATRIX 1024 light wia: PASS
+MATRIX 1440 dark today: PASS
+MATRIX 1440 dark clients: PASS
+MATRIX 1440 dark inbox: PASS
+MATRIX 1440 dark wia: PASS
+MATRIX 1440 light today: PASS
+MATRIX 1440 light clients: PASS
+MATRIX 1440 light inbox: PASS
+MATRIX 1440 light wia: PASS
+{
+  "phase": "after",
+  "pass": 16,
+  "fail": 1,
+  "cases": [
+    {
+      "id": "A-first-entry",
+      "status": "PASS"
+    },
+    {
+      "id": "B-client-create-history",
+      "status": "PASS"
+    },
+    {
+      "id": "C-conversation-draft",
+      "status": "FAIL",
+      "error": "page.goto: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"http://127.0.0.1:4181/tests/visual/index.html?screen=inbox&theme=dark&scenario=uxlab&thread=1\", waiting until \"domcontentloaded\"\u001b[22m\n"
+    },
+    {
+      "id": "D-proposal-save-review",
+      "status": "PASS"
+    },
+    {
+      "id": "E-wia-preparation",
+      "status": "PASS"
+    },
+    {
+      "id": "F-radar-context",
+      "status": "PASS"
+    },
+    {
+      "id": "G-consumption-plans-settings",
+      "status": "PASS"
+    },
+    {
+      "id": "H-whatsapp-state-failure",
+      "status": "PASS"
+    },
+    {
+      "id": "UX01-client-modal-focus",
+      "status": "PASS"
+    },
+    {
+      "id": "UX02-client-modal-short",
+      "status": "PASS"
+    },
+    {
+      "id": "UX03-client-edit-labels",
+      "status": "PASS"
+    },
+    {
+      "id": "UX04-old-approval",
+      "status": "PASS"
+    },
+    {
+      "id": "UX05-review-context",
+      "status": "PASS"
+    },
+    {
+      "id": "UX06-draft-switch",
+      "status": "PASS"
+    },
+    {
+      "id": "UX07-radar-more",
+      "status": "PASS"
+    },
+    {
+      "id": "UX08-mobile-enter",
+      "status": "PASS"
+    },
+    {
+      "id": "UX09-edit-escape-reset",
+      "status": "PASS"
+    }
+  ],
+  "matrix": 56
+}

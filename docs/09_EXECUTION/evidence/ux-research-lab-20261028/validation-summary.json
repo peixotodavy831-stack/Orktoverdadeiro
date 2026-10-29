@@ -1,0 +1,67 @@
+{
+  "environment": "local_frontend_in_memory_fixture",
+  "runtimeSha": "04d24c93e9b37a54b8ca0ac385fa77a991adb3fa",
+  "baseline": {
+    "productSha": "c289f787ab2135724373449dd0b807ddab4ce26d",
+    "adapter": "working tree fixture calibration; not a clean baseline checkout",
+    "pass": 8,
+    "fail": 8,
+    "matrix": 56
+  },
+  "fullRetest": {
+    "sourceSha": "04d24c93e9b37a54b8ca0ac385fa77a991adb3fa",
+    "pass": 16,
+    "fail": 1,
+    "failure": "C navigation timeout before any interaction",
+    "matrix": 56,
+    "horizontalOverflow": 0
+  },
+  "latestPerCase": {
+    "A-first-entry": "PASS",
+    "B-client-create-history": "PASS",
+    "C-conversation-draft": "PASS",
+    "D-proposal-save-review": "PASS",
+    "E-wia-preparation": "PASS",
+    "F-radar-context": "PASS",
+    "G-consumption-plans-settings": "PASS",
+    "H-whatsapp-state-failure": "PASS",
+    "UX01-client-modal-focus": "PASS",
+    "UX02-client-modal-short": "PASS",
+    "UX03-client-edit-labels": "PASS",
+    "UX04-old-approval": "PASS",
+    "UX05-review-context": "PASS",
+    "UX06-draft-switch": "PASS",
+    "UX07-radar-more": "PASS",
+    "UX08-mobile-enter": "PASS",
+    "UX09-edit-escape-reset": "PASS",
+    "UX10-desktop-enter": "PASS"
+  },
+  "combinedResultsAreNotOneCleanFullRun": true,
+  "regression": {
+    "appPass": 410,
+    "toolsPass": 108,
+    "environment": "isolated local adapters; no provider E2E",
+    "sourceSha": "4154ce8"
+  },
+  "build": {
+    "status": "PASS",
+    "sourceSha": "04d24c9",
+    "environment": "scratch local build/smoke"
+  },
+  "physicalDevices": "NOT_TESTED",
+  "humanUsers": "NOT_TESTED",
+  "providerE2E": "NOT_TESTED",
+  "productionCandidate": "NO",
+  "secretScan": {
+    "scanned": 750,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "sourceTreeUnchangedAfterRuntimeCommit": true,
+  "preservedCheckouts": {
+    "Orktoverdeiro-google-pilot": "78497da5bfd52166c6852aa14c06ebbf84fa1248",
+    "Orktoverdeiro-simplicity-revolution": "c289f787ab2135724373449dd0b807ddab4ce26d"
+  }
+}
