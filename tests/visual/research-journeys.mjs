@@ -27,7 +27,9 @@ async function run(id,personas,width,height,fn){
   try{await fn(page);assert.equal(current.pageErrors.length,0,'Frontend page errors');}
   catch(error){current.status='FAIL';current.error=String(error.message).slice(0,800);}
   current.automationDurationMs=Date.now()-started;current.interactions=current.actions.length;
-  await page.screenshot({path:path.join(out,`${id}.png`),fullPage:false}).catch(()=>{});
+  const screenshotFile=`${id}-${report.sourceSha.slice(0,7)}-${Date.now()}.png`;
+  try {await page.screenshot({path:path.join(out,screenshotFile),fullPage:false,timeout:15000,animations:'disabled'});current.screenshot={status:'PASS',file:screenshotFile};}
+  catch(error){current.screenshot={status:'FAIL',error:String(error.message).slice(0,300)};}
   report.cases.push(current);console.log(`${id}: ${current.status}${current.error ? ' · '+current.error : ''}`);await context.close();
 }
 async function open(page,screen,extra={}){
@@ -111,7 +113,8 @@ try{
   current.observed=await dialog(page).evaluate(element=>({unlabelled:Array.from(element.querySelectorAll('input,textarea')).filter(input=>!input.labels?.length&&!input.getAttribute('aria-label')&&!input.getAttribute('aria-labelledby')).length}));assert.equal(current.observed.unlabelled,0);
  });
  await run('UX04-old-approval',[2,5],1440,900,async page=>{
-  await open(page,'today',{approvalBacklog:1});await page.locator('[aria-labelledby="today-attention-title"]').getByText('Ação da WIA aguarda aprovação',{exact:true}).waitFor();
+  await open(page,'today',{approvalBacklog:1});const approval=page.locator('[aria-labelledby="today-attention-title"]').getByText('Ação da WIA aguarda aprovação',{exact:true});await approval.waitFor();
+  current.observed={metric:await page.locator('.today-metric').filter({hasText:'Ações para revisar'}).innerText()};assert.match(current.observed.metric,/\b1\b/);await approval.scrollIntoViewIfNeeded();
  });
  await run('UX05-review-context',[2,5],1440,900,async page=>{
   await open(page,'today');await click(page.getByRole('button',{name:'Revisar ação',exact:true}).first(),'Revisar ação de Hoje');await page.getByRole('navigation',{name:'Seções da WIA'}).getByRole('button',{name:/^Aprovações/}).waitFor();
