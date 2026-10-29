@@ -1740,9 +1740,21 @@ test('workspace invite acceptance is reachable without membership and cannot red
   assert.equal(accepted.status,200,'a user without an existing workspace can join through a verified invitation');
   assert.equal((await accepted.json() as Row).workspaceId,WORKSPACE_A);
   assert.equal(database.rows('orkto_workspace_members').filter(row=>row.user_id===USER_WITHOUT_WORKSPACE&&row.workspace_id===WORKSPACE_A).length,1);
+  const joined=database.rows('orkto_workspace_members').find(row=>row.user_id===USER_WITHOUT_WORKSPACE&&row.workspace_id===WORKSPACE_A)!;
+  joined.role='manager'; // A later role decision must not be overwritten by an invitation replay.
   assert.equal((await api(base,CLIENT_TOKEN_NO_WORKSPACE,'/api/team/invites/accept',json({token}))).status,200,
     'same-user retry recovers the already claimed invite without duplicate membership');
   assert.equal(database.rows('orkto_workspace_members').filter(row=>row.user_id===USER_WITHOUT_WORKSPACE&&row.workspace_id===WORKSPACE_A).length,1);
+  assert.equal(joined.role,'manager');
+});
+
+test('an invitation cannot replace the role of an already active workspace member', async () => {
+  resetDatabase();const base=await serve(app);
+  const created=await api(base,CLIENT_TOKEN_A,'/api/team/invites',json({email:'a@example.test',role:'member'}));
+  assert.equal(created.status,201);const result=await created.json() as {invitePath:string};
+  const token=new URL(result.invitePath,'https://orkto-staging.test').searchParams.get('token')!;
+  assert.equal((await api(base,CLIENT_TOKEN_A,'/api/team/invites/accept',json({token}))).status,409);
+  assert.equal(database.rows('orkto_workspace_members').find(row=>row.user_id===USER_A&&row.workspace_id===WORKSPACE_A)?.role,'owner');
 });
 
 test('WIA fails closed when the authenticated user has no existing workspace membership', async () => {

@@ -15,24 +15,27 @@ import {
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
-import { SavedService, AUTO_SERVICE_CATEGORIES, Timestamp } from '../types';
+import { SavedService, Timestamp } from '../types';
 import { formatBRL, formatCurrency } from '../utils/format';
 
 interface ServicesPageProps {
   services: SavedService[];
   userId: string;
+  onPrepareWithWia?: (message: string) => void;
   onServiceAdded: (service: SavedService) => Promise<void> | void;
   onServiceUpdated: (service: SavedService) => Promise<void> | void;
   onServiceDeleted: (serviceId: string) => Promise<void> | void;
 }
 
 export default function ServicesPage({ 
-  services, 
+  services,
+  onPrepareWithWia,
   userId, 
   onServiceAdded, 
   onServiceUpdated, 
   onServiceDeleted 
 }: ServicesPageProps) {
+  const categories = Array.from(new Set(['Serviços', 'Produtos', 'Outros', ...services.map(item => item.category).filter(Boolean)]));
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [isAddOpen, setIsAddOpen] = useState(false);
@@ -41,7 +44,7 @@ export default function ServicesPage({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [unitPrice, setUnitPrice] = useState<number>(0);
-  const [category, setCategory] = useState(AUTO_SERVICE_CATEGORIES[0]);
+  const [category, setCategory] = useState('Serviços');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [writeError, setWriteError] = useState('');
 
@@ -74,7 +77,7 @@ export default function ServicesPage({
       setName('');
       setDescription('');
       setUnitPrice(0);
-      setCategory(AUTO_SERVICE_CATEGORIES[0]);
+      setCategory('Serviços');
     } catch (err) {
       setWriteError(err instanceof Error ? err.message : 'Não foi possível salvar o item do catálogo.');
     } finally {
@@ -123,10 +126,10 @@ export default function ServicesPage({
       <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-display font-extrabold tracking-tight text-zinc-900 dark:text-white">
-            Catálogo de Serviços
+            Catálogo da empresa
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">
-            Cadastre os serviços e itens recorrentes padrão para preencher novos orçamentos em 1 clique.
+            Organize os serviços, produtos e preços usados nas suas propostas.
           </p>
         </div>
 
@@ -140,6 +143,7 @@ export default function ServicesPage({
       </header>
       {writeError && <p role="alert" className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300">{writeError}</p>}
 
+      {onPrepareWithWia && <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-4 orkto-product-border"><p className="max-w-xl text-sm orkto-product-muted">Precisa organizar uma oferta? Peça uma sugestão à WIA e revise os dados antes de cadastrar.</p><button type="button" className="min-h-11 rounded-full border px-4 orkto-product-border" onClick={() => onPrepareWithWia('Ajude a organizar uma oferta para o catálogo da minha empresa. Pergunte quais serviços ou produtos vendo, o escopo e os preços aprovados. Não invente valores nem confirme cadastros que não foram salvos.')}>Organizar com a WIA</button></section>}
       {/* Filter and Search Layout columns split */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Category Filters (Left on desktop) */}
@@ -157,7 +161,7 @@ export default function ServicesPage({
           </button>
           
           <div className="border-t border-zinc-100 dark:border-zinc-800/80 pt-2 space-y-1">
-            {AUTO_SERVICE_CATEGORIES.map(cat => {
+            {categories.map(cat => {
               const count = services.filter(s => s.category === cat).length;
               return (
                 <button
@@ -331,7 +335,7 @@ export default function ServicesPage({
                       onChange={(e) => setCategory(e.target.value)}
                       className="w-full px-4 py-3 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-sm focus:outline-none"
                     >
-                      {AUTO_SERVICE_CATEGORIES.map(cat => (
+                      {categories.map(cat => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>

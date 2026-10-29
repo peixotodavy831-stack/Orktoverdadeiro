@@ -1528,7 +1528,7 @@ export default function App() {
       {/* Main Content Workspace viewport */}
       <main id="orkto-main" className="relative flex h-full min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto">
         <div className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between border-b px-3 orkto-product-border orkto-product-surface text-zinc-900 dark:text-white lg:hidden">
-          <OrktoLogo size="sm" showSlogan={false} onlyO={true} />
+          <button type="button" onClick={() => setCurrentView('dashboard')} aria-label="ORKTO, ir para Hoje" className="flex min-h-11 min-w-11 items-center rounded-lg"><OrktoLogo size="sm" showSlogan={false} onlyO={true} /></button>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -1773,7 +1773,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <ServicesPage
+                <ServicesPage onPrepareWithWia={message => {setWiaInitialMessage(message);setCurrentView('wia');}}
                   services={services}
                   userId={user.uid}
                    onServiceAdded={async (newService) => {
@@ -1822,7 +1822,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Suspense fallback={<PageFallback />}>
-                <SettingsPage
+                <SettingsPage onOpenWia={() => {setWiaInitialMessage('Prepare um rascunho de mensagem para um cliente usando os registros autorizados. Pergunte qual cliente e objetivo antes de propor uma ação.');setCurrentView('wia');}} onOpenIntegrations={() => setCurrentView('integrations')}
                    userProfile={userProfile}
                    onProfileUpdated={async (updatedProfile) => {
                      const session = (await supabase.auth.getSession()).data.session;

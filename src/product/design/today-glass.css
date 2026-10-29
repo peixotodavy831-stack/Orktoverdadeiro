@@ -117,3 +117,6 @@
 @media (prefers-reduced-transparency: reduce) {
   .today-glass-panel, .orkto-sidebar-glass { background: var(--orkto-surface-1); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
+
+/* Primary command follows the rounded input shape. */
+.orkto-today .today-command-action { border-radius: 999px; }

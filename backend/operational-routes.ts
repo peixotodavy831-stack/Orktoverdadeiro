@@ -1264,7 +1264,7 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
           : Promise.resolve({data:[],error:null}),
       ]);
       if (members.error) throw members.error; if (invites.error) throw invites.error;
-      res.json({ members: members.data || [], invites: invites.data || [], currentRole: context.role, currentUserId:req.user?.id, memberLimit:200, inviteLimit:100, invitationsEditable:false });
+      res.json({ members: members.data || [], invites: invites.data || [], currentRole: context.role, currentUserId:req.user?.id, memberLimit:200, inviteLimit:100, invitationsEditable:['owner','admin'].includes(context.role) });
     } catch (error) { failure(res,error,'Não foi possível carregar a equipe.'); }
   });
 
@@ -1329,9 +1329,12 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         db.from('orkto_workspace_invites').select('id',{count:'exact',head:true}).eq('workspace_id',invite.workspace_id).eq('status','invited').gt('expires_at',new Date().toISOString()),
       ]);
       if (memberCountError) throw memberCountError; if (pendingCountError) throw pendingCountError;
-      const alreadyActive = await isActiveWorkspaceMember(db,invite.workspace_id,req.user.id);
+      const {data:existingMember,error:existingMemberError}=await db.from('orkto_workspace_members').select('user_id,role,status').eq('workspace_id',invite.workspace_id).eq('user_id',req.user.id).maybeSingle();
+      if(existingMemberError)throw existingMemberError;
+      const alreadyActive=existingMember?.status==='active';
+      if(existingMember&&(!resumableAcceptance||!alreadyActive))return res.status(409).json({error:'Já existe um vínculo nesta empresa. Um convite não altera seu papel ou reativa um acesso.',category:'already_member'});
       if (!alreadyActive) {
-        const seatCheck = checkPlanLimit(access.entitlements,'seats',(memberCount || 0)+(pendingCount || 0)-1);
+        const seatCheck = checkPlanLimit(access.entitlements,'seats',(memberCount || 0)+Math.max(0,(pendingCount || 0)-(resumableAcceptance?0:1)));
         if (seatCheck.allowed === false) return res.status(seatCheck.reason === 'limit_reached' ? 403 : 503).json({ error:seatCheck.reason === 'limit_reached' ? 'Limite de pessoas do plano atingido.' : 'Limite de pessoas ainda não configurado para este plano.', category:seatCheck.reason });
       }
       if (!resumableAcceptance) {
@@ -1341,10 +1344,10 @@ export function registerOperationalRoutes(app: Express, authenticate: RequestHan
         if (claimError) throw claimError;
         if (!claimed) return res.status(409).json({ error:'O convite foi revogado, expirou ou foi aceito por outra sessão.',category:'invite_state_conflict' });
       }
-      const member = await db.from('orkto_workspace_members').upsert({ workspace_id:invite.workspace_id, user_id:req.user.id, role:invite.role, status:'active', invited_by:invite.invited_by, joined_at:new Date().toISOString() }, { onConflict:'workspace_id,user_id' });
+      const member = alreadyActive ? {error:null} : await db.from('orkto_workspace_members').insert({ workspace_id:invite.workspace_id, user_id:req.user.id, role:invite.role, status:'active', invited_by:invite.invited_by, joined_at:new Date().toISOString() });
       if (member.error) throw member.error;
-      await addAuditOrThrow(db,invite.workspace_id,req.user.id,'workspace.invite.accepted','workspace_invite',invite.id,{ role:invite.role });
-      res.json({ success:true,workspaceId:invite.workspace_id,role:invite.role });
+      await addAuditOrThrow(db,invite.workspace_id,req.user.id,'workspace.invite.accepted','workspace_invite',invite.id,{ role:existingMember?.role || invite.role });
+      res.json({ success:true,workspaceId:invite.workspace_id,role:existingMember?.role || invite.role });
     } catch (error) { failure(res,error,'Não foi possível aceitar o convite.'); }
   });
 

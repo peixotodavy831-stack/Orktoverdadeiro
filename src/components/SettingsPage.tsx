@@ -25,10 +25,12 @@ import { supabase } from '../lib/supabase';
 
 interface SettingsPageProps {
   userProfile: UserProfile | null;
+  onOpenWia?: () => void;
+  onOpenIntegrations?: () => void;
   onProfileUpdated: (profile: UserProfile) => void | Promise<void>;
 }
 
-export default function SettingsPage({ userProfile, onProfileUpdated }: SettingsPageProps) {
+export default function SettingsPage({ userProfile, onProfileUpdated, onOpenWia, onOpenIntegrations }: SettingsPageProps) {
 
 
   const [isSaving, setIsSaving] = useState(false);
@@ -64,25 +66,10 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
   };
 
   const [whatsappNumber, setWhatsappNumber] = useState(userProfile?.whatsappNumber || '');
-  const [whatsappTemplate, setWhatsappTemplate] = useState(
-    userProfile?.whatsappTemplate || 
-    'Olá *[CLIENT_NAME]*, aqui está a proposta comercial de *[SERVICE_TYPE]* no valor de *[TOTAL]*. Clique no link abaixo para visualizar todos os detalhes e aprovar online com 1 clique:\n\n*[LINK]*'
-  );
+  const whatsappTemplate = userProfile?.whatsappTemplate || '';
   const [paymentInfo, setPaymentInfo] = useState(userProfile?.paymentInfo || '');
   const [quoteColor, setQuoteColor] = useState(userProfile?.quoteColor || '#FF9F1C');
   const [address, setAddress] = useState(userProfile?.address || '');
-
-  // Live Preview Placeholder custom state
-  const [previewClientName, setPreviewClientName] = useState('Felipe Albuquerque');
-  const [previewServiceType, setPreviewServiceType] = useState(
-    userProfile?.profession ? `${userProfile.profession} Personalizado` : 'Instalação Elétrica Premium'
-  );
-  const [previewTotal, setPreviewTotal] = useState('R$ 1.850,00');
-  const [previewLink, setPreviewLink] = useState('https://orkto.com/q/74921x');
-
-  // Notifications Toggles (Simulated options)
-  const [notifyView, setNotifyView] = useState(true);
-  const [notifyApprove, setNotifyApprove] = useState(true);
 
   const colorsOption = [
     { name: 'Laranja Orkto', hex: '#FF9F1C' },
@@ -91,30 +78,6 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
     { name: 'Vermelho Linear Estilo', hex: '#dc2626' },
     { name: 'Cinza Apple Minimalista', hex: '#4b5563' }
   ];
-
-  const handleInjectPlaceholder = (placeholder: string) => {
-    setWhatsappTemplate(prev => prev + placeholder);
-  };
-
-  const renderFormattedPreview = (text: string) => {
-    let filled = text
-      .replace(/\[CLIENT_NAME\]/g, previewClientName || '[CLIENT_NAME]')
-      .replace(/\[SERVICE_TYPE\]/g, previewServiceType || '[SERVICE_TYPE]')
-      .replace(/\[TOTAL\]/g, previewTotal || '[TOTAL]')
-      .replace(/\[LINK\]/g, previewLink || '[LINK]');
-
-    const parts = filled.split('*');
-    return (
-      <span className="whitespace-pre-wrap text-[12px] sm:text-[13px] font-sans leading-relaxed text-zinc-900 dark:text-zinc-100">
-        {parts.map((part, index) => {
-          if (index % 2 === 1) {
-            return <strong key={index} className="font-extrabold text-black dark:text-white">{part}</strong>;
-          }
-          return part;
-        })}
-      </span>
-    );
-  };
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,169 +275,12 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
 
 
 
-        {/* Row 2: WhatsApp Send Message Template Customization with Live Preview */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-6">
-          <div className="flex justify-between items-center pb-2 border-b border-zinc-100 dark:border-zinc-800/80">
-            <h3 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-orange-500" />
-              Notificação por WhatsApp (Template)
-            </h3>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-500 font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 leading-none">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              Prévia local
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Editor Input Block */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Redija sua Mensagem</label>
-                <textarea
-                  rows={6}
-                  value={whatsappTemplate}
-                  onChange={(e) => setWhatsappTemplate(e.target.value)}
-                  placeholder="Redija o texto com markdown padrão..."
-                  className="w-full p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-orange-500 font-sans leading-relaxed"
-                />
-              </div>
-
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-850">
-                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2.5">Clique para inserir variáveis inteligentes:</p>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => handleInjectPlaceholder(' [CLIENT_NAME]')}
-                    className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:text-orange-500 text-[11px] font-bold transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                  >
-                    + Nome Cliente
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInjectPlaceholder(' [SERVICE_TYPE]')}
-                    className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:text-orange-500 text-[11px] font-bold transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                  >
-                    + Tipo Serviço
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInjectPlaceholder(' [TOTAL]')}
-                    className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:text-orange-500 text-[11px] font-bold transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                  >
-                    + Total (R$)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleInjectPlaceholder(' [LINK]')}
-                    className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg hover:text-orange-500 text-[11px] font-bold transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
-                  >
-                    + Link Proposta
-                  </button>
-                </div>
-              </div>
-
-              {/* Visual Editor Customizing values of the placeholders */}
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-950 rounded-2xl border border-zinc-100 dark:border-zinc-850 space-y-3">
-                <div className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800/80 pb-2 mb-1">
-                  <Palette className="w-4 h-4 text-orange-500" />
-                  <span className="text-[11px] font-extrabold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                    Simulador: Testar Valores dos Placeholders
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                      [CLIENT_NAME] (Nome p/ Teste)
-                    </label>
-                    <input
-                      type="text"
-                      value={previewClientName}
-                      onChange={(e) => setPreviewClientName(e.target.value)}
-                      placeholder="Felipe Albuquerque"
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                      [SERVICE_TYPE] (Serviço p/ Teste)
-                    </label>
-                    <input
-                      type="text"
-                      value={previewServiceType}
-                      onChange={(e) => setPreviewServiceType(e.target.value)}
-                      placeholder="Instalação Elétrica Premium"
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                      [TOTAL] (Total p/ Teste)
-                    </label>
-                    <input
-                      type="text"
-                      value={previewTotal}
-                      onChange={(e) => setPreviewTotal(e.target.value)}
-                      placeholder="R$ 1.850,00"
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[9px] font-bold text-zinc-400 uppercase tracking-widest mb-1">
-                      [LINK] (Link p/ Teste)
-                    </label>
-                    <input
-                      type="text"
-                      value={previewLink}
-                      onChange={(e) => setPreviewLink(e.target.value)}
-                      placeholder="https://orkto.com/q/74921x"
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-orange-500"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Simulated Smartphone Chat Preview Container */}
-            <div className="flex flex-col">
-              <label className="block text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-1.5">Simulação da mensagem · nenhum envio</label>
-              
-              <div className="flex-1 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden flex flex-col shadow-xl">
-                {/* Simulated Header */}
-                <div className="bg-[#075e54] text-white px-4 py-3 flex items-center justify-between shrink-0">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-[11px] text-zinc-100 uppercase shrink-0">
-                      {(previewClientName || 'Cliente').split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-extrabold truncate">{previewClientName || 'Felipe Albuquerque'} (Cliente)</p>
-                      <p className="text-[9px] text-[#25d366] font-bold">Online</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Simulated message wrapper with wallpaper pattern color */}
-                <div className="flex-1 p-4 bg-[#efeae2] dark:bg-[#0b141a] overflow-y-auto space-y-3 min-h-[220px] max-h-[360px]">
-                  {/* Message bubble from owner (sent) */}
-                  <div className="flex justify-end animate-fade-in">
-                    <div className="relative max-w-[90%] bg-[#d9fdd3] dark:bg-[#005c4b] p-3 rounded-[18px] rounded-tr-none shadow-md text-zinc-900 dark:text-stone-100 flex flex-col transition-all duration-300">
-                      {renderFormattedPreview(whatsappTemplate)}
-                      
-                      {/* Checkmarks and simulated time */}
-                      <span className="text-[9px] text-zinc-500 dark:text-zinc-350 ml-auto mt-2 flex items-center gap-1">
-                        <span>12:30</span>
-                        <span className="text-blue-500 dark:text-emerald-300">✓✓</span>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <section className="rounded-3xl border p-6 orkto-product-border orkto-product-surface space-y-4" aria-labelledby="settings-wia-title">
+          <h3 id="settings-wia-title" className="flex items-center gap-2 text-lg font-semibold"><Sparkles size={20} aria-hidden="true"/>Mensagens com a WIA</h3>
+          <p className="max-w-2xl text-sm leading-6 orkto-product-muted">Descreva o atendimento na WIA, revise o rascunho e confirme o próximo passo. Os dados do cliente e da proposta devem vir dos registros da empresa.</p>
+          <p className="max-w-2xl text-sm leading-6 orkto-product-muted">A disponibilidade da IA e do envio depende das integrações e dos limites aprovados. Preparar uma mensagem não significa enviá-la.</p>
+          <div className="flex flex-wrap gap-3"><button type="button" disabled={!onOpenWia} onClick={onOpenWia} className="min-h-11 rounded-full px-5 orkto-product-primary">Preparar mensagem na WIA</button><button type="button" disabled={!onOpenIntegrations} onClick={onOpenIntegrations} className="min-h-11 rounded-full border px-5 orkto-product-border">Ver conexão do WhatsApp</button></div>
+        </section>
 
         {/* Row 3: Colors Branding Accent and Pix info defaults */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -520,35 +326,6 @@ export default function SettingsPage({ userProfile, onProfileUpdated }: Settings
               onChange={(e) => setPaymentInfo(e.target.value)}
               className="w-full p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs sm:text-sm focus:outline-none"
               placeholder="Instruções de pagamento..."
-            />
-          </div>
-        </div>
-
-        {/* Row 5: Simulated App Notifications options */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 shadow-xl space-y-4">
-          <h3 className="text-sm font-bold uppercase text-zinc-400 tracking-wider mb-2">Avisos e Lembretes (Simulado)</h3>
-          <div className="flex items-center justify-between py-1">
-            <div>
-              <p className="text-xs font-bold">Lembrete de expiração de orçamentos pendentes</p>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Dispare um alerta quando o orçamento estiver a 24 horas de vencer.</p>
-            </div>
-            <input 
-              type="checkbox" 
-              checked={notifyView} 
-              onChange={() => setNotifyView(!notifyView)} 
-              className="accent-orange-500 w-4 h-4"
-            />
-          </div>
-          <div className="flex items-center justify-between py-1 border-t border-zinc-100 dark:border-zinc-800/80 pt-3">
-            <div>
-              <p className="text-xs font-bold">Notificações por e-mail de faturamento fechado</p>
-              <p className="text-[10px] text-zinc-400 mt-0.5">Receba avisos instantâneos com dados do caixa consolidado.</p>
-            </div>
-            <input 
-              type="checkbox" 
-              checked={notifyApprove} 
-              onChange={() => setNotifyApprove(!notifyApprove)} 
-              className="accent-orange-500 w-4 h-4"
             />
           </div>
         </div>

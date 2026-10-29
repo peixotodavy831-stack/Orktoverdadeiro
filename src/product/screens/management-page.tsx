@@ -1,3 +1,4 @@
+import {TeamInvitations} from './team-invitations';
 import { parseTeamResponse, type TeamView } from '../adapters/team-contract';
 import { useEffect, useState } from 'react';
 import { ArrowRight, BookOpen, ChevronDown, RefreshCw, Search, ShieldCheck, Users } from 'lucide-react';
@@ -6,7 +7,7 @@ import { EmptyState, ErrorState, LoadingState, PageHeader, StatusBadge } from '.
 
 type Team = TeamView;
 interface AuditEvent { id:string; eventType:string; source:string; entityType:string|null; entityRef:string|null; actorId:string|null; occurredAt:string }
-interface Props { view:'team'|'audit'|'help'; request:(path:string)=>Promise<unknown>; onNavigate:(view:ProductView)=>void; accountName?:string|null }
+interface Props { view:'team'|'audit'|'help'; request:(path:string,init?:RequestInit)=>Promise<unknown>; onNavigate:(view:ProductView)=>void; accountName?:string|null }
 const roles:Record<string,string>={owner:'Proprietário',admin:'Administrador',manager:'Gestor',member:'Membro'};
 const statuses:Record<string,string>={active:'Ativo',suspended:'Suspenso',invited:'Convidado',removed:'Removido',inactive:'Inativo'};
 const sources:Record<string,string>={user:'Pessoa',human:'Pessoa',system:'Sistema',bot:'WIA',wia:'WIA'};
@@ -59,6 +60,7 @@ export default function ManagementPage({view,request,onNavigate,accountName}:Pro
   return <div className="orkto-product mx-auto w-full max-w-[1100px] space-y-6 px-4 py-6 pb-6 sm:px-6 lg:px-8 lg:py-8">
     <PageHeader title={titles[view]} description={descriptions[view]} actions={view!=='help'&&<button type="button" disabled={loading} onClick={()=>setRevision(value=>value+1)} className={button}><RefreshCw size={16} aria-hidden="true" />Atualizar</button>} />
     {view!=='help'&&loading?<LoadingState rows={4} label={view==='team'?'Carregando equipe':'Consultando auditoria'} />:error?<ErrorState title={denied?'Acesso restrito':'Não foi possível carregar'} message={denied?(view==='audit'?'Somente proprietário e administrador podem consultar a auditoria da empresa.':'Sua conta não tem acesso à equipe desta empresa.'):'Verifique sua conexão e sua sessão e tente novamente. Nenhum dado foi alterado.'} onRetry={()=>setRevision(value=>value+1)} />:null}
+    {view==='team'&&error&&!loading&&<TeamInvitations role="member" request={request} onRefresh={()=>setRevision(value=>value+1)}/>}
     {view==='team'&&team&&!loading&&!error&&<>
       <section className={panel} aria-labelledby="team-members-title">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><h2 id="team-members-title" className="flex items-center gap-2 text-lg font-semibold"><Users size={20} aria-hidden="true" />Pessoas da empresa</h2><StatusBadge>Seu papel: {roles[team.currentRole]||'Não reconhecido'}</StatusBadge></div>
@@ -67,7 +69,8 @@ export default function ManagementPage({view,request,onNavigate,accountName}:Pro
         {visibleMembers.length===0?<EmptyState title={query ? "Nenhuma pessoa neste filtro" : "Nenhum vínculo retornado"} description={query ? "Tente outro nome, papel ou identificador." : "A consulta não retornou membros para esta empresa."} />:<ul className="divide-y orkto-product-border">{visibleMembers.map(member=><li key={member.user_id} className="flex flex-wrap items-center justify-between gap-4 py-4"><div className="min-w-0"><p className="text-sm font-semibold">{member.user_id===team.currentUserId?`${accountName||'Sua conta'} (você)`:`Pessoa ${member.user_id.slice(0,8)}`}</p><details className="mt-1 text-xs orkto-product-muted"><summary className="cursor-pointer">Identificador da conta</summary><p className="break-all">{member.user_id}</p></details><p className="mt-1 text-xs orkto-product-muted">Entrada: {date(member.joined_at)}</p></div><div className="flex flex-wrap gap-2"><StatusBadge>{roles[member.role]||'Papel não reconhecido'}</StatusBadge><StatusBadge tone={member.status==='active'?'success':'neutral'}>{statuses[member.status]||'Estado não reconhecido'}</StatusBadge></div></li>)}</ul>}
         <p className="mt-4 text-xs orkto-product-muted">Até 200 vínculos, conforme a consulta atual.</p>
       </section>
-      {['owner','admin'].includes(team.currentRole)&&<section className={panel} aria-labelledby="team-invites-title"><h2 id="team-invites-title" className="text-base font-semibold">Convites registrados</h2><p className="mt-2 text-sm leading-6 orkto-product-muted">Criar convites, alterar papéis e remover acessos ainda não estão habilitados nesta tela. O piloto continua exigindo aprovação de acesso; nenhum convite representa autorização automática.</p>{team.invites.length===0?<p className="mt-5 text-sm orkto-product-muted">Nenhum convite pendente retornado.</p>:<ul className="mt-4 divide-y orkto-product-border">{team.invites.map(invite=><li key={invite.id} className="py-4 text-sm"><p className="break-all font-medium">{invite.email}</p><p className="mt-1 orkto-product-muted">{roles[invite.role]||invite.role} · {Date.parse(invite.expires_at)<Date.now()?'Expirado':'Expira em'} {date(invite.expires_at)}</p></li>)}</ul>}</section>}
+      {!['owner','admin'].includes(team.currentRole)&&<TeamInvitations role={team.currentRole} request={request} onRefresh={()=>setRevision(value=>value+1)}/>}
+      {['owner','admin'].includes(team.currentRole)&&<section className={panel} aria-labelledby="team-invites-title"><h2 id="team-invites-title" className="text-base font-semibold">Convites registrados</h2><TeamInvitations role={team.currentRole} request={request} onRefresh={()=>setRevision(value=>value+1)}/>{team.invites.length===0?<p className="mt-5 text-sm orkto-product-muted">Nenhum convite pendente retornado.</p>:<ul className="mt-4 divide-y orkto-product-border">{team.invites.map(invite=><li key={invite.id} className="py-4 text-sm"><p className="break-all font-medium">{invite.email}</p><p className="mt-1 orkto-product-muted">{roles[invite.role]||invite.role} · {Date.parse(invite.expires_at)<Date.now()?'Expirado':'Expira em'} {date(invite.expires_at)}</p></li>)}</ul>}</section>}
       <section className="flex items-start gap-3 px-1"><ShieldCheck size={20} className="shrink-0" aria-hidden="true" /><p className="text-sm leading-6 orkto-product-muted">Esta visão consulta apenas a empresa atual. Ela não altera permissões, sessões ou o acesso de participantes.</p></section>
     </>}
     {view==='audit'&&!loading&&!error&&<>

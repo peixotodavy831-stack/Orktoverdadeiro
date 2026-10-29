@@ -6,17 +6,20 @@ import path from 'node:path';
 
 // Reuses the existing visual harness and Chromium dependency. All data is synthetic.
 const phase=process.argv.includes('--before')?'before':'after';
+const comments=process.argv.includes('--comments');
 const only=process.argv.find(value=>value.startsWith('--only='))?.slice(7);
 if(only)assert.match(only,/^[A-Za-z0-9-]+$/);
 const base=new URL(process.env.ORKTO_UX_LAB_URL||'http://127.0.0.1:4181/tests/visual/index.html');
 assert.equal(base.hostname,'127.0.0.1');assert.equal(base.protocol,'http:');assert.equal(base.pathname,'/tests/visual/index.html');
-const out=path.resolve('docs/09_EXECUTION/evidence/ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
+const out=path.resolve('docs/09_EXECUTION/evidence',comments?'ux-comments-20261029':'ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
 await mkdir(out,{recursive:true});
 const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productBaseline:'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
 const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});
 let current;
 async function run(id,personas,width,height,fn){
   if(only && only!==id)return;
+  if(comments&&!id.startsWith('R'))return;
+  if(!comments&&id.startsWith('R'))return;
   const context=await browser.newContext({viewport:{width,height},isMobile:width<1024,hasTouch:width<1024});
   await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.origin===base.origin||url.protocol==='data:')return route.continue();report.blockedExternalHosts.push(url.hostname);return route.abort();});
   const page=await context.newPage();page.setDefaultTimeout(5000);page.setDefaultNavigationTimeout(15000);
@@ -149,8 +152,35 @@ try{
   await composer.dispatchEvent('keydown',{key:'Enter',isComposing:true});assert.equal(await page.evaluate(()=>Number(document.documentElement.dataset.uxlabSendAttempts||0)),0);
   await press(composer,'Enter','Enviar à fixture503 pelo teclado');await page.getByRole('alert').waitFor();assert.equal(await page.evaluate(()=>Number(document.documentElement.dataset.uxlabSendAttempts||0)),1);assert.ok((await composer.inputValue()).includes('Parágrafo'));current.externalSend='fixture503 only; never provider';
  });
+ await run('R1-brand-home',[1],390,750,async page=>{
+  await open(page,'create_quote');await click(page.getByRole('button',{name:'ORKTO, ir para Hoje',exact:true}),'Marca para início');await page.getByRole('heading',{name:'Hoje, sua operação em foco.'}).waitFor();
+ });
+ await run('R2-catalog-wia',[2],768,900,async page=>{
+  await open(page,'catalog');await page.getByRole('heading',{name:'Catálogo da empresa'}).waitFor();assert.equal(await page.getByText('Desenvolvimento & Software',{exact:true}).count(),0);await click(page.getByRole('button',{name:'Organizar com a WIA'}),'Preparar oferta na WIA');assert.match(await page.getByPlaceholder('Descreva seu pedido para a WIA…').inputValue(),/catálogo/);
+ });
+ await run('R3-reports-navigation',[3],1440,900,async page=>{
+  await open(page,'catalog');await more(page);await click(page.getByRole('button',{name:'Relatórios',exact:true}),'Abrir Relatórios');await page.getByRole('heading',{name:'Relatórios',exact:true}).waitFor();await page.getByText('Selecione um relatório',{exact:true}).waitFor();
+ });
+ await run('R4-whatsapp-prerequisites',[4],390,850,async page=>{
+  await open(page,'integrations');const connect=page.getByRole('button',{name:'Conectar meu WhatsApp',exact:true});await connect.waitFor();assert.equal(await connect.isEnabled(),false);await click(page.getByText('Como conectar meu WhatsApp?',{exact:true}),'Instruções de conexão');await page.getByText('Com a conexão liberada, clique em Conectar meu WhatsApp e continue na Meta.',{exact:true}).waitFor();current.providerE2E='NOT_TESTED; blocked configuration fixture';
+ });
+ await run('R5-team-invite',[5],1440,900,async page=>{
+  await open(page,'team');await click(page.getByRole('button',{name:'Convidar pessoa',exact:true}),'Convidar pessoa');await fill(page.getByRole('textbox',{name:'E-mail da conta Google'}),'synthetic@example.invalid','E-mail sintético');await page.getByRole('combobox',{name:'Papel na empresa'}).selectOption('member');await click(page.getByRole('button',{name:'Gerar código de convite'}),'Registrar somente na fixture');await page.getByText(/Convite registrado. Nenhum e-mail foi enviado/).waitFor();assert.equal(await page.locator('#team-created-code').getAttribute('type'),'password');await click(page.getByRole('button',{name:'Concluir e atualizar lista'}),'Limpar código e listar convite');await page.getByText('synthetic@example.invalid',{exact:true}).waitFor();current.persistence='fixture only; no real invite or email';
+ });
+ await run('R5b-team-limit',[5],390,850,async page=>{
+  await open(page,'team',{scenario:'team-limit'});await click(page.getByRole('button',{name:'Convidar pessoa',exact:true}),'Abrir formulário');await fill(page.getByRole('textbox',{name:'E-mail da conta Google'}),'synthetic@example.invalid','E-mail sintético');await click(page.getByRole('button',{name:'Gerar código de convite'}),'Tentar na fixture sem franquia');await page.getByRole('alert').filter({hasText:'Limite de pessoas ainda não configurado'}).waitFor();assert.equal(await page.locator('#team-created-code').count(),0);
+ });
+ await run('R5c-team-member',[5],390,850,async page=>{
+  await open(page,'team',{teamMember:1});await page.getByRole('heading',{name:'Pessoas da empresa'}).waitFor();assert.equal(await page.getByRole('button',{name:'Convidar pessoa',exact:true}).count(),0);await click(page.getByText('Recebeu um convite?',{exact:true}),'Aceitação para conta autenticada');await page.locator('#team-received-code').waitFor();
+ });
+ await run('R6-settings-wia',[6],390,850,async page=>{
+  await open(page,'settings');await page.getByRole('heading',{name:'Mensagens com a WIA'}).waitFor();assert.equal(await page.getByText('Notificação por WhatsApp (Template)',{exact:true}).count(),0);assert.equal(await page.getByText('Avisos e Lembretes (Simulado)',{exact:true}).count(),0);await click(page.getByRole('button',{name:'Preparar mensagem na WIA'}),'Abrir preparação WIA');assert.match(await page.getByPlaceholder('Descreva seu pedido para a WIA…').inputValue(),/rascunho de mensagem/);
+ });
+ await run('R7-rounded-command',[7],1440,900,async page=>{
+  await open(page,'today');current.observed={radius:await page.getByRole('button',{name:'Abrir WIA',exact:true}).evaluate(el=>getComputedStyle(el).borderRadius)};assert.ok(parseFloat(current.observed.radius)>=22);
+ });
  // Same DOM/layout cases in both rounds. Emulation is explicitly not physical iOS/Android.
- if(!only)for(const width of [320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of ['today','clients','inbox','wia']){
+ if(!only)for(const width of comments?[390,768,1440]:[320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of comments?['today','catalog','settings','reports','team','integrations']:['today','clients','inbox','wia']){
   const context=await browser.newContext({viewport:{width,height:850},isMobile:width<1024,hasTouch:width<1024});await context.route('**/*',route=>new URL(route.request().url()).origin===base.origin?route.continue():route.abort());
   const page=await context.newPage();await open(page,screen,screen==='inbox'?{thread:1}:{});if(theme==='light'){await page.getByRole('button',{name:/Ativar tema claro|Claro/,exact:true}).first().click();await page.locator('html:not(.dark)').waitFor();}
   const data=await page.evaluate(()=>({width:innerWidth,documentWidth:document.documentElement.scrollWidth,theme:document.documentElement.classList.contains('dark')?'dark':'light'}));report.matrix.push({screen,...data,overflow:data.documentWidth>data.width});console.log(`MATRIX ${width} ${theme} ${screen}: ${data.documentWidth>data.width ? "OVERFLOW" : "PASS"}`);await context.close();
