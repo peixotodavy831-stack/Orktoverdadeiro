@@ -157,4 +157,4 @@
 }
 
 /* Client forms stay reachable in a short viewport, including browser chrome. */
-.orkto-glass-shell .orkto-client-form-dialog[role="dialog"] { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }
+.orkto-glass-shell :is(.orkto-client-form-dialog, .orkto-scroll-dialog)[role="dialog"] { max-height: calc(100dvh - 32px); overflow-y: auto; overscroll-behavior: contain; }

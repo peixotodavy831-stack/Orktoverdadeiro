@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import {useModalFocus} from '../product/ui/use-modal-focus';
+import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Briefcase, 
@@ -47,6 +48,8 @@ export default function ServicesPage({
   const [category, setCategory] = useState('Serviços');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [writeError, setWriteError] = useState('');
+  const formRef=useRef<HTMLDivElement>(null);
+  useModalFocus(isAddOpen,()=>{if(!isSubmitting)setIsAddOpen(false);},formRef);
 
   // Quick Inline Editing State (lets users change prices instantly on the list!)
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
@@ -138,7 +141,7 @@ export default function ServicesPage({
           className="flex items-center justify-center gap-2 px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-2xl text-sm font-bold transition-all shadow-md shadow-orange-500/10 active:scale-95"
         >
           <Plus className="w-5 h-5" />
-          Cadastrar Modelo
+          Adicionar item
         </button>
       </header>
       {writeError && <p role="alert" className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-600 dark:text-red-300">{writeError}</p>}
@@ -197,12 +200,12 @@ export default function ServicesPage({
                 <div className="w-16 h-16 bg-zinc-50 dark:bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Briefcase className="w-8 h-8 text-zinc-300 dark:text-zinc-650" />
                 </div>
-                <p className="text-zinc-500 dark:text-zinc-400 font-bold mb-1">Filtro de Serviços Vazio</p>
+                <p className="text-zinc-500 dark:text-zinc-400 font-bold mb-1">Nenhum item encontrado</p>
                 <button
                   onClick={() => setIsAddOpen(true)}
                   className="text-xs text-orange-500 hover:underline font-bold mt-2"
                 >
-                  Criar primeiro modelo agora
+                  Adicionar primeiro item
                 </button>
               </div>
             ) : (
@@ -284,27 +287,29 @@ export default function ServicesPage({
       {/* Creational Dialog modal */}
       <AnimatePresence>
         {isAddOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm" onClick={() => setIsAddOpen(false)} />
             <motion.div
+              ref={formRef}
+              tabIndex={-1}
               role="dialog"
               aria-modal="true"
               aria-labelledby="service-model-dialog-title"
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden outline-none"
+              className="orkto-scroll-dialog relative w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[32px] p-8 shadow-2xl overflow-hidden outline-none"
             >
               <div className="flex justify-between items-center mb-6">
-                <h3 id="service-model-dialog-title" className="text-xl font-bold font-display text-zinc-900 dark:text-white">Cadastrar Modelo</h3>
+                <h3 id="service-model-dialog-title" className="text-xl font-bold font-display text-zinc-900 dark:text-white">Adicionar item</h3>
                 <button type="button" aria-label="Fechar cadastro de modelo" onClick={() => setIsAddOpen(false)} className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-450"><X className="w-5 h-5" /></button>
               </div>
 
               <form onSubmit={handleCreateService} className="space-y-4">
                 <div>
-                  <label htmlFor="service-model-name" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Nome do Serviço / Item *</label>
+                  <label htmlFor="service-model-name" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Nome do produto ou serviço *</label>
                   <input
-                    id="service-model-name"
+                    id="service-model-name" data-autofocus="true"
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -315,7 +320,7 @@ export default function ServicesPage({
                 </div>
 
                 <div>
-                  <label htmlFor="service-model-description" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Descrição / Marca Modelo</label>
+                  <label htmlFor="service-model-description" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Descrição do item</label>
                   <input
                     id="service-model-description"
                     type="text"
@@ -328,7 +333,7 @@ export default function ServicesPage({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="service-model-category" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Categoria *</label>
+                    <label htmlFor="service-model-category" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Categoria *</label>
                     <select
                       id="service-model-category"
                       value={category}
@@ -342,7 +347,7 @@ export default function ServicesPage({
                   </div>
 
                   <div>
-                    <label htmlFor="service-model-price" className="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1.5">Preço Base (R$) *</label>
+                    <label htmlFor="service-model-price" className="block text-xs font-bold orkto-product-muted uppercase tracking-wider mb-1.5">Preço Base (R$) *</label>
                     <input
                       id="service-model-price"
                       type="number"
@@ -370,7 +375,7 @@ export default function ServicesPage({
                     disabled={isSubmitting}
                     className="flex-1 py-3.5 bg-orange-500 hover:bg-orange-600 font-bold text-xs text-white rounded-xl flex justify-center items-center gap-1.5"
                   >
-                    Salvar Modelo
+                    Salvar item
                   </button>
                 </div>
               </form>
