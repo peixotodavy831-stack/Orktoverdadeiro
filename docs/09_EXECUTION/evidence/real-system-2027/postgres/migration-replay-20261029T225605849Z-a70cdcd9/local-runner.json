@@ -1,0 +1,20 @@
+{
+  "runId": "migration-replay-20261029T225605849Z-a70cdcd9",
+  "status": "PASS",
+  "phase": "SHARED_MIGRATION_VALIDATOR",
+  "startedAtUtc": "2026-10-29T22:56:05.8994566Z",
+  "endedAtUtc": "2026-10-29T22:56:57.6956290Z",
+  "postgresBin": "C:\\Users\\sobooa7iqytvqheo\\Documents\\Codex\\Orktoverdeiro-launch-2027\\.tmp-launch\\pg17-tools\\pgsql\\bin",
+  "postgresVersion": "postgres (PostgreSQL) 17.11",
+  "coreExitCode": 0,
+  "coreReport": "result.json",
+  "cluster": {
+    "path": "C:\\Users\\sobooa7iqytvqheo\\AppData\\Local\\Temp\\orkto-disposable-migration-replay-20261029T225605849Z-a70cdcd9",
+    "createdByThisRun": true,
+    "started": true,
+    "stopped": true,
+    "serverLogCopied": true,
+    "removed": true
+  },
+  "failure": null
+}

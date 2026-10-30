@@ -1,0 +1,58 @@
+{
+  "recordedAt": "2026-10-30T14:08:35.5489755Z",
+  "codeSha": "939426c73ae80fc8bfdc1744986124a56a9fa28f",
+  "environment": "local_only",
+  "appTests": {
+    "passed": 417,
+    "failed": 0,
+    "provider": "test doubles",
+    "sourceLog": ".tmp-real-system/.tmp-real-system-final-tests.txt"
+  },
+  "toolTests": {
+    "passed": 108,
+    "failed": 0
+  },
+  "typecheck": "PASS",
+  "edgeTypecheck": "PASS",
+  "buildAndRuntimeSmoke": "PASS",
+  "browser": {
+    "journeysPassed": 5,
+    "journeysFailed": 0,
+    "responsiveCombinations": 6,
+    "providerE2E": false,
+    "databaseE2E": false,
+    "report": "browser/after/journeys.json"
+  },
+  "postgres": {
+    "version": "17.11",
+    "applied": 54,
+    "status": "PASS",
+    "securityStatus": "PASS",
+    "report": "postgres/migration-replay-20261029T230405260Z-3856cce7/result.json",
+    "performedBeforeCommit": true,
+    "allMigrationHashesMatchCommittedSource": true,
+    "clusterStoppedAndRemoved": true
+  },
+  "secretScan": {
+    "scanned": 820,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "remote": {
+    "googleAB": "BLOCKED_EXTERNAL",
+    "gemini": "BLOCKED_EXTERNAL",
+    "meta": "BLOCKED_EXTERNAL",
+    "asaas": "BLOCKED_EXTERNAL",
+    "deploy": "NOT_TESTED",
+    "ci": "NOT_TESTED"
+  },
+  "preservedFailures": [
+    "Initial sandbox HTTP regression:338 passed/78 failed; elevated loopback rerun passed",
+    "PostgreSQL version detection rejected17.11; corrected",
+    "PostgreSQL capture waited on child pipe; stopped only own cluster; corrected",
+    "First UI selector targeted form name rather than textarea name; corrected"
+  ],
+  "readyForProductionCandidate": "NO"
+}

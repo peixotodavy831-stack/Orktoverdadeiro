@@ -1,0 +1,199 @@
+{
+  "phase": "after",
+  "selectedCase": null,
+  "sourceSha": "939426c73ae80fc8bfdc1744986124a56a9fa28f",
+  "workingTreeDirty": true,
+  "productBaseline": "c4983ac",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T23:05:59.578Z",
+  "cases": [
+    {
+      "id": "R8-wia-history-error",
+      "personas": [
+        1
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T23:06:10.216Z",
+      "automationDurationMs": 1868,
+      "interactions": 0,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R8-wia-history-error-939426c-1793315172085.png"
+      }
+    },
+    {
+      "id": "R8-wia-history-loading",
+      "personas": [
+        1
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T23:06:15.280Z",
+      "automationDurationMs": 946,
+      "interactions": 0,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R8-wia-history-loading-939426c-1793315176226.png"
+      }
+    },
+    {
+      "id": "R8-wia-persistent-chat-390",
+      "personas": [
+        1,
+        3
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Pedido sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Consultar fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Nova conversa independente"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T23:06:19.546Z",
+      "persistence": "sessionStorage visual fixture only; database tested separately",
+      "automationDurationMs": 1649,
+      "interactions": 3,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R8-wia-persistent-chat-390-939426c-1793315181195.png"
+      }
+    },
+    {
+      "id": "R8-wia-persistent-chat-768",
+      "personas": [
+        1,
+        3
+      ],
+      "width": 768,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Pedido sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Consultar fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Nova conversa independente"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T23:06:23.477Z",
+      "persistence": "sessionStorage visual fixture only; database tested separately",
+      "automationDurationMs": 1918,
+      "interactions": 3,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R8-wia-persistent-chat-768-939426c-1793315185396.png"
+      }
+    },
+    {
+      "id": "R8-wia-persistent-chat-1440",
+      "personas": [
+        1,
+        3
+      ],
+      "width": 1440,
+      "height": 850,
+      "actions": [
+        {
+          "kind": "fill",
+          "target": "Pedido sintético"
+        },
+        {
+          "kind": "click",
+          "target": "Consultar fixture"
+        },
+        {
+          "kind": "click",
+          "target": "Nova conversa independente"
+        }
+      ],
+      "pageErrors": [],
+      "status": "PASS",
+      "startedAt": "2026-10-29T23:06:27.534Z",
+      "persistence": "sessionStorage visual fixture only; database tested separately",
+      "automationDurationMs": 1894,
+      "interactions": 3,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R8-wia-persistent-chat-1440-939426c-1793315189428.png"
+      }
+    }
+  ],
+  "matrix": [
+    {
+      "screen": "wia",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 390,
+      "documentWidth": 390,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 768,
+      "documentWidth": 768,
+      "theme": "light",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "dark",
+      "overflow": false
+    },
+    {
+      "screen": "wia",
+      "width": 1440,
+      "documentWidth": 1440,
+      "theme": "light",
+      "overflow": false
+    }
+  ],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 5,
+    "fail": 0
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "observedAt": "2026-10-29T23:08:59.1847082Z",
+  "newBranch": "feat/orkto-real-system-2027",
+  "base": "c4983ac3571e75f4fa4f00a6d9c0b3c8fa536d67",
+  "codeSha": "939426c73ae80fc8bfdc1744986124a56a9fa28f",
+  "worktrees": [
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro",
+      "head": "bff22b7aa29e909e5e560ca4dbf53ea742726d8f",
+      "branch": "refs/heads/production-readiness/migration-replay-20260928",
+      "dirtyPathCount": 54
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-deploy-6bc8adb",
+      "head": "d693e2f8269759485713fba9c3c2b19f6e4fbc74",
+      "branch": null,
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-excellence-2027",
+      "head": "aa6e4de6924e6516866eada9dd5a09ec081151eb",
+      "branch": "refs/heads/feat/orkto-product-excellence-2027",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-google-pilot",
+      "head": "78497da5bfd52166c6852aa14c06ebbf84fa1248",
+      "branch": "refs/heads/production-readiness/google-only-pilot-preflight",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-intelligence-2027",
+      "head": "afb2f9e324fc2c1ca7381ee7d6c06029856acb89",
+      "branch": "refs/heads/feat/orkto-intelligence-whatsapp-2027",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-launch-2027",
+      "head": "1c2bf8972fd63c6f530f5940a7e56a5e81db5a4b",
+      "branch": "refs/heads/feat/orkto-launch-2027",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-mobile-2027",
+      "head": "8a87fbb7f326594fab153d502cd5067152694a19",
+      "branch": "refs/heads/codex/orkto-mobile-ux-2027",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-playbooks",
+      "head": "1f194ceacf316876f439534714437febbc911baf",
+      "branch": "refs/heads/feat/orkto-playbooks-r1",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-radar-2027",
+      "head": "30c2c089aaef356db3760ce68c99811d8b2b572a",
+      "branch": "refs/heads/feat/orkto-radar-2027",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-real-system-2027",
+      "head": "939426c73ae80fc8bfdc1744986124a56a9fa28f",
+      "branch": "refs/heads/feat/orkto-real-system-2027",
+      "dirtyPathCount": 13
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-simplicity-revolution",
+      "head": "c289f787ab2135724373449dd0b807ddab4ce26d",
+      "branch": "refs/heads/feat/orkto-simplicity-revolution",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-ux-research-lab-2027",
+      "head": "c4983ac3571e75f4fa4f00a6d9c0b3c8fa536d67",
+      "branch": "refs/heads/feat/orkto-ux-research-lab-2027",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-whatsapp-e2e",
+      "head": "497271081b2a99dd1969532ea13c893594b87f24",
+      "branch": "refs/heads/codex/orkto-whatsapp-e2e",
+      "dirtyPathCount": 0
+    },
+    {
+      "path": "C:/Users/sobooa7iqytvqheo/Documents/Codex/Orktoverdeiro-wia-efficiency",
+      "head": "f98709a646b8e272456757466ce6e10a878b4439",
+      "branch": "refs/heads/feat/orkto-wia-efficiency-2027",
+      "dirtyPathCount": 0
+    }
+  ],
+  "pr2": {
+    "number": 2,
+    "state": "OPEN",
+    "isDraft": true,
+    "head": "78497da5bfd52166c6852aa14c06ebbf84fa1248",
+    "source": "authenticated gh pr view, read-only",
+    "modified": false
+  },
+  "remoteSupabase": {
+    "status": "BLOCKED_EXTERNAL",
+    "connector": "non-empty link_id unavailable",
+    "cli": "management access token not configured",
+    "secretPresence": "NOT_VERIFIED",
+    "mutations": 0
+  }
+}

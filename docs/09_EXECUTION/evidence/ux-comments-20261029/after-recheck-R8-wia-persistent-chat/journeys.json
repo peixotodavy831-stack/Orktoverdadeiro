@@ -1,0 +1,40 @@
+{
+  "phase": "after",
+  "selectedCase": "R8-wia-persistent-chat",
+  "sourceSha": "c4983ac3571e75f4fa4f00a6d9c0b3c8fa536d67",
+  "productBaseline": "211ca3d",
+  "environment": "local_frontend_in_memory_fixture",
+  "providerE2E": false,
+  "physicalDevice": false,
+  "generatedAt": "2026-10-29T22:58:18.201Z",
+  "cases": [
+    {
+      "id": "R8-wia-persistent-chat",
+      "personas": [
+        1,
+        3
+      ],
+      "width": 390,
+      "height": 850,
+      "actions": [],
+      "pageErrors": [],
+      "status": "FAIL",
+      "startedAt": "2026-10-29T22:58:27.585Z",
+      "error": "locator.fill: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('textbox', { name: 'Pedido para a WIA' })\u001b[22m\n",
+      "automationDurationMs": 18505,
+      "interactions": 0,
+      "screenshot": {
+        "status": "PASS",
+        "file": "R8-wia-persistent-chat-c4983ac-1793314726091.png"
+      }
+    }
+  ],
+  "matrix": [],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ],
+  "summary": {
+    "pass": 0,
+    "fail": 1
+  }
+}

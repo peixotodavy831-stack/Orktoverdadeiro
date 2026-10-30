@@ -1,3 +1,9 @@
+## Checkpoint vigente — Real System R1, 29/10/2026
+
+Continuar a partir de `939426c` na branch isolada `feat/orkto-real-system-2027`. A WIA ganhou persistência pelo gateway e privacidade RLS local; a homologação remota não foi realizada. Ler [próximo ciclo detalhado](ORKTO_REAL_SYSTEM_NEXT.md) e [matriz operacional](ORKTO_FUNCTIONALITY_MATRIX.md). Prioridades independentes:Realtime privado/reconexão do Inbox, reconciliação durável de chat parcial, integração HTTP com PostgreSQL local e paginação completa. Não repetir logins nem criar novas contas. Publicação/Meta/IA/Asaas dependem dos acessos e aprovações específicas listadas. **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 ## Simplicity Revolution — navegação R1, 27/10/2026
 
 Branch isolada feat/orkto-simplicity-revolution; código0aedbef. Ler [auditoria e primeira melhoria implementada](ORKTO_SIMPLICITY_REVOLUTION_2027.md). Diretório Mais compartilhado, rail15→5, busca por objetivo e atalho Nova proposta. Regressão406+108, build/typecheck locais aprovados. Sem deploy ou homologação de fornecedor. Próxima fatia:Hoje, depois Conversas, Negócios e WIA. A missão de UX complementa o PDF consolidado, não substitui seus requisitos. READY_FOR_PRODUCTION_CANDIDATE=NO.
