@@ -1,5 +1,7 @@
 # ORKTO Real System — próximo ciclo
 
+**Retomada R3 de30/10/2026:** consultar primeiro [homologação e publicador seguro](ORKTO_REAL_SYSTEM_R3.md). O acesso Supabase chegou a funcionar na etapa anterior e houve aplicação/readback da política de chat conforme checkpoint; as ferramentas não estão conectadas nesta retomada. O resultado da última tentativa das migrations51–53 é inconclusivo. Não repetir DDL sem ler o histórico remoto. O bloqueio do publicador para guardas adicionais foi corrigido e testado; ainda sem deploy remoto.
+
 30/10/2026. Continuar exclusivamente em `feat/orkto-real-system-2027`, código R2 `77634fd` (R1 `939426c` preservado). **A missão total não está encerrada. READY_FOR_PRODUCTION_CANDIDATE=NO.**
 
 ## Engenharia ainda independente de credenciais

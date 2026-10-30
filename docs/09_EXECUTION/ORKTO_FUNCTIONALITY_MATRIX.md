@@ -1,5 +1,7 @@
 # ORKTO Real System — matriz R2
 
+**Atualização R3:** [matriz de homologação e evidências atuais](ORKTO_REAL_SYSTEM_R3.md). A tabela abaixo permanece histórica da R2; não usar seus bloqueios de conexão como estado definitivo após a reconexão. O publicador foi corrigido em `414fa6c`, com110/110 testes locais de ferramentas. Não houve homologação remota nesta retomada.
+
 30/10/2026. Código local R2 `77634fd` (R1 `939426c` preservado). `REAL_VERIFIED` nesta tabela exige ler a coluna ambiente: comprovação em PostgreSQL local ou teste com double não é comprovação staging/fornecedor.
 
 | Funcionalidade/gate | Estado | Ambiente/evidência | O que falta |

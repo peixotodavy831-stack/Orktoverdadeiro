@@ -1,0 +1,69 @@
+{
+  "recordedAtUtc": "2026-10-30T15:29:24.8208262Z",
+  "sourceSha": "414fa6c8bba3f4f9ca22a35a9ecab6243566dcb1",
+  "applicationRuntimeSourceSha": "77634fd756d5f26ed5c09a77443e8eae3991d8fd",
+  "branch": "feat/orkto-real-system-2027",
+  "environment": "local_only",
+  "focusedTests": {
+    "tests": 61,
+    "failed": 0,
+    "passed": 61
+  },
+  "toolTests": {
+    "passed": 110,
+    "failed": 0,
+    "initialSandboxRun": {
+      "failed": 4,
+      "passed": 106,
+      "resolvedBy": "access to installed browser and local test environment"
+    },
+    "tests": 110,
+    "rawLogSha256": "d0a1119009304a2874d72b3d3711ecafb4853b803fcc3ce1ad4fd1af30320821",
+    "providerMode": "local_fixture_only"
+  },
+  "typecheck": "PASS",
+  "build": {
+    "frontend": true,
+    "server": true,
+    "mode": "google_pilot",
+    "runtimeSmoke": true,
+    "distPreserved": true,
+    "publicMetadata": true,
+    "rawLogSha256": "67937d8a729f8b82405381e6d89dc78c9cc3efd11595074b3465547e7fe55a55"
+  },
+  "browserCapability": {
+    "googleLogin": "NOT_TESTED",
+    "isolatedContexts": "PASS",
+    "browser": "chrome",
+    "sessionExported": false
+  },
+  "secretScan": {
+    "scanned": 821,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "remote": {
+    "mutationsThisResumption": 0,
+    "newCandidate": "NOT_TESTED",
+    "googleG01G12": "BLOCKED_EXTERNAL",
+    "gemini": "BLOCKED_EXTERNAL",
+    "supabaseConnection": "BLOCKED_EXTERNAL: installed after owner confirmation; management methods not exposed in current executor",
+    "migration54": "checkpoint reports apply and readback; fresh verification pending",
+    "asaasB01B13": "BLOCKED_EXTERNAL",
+    "migration51to53": "INCONCLUSIVE: prior attempt had no recoverable receipt",
+    "vercelProjectInspection": "BLOCKED_EXTERNAL: integration installed; methods unavailable; CLI read failed",
+    "meta": "BLOCKED_EXTERNAL"
+  },
+  "protected": {
+    "merge": false,
+    "pr2Modified": false,
+    "externalMessagesSent": 0,
+    "billingActivated": false,
+    "push": false,
+    "paidInferenceCalls": 0,
+    "productionModified": false
+  },
+  "readyForProductionCandidate": "NO"
+}

@@ -1,0 +1,119 @@
+{
+  "version": 32,
+  "verify_jwt": true,
+  "origin": "prior connected staging read; not freshly verified",
+  "project": "ghrjongiodziasupakrk",
+  "fileCount": 22,
+  "files": [
+    {
+      "name": "_shared/asaas-sandbox.ts",
+      "bytes": 4940,
+      "sha256": "283550fd5a7b7a5225afa2b955d75cdc15b46d21ad1b72bfd8cfcd5d6b66f8ee"
+    },
+    {
+      "name": "_shared/billing-lifecycle.ts",
+      "bytes": 2957,
+      "sha256": "ea19512d951102c30938cbf96a19c3336d22826eea6c3fefef717752126145ec"
+    },
+    {
+      "name": "_shared/client-input.ts",
+      "bytes": 434,
+      "sha256": "08c99fdcdda03a9ddab67bd7a9f0a18aaf95fcf169a37922deab7f6b969fbf29"
+    },
+    {
+      "name": "_shared/commercial-catalog.ts",
+      "bytes": 1318,
+      "sha256": "8571799f5233d4149db050451fca94491f73ffa8375680baf32f48105e699145"
+    },
+    {
+      "name": "_shared/contact-input.ts",
+      "bytes": 805,
+      "sha256": "fdd7441d01f72e5cf89dda2d487ff036a13eb5ba1fe1e6c3907c01d045e537f3"
+    },
+    {
+      "name": "_shared/cost-governor.ts",
+      "bytes": 2382,
+      "sha256": "e9a5400efb6a59688e040abe6b6cefdea4e2e0bfbbd5daff910f35ed8f187d16"
+    },
+    {
+      "name": "_shared/deal-input.ts",
+      "bytes": 1217,
+      "sha256": "7b16d787fb3ea675c7bbdac7b2ab4b0eb4af88d6f13f76bbb55318f0579a0fad"
+    },
+    {
+      "name": "_shared/meta-connection.ts",
+      "bytes": 5059,
+      "sha256": "840ee384c45c9b05d3fc7ea7ece26b7d36bc7cf95dcf4cd924fe28d6bb57a444"
+    },
+    {
+      "name": "_shared/meta-send.ts",
+      "bytes": 2263,
+      "sha256": "453c565eb77a96b2780dfc37f3051582ce14d94a8f8cbb1fe7a31c01faddd044"
+    },
+    {
+      "name": "_shared/pilot-access.mjs",
+      "bytes": 527,
+      "sha256": "6888ffab3f617dc6cdd86a3ecd996bb05bff091c6cbf442c48c45f0d12483635"
+    },
+    {
+      "name": "_shared/pilot-access.ts",
+      "bytes": 146,
+      "sha256": "8d1bddbb70845ee63f9dc171e0cfbddb1bc06e5357bfd4054148d6f5cb4a9767"
+    },
+    {
+      "name": "_shared/plan-access.ts",
+      "bytes": 5894,
+      "sha256": "ec69d82f1cb37d1208bd8cdd417b68dcfdcf407f1edbb55ab7969260d8def6b1"
+    },
+    {
+      "name": "_shared/profile-input.ts",
+      "bytes": 1024,
+      "sha256": "59997cecf4e83298c2c8d387f010743394dfbe637acc25cc200ae36abff763e9"
+    },
+    {
+      "name": "_shared/quote-input.ts",
+      "bytes": 2590,
+      "sha256": "3efd0012a952d017d4d3fad2cb7ddc9144ebaabf96cd707e1a39c17b2409b9a5"
+    },
+    {
+      "name": "_shared/service-input.ts",
+      "bytes": 414,
+      "sha256": "bd2e7a4d6e8b172418be8b9bd88184be254cd92d2afc0c15349cc8dad809fa44"
+    },
+    {
+      "name": "_shared/subscription-policy.ts",
+      "bytes": 2819,
+      "sha256": "56b615dd4a53c446b5e429d3e6219cb7267fc5e9488eeb82d835a77546ba4f8b"
+    },
+    {
+      "name": "_shared/wia-gemini.ts",
+      "bytes": 8038,
+      "sha256": "2cbc93b6f7604d46236de27c635145d5fd9293fb510b708792e43792b941386a"
+    },
+    {
+      "name": "_shared/wia-request.ts",
+      "bytes": 7467,
+      "sha256": "e8ac93a4e553e8bd7a56391fbaf8a0673094cc74333ace4ad19cf962ac0309a4"
+    },
+    {
+      "name": "_shared/wia-t0.ts",
+      "bytes": 4635,
+      "sha256": "f97de93bcbfa8f1613209d144c6ae88d49031a3e6cf2bfe08251454cd1c09083"
+    },
+    {
+      "name": "_shared/wia-trusted.ts",
+      "bytes": 5531,
+      "sha256": "56aa97f95e48da86a1006ff39b7615d0a9582283e889bc3ea1ef62d918acfbb6"
+    },
+    {
+      "name": "deno.json",
+      "bytes": 119,
+      "sha256": "dd7aa3dabbc2ed3e11cd55f2d23dbc827562dafc23952cc5c907b112a8d99e11"
+    },
+    {
+      "name": "index.ts",
+      "bytes": 73387,
+      "sha256": "322f89c78fb9b95be05c7866134c1fd4081b9d63cfb6a70ec87caf75c6188dcb"
+    }
+  ]
+}
