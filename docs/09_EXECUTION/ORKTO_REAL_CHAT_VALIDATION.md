@@ -1,3 +1,9 @@
+## Checkpoint R2 — 30/10/2026
+
+Código local final `77634fd` (base R2 `7236ba2` preservada). A R2 recupera após reload uma resposta já salva na execução, sem escrever no GET nem repetir inferência. Também prepara atualização do Inbox por eventos, OFF por padrão. A validação remota continua bloqueada. [Implementação, provas e gates atuais](ORKTO_REAL_SYSTEM_R2.md). **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 # Conversas WIA — persistência e isolamento R1
 
 Código `939426c`, branch isolada `feat/orkto-real-system-2027`, 29/10/2026. Estado: **IMPLEMENTED_NOT_VERIFIED no staging**.

@@ -1,3 +1,9 @@
+## Checkpoint R2 — 30/10/2026
+
+Código local final `77634fd` (base R2 `7236ba2` preservada). A R2 acrescenta recuperação por leitura da execução persistida e adaptador de eventos do Inbox, sem habilitação remota. As lacunas descritas abaixo para a R1 são históricas; consultar o checkpoint R2 para o estado vigente. [Implementação, provas e gates atuais](ORKTO_REAL_SYSTEM_R2.md). **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 # ORKTO Real System 2027 — auditoria de execução R1
 
 29/10/2026. Código local: `939426c`, branch `feat/orkto-real-system-2027`, worktree `Orktoverdeiro-real-system-2027`. Base `c4983ac3571e75f4fa4f00a6d9c0b3c8fa536d67`. **Missão integral ainda parcial; READY_FOR_PRODUCTION_CANDIDATE=NO.**

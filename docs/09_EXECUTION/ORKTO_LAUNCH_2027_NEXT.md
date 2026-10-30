@@ -1,3 +1,9 @@
+## Real System R2 — checkpoint de30/10/2026
+
+Runtime local `77634fd` (recuperação/eventos `7236ba2` e correção de ordem `77634fd`); branch isolada `feat/orkto-real-system-2027`. Resposta WIA recuperável após reload sem nova inferência, eventos do Inbox filtrados por workspace com flag OFF, fallback/reconexão e ordenação/deduplicação de mensagens. [Relatório e limites R2](ORKTO_REAL_SYSTEM_R2.md), [matriz atual](ORKTO_FUNCTIONALITY_MATRIX.md), [evidências](evidence/real-system-2027/r2/validation-summary.json). Validação local:425 testes de aplicação+108 ferramentas,9 jornadas visuais+12 combinações responsivas, types app/Edge, build/smoke e scan sem achados. PR2 preservada, sem deploy/produção. **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 ## Checkpoint vigente — Real System R1, 29/10/2026
 
 Continuar a partir de `939426c` na branch isolada `feat/orkto-real-system-2027`. A WIA ganhou persistência pelo gateway e privacidade RLS local; a homologação remota não foi realizada. Ler [próximo ciclo detalhado](ORKTO_REAL_SYSTEM_NEXT.md) e [matriz operacional](ORKTO_FUNCTIONALITY_MATRIX.md). Prioridades independentes:Realtime privado/reconexão do Inbox, reconciliação durável de chat parcial, integração HTTP com PostgreSQL local e paginação completa. Não repetir logins nem criar novas contas. Publicação/Meta/IA/Asaas dependem dos acessos e aprovações específicas listadas. **READY_FOR_PRODUCTION_CANDIDATE=NO.**

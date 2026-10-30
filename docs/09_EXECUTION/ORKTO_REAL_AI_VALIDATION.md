@@ -1,3 +1,9 @@
+## Checkpoint R2 — 30/10/2026
+
+Código local final `77634fd` (base R2 `7236ba2` preservada). Adaptador de IA e seus gates permanecem inalterados. A R2 não realizou inferência real; recuperação de resposta antiga e notificação de Conversas não são geração de IA. [Implementação, provas e gates atuais](ORKTO_REAL_SYSTEM_R2.md). **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 # WIA — validação de IA real R1
 
 Código local `939426c`, 29/10/2026. **Geração no fornecedor: BLOCKED_EXTERNAL.** Nenhum teste com double é promovido a IA real.

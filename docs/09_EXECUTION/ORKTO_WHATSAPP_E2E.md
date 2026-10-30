@@ -1,3 +1,9 @@
+## Checkpoint R2 — 30/10/2026
+
+Código local final `77634fd` (base R2 `7236ba2` preservada). A R2 prepara invalidação de leituras do Inbox por eventos Supabase. Nenhuma publicação, mensagem Meta, permissão ou configuração remota foi alterada; o E2E oficial continua bloqueado. [Implementação, provas e gates atuais](ORKTO_REAL_SYSTEM_R2.md). **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 # WhatsApp oficial — estado atual da missão Real System
 
 29/10/2026, código local `939426c`. **BLOCKED_EXTERNAL para E2E Meta real. Nenhuma mensagem enviada nesta rodada.**

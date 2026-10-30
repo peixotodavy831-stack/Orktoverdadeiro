@@ -1,6 +1,6 @@
-# ORKTO Real System — matriz R1
+# ORKTO Real System — matriz R2
 
-29/10/2026. Código local `939426c`. `REAL_VERIFIED` nesta tabela exige ler a coluna ambiente: comprovação em PostgreSQL local ou teste com double não é comprovação staging/fornecedor.
+30/10/2026. Código local R2 `77634fd` (R1 `939426c` preservado). `REAL_VERIFIED` nesta tabela exige ler a coluna ambiente: comprovação em PostgreSQL local ou teste com double não é comprovação staging/fornecedor.
 
 | Funcionalidade/gate | Estado | Ambiente/evidência | O que falta |
 |---|---|---|---|
@@ -11,9 +11,9 @@
 | IA generativa real e continuidade | BLOCKED_EXTERNAL | Adaptador existente; nenhuma inferência feita | Configuração segura + autorização de gasto |
 | Cancelar inferência em andamento | NOT_IMPLEMENTED | Nenhum botão promete cancelamento | Contrato/garantia do fornecedor e contabilização |
 | Streaming de tokens | NOT_IMPLEMENTED | Resposta completa, loading verdadeiro | Implementar somente se suportado/aprovado |
-| Recuperar retry parcial após fechar a página | PARTIAL | Retry estável enquanto a instância da tela existe | Reconciliação durável pelo gateway |
+| Recuperar resposta parcial após fechar a página | REAL_VERIFIED | Teste local: leitura da resposta durável sem escrever ou inferir; UI fictícia separada | Homologação com banco staging no SHA R2 |
 | Fila e mensagens comerciais persistidas | IMPLEMENTED_NOT_VERIFIED | Backend/cursor/gateway existentes, regressão local | Recepção Meta real no candidato |
-| Realtime privado/reconexão no Inbox | PARTIAL | Fila atualizada em30s quando visível; sem subscription | Engenharia e validação local antes do gate remoto |
+| Eventos RLS/reconexão no Inbox | IMPLEMENTED_NOT_VERIFIED | Adaptador Supabase filtrado por workspace; testes doubles; flag OFF e fallback30s | Publicação/RLS e A/B reais; DELETE não assinado |
 | Webhook Meta/HMAC/deduplicação/recibos | IMPLEMENTED_NOT_VERIFIED | Testes locais + evidência histórica separada | Configuração e E2E oficial atual |
 | Envio e receipt Meta reais | BLOCKED_EXTERNAL | Não executado | Assets/consentimento/limites e autorização específica |
 | Clientes, negócios e propostas via Mutation Gateway | IMPLEMENTED_NOT_VERIFIED | Contratos/API com doubles + SQL local | CRUD com banco real autenticado no novo SHA |

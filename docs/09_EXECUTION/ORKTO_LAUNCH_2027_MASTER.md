@@ -1,3 +1,9 @@
+## Real System R2 — checkpoint de30/10/2026
+
+Runtime local `77634fd` (recuperação/eventos `7236ba2` e correção de ordem `77634fd`); branch isolada `feat/orkto-real-system-2027`. Resposta WIA recuperável após reload sem nova inferência, eventos do Inbox filtrados por workspace com flag OFF, fallback/reconexão e ordenação/deduplicação de mensagens. [Relatório e limites R2](ORKTO_REAL_SYSTEM_R2.md), [matriz atual](ORKTO_FUNCTIONALITY_MATRIX.md), [evidências](evidence/real-system-2027/r2/validation-summary.json). Validação local:425 testes de aplicação+108 ferramentas,9 jornadas visuais+12 combinações responsivas, types app/Edge, build/smoke e scan sem achados. PR2 preservada, sem deploy/produção. **READY_FOR_PRODUCTION_CANDIDATE=NO.**
+
+---
+
 ## Real System 2027 — persistência WIA R1, 29/10/2026
 
 Branch isolada `feat/orkto-real-system-2027`; código `939426c`. Chat WIA ligado ao Mutation Gateway, histórico privado por autor/empresa, confirmação de gravação, continuidade limitada por contexto e replay sem nova inferência. Validação final local:417 testes de aplicação+108 ferramentas; typecheck app/Edge, build com smoke,54 migrations PostgreSQL17.11 com asserções de segurança;5 jornadas visuais+6 combinações responsivas com dados fictícios. [Auditoria](ORKTO_REAL_SYSTEM_AUDIT.md), [matriz](ORKTO_FUNCTIONALITY_MATRIX.md), [continuação](ORKTO_REAL_SYSTEM_NEXT.md), [evidência consolidada](evidence/real-system-2027/validation-summary.json).

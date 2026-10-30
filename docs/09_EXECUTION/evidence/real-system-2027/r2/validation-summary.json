@@ -1,0 +1,71 @@
+{
+  "recordedAtUtc": "2026-10-30T14:32:59.3612874Z",
+  "clientDate": "2026-10-30",
+  "codeSha": "77634fd756d5f26ed5c09a77443e8eae3991d8fd",
+  "environment": "local_only",
+  "appTests": {
+    "tests": 425,
+    "passed": 425,
+    "failed": 0,
+    "providerMode": "doubles_only"
+  },
+  "toolTests": {
+    "tests": 108,
+    "passed": 108,
+    "failed": 0
+  },
+  "typecheck": "PASS",
+  "edgeTypecheck": "PASS",
+  "build": {
+    "scratch": "C:\\Users\\SOBOOA~1\\AppData\\Local\\Temp\\orkto-build-validation-m1I76q",
+    "frontend": true,
+    "publicUrl": true,
+    "server": true,
+    "runtime": true,
+    "distPreserved": true
+  },
+  "browser": {
+    "passed": 9,
+    "failed": 0,
+    "matrix": 12,
+    "report": "browser/after/journeys.json",
+    "databaseE2E": false,
+    "providerE2E": false
+  },
+  "schema": {
+    "changedInR2": false,
+    "all54MigrationHashesMatchR1": true,
+    "localPostgresR1": "PASS",
+    "remote": "NOT_TESTED"
+  },
+  "realtime": {
+    "flag": "OFF",
+    "transportTests": "doubles_only",
+    "remoteSubscription": "NOT_TESTED",
+    "deleteEventsSubscribed": false,
+    "permissionsAdded": false
+  },
+  "supabaseAccess": {
+    "connector": "BLOCKED_EXTERNAL: link_id unavailable",
+    "cli": "BLOCKED_EXTERNAL: no management session",
+    "browser": "BLOCKED_EXTERNAL: target staging redirected to organizations",
+    "secrets": "NOT_VERIFIED",
+    "projectMutations": 0
+  },
+  "pr2": {
+    "state": "OPEN",
+    "draft": true,
+    "head": "78497da5bfd52166c6852aa14c06ebbf84fa1248",
+    "verified": "read-only gh pr view",
+    "modified": false
+  },
+  "rawTestLogSha256": "9b9d7578433c7c138e05c91698b1a2b4f08d970b301d50f493e6a3f1f728b3a2",
+  "secretScan": {
+    "scanned": 818,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  },
+  "readyForProductionCandidate": "NO"
+}
