@@ -38,13 +38,8 @@ import {
 import { formatPhone, formatBRL } from '../../utils/format';
 import OrktoLogo from '../OrktoLogo';
 import { confirmedSendMessage, confirmedSendState } from '../../product/inbox-delivery-status';
-import { conversationApproval, conversationMessage, persistedMessageReceipt } from '../../product/conversation-message';
+import { conversationApproval, conversationMessage, persistedMessageReceipt, mergeConversationMessages as mergeMessages } from '../../product/conversation-message';
 import {visiblePrivateInstructions} from '../../product/private-instruction-state.js';
-
-function mergeMessages(older:ConversationMessage[],newer:ConversationMessage[]){
- return [...new Map([...older,...newer].map(message=>[message.id,message])).values()]
-  .sort((a,b)=>new Date(String(a.sentAt)).getTime()-new Date(String(b.sentAt)).getTime()||a.id.localeCompare(b.id));
-}
 
 // Helper function to format timestamps
 function formatTimestamp(ts: unknown): string {
@@ -230,7 +225,7 @@ export default function ConversationView({
         if(request!==conversationRequest.current)return;
         setConversation(data);
         const latest=(Array.isArray(data.messages)?data.messages:[]).map(conversationMessage);
-        setMessages(current=>historyExpanded.current?mergeMessages(current,latest):latest);
+        setMessages(current=>historyExpanded.current?mergeMessages(current,latest):mergeMessages([],latest));
         if(!historyExpanded.current)setHistoryCursor(data.nextMessagesCursor??null);
         setApprovalTasks((Array.isArray(data.approval_tasks)?data.approval_tasks:[]).map(conversationApproval));
       } else {

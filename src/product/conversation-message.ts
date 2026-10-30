@@ -1,5 +1,15 @@
 import type { ApprovalTask, ConversationMessage, MessageRole, MessageType } from '../types';
 
+/** Merge snapshots without duplicates; late receipts replace their own message, not its timestamp. */
+export function mergeConversationMessages(older:ConversationMessage[],newer:ConversationMessage[]) {
+  const timestamp=(message:ConversationMessage)=>{
+    const value=new Date(String(message.sentAt)).getTime();
+    return Number.isFinite(value)?value:Number.MAX_SAFE_INTEGER;
+  };
+  return [...new Map([...older,...newer].map(message=>[message.id,message])).values()]
+    .sort((a,b)=>timestamp(a)-timestamp(b)||a.id.localeCompare(b.id));
+}
+
 /** The API returns database names; fixtures and legacy views may use camelCase. */
 export function conversationMessage(row: Record<string, any>): ConversationMessage {
   const role=row.sender_role??row.senderRole;

@@ -1,6 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {conversationApproval,conversationMessage,persistedMessageReceipt} from '../src/product/conversation-message.js';
+import {conversationApproval,conversationMessage,persistedMessageReceipt,mergeConversationMessages} from '../src/product/conversation-message.js';
+
+test('unordered snapshots and replayed messages render once in stable chronological order',()=>{
+ const old=conversationMessage({id:'older',sent_at:'2026-10-30T09:00:00Z',content:'Original'});
+ const later=conversationMessage({id:'later',sent_at:'2026-10-30T10:00:00Z',content:'Later'});
+ const sameTime=conversationMessage({id:'last-at-same-time',sent_at:'2026-10-30T10:00:00Z',content:'Tie'});
+ const input=[later,sameTime,old,later];
+ const messages=mergeConversationMessages([],input);
+ assert.deepEqual(messages.map(m=>m.id),['older','last-at-same-time','later']);assert.equal(input.length,4);
+ const updated={...old,metadata:{provider_receipt_status:'delivered'}};
+ const merged=mergeConversationMessages(messages,[updated]);
+ assert.equal(merged.length,3);assert.equal(merged[0].sentAt,old.sentAt);assert.equal(merged[0].metadata.provider_receipt_status,'delivered');assert.deepEqual(old.metadata,{});
+});
 test('database message contract preserves role, timestamp and explicit unsupported content',()=>{
  const msg=conversationMessage({id:'synthetic',conversation_id:'conversation',sender_role:'contact',message_type:'audio',
   sent_at:'2026-10-27T10:00:00Z',direction:'incoming',content:'Áudio recebido; conteúdo não processado.',metadata:{content_state:'unsupported'}});
