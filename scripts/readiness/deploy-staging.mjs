@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { validateStagingPreviewDeployment } from './staging-e2e-config.mjs';
 
 export const STAGING_DEPLOY_TARGET = Object.freeze({
@@ -158,16 +159,33 @@ function loadProjectLink(repoRoot) {
   }
 }
 
+export function validateStagingConfigs(defaultConfig, stagingConfig, productionConfig) {
+  const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+  if (![defaultConfig, stagingConfig, productionConfig].every(isRecord)) return false;
+  const { crons, ...withoutCrons } = productionConfig;
+  if (!isDeepStrictEqual(crons, [{ path: '/api/cron/automation-dispatch', schedule: '15 * * * *' }])
+    || stagingConfig.buildCommand !== 'vite build && node scripts/render-public-url.mjs'
+    || !isDeepStrictEqual(stagingConfig, withoutCrons)) return false;
+  const { git: defaultGit, ...defaultRuntime } = defaultConfig;
+  const { git: stagingGit, ...stagingRuntime } = stagingConfig;
+  if (!isDeepStrictEqual(defaultRuntime, stagingRuntime)
+    || !isRecord(defaultGit) || !isRecord(stagingGit)) return false;
+  const { deploymentEnabled: defaultGuards, ...defaultGitSettings } = defaultGit;
+  const { deploymentEnabled: stagingGuards, ...stagingGitSettings } = stagingGit;
+  return isDeepStrictEqual(defaultGitSettings, stagingGitSettings)
+    && isRecord(defaultGuards) && isRecord(stagingGuards)
+    && stagingGuards['production-readiness/*'] === false
+    && Object.values(stagingGuards).every(value => value === false)
+    && Object.values(defaultGuards).every(value => value === false)
+    && Object.keys(stagingGuards).every(branch => Object.hasOwn(defaultGuards, branch));
+}
+
 function main() {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
   const defaultConfig = JSON.parse(readFileSync(path.join(repoRoot, 'vercel.json'), 'utf8'));
   const stagingConfig = JSON.parse(readFileSync(path.join(repoRoot, 'vercel.staging.json'), 'utf8'));
   const productionConfig = JSON.parse(readFileSync(path.join(repoRoot, 'vercel.production.json'), 'utf8'));
-  const { crons, ...withoutCrons } = productionConfig;
-  if (!Array.isArray(crons) || crons.length !== 1
-    || defaultConfig.buildCommand !== 'vite build && node scripts/render-public-url.mjs'
-    || JSON.stringify(defaultConfig) !== JSON.stringify(withoutCrons)
-    || JSON.stringify(stagingConfig) !== JSON.stringify(defaultConfig)) {
+  if (!validateStagingConfigs(defaultConfig, stagingConfig, productionConfig)) {
     process.stderr.write('STAGING_DEPLOY_ABORT: STAGING_CONFIG_DRIFT\n');
     process.exitCode = 2;
     return;

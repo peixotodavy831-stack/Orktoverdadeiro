@@ -9,6 +9,7 @@ import {
   buildStagingDeployArgs,
   parseStagingDeploymentUrl,
   validateStagingDeployBoundary,
+  validateStagingConfigs,
   verifyStagingDeployResult,
 } from '../readiness/deploy-staging.mjs';
 
@@ -22,6 +23,38 @@ const env = {
   ORKTO_STAGING_SUPABASE_REF: STAGING_DEPLOY_TARGET.supabaseRef,
   VITE_SUPABASE_URL: STAGING_DEPLOY_TARGET.supabaseUrl,
 };
+
+const configs = () => ['vercel.json', 'vercel.staging.json', 'vercel.production.json']
+  .map(name => JSON.parse(readFileSync(new URL(`../../${name}`, import.meta.url), 'utf8')));
+
+test('accepts current runtime configuration with additional deny-only branch guards', () => {
+  const values = configs();
+  assert.equal(validateStagingConfigs(...values), true);
+  values[0].git.deploymentEnabled['feat/another-isolated-test'] = false;
+  assert.equal(validateStagingConfigs(...values), true);
+});
+
+test('fails closed for enabled, missing or malformed deployment guards and runtime drift', () => {
+  const changes = [
+    ([d]) => { d.git.deploymentEnabled['feat/unsafe'] = true; },
+    ([d]) => { d.git.deploymentEnabled['feat/unsafe'] = 'false'; },
+    ([d]) => { delete d.git.deploymentEnabled['production-readiness/*']; },
+    ([d]) => { d.git.deploymentEnabled = []; },
+    ([d]) => { d.git = null; },
+    ([d]) => { d.git.otherSetting = true; },
+    ([d]) => { d.functions['api/server.ts'].maxDuration = 300; },
+    ([d]) => { d.rewrites[0].destination = '/different-server'; },
+    ([d]) => { d.crons = []; },
+    ([,s,p]) => { s.git.deploymentEnabled['production-readiness/*'] = true; p.git.deploymentEnabled['production-readiness/*'] = true; },
+    ([,,p]) => { p.crons[0].path = '/different-job'; },
+  ];
+  for (const change of changes) {
+    const values = configs();
+    change(values);
+    assert.equal(validateStagingConfigs(...values), false, change.toString());
+  }
+  assert.equal(validateStagingConfigs(null, {}, {}), false);
+});
 
 test('allows only the verified staging project and Supabase target', () => {
   assert.deepEqual(validateStagingDeployBoundary({ projectLink, env }), {
