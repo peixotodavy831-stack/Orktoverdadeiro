@@ -108,9 +108,12 @@ function json(data: unknown, status = 200) {
 function installVisualApiFixtures() {
   const scenario = new URLSearchParams(window.location.search).get('scenario');
   // Explicit visual fixture only. Reload persistence here is NOT database validation.
-  type ChatFixture = {id:string;session_id:string;role:string;content:string;created_at:string};
+  type ChatFixture = {id:string;session_id:string;role:string;content:string;created_at:string;recovered?:boolean};
   const chatStorageKey='orkto-visual-only-chat';
   const chatMessages:ChatFixture[]=JSON.parse(sessionStorage.getItem(chatStorageKey)||'[]');
+  if(scenario==='wia-recovered')chatMessages.push(
+    {id:'visual-user-turn',session_id:'97000000-0000-4000-8000-000000000001',role:'user',content:'Pedido fictício de recuperação',created_at:'2026-10-29T12:00:00Z'},
+    {id:'visual-recovered-turn',session_id:'97000000-0000-4000-8000-000000000001',role:'assistant',content:'Resposta fictícia recuperada da execução persistida.',created_at:'2026-10-29T12:01:00Z',recovered:true});
   const privateInstructions=scenario?.startsWith('sussurro')?[{id:'visual-private-1',content:'Confirmar o prazo internamente antes de responder.',source_role:'manager',from_user_id:'visual-manager',to_user_id:null,read_at:null,expires_at:new Date(Date.now()+86_400_000).toISOString(),created_at:new Date().toISOString()}]:[];
   const session = { access_token: VISUAL_TOKEN, user: { id: 'visual-user' } } as unknown as NonNullable<Awaited<ReturnType<typeof supabase.auth.getSession>>['data']['session']>;
   Object.defineProperty(supabase.auth, 'getSession', {

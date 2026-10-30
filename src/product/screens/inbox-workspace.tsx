@@ -1,4 +1,5 @@
 import {updateConversationDraft, type ConversationDrafts} from '../adapters/conversation-drafts';
+import {useInboxUpdates} from '../adapters/use-inbox-updates';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RefreshCw, Search, X } from 'lucide-react';
 import { ConversationAssistance } from '../ui/conversation-assistance';
@@ -86,6 +87,8 @@ function ContextPanel({ conversation, onClose, onOpenDeal, accessToken, onOpenWi
 }
 
 export default function InboxWorkspace({ currentView, accessToken, selectedConversationId, onOpenConversation, onBackToInbox, onOpenDeal, onOpenSettings, onRefresh, onOpenWia }: InboxWorkspaceProps) {
+  const updates=useInboxUpdates(accessToken);
+  const updateMode=useRef(updates.mode);updateMode.current=updates.mode;
   const [listState, setListState] = useState<{ status: ProductRequestState; data: InboxConversationView[]; message?: string }>({ status: 'loading', data: [] });
   // Drafts stay in this mounted Inbox only; an auth-session change hides old drafts immediately.
   const [drafts, setDrafts] = useState<ConversationDrafts>({scope: accessToken, values: {}});
@@ -120,9 +123,10 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
 
   useEffect(() => {
     void loadConversations();
-    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void loadConversations(true);},30_000);
+    const timer=window.setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&updateMode.current!=='events')void loadConversations(true);},30_000);
     return ()=>{++listRequest.current;window.clearInterval(timer);};
   }, [loadConversations]);
+  useEffect(()=>{if(updates.revision)void loadConversations(true);},[updates.revision,loadConversations]);
 
   useEffect(() => {
     if (!contextDrawerOpen) return;
@@ -164,6 +168,7 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
   return <section className="orkto-inbox-view" data-mobile-detail={mobileDetail ? 'true' : 'false'} data-nav-hidden={mobileDetail ? 'true' : 'false'} aria-label="Central de Conversas">
     <div className="orkto-inbox-layout" data-context-open={contextOpen ? 'true' : 'false'}>
       <aside className="orkto-inbox-list min-h-0 overflow-y-auto border-r p-3 orkto-product-border orkto-product-surface" aria-label="Conversas">
+        <p role="status" className="mb-3 text-xs orkto-product-muted">{updates.mode==='events'?'Atualização por eventos':updates.mode==='connecting'?'Conectando atualização de conversas…':'Atualização periódica · use Atualizar para consultar agora'}</p>
         <div className="mb-3 flex items-center justify-between gap-2 px-1"><div><p className="text-[10px] font-semibold uppercase tracking-[0.14em] orkto-product-subtle">Atendimento</p><h1 className="mt-1 text-xl font-semibold">Central de Conversas</h1></div><button type="button" onClick={() => void refresh()} aria-label="Atualizar conversas" className="flex h-11 w-11 items-center justify-center rounded-lg orkto-product-muted hover:orkto-product-surface-muted"><RefreshCw size={16} className={listState.status === 'loading' ? 'animate-spin' : ''} /></button></div>
         <label className="relative block"><span className="sr-only">Buscar conversas</span><Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 orkto-product-subtle" /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar conversa" className="orkto-product-control min-h-11 w-full rounded-lg pl-9 pr-3 text-sm" /></label>
         <label className="mt-2 block"><span className="sr-only">Filtrar conversas</span><select value={filter} onChange={event => setFilter(event.target.value as PriorityFilter)} className="orkto-product-control min-h-11 w-full rounded-lg px-3 text-xs"><option value="all">Todas as conversas</option><option value="unread">Não lidas</option><option value="priority">Prioritárias</option></select></label>
@@ -186,7 +191,7 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
       </aside>
 
       <div className="orkto-inbox-thread min-h-0 min-w-0" aria-label="Conversa selecionada">
-        {selectedConversationId ? <InboxThread draftValue={drafts.scope === accessToken ? drafts.values[selectedConversationId] || '' : ''} onDraftChange={value => updateDraft(selectedConversationId, value)} conversationId={selectedConversationId} onBack={onBackToInbox} onOpenContext={openContext} onOpenConfiguration={onOpenSettings} onRefresh={refresh} /> : <div className="flex h-full min-h-[420px] items-center justify-center p-6"><EmptyState title="Escolha uma conversa" description="A conversa externa, a composição e as ações contextuais serão abertas aqui." /></div>}
+        {selectedConversationId ? <InboxThread updateRevision={updates.revision} eventUpdates={updates.mode === 'events'} draftValue={drafts.scope === accessToken ? drafts.values[selectedConversationId] || '' : ''} onDraftChange={value => updateDraft(selectedConversationId, value)} conversationId={selectedConversationId} onBack={onBackToInbox} onOpenContext={openContext} onOpenConfiguration={onOpenSettings} onRefresh={refresh} /> : <div className="flex h-full min-h-[420px] items-center justify-center p-6"><EmptyState title="Escolha uma conversa" description="A conversa externa, a composição e as ações contextuais serão abertas aqui." /></div>}
       </div>
 
       <div className="orkto-inbox-context-slot min-h-0" aria-label="Contexto e WIA"><ContextPanel conversation={selected || null} accessToken={accessToken} onOpenDeal={onOpenDeal} onOpenWia={onOpenWia} /></div>
@@ -199,6 +204,6 @@ export default function InboxWorkspace({ currentView, accessToken, selectedConve
   </section>;
 }
 
-function InboxThread({ draftValue, onDraftChange, conversationId, onBack, onOpenContext, onOpenConfiguration, onRefresh }: { draftValue: string; onDraftChange: (value: string) => void; conversationId: string; onBack: () => void; onOpenContext: () => void; onOpenConfiguration: () => void; onRefresh: () => Promise<void> }) {
-  return <ConversationView draftValue={draftValue} onDraftChange={onDraftChange} key={conversationId} conversationId={conversationId} embedded onBack={onBack} onOpenContext={onOpenContext} onOpenConfiguration={onOpenConfiguration} onRefresh={onRefresh} />;
+function InboxThread({ updateRevision, eventUpdates, draftValue, onDraftChange, conversationId, onBack, onOpenContext, onOpenConfiguration, onRefresh }: { updateRevision:number; eventUpdates:boolean; draftValue: string; onDraftChange: (value: string) => void; conversationId: string; onBack: () => void; onOpenContext: () => void; onOpenConfiguration: () => void; onRefresh: () => Promise<void> }) {
+  return <ConversationView updateRevision={updateRevision} eventUpdates={eventUpdates} draftValue={draftValue} onDraftChange={onDraftChange} key={conversationId} conversationId={conversationId} embedded onBack={onBack} onOpenContext={onOpenContext} onOpenConfiguration={onOpenConfiguration} onRefresh={onRefresh} />;
 }

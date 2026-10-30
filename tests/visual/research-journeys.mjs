@@ -12,7 +12,7 @@ const only=process.argv.find(value=>value.startsWith('--only='))?.slice(7);
 if(only)assert.match(only,/^[A-Za-z0-9-]+$/);
 const base=new URL(process.env.ORKTO_UX_LAB_URL||'http://127.0.0.1:4181/tests/visual/index.html');
 assert.equal(base.hostname,'127.0.0.1');assert.equal(base.protocol,'http:');assert.equal(base.pathname,'/tests/visual/index.html');
-const out=path.resolve('docs/09_EXECUTION/evidence',realSystem?'real-system-2027/browser':comments?'ux-comments-20261029':'ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
+const out=path.resolve('docs/09_EXECUTION/evidence',realSystem?(process.argv.includes('--r2')?'real-system-2027/r2/browser':'real-system-2027/browser'):comments?'ux-comments-20261029':'ux-research-lab-20261028',only?`${phase}-recheck-${only}`:phase);
 await mkdir(out,{recursive:true});
 const report={phase,selectedCase:only||null,sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),workingTreeDirty:!!execFileSync('git',['status','--porcelain'],{encoding:'utf8'}).trim(),productBaseline:realSystem?'c4983ac':comments?'211ca3d':'c289f78',environment:'local_frontend_in_memory_fixture',providerE2E:false,physicalDevice:false,generatedAt:new Date().toISOString(),cases:[],matrix:[],blockedExternalHosts:[]};
 const browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE}:{})});
@@ -49,6 +49,20 @@ async function more(page){await click(page.getByRole('button',{name:/^Mais( mód
 const dialog=page=>page.getByRole('dialog');
 
 try{
+ await run('R8-wia-recovered',[1],390,850,async page=>{
+  let generated=0;page.on('request',request=>{if(new URL(request.url()).pathname==='/api/wia/route-agent')generated++;});
+  await open(page,'wia',{scenario:'wia-recovered'});await page.getByText('Uma resposta foi recuperada da execução salva. Nenhuma nova análise foi solicitada.',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).locator('li').count(),2);assert.equal(generated,0);
+ });
+ for(const width of [390,768,1440])await run(`R8-inbox-resume-${width}`,[4,6],width,850,async page=>{
+  await open(page,'inbox');await page.getByText('Atualização periódica · use Atualizar para consultar agora',{exact:true}).waitFor();
+  await open(page,'inbox',{thread:1});const composer=page.getByRole('textbox',{name:'Mensagem para Marina Costa',exact:true});
+  await fill(composer,'Rascunho sintético preservado','Rascunho sem envio');
+  // The harness implements fetch in memory; it emits no browser network Response event.
+  await page.evaluate(()=>{window.__inboxResumeReads=0;const original=window.fetch.bind(window);window.fetch=(input,init)=>{const url=new URL(typeof input==='string'||input instanceof URL?String(input):input.url,location.origin);if(url.pathname.startsWith('/api/conversations/'))window.__inboxResumeReads++;return original(input,init);};window.dispatchEvent(new Event('online'));});
+  await page.waitForFunction(()=>window.__inboxResumeReads>0);
+  assert.equal(await composer.inputValue(),'Rascunho sintético preservado');current.externalSend='not_attempted';
+ });
  await run('R8-wia-history-error',[1],390,850,async page=>{
   await open(page,'wia',{scenario:'error'});await page.getByRole('alert').filter({hasText:'Histórico indisponível na fixture.'}).waitFor();
   assert.equal(await page.getByRole('list',{name:'Mensagens salvas'}).count(),0);
@@ -209,7 +223,7 @@ try{
   await open(page,'today');current.observed={radius:await page.getByRole('button',{name:'Abrir WIA',exact:true}).evaluate(el=>getComputedStyle(el).borderRadius)};assert.ok(parseFloat(current.observed.radius)>=22);
  });
  // Same DOM/layout cases in both rounds. Emulation is explicitly not physical iOS/Android.
- if(!only)for(const width of comments?[390,768,1440]:[320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of realSystem?['wia']:comments?['today','catalog','settings','reports','team','integrations']:['today','clients','inbox','wia']){
+ if(!only)for(const width of comments?[390,768,1440]:[320,360,390,430,768,1024,1440])for(const theme of ['dark','light'])for(const screen of realSystem?['wia','inbox']:comments?['today','catalog','settings','reports','team','integrations']:['today','clients','inbox','wia']){
   const context=await browser.newContext({viewport:{width,height:850},isMobile:width<1024,hasTouch:width<1024});await context.route('**/*',route=>new URL(route.request().url()).origin===base.origin?route.continue():route.abort());
   const page=await context.newPage();await open(page,screen,screen==='inbox'?{thread:1}:{});if(theme==='light'){await page.getByRole('button',{name:/Ativar tema claro|Claro/,exact:true}).first().click();await page.locator('html:not(.dark)').waitFor();}
   const data=await page.evaluate(()=>({width:innerWidth,documentWidth:document.documentElement.scrollWidth,theme:document.documentElement.classList.contains('dark')?'dark':'light'}));report.matrix.push({screen,...data,overflow:data.documentWidth>data.width});console.log(`MATRIX ${width} ${theme} ${screen}: ${data.documentWidth>data.width ? "OVERFLOW" : "PASS"}`);await context.close();

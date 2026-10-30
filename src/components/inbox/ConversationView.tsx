@@ -75,6 +75,8 @@ type PrivateInstruction = { id: string; content: string; source: 'manager' | 'wi
 type WorkspaceAudienceMember = { user_id: string; role: string };
 
 interface ConversationViewProps {
+  updateRevision?:number;
+  eventUpdates?:boolean;
   draftValue?: string;
   onDraftChange?: (value: string) => void;
   conversationId: string;
@@ -107,6 +109,7 @@ const TRUST_LEVEL_LABELS: Record<TrustLevel, string> = {
 // ─── Componente ──────────────────────────────────────────────────────────────
 
 export default function ConversationView({ 
+  updateRevision=0,eventUpdates=false,
   draftValue, onDraftChange,
   conversationId, 
   onBack, 
@@ -115,6 +118,7 @@ export default function ConversationView({
   onOpenContext,
   onOpenConfiguration,
 }: ConversationViewProps) {
+  const eventUpdatesRef=useRef(eventUpdates);eventUpdatesRef.current=eventUpdates;
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [approvalTasks, setApprovalTasks] = useState<ApprovalTask[]>([]);
@@ -251,9 +255,10 @@ export default function ConversationView({
   useEffect(() => {
     setLoading(true);
     void loadConversation();
-    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void loadConversation(true);},15_000);
+    const timer=window.setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine&&!eventUpdatesRef.current)void loadConversation(true);},30_000);
     return ()=>{conversationRequest.current++;window.clearInterval(timer);};
   }, [loadConversation]);
+  useEffect(()=>{if(updateRevision)void loadConversation(true);},[updateRevision,loadConversation]);
 
   const loadEarlierMessages=async()=>{
     if(!historyCursor||historyBusy)return;

@@ -28,6 +28,26 @@ function database(seed:any[]=[]) {
     }};return db;
 }
 const row=(extra:any={})=>({id:'seed',workspace_id:scope.workspaceId,user_id:scope.actorId,session_id:scope.sessionId,role:'user',message_key:'old',content:'Minha conversa',created_at:'2026-10-29T10:00:00Z',...extra});
+test('reload recovers a durable completed response without inference or GET writes',async()=>{
+  const run={workspace_id:scope.workspaceId,user_id:scope.actorId,status:'succeeded',completed_at:'2026-10-29T10:01:00Z',runtime_response:{path:'t0',decision:{messageDraft:'Resposta já persistida',sourceIds:['quote:synthetic']},usage:{provider:'none',model:'t0-deterministic'}}};
+  const db=database([row({run_id:scope.traceId,run})]);
+  for(let i=0;i<2;i++) {
+    const history=await readWiaChat(db,scope.workspaceId,scope.actorId,scope.sessionId);
+    assert.equal(history.data.length,2);assert.equal(history.data[1].recovered,true);
+    assert.equal(history.data[1].content,'Resposta já persistida');assert.deepEqual(history.data[1].sourceIds,['quote:synthetic']);
+  }
+  assert.equal(db.rows.length,1);assert.equal(db.finishes,0);
+  db.rows.push(row({id:'saved-reply',role:'assistant',run_id:scope.traceId,run,content:'Resposta já persistida',created_at:run.completed_at}));
+  const history=await readWiaChat(db,scope.workspaceId,scope.actorId,scope.sessionId);
+  assert.equal(history.data.length,2);assert.equal(history.data.some((r:any)=>r.recovered),false);
+});
+test('reload cannot recover foreign, running, failed, malformed or oversized run output',async()=>{
+  const run={workspace_id:scope.workspaceId,user_id:scope.actorId,status:'succeeded',completed_at:'2026-10-29T10:01:00Z',runtime_response:{decision:{messageDraft:'Private output'}}};
+  for(const extra of [{workspace_id:'foreign'},{user_id:'foreign'},{status:'failed'},{status:'running'},{completed_at:'invalid'},{runtime_response:{decision:{messageDraft:'x'.repeat(4001)}}}]) {
+    const history=await readWiaChat(database([row({run_id:scope.traceId,run:{...run,...extra}})]),scope.workspaceId,scope.actorId,scope.sessionId);
+    assert.equal(history.data.length,1);assert.equal(history.data.some((r:any)=>r.recovered),false);
+  }
+});
 test('chat upsert is durable, idempotent and never overwrites a conflicting message',async()=>{
   const db=database();await saveChatMessage(db,scope,'user','Olá');await saveChatMessage(db,scope,'user','Olá');
   assert.equal(db.rows.length,1);await assert.rejects(saveChatMessage(db,scope,'user','Outra mensagem'));
