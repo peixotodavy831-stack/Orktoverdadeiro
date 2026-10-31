@@ -51,7 +51,7 @@ export function googlePkceContexts({publicKey,verifyDeployment,loginTimeoutMs=15
         // Attach a rejection observer immediately, before page navigation can fail.
         callback.catch(()=>{});
         timer=setTimeout(()=>rejectCallback(rejected()),loginTimeoutMs);
-        await context.route(url=>url.origin===T.preview,async route=>{
+        await context.route(url=>url.origin===T.oauthCallback,async route=>{
           try{
             const request=route.request(),url=new URL(request.url());
             if(!request.isNavigationRequest()||request.frame()!==page.mainFrame()||url.pathname!=='/'
@@ -70,11 +70,11 @@ export function googlePkceContexts({publicKey,verifyDeployment,loginTimeoutMs=15
             resolveCallback();
           }catch{await route.abort().catch(()=>{});rejectCallback(rejected());}
         });
-        const {data,error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:`${T.preview}/`,
+        const {data,error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:`${T.oauthCallback}/`,
           skipBrowserRedirect:true,queryParams:{login_hint:hints[actor],prompt:'select_account'}}});
         const oauth=new URL(data?.url||T.preview);
         if(error||oauth.origin!==T.supabase||oauth.pathname!=='/auth/v1/authorize'
-          ||oauth.searchParams.get('provider')!=='google'||oauth.searchParams.get('redirect_to')!==`${T.preview}/`
+          ||oauth.searchParams.get('provider')!=='google'||oauth.searchParams.get('redirect_to')!==`${T.oauthCallback}/`
           ||oauth.searchParams.get('code_challenge_method')!=='s256'||!oauth.searchParams.get('code_challenge'))throw rejected();
         phase(actor,'HUMAN_GOOGLE_LOGIN_REQUIRED');
         await page.goto(oauth.href,{waitUntil:'domcontentloaded',timeout:60_000});

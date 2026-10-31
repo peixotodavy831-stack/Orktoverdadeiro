@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {googlePkceContexts} from '../readiness/google-pkce-contexts.mjs';
 import {GOOGLE_AB_TARGET as T} from '../readiness/google-ab-transport.mjs';
 
-function setup({wrongIdentity=false,repeated=false,wrongCallback=false,wrongOAuth=false,exchangeError=false}={}){
+function setup({wrongIdentity=false,repeated=false,wrongCallback=false,wrongOAuth=false,exchangeError=false,wrongRedirect=false}={}){
  const events=[],storages=[],sdkOptions=[],created=[],closed=[];let browserClosed=false;
  const verifyDeployment=async()=>({deployment:{projectId:'prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc',url:new URL(T.preview).hostname,
    target:null,readyState:'READY',meta:{githubCommitSha:T.sha}}});
@@ -12,10 +12,10 @@ function setup({wrongIdentity=false,repeated=false,wrongCallback=false,wrongOAut
   return {newContext:async()=>{
    const actor=created.length?'B':'A';let handler;const frame={};
    const context={newPage:async()=>({mainFrame:()=>frame,goto:async()=>{
-    const request={url:()=>`${T.preview}/${wrongCallback?'bad':''}?code=fixture-code-${actor}`,isNavigationRequest:()=>true,frame:()=>frame};
+    const request={url:()=>`${T.oauthCallback}/${wrongCallback?'bad':''}?code=fixture-code-${actor}`,isNavigationRequest:()=>true,frame:()=>frame};
     const route={request:()=>request,abort:async()=>{},fulfill:async value=>{assert.ok(!value.body.includes('fixture-code'));}};
     await handler(route);if(repeated)await handler(route);
-   }}),route:async(matcher,fn)=>{assert.equal(matcher(new URL(T.preview)),true);handler=fn;},close:async()=>{closed.push(actor);}};
+   }}),route:async(matcher,fn)=>{assert.equal(matcher(new URL(T.oauthCallback)),true);assert.equal(matcher(new URL(T.preview)),false);assert.equal(matcher(new URL('https://foreign.invalid')),false);handler=fn;},close:async()=>{closed.push(actor);}};
    created.push(context);return context;
   },close:async()=>{browserClosed=true;}};
  };
@@ -24,8 +24,8 @@ function setup({wrongIdentity=false,repeated=false,wrongCallback=false,wrongOAut
   sdkOptions.push(options);storages.push(options.auth.storage);const actor=sdkOptions.length===1?'A':'B';
   options.auth.storage.setItem('verifier',`private-verifier-${actor}`);
   return {auth:{stopAutoRefresh:async()=>{},signInWithOAuth:async input=>{
-   assert.equal(input.provider,'google');assert.equal(input.options.skipBrowserRedirect,true);assert.equal(input.options.redirectTo,`${T.preview}/`);
-   return {data:{url:`${wrongOAuth?'https://foreign.invalid':T.supabase}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(T.preview+'/')}&code_challenge_method=s256&code_challenge=fixture-challenge`}};
+   assert.equal(input.provider,'google');assert.equal(input.options.skipBrowserRedirect,true);assert.equal(input.options.redirectTo,`${T.oauthCallback}/`);
+   return {data:{url:`${wrongOAuth?'https://foreign.invalid':T.supabase}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent((wrongRedirect?T.preview:T.oauthCallback)+'/')}&code_challenge_method=s256&code_challenge=fixture-challenge`}};
   },exchangeCodeForSession:async code=>{
    assert.equal(code,`fixture-code-${actor}`);assert.equal(options.auth.storage.getItem('verifier'),`private-verifier-${actor}`);
    if(exchangeError)return {error:new Error('unsafe fixture-code token diagnostic')};
@@ -55,7 +55,7 @@ test('wrong deployment never starts a browser or initiates OAuth',async()=>{
 });
 
 test('callback path, identity, OAuth origin and exchange failure are closed without credential-bearing errors',async()=>{
- for(const options of [{wrongIdentity:true},{wrongCallback:true},{wrongOAuth:true},{exchangeError:true}]){
+ for(const options of [{wrongIdentity:true},{wrongCallback:true},{wrongOAuth:true},{exchangeError:true},{wrongRedirect:true}]){
   const f=setup(options),executor=googlePkceContexts(f.config);
   await assert.rejects(executor.acquireContexts(),error=>error.message==='GOOGLE_PKCE_ACQUISITION_FAILED');
   assert.equal(f.browserClosed(),true);assert.ok(f.storages.every(s=>s.getItem('verifier')===null));

@@ -4,7 +4,10 @@ import {validateStagingPreviewDeployment} from './staging-e2e-config.mjs';
 
 export const GOOGLE_AB_TARGET=Object.freeze({
   sha:'389a9c893a87ea18785241e7f6a1a219d964dd53',
-  preview:'https://orkto-staging-r3z7b1byb-peixoto-s-projects1.vercel.app',
+  preview:'https://orkto-staging-frefbzvte-peixoto-s-projects1.vercel.app',
+  // Previously approved OAuth callback, intercepted by the initiating PKCE
+  // context. HTTP assertions still target the candidate above, never this host.
+  oauthCallback:'https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app',
   supabase:'https://ghrjongiodziasupakrk.supabase.co',
   actors:Object.freeze({A:'326864da-7e92-4cb6-a968-9a8411f312a8',B:'0486a0c4-3ac8-4655-9d35-24308ed85018'}),
 });
