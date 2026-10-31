@@ -1,0 +1,65 @@
+{
+  "date": "2026-10-31",
+  "runtimeSha": "389a9c893a87ea18785241e7f6a1a219d964dd53",
+  "toolsSha": "3fd27efda689edf77b5f76bc4600fe042b08f483",
+  "environment": "staging",
+  "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "deployment": {
+    "id": "dpl_3ntLY4HfcFBHvNXy2bC86TanwctV",
+    "url": "orkto-staging-frefbzvte-peixoto-s-projects1.vercel.app",
+    "readyState": "READY",
+    "target": null,
+    "meta": {
+      "githubCommitRef": "feat/orkto-real-system-2027",
+      "githubCommitSha": "389a9c893a87ea18785241e7f6a1a219d964dd53",
+      "githubCommitMessage": "docs(real-system): verify staging migrations and core v33 rollout",
+      "githubRepo": "Orktoverdadeiro",
+      "githubOrg": "peixotodavy831-stack"
+    }
+  },
+  "transportResolution": {
+    "oldTarget": "staging (undeclared custom environment)",
+    "ownerAuthorized": "development -> staging only",
+    "ruleApplied": false,
+    "apiError": "Custom environment not found for project orkto-staging: staging",
+    "solution": "Same SHA as normal Preview in the staging project; existing development-to-preview default",
+    "tlsVerification": true,
+    "protectionDisabled": false,
+    "sharedLinkCreated": false,
+    "productionAccessBroadened": false,
+    "trustedSourcesUnchanged": true
+  },
+  "http": {
+    "health": {
+      "status": 200,
+      "statusValue": "ok"
+    },
+    "ready": {
+      "status": 200,
+      "statusValue": "ready"
+    },
+    "clientsWithoutSession": {
+      "status": 401
+    },
+    "authSettings": {
+      "status": 200,
+      "google": true,
+      "email": false,
+      "phone": false,
+      "anonymous": false
+    }
+  },
+  "googleExecutor": {
+    "oauthCallback": "https://orkto-staging-1qkrj43tb-peixoto-s-projects1.vercel.app",
+    "callbackAlreadyApproved": true,
+    "callbackCloudModified": false,
+    "apiTargetsCandidate": true,
+    "appFrontendOAuthCallbackValidated": false,
+    "state": "Waiting for owner Google login A in isolated Chrome; B follows",
+    "sessionsExported": false,
+    "tests": "NOT_TESTED until real execution completes",
+    "g06": "NOT_TESTED: no approved synthetic client fixtures found",
+    "g08": "NOT_TESTED: needs verified rotation/reuse configuration and separate session round"
+  },
+  "readyForProductionCandidate": "NO"
+}

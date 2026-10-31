@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-31",
+  "runtimeSha": "389a9c893a87ea18785241e7f6a1a219d964dd53",
+  "toolsSha": "01f7233bf7723a75a5b582179e76c61eaa3b5590",
+  "applicationTests": {
+    "environment": "local_doubles",
+    "pass": 425,
+    "fail": 0
+  },
+  "toolTests": {
+    "fail": 0,
+    "pass": 110
+  },
+  "newTargetTests": {
+    "fail": 0,
+    "pass": 38
+  },
+  "edgeTypecheck": "PASS",
+  "logs": {
+    "targetTests": "cff6b565bf0ed2d68845af38183ec7749dc24460f5a845b2b73f25c32e891297",
+    "appTools": "f1569f5e86414fc525e4093661944ec7562399357b87a3f33509d722f58aee77"
+  },
+  "negativeSupabaseHttp": {
+    "environment": "staging",
+    "googleAB": false,
+    "chatCode": "42501",
+    "coreNoSession": 401,
+    "chatNoSession": 401,
+    "edgeVersion": 33
+  },
+  "ci": {
+    "boundaryRun": 41212046064,
+    "status": "PASS: both workflows and all jobs completed successfully",
+    "postgresRun": 41212048690,
+    "sha": "01f7233bf7723a75a5b582179e76c61eaa3b5590"
+  },
+  "productionModified": false,
+  "pr2Modified": false,
+  "realCharges": 0,
+  "paidInference": 0,
+  "externalMessages": 0,
+  "readyForProductionCandidate": "NO",
+  "latestToolsSha": "3fd27efda689edf77b5f76bc4600fe042b08f483",
+  "latestToolsCi": {
+    "sha": "3fd27efda689edf77b5f76bc4600fe042b08f483",
+    "id": 41212578448,
+    "conclusion": "success"
+  },
+  "transportResolved": {
+    "trustedSourcesChanged": false,
+    "anonymousClients": 401,
+    "target": "preview/null",
+    "health": 200,
+    "ready": 200,
+    "preview": "https://orkto-staging-frefbzvte-peixoto-s-projects1.vercel.app"
+  },
+  "finalSecretScan": {
+    "scanned": 829,
+    "findings": 0,
+    "blockers": 0,
+    "review": 0,
+    "status": "PASS"
+  }
+}

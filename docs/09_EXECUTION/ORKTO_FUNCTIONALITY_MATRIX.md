@@ -1,5 +1,9 @@
 # ORKTO Real System — matriz R2
 
+**R4, resolução do transporte:** Preview normal frefbzvte, mesmo runtime389a9c8: health/ready200 e clients sem sessão401. Trusted Sources não foi alterado. Ferramentas3fd27ef; aquisição Google A iniciada em Chrome isolado, ainda sem conclusão A/B. Não promover a barreira anônima ou o callback reutilizado a E2E do frontend novo.
+
+**Estado vigente31/10/2026:** consultar [matriz R4](ORKTO_REAL_SYSTEM_R4.md). Core33 ACTIVE e fonte verificada;54 migrations presentes; candidato389a9c8 READY; Auth Google-only e negativos sem sessão confirmados por HTTP real. Health/API continuam bloqueados pela proteção Vercel; Google A/B, IA, Meta e billing não homologados. A tabela R2 abaixo permanece histórica.
+
 **Atualização R3:** [matriz de homologação e evidências atuais](ORKTO_REAL_SYSTEM_R3.md). A tabela abaixo permanece histórica da R2; não usar seus bloqueios de conexão como estado definitivo após a reconexão. O publicador foi corrigido em `414fa6c`, com110/110 testes locais de ferramentas. Não houve homologação remota nesta retomada.
 
 30/10/2026. Código local R2 `77634fd` (R1 `939426c` preservado). `REAL_VERIFIED` nesta tabela exige ler a coluna ambiente: comprovação em PostgreSQL local ou teste com double não é comprovação staging/fornecedor.

@@ -1,0 +1,44 @@
+[
+  {
+    "id": 41212046064,
+    "sha": "01f7233bf7723a75a5b582179e76c61eaa3b5590",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/41212046064",
+    "jobs": [
+      {
+        "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/41212046064/job/124568889595",
+        "status": "completed",
+        "name": "provider-boundaries",
+        "conclusion": "success"
+      },
+      {
+        "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/41212046064/job/124568889786",
+        "status": "completed",
+        "name": "boundary",
+        "conclusion": "success"
+      }
+    ]
+  },
+  {
+    "id": 41212048690,
+    "sha": "01f7233bf7723a75a5b582179e76c61eaa3b5590",
+    "status": "completed",
+    "conclusion": "success",
+    "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/41212048690",
+    "jobs": [
+      {
+        "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/41212048690/job/124568894330",
+        "status": "completed",
+        "name": "Legacy fixture + 50 migrations + assertions",
+        "conclusion": "success"
+      },
+      {
+        "url": "https://github.com/peixotodavy831-stack/Orktoverdadeiro/actions/runs/41212048690/job/124568894601",
+        "status": "completed",
+        "name": "Supabase-like baseline + pending migrations + security assertions",
+        "conclusion": "success"
+      }
+    ]
+  }
+]

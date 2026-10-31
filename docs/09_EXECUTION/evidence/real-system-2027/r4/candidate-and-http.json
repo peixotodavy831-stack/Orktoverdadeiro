@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-31",
+  "supersededBy": "dpl_3ntLY4HfcFBHvNXy2bC86TanwctV: normal Preview of same staging project and runtime SHA",
+  "environment": "staging",
+  "runtimeSha": "389a9c893a87ea18785241e7f6a1a219d964dd53",
+  "projectId": "prj_KZm12jmZIKL3Tqnk2I9DBa9MabKc",
+  "teamId": "team_7mNnmcZNv9miOp7pl7otO6wE",
+  "deployment": {
+    "id": "dpl_AbwFf15j2mXYuTPnbiQ6HUKWykfr",
+    "url": "orkto-staging-r3z7b1byb-peixoto-s-projects1.vercel.app",
+    "readyState": "READY",
+    "target": "staging",
+    "meta": {
+      "githubCommitRef": "feat/orkto-real-system-2027",
+      "githubCommitSha": "389a9c893a87ea18785241e7f6a1a219d964dd53",
+      "githubCommitMessage": "docs(real-system): verify staging migrations and core v33 rollout",
+      "githubRepo": "Orktoverdadeiro",
+      "githubOrg": "peixotodavy831-stack"
+    }
+  },
+  "coreVersion": 33,
+  "cancelledAttempt": "dpl_9KYooeauzBcHTSmk1AWdb8UtQqrh: literal SHA was interpreted as branch, cancelled before READY",
+  "branchAuthVariables": {
+    "target": "preview",
+    "gitBranch": "feat/orkto-real-system-2027",
+    "ORKTO_AUTH_MODE": "google_pilot",
+    "VITE_ORKTO_AUTH_MODE": "google_pilot",
+    "verifiedBy": "branch metadata readback and CLI env run in memory"
+  },
+  "http": {
+    "transport": "Node TLS system CA + origin-scoped short-lived development OIDC, no session files",
+    "authSettings": {
+      "status": 200,
+      "google": true,
+      "email": false,
+      "phone": false,
+      "anonymous": false
+    },
+    "candidate": [
+      {
+        "path": "/api/health",
+        "status": 403,
+        "category": "TRUSTED_SOURCES_ENVIRONMENT_MISMATCH"
+      },
+      {
+        "path": "/api/ready",
+        "status": 403,
+        "category": "TRUSTED_SOURCES_ENVIRONMENT_MISMATCH"
+      },
+      {
+        "path": "/api/clients",
+        "status": 403,
+        "category": "TRUSTED_SOURCES_ENVIRONMENT_MISMATCH"
+      }
+    ],
+    "applicationHealth": "BLOCKED_EXTERNAL: request did not reach application",
+    "googleAB": "NOT_TESTED"
+  },
+  "protection": {
+    "sso": "all_except_custom_domains",
+    "trustedSources": null,
+    "requestedAddition": "self project development -> staging only; awaiting owner authorization",
+    "sharedLinkCreated": false,
+    "tlsDisabled": false,
+    "productionAccessBroadened": false
+  },
+  "readyForProductionCandidate": "NO"
+}
